@@ -1,155 +1,167 @@
 <!doctype html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>抽卡</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>抽卡 | Anime Character Forge</title>
+  <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-  <div class="container">
-    <div class="topbar">
-      <a class="brand" href="index.html">
-        <div class="logo"></div>
-        <h1>Anime Character Forge</h1>
-      </a>
-      <div class="right">
-        <div class="badge" id="netBadge">Connecting</div>
-        <a class="badge" href="profile.html">My</a>
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo"></div>
+      <div class="title">Anime Character Forge</div>
+    </div>
+    <div class="right">
+      <a class="pill" href="gacha.html">抽卡</a>
+      <a class="pill" href="gallery.html">Gallery</a>
+      <a class="pill" href="studio.html">Studio</a>
+      <a class="pill" href="profile.html">My</a>
+      <span class="mode-badge" id="modeBadge">Online</span>
+    </div>
+  </div>
+
+  <div class="page">
+    <div class="panel left">
+      <h2>抽卡</h2>
+
+      <label class="label">抽哪一類</label>
+      <select id="typeSel" class="select">
+        <option value="head">頭部</option>
+        <option value="body">身體</option>
+        <option value="background">背景</option>
+        <option value="addon1">add on 1</option>
+        <option value="addon2">add on 2</option>
+      </select>
+
+      <label class="label" style="margin-top:14px;">抽幾抽</label>
+      <select id="rollsSel" class="select">
+        <option value="1">1</option>
+        <option value="10">10</option>
+      </select>
+
+      <button id="pullBtn" class="btn primary" style="margin-top:14px;">開始抽</button>
+
+      <div class="hint" style="margin-top:18px;">
+        線上模式會呼叫 Cloudflare Worker 並寫入 D1<br/>
+        離線模式只會存在本機 localStorage
       </div>
     </div>
 
-    
-<div class="card">
-  <div class="cardHeader">
-    <h2>抽卡</h2>
-    <a class="badge" href="hub.html">返回</a>
-  </div>
-  <div class="cardBody">
-    <div class="grid">
-      <div class="col5">
-        <label class="help">抽哪一類</label>
-        <select class="input" id="typeSel">
-          <option value="head">頭部</option>
-          <option value="body">身體</option>
-          <option value="accessory">附件</option>
-          <option value="background">背景</option>
-        </select>
-        <div style="height:12px"></div>
-
-        <label class="help">抽幾抽</label>
-        <select class="input" id="countSel">
-          <option value="1">1</option>
-          <option value="10">10</option>
-        </select>
-
-        <div style="height:12px"></div>
-
-        <button class="btn btnPrimary" id="pullBtn">開始抽</button>
-
-        <div class="hr"></div>
-
-        <div class="notice">
-          你可以先用離線模式玩
-          部署 Cloudflare 後端後抽卡與背包會自動切到線上
-        </div>
+    <div class="panel main">
+      <div class="previewBox">
+        <img id="pullPreview" alt="pull preview" />
       </div>
 
-      <div class="col7">
-        <div class="stage" style="aspect-ratio: 16 / 9;">
-          <img class="layer" id="pullPreview" alt="pull preview" />
+      <div class="resultRow">
+        <div class="resultCol">
+          <div class="labelSmall">結果</div>
+          <div id="resultText" class="resultText">—</div>
         </div>
-        <div style="height:10px"></div>
-
-        <table class="table" id="resultTable">
-          <thead><tr><th>結果</th><th>稀有度</th><th>素材</th></tr></thead>
-          <tbody></tbody>
-        </table>
+        <div class="resultCol">
+          <div class="labelSmall">稀有度</div>
+          <div id="rarityText" class="resultText">—</div>
+        </div>
+        <div class="resultCol">
+          <div class="labelSmall">素材</div>
+          <div id="assetText" class="resultText">—</div>
+        </div>
       </div>
     </div>
-  </div>
-</div>
-
   </div>
 
   <script src="app.js"></script>
-  
-<script>
-(async function(){
-  await initSession();
-  q("#netBadge").textContent = APP.offline ? "Offline" : "Online";
+  <script>
+    const modeBadge = document.getElementById("modeBadge");
+    const typeSel = document.getElementById("typeSel");
+    const rollsSel = document.getElementById("rollsSel");
+    const pullBtn = document.getElementById("pullBtn");
+    const pullPreview = document.getElementById("pullPreview");
+    const resultText = document.getElementById("resultText");
+    const rarityText = document.getElementById("rarityText");
+    const assetText = document.getElementById("assetText");
 
-  const tbody = q("#resultTable tbody");
-  const db = offlineDb();
-  const cached = getAssetsCached();
-  const assetsAll = (cached && cached.length) ? cached : db.assets;
-  const byId = new Map(assetsAll.map(a=>[a.assetId,a]));
-
-  function addToInventory(uid, assetId){
-    const k = `${uid}:${assetId}`;
-    db.userAssets[k] = (db.userAssets[k] || 0) + 1;
-  }
-
-  async function pullOffline(type, count){
-    const pool = db.assets.filter(a=>a.type===type);
-    const items = [];
-    for(let i=0;i<count;i++){
-      const rarity = pickWeightedRarity();
-      const cand = pool.filter(a=>a.rarity===rarity);
-      const picked = randPick(cand.length ? cand : pool);
-      items.push(picked.assetId);
-      addToInventory(APP.uid, picked.assetId);
+    function setPreview(src){
+      pullPreview.src = src || "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
+      pullPreview.onerror = () => {
+        pullPreview.src = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
+      };
     }
-    saveOfflineDb(db);
-    return { ok:true, items };
-  }
 
-  async function pullOnline(type, count){
-    const data = await api("/api/gacha", {
-      method:"POST",
-      body: JSON.stringify({ type, rolls: count })
+    (async () => {
+      await initSession();
+      modeBadge.textContent = IS_OFFLINE ? "Offline" : "Online";
+      // warm cache so UI can resolve assetId->imageUrl if needed
+      try { await getAssetsCached(false); } catch {}
+    })();
+
+    pullBtn.addEventListener("click", async () => {
+      pullBtn.disabled = true;
+      resultText.textContent = "抽卡中…";
+      rarityText.textContent = "—";
+      assetText.textContent = "—";
+      setPreview("");
+
+      const type = typeSel.value;
+      const rolls = parseInt(rollsSel.value, 10) || 1;
+
+      try {
+        if (IS_OFFLINE) {
+          // offline mock pull: pick random asset by type from cached assets
+          const assets = await getAssetsCached(false);
+          const pool = assets.filter(a => a.type === type);
+          if (!pool.length) throw new Error("no_assets_for_type");
+          const picked = pool[Math.floor(Math.random() * pool.length)];
+          resultText.textContent = "抽到了";
+          rarityText.textContent = rarityPill(picked.rarity || 1);
+          assetText.textContent = picked.assetId || picked.id || picked.name || "asset";
+          setPreview(picked.imageUrl || "");
+          toast("離線抽到 1 個素材");
+          pullBtn.disabled = false;
+          return;
+        }
+
+        // Online: Worker gacha
+        const data = await apiFetch("/api/gacha", {
+          method: "POST",
+          body: JSON.stringify({ type, rolls }),
+        });
+
+        if (!data || data.ok === false) {
+          throw new Error(data?.error || "gacha_failed");
+        }
+
+        // Accept a few possible response shapes
+        const first =
+          (Array.isArray(data.results) && data.results[0]) ||
+          (Array.isArray(data.items) && data.items[0]) ||
+          (Array.isArray(data.pulls) && data.pulls[0]) ||
+          data.result ||
+          null;
+
+        if (!first) throw new Error("empty_result");
+
+        const assetId = first.assetId || first.id || first.name || "";
+        const rarity = first.rarity ?? first.rarityId ?? 1;
+        const imageUrl = first.imageUrl || first.url || "";
+
+        resultText.textContent = "抽到了";
+        rarityText.textContent = rarityPill(rarity);
+        assetText.textContent = assetId;
+
+        setPreview(imageUrl);
+
+        toast("已寫入 D1");
+      } catch (e) {
+        console.error(e);
+        resultText.textContent = "抽卡失敗";
+        rarityText.textContent = "—";
+        assetText.textContent = String(e?.message || e);
+        toast("抽卡失敗，請看 Console");
+      } finally {
+        pullBtn.disabled = false;
+      }
     });
-    if(!data || !data.ok) return null;
-
-    // sync local inventory so other pages can reuse the same store
-    const db2 = offlineDb();
-    const uid = APP.uid;
-    for(const it of (data.pulled || [])){
-      const k = `${uid}:${it.assetId}`;
-      db2.userAssets[k] = (db2.userAssets[k] || 0) + 1;
-    }
-    saveOfflineDb(db2);
-
-    return { ok:true, items: (data.pulled||[]).map(x=>x.assetId), pulled: data.pulled||[] };
-  }
-
-  function render(items, pulledObjs){
-    tbody.innerHTML = "";
-    const firstObj = (pulledObjs && pulledObjs.length) ? pulledObjs[0] : null;
-    const firstId = items.slice(0,1)[0];
-    const a0 = firstObj || byId.get(firstId);
-    q("#pullPreview").src = a0?.imageUrl || "";
-
-    items.forEach((id, idx)=>{
-      const a = (pulledObjs && pulledObjs[idx]) ? pulledObjs[idx] : byId.get(id);
-      const tr = document.createElement("tr");
-      tr.innerHTML = `<td>#${idx+1}</td><td>${rarityPill(a?.rarity||1)}</td><td>${a?.name||id}</td>`;
-      tbody.appendChild(tr);
-    });
-  }
-
-  q("#pullBtn").addEventListener("click", async ()=>{
-    const type = q("#typeSel").value;
-    const count = Number(q("#countSel").value);
-    toast("抽卡中");
-    let data = await pullOnline(type, count);
-    if(!data) data = await pullOffline(type, count);
-    q("#netBadge").textContent = APP.offline ? "Offline" : "Online";
-    render(data.items || [], data.pulled || null);
-    toast("抽到了");
-  });
-})();
-</script>
-
+  </script>
 </body>
 </html>
