@@ -81,7 +81,9 @@
 
   const tbody = q("#resultTable tbody");
   const db = offlineDb();
-  const byId = new Map(db.assets.map(a=>[a.assetId,a]));
+  const cached = getAssetsCached();
+  const assetsAll = (cached && cached.length) ? cached : db.assets;
+  const byId = new Map(assetsAll.map(a=>[a.assetId,a]));
 
   function addToInventory(uid, assetId){
     const k = `${uid}:${assetId}`;
@@ -103,21 +105,33 @@
   }
 
   async function pullOnline(type, count){
-    const data = await apiFetch("/api/gacha/pull", {
+    const data = await api("/api/gacha", {
       method:"POST",
-      body: JSON.stringify({ uid: APP.uid, type, count })
+      body: JSON.stringify({ type, rolls: count })
     });
-    if(!data) return null;
-    return data;
+    if(!data || !data.ok) return null;
+
+    // sync local inventory so other pages can reuse the same store
+    const db2 = offlineDb();
+    const uid = APP.uid;
+    for(const it of (data.pulled || [])){
+      const k = `${uid}:${it.assetId}`;
+      db2.userAssets[k] = (db2.userAssets[k] || 0) + 1;
+    }
+    saveOfflineDb(db2);
+
+    return { ok:true, items: (data.pulled||[]).map(x=>x.assetId), pulled: data.pulled||[] };
   }
 
-  function render(items){
+  function render(items, pulledObjs){
     tbody.innerHTML = "";
-    const show = items.slice(0,1)[0];
-    const a0 = byId.get(show);
+    const firstObj = (pulledObjs && pulledObjs.length) ? pulledObjs[0] : null;
+    const firstId = items.slice(0,1)[0];
+    const a0 = firstObj || byId.get(firstId);
     q("#pullPreview").src = a0?.imageUrl || "";
+
     items.forEach((id, idx)=>{
-      const a = byId.get(id);
+      const a = (pulledObjs && pulledObjs[idx]) ? pulledObjs[idx] : byId.get(id);
       const tr = document.createElement("tr");
       tr.innerHTML = `<td>#${idx+1}</td><td>${rarityPill(a?.rarity||1)}</td><td>${a?.name||id}</td>`;
       tbody.appendChild(tr);
@@ -131,7 +145,7 @@
     let data = await pullOnline(type, count);
     if(!data) data = await pullOffline(type, count);
     q("#netBadge").textContent = APP.offline ? "Offline" : "Online";
-    render(data.items || []);
+    render(data.items || [], data.pulled || null);
     toast("抽到了");
   });
 })();
