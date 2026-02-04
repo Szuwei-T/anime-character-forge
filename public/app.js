@@ -10,7 +10,7 @@ const WORKER_BASE =
     ? ""
     : "https://acf-api.dream-league-baseball.workers.dev";
 
-APP.apiBase = WORKER_BASE;
+const IS_OFFLINE = WORKER_BASE === "";
 
 function q(sel, root=document){ return root.querySelector(sel); }
 function qa(sel, root=document){ return Array.from(root.querySelectorAll(sel)); }
@@ -48,7 +48,7 @@ function setName(n){
 }
 
 function offlineDb(){
-  const key = "acf_offline_db_v2";
+  const key = "acf_offline_db_v1";
   const raw = localStorage.getItem(key);
   if(raw){
     try{ return JSON.parse(raw); }catch(e){}
@@ -102,75 +102,58 @@ function offlineDb(){
         rarity:4,
         previewUrl:"assets/recipe_1.png",
       },
+      {
+        recipeId:"R002",
+        name:"Neon Mage",
+        headId:"A010",
+        bodyId:"A120",
+        bgId:"A320",
+        accessoryIds:["A240"],
+        rarity:5,
+        previewUrl:"assets/recipe_2.png",
+      },
+      {
+        recipeId:"R003",
+        name:"Crimson Knight",
+        headId:"A020",
+        bodyId:"A130",
+        bgId:"A330",
+        accessoryIds:["A260","A261","A262"],
+        rarity:5,
+        previewUrl:"assets/recipe_3.png",
+      },
     ];
   }
 }
 
 function saveOfflineDb(db){
-  localStorage.setItem("acf_offline_db_v2", JSON.stringify(db));
+  localStorage.setItem("acf_offline_db_v1", JSON.stringify(db));
 }
 
-async function api(path, options={}){
-  if(!APP.apiBase){
-    APP.offline = true;
-    throw new Error("offline_no_api_base");
-  }
-  const url = APP.apiBase + path;
-  const headers = Object.assign(
-    { "content-type":"application/json", "x-user-id": getOrCreateUid() },
-    options.headers || {}
-  );
+async function apiFetch(path, options={}){
+  const url = (WORKER_BASE || "") + path;
+  const headers = Object.assign({ "Content-Type":"application/json" }, options.headers || {});
   const opts = Object.assign({}, options, { headers });
-  const res = await fetch(url, opts);
-  if(!res.ok){
-    const t = await res.text().catch(()=> "");
-    throw new Error(`HTTP ${res.status} ${t}`);
-  }
-  APP.offline = false;
-  return await res.json();
-}
-
-async function syncAssetsCacheOnline(){
   try{
-    const data = await api("/api/assets", { method:"GET" });
-    if(data && data.ok && Array.isArray(data.assets)){
-      localStorage.setItem("acf_assets_cache_v1", JSON.stringify(data.assets));
-      return data.assets;
-    }
-  }catch(e){}
-  return null;
-}
-
-function getAssetsCached(){
-  const raw = localStorage.getItem("acf_assets_cache_v1");
-  if(!raw) return null;
-  try{ return JSON.parse(raw); }catch(e){ return null; }
-}
-
-async function syncInventoryOnline(){
-  const db = offlineDb();
-  try{
-    const data = await api("/api/me/assets", { method:"GET" });
-    if(!data || !data.ok) return false;
-
-    const uid = getOrCreateUid();
-    for(const row of (data.items || [])){
-      const k = `${uid}:${row.assetId}`;
-      db.userAssets[k] = row.count;
-    }
-    saveOfflineDb(db);
-    return true;
+    const res = await fetch(url, opts);
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    APP.offline = false;
+    return data;
   }catch(e){
-    return false;
+    APP.offline = true;
+    return null;
   }
 }
 
 async function initSession(){
   APP.uid = getOrCreateUid();
   APP.name = getName();
-
-  if(!APP.apiBase){
-    APP.offline = true;
+  const data = await apiFetch("/api/session/init", {
+    method:"POST",
+    body: JSON.stringify({ uid: APP.uid, displayName: APP.name })
+  });
+  if(!data){
     const db = offlineDb();
     if(!db.users[APP.uid]){
       db.users[APP.uid] = { uid: APP.uid, displayName: APP.name, createdAt: Date.now() };
@@ -178,29 +161,75 @@ async function initSession(){
     }
     return { ok:true, offline:true };
   }
-
-  try{
-    await api("/api/ping", { method:"GET" });
-    await syncAssetsCacheOnline();
-    await syncInventoryOnline();
-    return { ok:true, offline:false };
-  }catch(e){
-    APP.offline = true;
-    const db = offlineDb();
-    if(!db.users[APP.uid]){
-      db.users[APP.uid] = { uid: APP.uid, displayName: APP.name, createdAt: Date.now() };
-      saveOfflineDb(db);
-    }
-    return { ok:true, offline:true };
-  }
+  return data;
 }
 
 function rarityPill(r){
   return `<span class="pill">⭐ ${r}</span>`;
 }
 
+function byRarityDesc(a,b){ return (b.rarity||0)-(a.rarity||0); }
+
+function pickWeightedRarity(){
+  const r = Math.random();
+  if(r < 0.01) return 5;
+  if(r < 0.07) return 4;
+  if(r < 0.25) return 3;
+  if(r < 0.55) return 2;
+  return 1;
+}
+
+function randPick(arr){
+  return arr[Math.floor(Math.random()*arr.length)];
+}
+
 function normalizeAccessoryIds(ids){
   return Array.from(new Set((ids||[]).filter(Boolean))).sort();
 }
 
+function sameSet(a,b){
+  if(a.length !== b.length) return false;
+  for(let i=0;i<a.length;i++) if(a[i]!==b[i]) return false;
+  return true;
+}
+
+async function api(path, opts){
+  if(IS_OFFLINE){
+    throw new Error("offline_mode_no_worker");
+  }
+  const res = await fetch(WORKER_BASE + path, {
+    ...opts,
+    headers: {
+      ...(opts?.headers || {}),
+      "content-type": "application/json",
+      "x-user-id": getOrCreateUid()
+    }
+  });
+  return await res.json();
+}
+
+function getOrCreateUid(){
+  let uid = localStorage.getItem("acf_uid");
+  if(!uid){
+    uid = crypto.randomUUID();
+    localStorage.setItem("acf_uid", uid);
+  }
+  return uid;
+}
+
 window.APP = APP;
+window.q = q;
+window.qa = qa;
+window.toast = toast;
+window.initSession = initSession;
+window.apiFetch = apiFetch;
+window.offlineDb = offlineDb;
+window.saveOfflineDb = saveOfflineDb;
+window.rarityPill = rarityPill;
+window.byRarityDesc = byRarityDesc;
+window.pickWeightedRarity = pickWeightedRarity;
+window.randPick = randPick;
+window.normalizeAccessoryIds = normalizeAccessoryIds;
+window.sameSet = sameSet;
+window.setName = setName;
+window.getName = getName;

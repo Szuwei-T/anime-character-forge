@@ -63,7 +63,7 @@
   </div>
 
   <script src="app.js"></script>
-  
+
 <script>
 (async function(){
   await initSession();
@@ -72,73 +72,55 @@
   q("#uidText").textContent = APP.uid;
   q("#modeText").textContent = APP.offline ? "離線 localStorage" : "Cloudflare API";
 
-  // 背包統計
   const inv = { head:0, body:0, accessory:0, background:0 };
+  let unlockCount = 0;
+
+  if(!APP.offline){
+    // 需要 Worker 端點：GET /api/me/summary?uid=...
+    const summary = await apiFetch(`/api/me/summary?uid=${encodeURIComponent(APP.uid)}`, { method:"GET" });
+    if(summary && summary.counts){
+      inv.head = Number(summary.counts.head || 0);
+      inv.body = Number(summary.counts.body || 0);
+      inv.accessory = Number(summary.counts.accessory || 0);
+      inv.background = Number(summary.counts.background || 0);
+      unlockCount = Number(summary.unlockCount || 0);
+    } else {
+      toast("後端尚未提供 /api/me/summary，暫時無法顯示線上背包");
+      APP.offline = true;
+    }
+  }
 
   if(APP.offline){
     const db = offlineDb();
     for(const a of db.assets){
       const k = `${APP.uid}:${a.assetId}`;
       const qty = db.userAssets[k] || 0;
-      if(qty>0 && inv[a.type] !== undefined) inv[a.type] += qty;
+      if(qty>0) inv[a.type] = (inv[a.type]||0) + qty;
     }
-    renderInv(inv);
-
-    let unlockCount = 0;
+    unlockCount = 0;
     for(const r of db.recipes){
       const k = `${APP.uid}:${r.recipeId}`;
       if(db.unlocks[k]) unlockCount++;
     }
-    renderUnlocks(unlockCount);
-  }else{
-    // Online: 從 Worker 讀取玩家背包
-    const uidQ = encodeURIComponent(APP.uid);
-    const ares = await apiFetch("/api/assets");
-    const ires = await apiFetch(`/api/me/assets?uid=${uidQ}`);
-
-    const typeById = {};
-    for(const a of (ares.assets || [])){
-      typeById[a.assetId] = a.type;
-    }
-    for(const it of (ires.items || [])){
-      const t = typeById[it.assetId];
-      if(t && inv[t] !== undefined){
-        inv[t] += Number(it.count || 0);
-      }
-    }
-    renderInv(inv);
-
-    // 已解鎖成品: 若 Worker 尚未提供此端點，就先顯示 0
-    let unlockCount = 0;
-    try{
-      const ures = await apiFetch(`/api/me/unlocks?uid=${uidQ}`);
-      unlockCount = (ures.recipeIds || []).length;
-    }catch(e){}
-    renderUnlocks(unlockCount);
   }
 
-  function renderInv(inv){
-    const tbody = q("#invTable tbody");
-    tbody.innerHTML = "";
-    for(const t of ["head","body","accessory","background"]){
-      const tr = document.createElement("tr");
-      tr.innerHTML = `<td>${t}</td><td>${inv[t]}</td>`;
-      tbody.appendChild(tr);
-    }
+  const tbody = q("#invTable tbody");
+  tbody.innerHTML = "";
+  for(const t of ["head","body","accessory","background"]){
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${t}</td><td>${inv[t]||0}</td>`;
+    tbody.appendChild(tr);
   }
 
-  function renderUnlocks(unlockCount){
-    q("#unlockTable tbody").innerHTML = `<tr><td>已解鎖</td><td>${unlockCount}</td></tr>`;
-  }
+  q("#unlockTable tbody").innerHTML = `<tr><td>已解鎖</td><td>${unlockCount}</td></tr>`;
 
   q("#resetBtn").addEventListener("click", ()=>{
     localStorage.removeItem("acf_offline_db_v1");
     localStorage.removeItem("acf_seed_once");
     toast("已重置");
-    setTimeout(()=>location.reload(), 600);
+    setTimeout(()=>location.reload(), 400);
   });
 })();
 </script>
-
 </body>
 </html>
