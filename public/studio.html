@@ -154,33 +154,36 @@
     await initSession();
     q("#netBadge").textContent = APP.offline ? "Offline" : "Online";
 
-    const db = await (async function(){
-      if(APP.offline){
-        return offlineDb();
-      }
-      // Online: load from Worker + D1
-      const assetsRes = await api("/api/assets");
-      const assets = (assetsRes.assets || assetsRes.results || assetsRes || []).map(a=>{
-        const t = String(a.type || "");
-        const normType = (t === "bg" || t === "background") ? "background"
-          : (t === "addon1" || t === "addon2" || t === "accessory") ? "accessory"
-          : t;
-        return { ...a, type: normType };
-      });
+    let db = offlineDb();
 
-      const invRes = await api(`/api/me/assets?uid=${encodeURIComponent(APP.uid)}`);
-      const rows = invRes.assets || invRes.results || invRes || [];
-      const userAssets = {};
-      for(const r of rows){
-        const aid = r.assetId || r.asset_id || r.id;
-        const c = Number(r.count || r.qty || 0);
-        if(!aid || !c) continue;
-        userAssets[`${APP.uid}:${aid}`] = c;
-      }
+// Online: hydrate assets and inventory from Worker so Studio shows thumbnails from D1.
+if(!APP.offline){
+  try{
+    const assetsRes = await fetch(WORKER_BASE + "/api/assets").then(r=>r.json());
+    const rawAssets = assetsRes.assets || assetsRes.items || assetsRes.rows || assetsRes.results || [];
+    const assets = (rawAssets || []).map(a=>{
+      const t = String(a.type || "");
+      let type = t;
+      if(t === "bg") type = "background";
+      if(t === "addon1" || t === "addon2") type = "accessory";
+      if(t === "backgrounds") type = "background";
+      return { assetId: a.assetId, type, rarity: Number(a.rarity||1), imageUrl: a.imageUrl };
+    });
 
-      // we don't require recipes/unlocks to function; keep empty to avoid UI break
-      return { assets, userAssets, recipes: [], unlocks: {} };
-    })();
+    const invRes = await fetch(WORKER_BASE + "/api/me/assets?uid=" + encodeURIComponent(APP.uid)).then(r=>r.json());
+    const items = invRes.items || invRes.assets || invRes.rows || invRes.results || [];
+    const store = {};
+    for(const it of (items || [])){
+      const aid = it.assetId || it.asset_id || it.id;
+      if(!aid) continue;
+      store[`${APP.uid}:${aid}`] = Number(it.count || it.qty || 1);
+    }
+
+    db = { assets, userAssets: store, unlocks: {} };
+  }catch(e){
+    db = offlineDb();
+  }
+}
 
     const byId = new Map(db.assets.map(a=>[a.assetId,a]));
 

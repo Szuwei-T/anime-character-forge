@@ -11,6 +11,7 @@ const WORKER_BASE =
     : "https://acf-api.dream-league-baseball.workers.dev";
 
 const IS_OFFLINE = WORKER_BASE === "";
+APP.apiBase = WORKER_BASE;
 
 function q(sel, root=document){ return root.querySelector(sel); }
 function qa(sel, root=document){ return Array.from(root.querySelectorAll(sel)); }
@@ -149,24 +150,21 @@ async function apiFetch(path, options={}){
 async function initSession(){
   APP.uid = getOrCreateUid();
   APP.name = getName();
-  let data = null;
-  try{
-    data = await api("/api/session/init", {
-      method: "POST",
-      body: JSON.stringify({ uid: APP.uid, displayName: APP.name })
-    });
-  }catch(e){
-    data = null;
+
+  // Online mode does not require a /api/session/init endpoint.
+  if(!IS_OFFLINE){
+    APP.offline = false;
+    return { ok:true, offline:false, uid: APP.uid, displayName: APP.name };
   }
-  if(!data){
-    const db = offlineDb();
-    if(!db.users[APP.uid]){
-      db.users[APP.uid] = { uid: APP.uid, displayName: APP.name, createdAt: Date.now() };
-      saveOfflineDb(db);
-    }
-    return { ok:true, offline:true };
+
+  // Offline bootstrap
+  APP.offline = true;
+  const db = offlineDb();
+  if(!db.users[APP.uid]){
+    db.users[APP.uid] = { uid: APP.uid, displayName: APP.name, createdAt: Date.now() };
+    saveOfflineDb(db);
   }
-  return data;
+  return { ok:true, offline:true };
 }
 
 function rarityPill(r){
