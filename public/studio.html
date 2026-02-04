@@ -400,18 +400,25 @@ refreshPreview();
       const payload = {
   uid: APP.uid,
   title: q("#titleInput").value.trim(),
-  headId: q("#headSel").value,
-  bodyId: q("#bodySel").value,
-  bgId: q("#bgSel").value,
-  addon1Id: getAddon1(),
-  addon2Id: getAddon2(),
+  headId: SEL.headId,
+  bodyId: SEL.bodyId,
+  bgId: SEL.bgId,
+  addon1Id: SEL.addon1Id,
+  addon2Id: SEL.addon2Id,
   seasonId: db.seasonId || "S1"
 };
       if(!payload.headId || !payload.bodyId || !payload.bgId) return toast("素材不足 先去抽卡");
       toast("提交中");
 
-      let data = await submitOnline(payload);
-      if(!data) data = await submitOffline(payload);
+      let data;
+try{
+  data = await api("/api/submit", {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
+}catch(e){
+  data = submitOffline(payload);
+}
 
       q("#netBadge").textContent = APP.offline ? "Offline" : "Online";
       showUnlock(data.unlockedRecipes || []);
