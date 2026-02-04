@@ -153,6 +153,20 @@
   (async function(){
     await initSession();
     q("#netBadge").textContent = APP.offline ? "Offline" : "Online";
+function toThumbUrl(url){
+  if(!url) return "";
+  if(url.includes("_thumb.")) return url;
+  const parts = String(url).split("?");
+  const base = parts[0];
+  const qs = parts.length > 1 ? "?" + parts.slice(1).join("?") : "";
+  const m = base.match(/^(.*)\.(png|webp|jpg|jpeg)$/i);
+  if(!m) return url;
+  return m[1] + "_thumb." + m[2] + qs;
+}
+function bestThumb(url){
+  const t = toThumbUrl(url);
+  return t || url || "";
+}
 
     let db = offlineDb();
 
@@ -310,7 +324,7 @@ function makeVirtualGrid(container, items, getSelectedId, onSelect, options){
         img.className = "asset-thumb";
         img.loading = "lazy";
         img.decoding = "async";
-        img.src = it.imageUrl || "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
+        img.src = bestThumb(it.imageUrl) || "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
         if(getSelectedId() === it.assetId) img.classList.add("active");
 
         img.addEventListener("click", ()=>{
@@ -319,7 +333,7 @@ function makeVirtualGrid(container, items, getSelectedId, onSelect, options){
         });
 
         img.addEventListener("mouseenter", (e)=>{
-          showHover(it.imageUrl, e.clientX, e.clientY);
+          showHover(bestThumb(it.imageUrl), e.clientX, e.clientY);
         });
         img.addEventListener("mousemove", (e)=>{
           moveHover(e.clientX, e.clientY);
@@ -462,7 +476,7 @@ function renderGrid(gridId, items, onSelect){
   g.innerHTML = "";
   items.forEach(it=>{
     const img = document.createElement("img");
-    img.src = it.imageUrl || "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
+    img.src = bestThumb(it.imageUrl) || "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
     img.className = "asset-thumb";
     img.onclick = ()=>{
       g.querySelectorAll(".asset-thumb").forEach(x=>x.classList.remove("active"));
