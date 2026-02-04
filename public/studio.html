@@ -154,7 +154,34 @@
     await initSession();
     q("#netBadge").textContent = APP.offline ? "Offline" : "Online";
 
-    const db = offlineDb();
+    const db = await (async function(){
+      if(APP.offline){
+        return offlineDb();
+      }
+      // Online: load from Worker + D1
+      const assetsRes = await api("/api/assets");
+      const assets = (assetsRes.assets || assetsRes.results || assetsRes || []).map(a=>{
+        const t = String(a.type || "");
+        const normType = (t === "bg" || t === "background") ? "background"
+          : (t === "addon1" || t === "addon2" || t === "accessory") ? "accessory"
+          : t;
+        return { ...a, type: normType };
+      });
+
+      const invRes = await api(`/api/me/assets?uid=${encodeURIComponent(APP.uid)}`);
+      const rows = invRes.assets || invRes.results || invRes || [];
+      const userAssets = {};
+      for(const r of rows){
+        const aid = r.assetId || r.asset_id || r.id;
+        const c = Number(r.count || r.qty || 0);
+        if(!aid || !c) continue;
+        userAssets[`${APP.uid}:${aid}`] = c;
+      }
+
+      // we don't require recipes/unlocks to function; keep empty to avoid UI break
+      return { assets, userAssets, recipes: [], unlocks: {} };
+    })();
+
     const byId = new Map(db.assets.map(a=>[a.assetId,a]));
 
     function invHas(assetId){
@@ -400,25 +427,18 @@ refreshPreview();
       const payload = {
   uid: APP.uid,
   title: q("#titleInput").value.trim(),
-  headId: SEL.headId,
-  bodyId: SEL.bodyId,
-  bgId: SEL.bgId,
-  addon1Id: SEL.addon1Id,
-  addon2Id: SEL.addon2Id,
+  headId: q("#headSel").value,
+  bodyId: q("#bodySel").value,
+  bgId: q("#bgSel").value,
+  addon1Id: getAddon1(),
+  addon2Id: getAddon2(),
   seasonId: db.seasonId || "S1"
 };
       if(!payload.headId || !payload.bodyId || !payload.bgId) return toast("素材不足 先去抽卡");
       toast("提交中");
 
-      let data;
-try{
-  data = await api("/api/submit", {
-    method: "POST",
-    body: JSON.stringify(payload)
-  });
-}catch(e){
-  data = submitOffline(payload);
-}
+      let data = await submitOnline(payload);
+      if(!data) data = await submitOffline(payload);
 
       q("#netBadge").textContent = APP.offline ? "Offline" : "Online";
       showUnlock(data.unlockedRecipes || []);
