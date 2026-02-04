@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>工作室</title>
+  <link rel="stylesheet" href="style.css" />
+<style id="thumbStyle">
+  .picker-section{margin-bottom:14px;}
+  .picker-title{font-size:14px;opacity:.9;margin:10px 0 10px;}
+  .asset-grid{
+    position: relative;
+    height: 240px;
+    overflow: auto;
+    padding: 10px;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.10);
+    background: rgba(0,0,0,0.12);
+  }
+  .asset-spacer{width:100%; position:relative;}
+  .asset-item{
+    position:absolute;
+    width:64px;
+    height:96px;
+  }
+  .asset-thumb{
+    width:64px;
+    height:96px;
+    border-radius:12px;
+    border:2px solid rgba(255,255,255,0.18);
+    cursor:pointer;
+    object-fit:contain;
+    background: rgba(0,0,0,0.20);
+    display:block;
+  }
+  .asset-thumb.active{outline:2px solid rgba(74,222,128,0.9); outline-offset:2px;}
+
+  /* rarity borders */
+  .r1 .asset-thumb{border-color: rgba(148,163,184,0.75);}
+  .r2 .asset-thumb{border-color: rgba(34,197,94,0.75);}
+  .r3 .asset-thumb{border-color: rgba(59,130,246,0.75);}
+  .r4 .asset-thumb{border-color: rgba(168,85,247,0.75);}
+  .r5 .asset-thumb{border-color: rgba(245,158,11,0.85);}
+
+  /* unlocked tick */
+  .badge-unlocked{
+    position:absolute;
+    right:-6px;
+    top:-6px;
+    width:18px;
+    height:18px;
+    border-radius:999px;
+    background: rgba(34,197,94,0.95);
+    color:#04130a;
+    font-weight:800;
+    font-size:12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+    pointer-events:none;
+  }
+
+  /* hover preview */
+  #hoverPreview{
+    position: fixed;
+    z-index: 9999;
+    width: 213px;
+    height: 320px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.16);
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(10px);
+    display:none;
+    overflow:hidden;
+    pointer-events:none;
+    box-shadow: 0 24px 70px rgba(0,0,0,0.55);
+  }
+  #hoverPreview img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="topbar">
+      <a class="brand" href="index.html">
+        <div class="logo"></div>
+        <h1>Anime Character Forge</h1>
+      </a>
+      <div class="right">
+        <div class="badge" id="netBadge">Connecting</div>
+        <a class="badge" href="profile.html">My</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="cardHeader">
+        <h2>工作室</h2>
+        <a class="badge" href="hub.html">返回</a>
+      </div>
+      <div class="cardBody">
+        <div class="grid">
+          <div class="col7">
+            <div class="stage">
+              <img class="layer" id="bgLayer" alt="background" />
+<img class="layer" id="addon2Layer" alt="add on 2" />
+<img class="layer" id="headLayer" alt="head" />
+<img class="layer" id="bodyLayer" alt="body" />
+<img class="layer" id="addon1Layer" alt="add on 1" />
+
+
+              <div class="stageOverlay">
+                <button class="smallBtn" id="randomBtn">隨機搭配</button>
+                <button class="smallBtn" id="submitBtn">提交展示</button>
+              </div>
+            </div>
+            <div style="height:10px"></div>
+            <input class="input" id="titleInput" placeholder="作品標題 例如 Neon Queen" />
+            <div style="height:10px"></div>
+            <div class="help" id="unlockHint"></div>
+          </div>
+
+          <div class="col5">
+            <div class="grid">
+              <div class="col12">
+                <div class="picker-section"><div class="picker-title">頭部</div><div id="headGrid" class="asset-grid"><div class="asset-spacer"></div></div></div>
+              </div>
+              <div class="col12">
+                <div class="picker-section"><div class="picker-title">身體</div><div id="bodyGrid" class="asset-grid"><div class="asset-spacer"></div></div></div>
+              </div>
+              <div class="col12">
+                <div class="picker-section"><div class="picker-title">背景</div><div id="bgGrid" class="asset-grid"><div class="asset-spacer"></div></div></div>
+              </div>
+              <div class="col12">
+                <div class="picker-section"><div class="picker-title">add on 1</div><div id="addon1Grid" class="asset-grid"><div class="asset-spacer"></div></div></div>
+<div style="height:10px"></div>
+<div class="picker-section"><div class="picker-title">add on 2</div><div id="addon2Grid" class="asset-grid"><div class="asset-spacer"></div></div></div>
+              </div>
+            </div>
+            <div class="hr"></div>
+            <a class="btn" href="recipes.html">去看成品庫</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+  (async function(){
+    await initSession();
+    q("#netBadge").textContent = APP.offline ? "Offline" : "Online";
+
+    const db = offlineDb();
+    const byId = new Map(db.assets.map(a=>[a.assetId,a]));
+
+    function invHas(assetId){
+  const k = `${APP.uid}:${assetId}`;
+  const store = db.userAssets || db.playerAssets || db.assetsOwned || {};
+  return (store[k] || store[assetId] || 0) > 0;
+}
+
+    function ownedOptions(type){
+      const list = db.assets.filter(a=>a.type===type && invHas(a.assetId));
+      list.sort(byRarityDesc);
+      return list;
+    }
+    // selected ids (no visible names)
+const SEL = {
+  headId: "",
+  bodyId: "",
+  bgId: "",
+  addon1Id: "",
+  addon2Id: ""
+};
+
+// assets used in unlocked recipes will show a small tick on thumbnails
+const unlockedAssetIds = new Set();
+for(const key of Object.keys(db.unlocks || {})){
+  if(!key.startsWith(APP.uid + ":")) continue;
+  const recipeId = key.split(":")[1];
+  const r = (db.recipes || []).find(x=>x.recipeId === recipeId);
+  if(!r) continue;
+  if(r.headId) unlockedAssetIds.add(r.headId);
+  if(r.bodyId) unlockedAssetIds.add(r.bodyId);
+  if(r.bgId) unlockedAssetIds.add(r.bgId);
+  const a1 = (r.accessoryIds && r.accessoryIds[0]) ? r.accessoryIds[0] : "";
+  const a2 = (r.accessoryIds && r.accessoryIds[1]) ? r.accessoryIds[1] : "";
+  if(a1) unlockedAssetIds.add(a1);
+  if(a2) unlockedAssetIds.add(a2);
+}
+
+function setLayers(){
+  const head = byId.get(SEL.headId);
+  const body = byId.get(SEL.bodyId);
+  const bg = byId.get(SEL.bgId);
+  const a1 = byId.get(SEL.addon1Id);
+  const a2 = byId.get(SEL.addon2Id);
+
+  q("#bgLayer").src = bg?.imageUrl || "";
+  q("#addon2Layer").src = a2?.imageUrl || "";
+  q("#headLayer").src = head?.imageUrl || "";
+  q("#bodyLayer").src = body?.imageUrl || "";
+  q("#addon1Layer").src = a1?.imageUrl || "";
+}
+
+function refreshPreview(){
+  setLayers();
+}
+
+// hover preview
+const hoverBox = q("#hoverPreview");
+const hoverImg = hoverBox.querySelector("img");
+function showHover(src, x, y){
+  hoverImg.src = src;
+  hoverBox.style.display = "block";
+  moveHover(x, y);
+}
+function moveHover(x, y){
+  const pad = 16;
+  const w = hoverBox.offsetWidth || 213;
+  const h = hoverBox.offsetHeight || 320;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+
+  let left = x + pad;
+  let top = y + pad;
+  if(left + w > vw - 8) left = x - w - pad;
+  if(top + h > vh - 8) top = y - h - pad;
+
+  hoverBox.style.left = left + "px";
+  hoverBox.style.top = top + "px";
+}
+function hideHover(){
+  hoverBox.style.display = "none";
+  hoverImg.src = "";
+}
+
+// virtual grid renderer (lazy by default because we only render visible subset)
+function makeVirtualGrid(container, items, getSelectedId, onSelect, options){
+  const opt = Object.assign({thumbW:64, thumbH:96, gap:8}, options || {});
+  const spacer = container.querySelector(".asset-spacer") || container;
+  spacer.innerHTML = "";
+
+  function calcCols(){
+    const w = container.clientWidth;
+    return Math.max(1, Math.floor((w + opt.gap) / (opt.thumbW + opt.gap)));
+  }
+
+  function rerender(){
+    const cols = calcCols();
+    const rowH = opt.thumbH + opt.gap;
+    const rows = Math.ceil(items.length / cols);
+    spacer.style.height = (rows * rowH) + "px";
+    spacer.style.position = "relative";
+
+    const scrollTop = container.scrollTop;
+    const viewH = container.clientHeight;
+
+    const startRow = Math.max(0, Math.floor(scrollTop / rowH) - 2);
+    const endRow = Math.min(rows, Math.ceil((scrollTop + viewH) / rowH) + 2);
+
+    spacer.innerHTML = "";
+
+    for(let r = startRow; r < endRow; r++){
+      for(let c = 0; c < cols; c++){
+        const idx = r * cols + c;
+        if(idx >= items.length) break;
+        const it = items[idx];
+
+        const wrap = document.createElement("div");
+        wrap.className = "asset-item " + `r${it.rarity || 1}`;
+        wrap.style.left = (c * (opt.thumbW + opt.gap)) + "px";
+        wrap.style.top = (r * rowH) + "px";
+
+        const img = document.createElement("img");
+        img.className = "asset-thumb";
+        img.loading = "lazy";
+        img.decoding = "async";
+        img.src = it.imageUrl || "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
+        if(getSelectedId() === it.assetId) img.classList.add("active");
+
+        img.addEventListener("click", ()=>{
+          onSelect(it.assetId);
+          rerender(); // refresh active highlight
+        });
+
+        img.addEventListener("mouseenter", (e)=>{
+          showHover(it.imageUrl, e.clientX, e.clientY);
+        });
+        img.addEventListener("mousemove", (e)=>{
+          moveHover(e.clientX, e.clientY);
+        });
+        img.addEventListener("mouseleave", ()=>{
+          hideHover();
+        });
+
+        wrap.appendChild(img);
+
+        if(unlockedAssetIds.has(it.assetId)){
+          const b = document.createElement("div");
+          b.className = "badge-unlocked";
+          b.textContent = "✓";
+          wrap.appendChild(b);
+        }
+
+        spacer.appendChild(wrap);
+      }
+    }
+  }
+
+  container.addEventListener("scroll", rerender);
+  window.addEventListener("resize", rerender);
+  rerender();
+
+  return { rerender };
+}
+
+// build thumbnail pickers (virtualized)
+const grids = {};
+
+const headItems = ownedOptions("head");
+const bodyItems = ownedOptions("body");
+const bgItems = ownedOptions("background");
+
+// default selection: first item if exists
+SEL.headId = headItems[0]?.assetId || "";
+SEL.bodyId = bodyItems[0]?.assetId || "";
+SEL.bgId = bgItems[0]?.assetId || "";
+
+const addonAll = ownedOptions("accessory");
+
+const byPrefix = (prefix) => addonAll.filter(a=>{
+  const fn = (a.imageUrl || "").split("/").pop() || "";
+  return fn.startsWith(prefix);
+});
+
+let addon1Pool = byPrefix("addon1_");
+let addon2Pool = byPrefix("addon2_");
+
+// compatible mode: if not renamed yet, show all in both
+if(addon1Pool.length === 0 && addon2Pool.length === 0){
+  addon1Pool = addonAll;
+  addon2Pool = addonAll;
+}else{
+  if(addon1Pool.length === 0) addon1Pool = addonAll;
+  if(addon2Pool.length === 0) addon2Pool = addonAll;
+}
+
+const noneItem = { assetId:"", imageUrl:"", rarity:1 };
+
+grids.head = makeVirtualGrid(q("#headGrid"), headItems, ()=>SEL.headId, (id)=>{ SEL.headId=id; refreshPreview(); }, {thumbW:64, thumbH:96, gap:8});
+grids.body = makeVirtualGrid(q("#bodyGrid"), bodyItems, ()=>SEL.bodyId, (id)=>{ SEL.bodyId=id; refreshPreview(); }, {thumbW:64, thumbH:96, gap:8});
+grids.bg = makeVirtualGrid(q("#bgGrid"), bgItems, ()=>SEL.bgId, (id)=>{ SEL.bgId=id; refreshPreview(); }, {thumbW:64, thumbH:96, gap:8});
+grids.addon1 = makeVirtualGrid(q("#addon1Grid"), [noneItem, ...addon1Pool], ()=>SEL.addon1Id, (id)=>{ SEL.addon1Id=id; refreshPreview(); }, {thumbW:64, thumbH:96, gap:8});
+grids.addon2 = makeVirtualGrid(q("#addon2Grid"), [noneItem, ...addon2Pool], ()=>SEL.addon2Id, (id)=>{ SEL.addon2Id=id; refreshPreview(); }, {thumbW:64, thumbH:96, gap:8});
+
+refreshPreview();
+
+
+    q("#randomBtn").addEventListener("click", ()=>{
+  // random pick from owned pools
+  const headItems = ownedOptions("head");
+  const bodyItems = ownedOptions("body");
+  const bgItems = ownedOptions("background");
+
+  if(headItems.length === 0) return toast("先去抽卡拿頭部");
+  if(bodyItems.length === 0) return toast("先去抽卡拿身體");
+  if(bgItems.length === 0) return toast("先去抽卡拿背景");
+
+  SEL.headId = randPick(headItems).assetId;
+  SEL.bodyId = randPick(bodyItems).assetId;
+  SEL.bgId = randPick(bgItems).assetId;
+
+  // add on pools by filename prefix
+  const addonAll = ownedOptions("accessory");
+  const p1 = addonAll.filter(a=> (a.imageUrl||"").split("/").pop().startsWith("addon1_"));
+  const p2 = addonAll.filter(a=> (a.imageUrl||"").split("/").pop().startsWith("addon2_"));
+
+  // allow empty (not used)
+  SEL.addon1Id = (p1.length ? randPick([ {assetId:""}, ...p1 ]).assetId : "");
+  SEL.addon2Id = (p2.length ? randPick([ {assetId:""}, ...p2 ]).assetId : "");
+
+  refreshPreview();
+
+  // rerender highlight
+  grids.head?.rerender();
+  grids.body?.rerender();
+  grids.bg?.rerender();
+  grids.addon1?.rerender();
+  grids.addon2?.rerender();
+
+  toast("已隨機搭配");
+});
+
+    q("#submitBtn").addEventListener("click", async ()=>{
+      const payload = {
+  uid: APP.uid,
+  title: q("#titleInput").value.trim(),
+  headId: q("#headSel").value,
+  bodyId: q("#bodySel").value,
+  bgId: q("#bgSel").value,
+  addon1Id: getAddon1(),
+  addon2Id: getAddon2(),
+  seasonId: db.seasonId || "S1"
+};
+      if(!payload.headId || !payload.bodyId || !payload.bgId) return toast("素材不足 先去抽卡");
+      toast("提交中");
+
+      let data = await submitOnline(payload);
+      if(!data) data = await submitOffline(payload);
+
+      q("#netBadge").textContent = APP.offline ? "Offline" : "Online";
+      showUnlock(data.unlockedRecipes || []);
+      toast("已提交到展示牆");
+      setTimeout(()=>location.href="gallery.html", 700);
+    });
+
+    refreshPreview();
+  })();
+  </script>
+<div id="hoverPreview"><img alt="preview"/></div>
+</body>
+</html>
+
+<script>
+function renderGrid(gridId, items, onSelect){
+  const g = document.getElementById(gridId);
+  g.innerHTML = "";
+  items.forEach(it=>{
+    const img = document.createElement("img");
+    img.src = it.imageUrl || "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
+    img.className = "asset-thumb";
+    img.onclick = ()=>{
+      g.querySelectorAll(".asset-thumb").forEach(x=>x.classList.remove("active"));
+      img.classList.add("active");
+      onSelect(it.assetId);
+    };
+    g.appendChild(img);
+  });
+}
+</script>

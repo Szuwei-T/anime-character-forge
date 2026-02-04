@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>成品庫</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="topbar">
+      <a class="brand" href="index.html">
+        <div class="logo"></div>
+        <h1>Anime Character Forge</h1>
+      </a>
+      <div class="right">
+        <div class="badge" id="netBadge">Connecting</div>
+        <a class="badge" href="profile.html">My</a>
+      </div>
+    </div>
+
+    
+<div class="card">
+  <div class="cardHeader">
+    <h2>成品庫</h2>
+    <a class="badge" href="hub.html">返回</a>
+  </div>
+  <div class="cardBody">
+    <div class="notice">
+      初始全鎖
+      只有當你在工作室搭配出完全一樣的組合 才會解鎖並加入收藏
+    </div>
+    <div class="hr"></div>
+    <table class="table" id="recipeTable">
+      <thead><tr><th>成品</th><th>稀有度</th><th>狀態</th><th>配方提示</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+  </div>
+
+  <script src="app.js"></script>
+  
+<script>
+(async function(){
+  await initSession();
+  q("#netBadge").textContent = APP.offline ? "Offline" : "Online";
+  const db = offlineDb();
+
+  function isUnlocked(recipeId){
+    const k = `${APP.uid}:${recipeId}`;
+    return !!db.unlocks[k];
+  }
+
+  function hint(r){
+    // MVP 只顯示分類提示
+    const a = (r.accessoryIds||[]).length;
+    return `頭部 1  身體 1  背景 1  附件 ${a}`;
+  }
+
+  const tbody = q("#recipeTable tbody");
+  tbody.innerHTML = "";
+  for(const r of db.recipes){
+    const unlocked = isUnlocked(r.recipeId);
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${unlocked ? r.name : "??????"}</td>
+      <td>${rarityPill(r.rarity||3)}</td>
+      <td>${unlocked ? "已解鎖" : "上鎖"}</td>
+      <td>${hint(r)}</td>
+    `;
+    tbody.appendChild(tr);
+  }
+})();
+</script>
+
+</body>
+</html>

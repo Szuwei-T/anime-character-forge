@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>展示牆</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="topbar">
+      <a class="brand" href="index.html">
+        <div class="logo"></div>
+        <h1>Anime Character Forge</h1>
+      </a>
+      <div class="right">
+        <div class="badge" id="netBadge">Connecting</div>
+        <a class="badge" href="profile.html">My</a>
+      </div>
+    </div>
+
+    
+<div class="card">
+  <div class="cardHeader">
+    <h2>展示牆</h2>
+    <div class="right">
+      <a class="badge" href="hub.html">返回</a>
+    </div>
+  </div>
+  <div class="cardBody">
+    <div class="grid">
+      <div class="col5">
+        <div class="notice">
+          每個玩家對同一作品只能評分 1 次
+          你可以先離線玩 部署後就會變成全站共用排行榜
+        </div>
+        <div class="hr"></div>
+        <button class="btn" id="refreshBtn">刷新</button>
+      </div>
+      <div class="col7">
+        <div class="stage" style="aspect-ratio: 16 / 9;">
+          <img class="layer" id="previewImg" alt="preview" />
+        </div>
+        <div style="height:10px"></div>
+        <table class="table" id="buildTable">
+          <thead>
+            <tr>
+              <th>標題</th>
+              <th>作者</th>
+              <th>分數</th>
+              <th>評分</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+  </div>
+
+  <script src="app.js"></script>
+  
+<script>
+(async function(){
+  await initSession();
+  q("#netBadge").textContent = APP.offline ? "Offline" : "Online";
+  const db = offlineDb();
+  const byId = new Map(db.assets.map(a=>[a.assetId,a]));
+
+  function buildPreviewUrl(b){
+    // Use recipe preview style placeholder by composing
+    // For MVP we just show background
+    const bg = byId.get(b.bgId);
+    return bg?.imageUrl || "";
+  }
+
+  async function listOffline(){
+    return { ok:true, builds: db.builds.slice(0,40) };
+  }
+
+  async function listOnline(){
+    const data = await apiFetch("/api/gallery?seasonId=S1&sort=top");
+    if(!data) return null;
+    return data;
+  }
+
+  async function rateOffline(buildId, score){
+    const key = `${APP.uid}:${buildId}`;
+    if(db.ratings[key]) return { ok:false, error:"already" };
+    db.ratings[key] = score;
+
+    const b = db.builds.find(x=>x.buildId===buildId);
+    if(b){
+      b.scoreSum += score;
+      b.scoreCount += 1;
+    }
+    saveOfflineDb(db);
+    return { ok:true };
+  }
+
+  async function rateOnline(buildId, score){
+    const data = await apiFetch("/api/ratings", {
+      method:"POST",
+      body: JSON.stringify({ buildId, raterUid: APP.uid, score })
+    });
+    if(!data) return null;
+    return data;
+  }
+
+  function scoreText(b){
+    if(!b.scoreCount) return "0.0  0";
+    const avg = (b.scoreSum / b.scoreCount);
+    return `${avg.toFixed(1)}  ${b.scoreCount}`;
+  }
+
+  function render(builds){
+    const tbody = q("#buildTable tbody");
+    tbody.innerHTML = "";
+    if(!builds || builds.length===0){
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td colspan="4">還沒有作品 先去工作室提交</td>`;
+      tbody.appendChild(tr);
+      q("#previewImg").src = "";
+      return;
+    }
+
+    q("#previewImg").src = buildPreviewUrl(builds[0]);
+
+    builds.forEach((b, idx)=>{
+      const tr = document.createElement("tr");
+      const author = b.uid ? b.uid.slice(0,6) : "anon";
+      const title = b.title || `作品 ${idx+1}`;
+      tr.innerHTML = `
+        <td><a href="#" data-b="${b.buildId}" class="pick">${title}</a></td>
+        <td>${author}</td>
+        <td>${scoreText(b)}</td>
+        <td>
+          <select data-s="${b.buildId}" class="input" style="padding:8px;border-radius:12px">
+            <option value="">給分</option>
+            <option value="5">5</option>
+            <option value="4">4</option>
+            <option value="3">3</option>
+            <option value="2">2</option>
+            <option value="1">1</option>
+          </select>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    qa("a.pick").forEach(a=>{
+      a.addEventListener("click", (e)=>{
+        e.preventDefault();
+        const id = a.getAttribute("data-b");
+        const b = builds.find(x=>x.buildId===id);
+        if(b) q("#previewImg").src = buildPreviewUrl(b);
+      });
+    });
+
+    qa("select[data-s]").forEach(s=>{
+      s.addEventListener("change", async ()=>{
+        const buildId = s.getAttribute("data-s");
+        const val = Number(s.value||0);
+        if(!val) return;
+        toast("送出評分");
+        let r = await rateOnline(buildId, val);
+        if(!r) r = await rateOffline(buildId, val);
+        q("#netBadge").textContent = APP.offline ? "Offline" : "Online";
+        if(r.ok){
+          toast("已評分");
+          await load();
+        }else{
+          toast("你已評過這個作品");
+        }
+        s.value = "";
+      });
+    });
+  }
+
+  async function load(){
+    let data = await listOnline();
+    if(!data) data = await listOffline();
+    q("#netBadge").textContent = APP.offline ? "Offline" : "Online";
+    // sort top
+    const builds = (data.builds || []).slice().sort((a,b)=>{
+      const aa = a.scoreCount ? a.scoreSum/a.scoreCount : 0;
+      const bb = b.scoreCount ? b.scoreSum/b.scoreCount : 0;
+      if(bb !== aa) return bb-aa;
+      return (b.createdAt||0)-(a.createdAt||0);
+    });
+    render(builds);
+  }
+
+  q("#refreshBtn").addEventListener("click", load);
+
+  await load();
+})();
+</script>
+
+</body>
+</html>

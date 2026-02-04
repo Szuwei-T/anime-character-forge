@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>主選單</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="topbar">
+      <a class="brand" href="index.html">
+        <div class="logo"></div>
+        <h1>Anime Character Forge</h1>
+      </a>
+      <div class="right">
+        <div class="badge" id="netBadge">Connecting</div>
+        <a class="badge" href="profile.html">My</a>
+      </div>
+    </div>
+
+    
+<div class="card">
+  <div class="cardHeader">
+    <h2>主選單</h2>
+    <div class="badge" id="whoText"></div>
+  </div>
+  <div class="cardBody">
+    <div class="grid">
+      <div class="col6"><a class="btn btnPrimary" href="studio.html">工作室 組裝角色</a></div>
+      <div class="col6"><a class="btn btnPrimary" href="gacha.html">抽卡 拿素材</a></div>
+      <div class="col6"><a class="btn" href="recipes.html">成品庫 解鎖收藏</a></div>
+      <div class="col6"><a class="btn" href="gallery.html">展示牆 評分排行</a></div>
+      <div class="col12"><a class="btn" href="profile.html">我的收藏 背包 作品</a></div>
+    </div>
+    <div class="hr"></div>
+    <div class="help">
+      小提醒
+      先去抽卡拿素材
+      再到工作室搭配
+      提交到展示牆後會觸發成品解鎖判定
+    </div>
+  </div>
+</div>
+
+  </div>
+
+  <script src="app.js"></script>
+  
+<script>
+(async function(){
+  await initSession();
+  q("#netBadge").textContent = APP.offline ? "Offline" : "Online";
+  q("#whoText").textContent = `${getName()}  ${APP.uid.slice(0,8)}`;
+})();
+</script>
+
+</body>
+</html>

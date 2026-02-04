@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>我的</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="topbar">
+      <a class="brand" href="index.html">
+        <div class="logo"></div>
+        <h1>Anime Character Forge</h1>
+      </a>
+      <div class="right">
+        <div class="badge" id="netBadge">Connecting</div>
+        <a class="badge" href="profile.html">My</a>
+      </div>
+    </div>
+
+    
+<div class="card">
+  <div class="cardHeader">
+    <h2>我的</h2>
+    <a class="badge" href="hub.html">返回</a>
+  </div>
+  <div class="cardBody">
+    <div class="grid">
+      <div class="col6">
+        <div class="kv">
+          <div>名稱</div><div id="nameText"></div>
+          <div>uid</div><div id="uidText"></div>
+          <div>模式</div><div id="modeText"></div>
+        </div>
+        <div class="hr"></div>
+        <button class="btn" id="resetBtn">重置離線資料</button>
+        <div style="height:10px"></div>
+        <div class="help">
+          這只會清除這台裝置的離線資料
+          線上資料不受影響
+        </div>
+      </div>
+      <div class="col6">
+        <div class="notice">
+          背包統計
+        </div>
+        <div class="hr"></div>
+        <table class="table" id="invTable">
+          <thead><tr><th>分類</th><th>持有</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <div class="hr"></div>
+        <table class="table" id="unlockTable">
+          <thead><tr><th>已解鎖成品</th><th>數量</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+  </div>
+
+  <script src="app.js"></script>
+  
+<script>
+(async function(){
+  await initSession();
+  q("#netBadge").textContent = APP.offline ? "Offline" : "Online";
+  q("#nameText").textContent = getName();
+  q("#uidText").textContent = APP.uid;
+  q("#modeText").textContent = APP.offline ? "離線 localStorage" : "Cloudflare API";
+
+  const db = offlineDb();
+  const inv = { head:0, body:0, accessory:0, background:0 };
+  for(const a of db.assets){
+    const k = `${APP.uid}:${a.assetId}`;
+    const qty = db.userAssets[k] || 0;
+    if(qty>0) inv[a.type] += qty;
+  }
+
+  const tbody = q("#invTable tbody");
+  tbody.innerHTML = "";
+  for(const t of ["head","body","accessory","background"]){
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${t}</td><td>${inv[t]}</td>`;
+    tbody.appendChild(tr);
+  }
+
+  let unlockCount = 0;
+  for(const r of db.recipes){
+    const k = `${APP.uid}:${r.recipeId}`;
+    if(db.unlocks[k]) unlockCount++;
+  }
+  q("#unlockTable tbody").innerHTML = `<tr><td>已解鎖</td><td>${unlockCount}</td></tr>`;
+
+  q("#resetBtn").addEventListener("click", ()=>{
+    localStorage.removeItem("acf_offline_db_v1");
+    localStorage.removeItem("acf_seed_once");
+    toast("已重置");
+    setTimeout(()=>location.reload(), 600);
+  });
+})();
+</script>
+
+</body>
+</html>
