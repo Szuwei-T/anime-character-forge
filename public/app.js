@@ -131,7 +131,7 @@ function saveOfflineDb(db){
 }
 
 async function apiFetch(path, options={}){
-  const url = (WORKER_BASE || "") + path;
+  const url = (APP.apiBase || "") + path;
   const headers = Object.assign({ "Content-Type":"application/json" }, options.headers || {});
   const opts = Object.assign({}, options, { headers });
   try{
@@ -149,10 +149,15 @@ async function apiFetch(path, options={}){
 async function initSession(){
   APP.uid = getOrCreateUid();
   APP.name = getName();
-  const data = await apiFetch("/api/session/init", {
-    method:"POST",
-    body: JSON.stringify({ uid: APP.uid, displayName: APP.name })
-  });
+  let data = null;
+  try{
+    data = await api("/api/session/init", {
+      method: "POST",
+      body: JSON.stringify({ uid: APP.uid, displayName: APP.name })
+    });
+  }catch(e){
+    data = null;
+  }
   if(!data){
     const db = offlineDb();
     if(!db.users[APP.uid]){

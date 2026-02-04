@@ -30,8 +30,8 @@
       <div class="col6">
         <div class="kv">
           <div>名稱</div><div id="nameText"></div>
-          <div>uid</div><div id="uidText"></div>
-          <div>模式</div><div id="modeText"></div>
+          <div>uid</div><div id="uidVal"></div>
+          <div>模式</div><div id="modeVal"></div>
         </div>
         <div class="hr"></div>
         <button class="btn" id="resetBtn">重置離線資料</button>
@@ -62,65 +62,133 @@
 
   </div>
 
-  <script src="app.js"></script>
-
+  
+<script src="app.js"></script>
 <script>
-(async function(){
-  await initSession();
-  q("#netBadge").textContent = APP.offline ? "Offline" : "Online";
-  q("#nameText").textContent = getName();
-  q("#uidText").textContent = APP.uid;
-  q("#modeText").textContent = APP.offline ? "離線 localStorage" : "Cloudflare API";
+(async ()=>{
+  const uidEl = document.querySelector("#uidVal");
+  const modeEl = document.querySelector("#modeVal");
 
-  const inv = { head:0, body:0, accessory:0, background:0 };
+  // 1 init session
+  try{
+    await initSession();
+  }catch(e){
+    // ignore
+  }
+
+  const uid = localStorage.getItem("acf_uid") || "";
+  if(uidEl) uidEl.textContent = uid || "-";
+  if(modeEl) modeEl.textContent = (typeof WORKER_BASE !== "undefined" && WORKER_BASE) ? "Cloudflare API" : "Offline";
+
+  // 2 build inventory counts from online, fallback to offline db
+  const counts = { head:0, body:0, accessory:0, background:0 };
   let unlockCount = 0;
 
-  if(!APP.offline){
-    // 需要 Worker 端點：GET /api/me/summary?uid=...
-    const summary = await apiFetch(`/api/me/summary?uid=${encodeURIComponent(APP.uid)}`, { method:"GET" });
-    if(summary && summary.counts){
-      inv.head = Number(summary.counts.head || 0);
-      inv.body = Number(summary.counts.body || 0);
-      inv.accessory = Number(summary.counts.accessory || 0);
-      inv.background = Number(summary.counts.background || 0);
-      unlockCount = Number(summary.unlockCount || 0);
-    } else {
-      toast("後端尚未提供 /api/me/summary，暫時無法顯示線上背包");
-      APP.offline = true;
+  async function tryOnline(){
+    // fetch asset catalog
+    const assetsRes = await api("/api/assets", { method:"GET" });
+    const assets = Array.isArray(assetsRes) ? assetsRes : (assetsRes?.assets || assetsRes?.items || []);
+    const map = new Map();
+    for(const a of assets){
+      if(a && a.assetId) map.set(String(a.assetId), String(a.type||""));
+    }
+
+    const uaRes = await api("/api/me/assets?uid=" + encodeURIComponent(uid), { method:"GET" });
+    const ua = Array.isArray(uaRes) ? uaRes : (uaRes?.items || uaRes?.assets || uaRes?.rows || []);
+    for(const row of ua){
+      const assetId = String(row.assetId || row.assetID || "");
+      const n = Number(row.count || row.qty || row.total || 0);
+      const t0 = map.get(assetId) || "";
+      const t = t0.toLowerCase();
+      if(t === "head") counts.head += n;
+      else if(t === "body") counts.body += n;
+      else if(t === "bg" || t === "background") counts.background += n;
+      else if(t === "addon1" || t === "addon2" || t === "accessory") counts.accessory += n;
+    }
+
+    // unlocks are optional, so ignore if not implemented
+    try{
+      const unRes = await api("/api/me/unlocks?uid=" + encodeURIComponent(uid), { method:"GET" });
+      const recipeIds = unRes?.recipeIds || unRes?.items || [];
+      unlockCount = Array.isArray(recipeIds) ? recipeIds.length : 0;
+    }catch(e){
+      unlockCount = 0;
+    }
+
+    return true;
+  }
+
+  function fallbackOffline(){
+    try{
+      const db = offlineDb();
+      const inv = { head:0, body:0, accessory:0, background:0 };
+      for(const k in db.userAssets){
+        const parts = k.split(":");
+        const assetId = parts[1];
+        const a = db.assets.find(x=>x.assetId===assetId);
+        if(!a) continue;
+        const qty = db.userAssets[k] || 0;
+        if(qty>0){
+          if(a.type==="head") inv.head += qty;
+          else if(a.type==="body") inv.body += qty;
+          else if(a.type==="bg" || a.type==="background") inv.background += qty;
+          else inv.accessory += qty;
+        }
+      }
+      counts.head = inv.head;
+      counts.body = inv.body;
+      counts.accessory = inv.accessory;
+      counts.background = inv.background;
+
+      unlockCount = 0;
+      for(const r of db.recipes){
+        const kk = `${uid}:${r.recipeId}`;
+        if(db.unlocks[kk]) unlockCount++;
+      }
+    }catch(e){
+      // keep zeros
     }
   }
 
-  if(APP.offline){
-    const db = offlineDb();
-    for(const a of db.assets){
-      const k = `${APP.uid}:${a.assetId}`;
-      const qty = db.userAssets[k] || 0;
-      if(qty>0) inv[a.type] = (inv[a.type]||0) + qty;
+  let onlineOk = false;
+  if(uid && (typeof WORKER_BASE !== "undefined") && WORKER_BASE){
+    try{
+      onlineOk = await tryOnline();
+    }catch(e){
+      onlineOk = false;
     }
-    unlockCount = 0;
-    for(const r of db.recipes){
-      const k = `${APP.uid}:${r.recipeId}`;
-      if(db.unlocks[k]) unlockCount++;
+  }
+  if(!onlineOk){
+    fallbackOffline();
+  }
+
+  // 3 render tables
+  const tbody = document.querySelector("#invTable tbody");
+  if(tbody){
+    tbody.innerHTML = "";
+    for(const t of ["head","body","accessory","background"]){
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${t}</td><td>${counts[t]}</td>`;
+      tbody.appendChild(tr);
     }
   }
 
-  const tbody = q("#invTable tbody");
-  tbody.innerHTML = "";
-  for(const t of ["head","body","accessory","background"]){
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${t}</td><td>${inv[t]||0}</td>`;
-    tbody.appendChild(tr);
+  const ut = document.querySelector("#unlockTable tbody");
+  if(ut){
+    ut.innerHTML = `<tr><td>已解鎖</td><td>${unlockCount}</td></tr>`;
   }
 
-  q("#unlockTable tbody").innerHTML = `<tr><td>已解鎖</td><td>${unlockCount}</td></tr>`;
-
-  q("#resetBtn").addEventListener("click", ()=>{
-    localStorage.removeItem("acf_offline_db_v1");
-    localStorage.removeItem("acf_seed_once");
-    toast("已重置");
-    setTimeout(()=>location.reload(), 400);
-  });
+  const resetBtn = document.querySelector("#resetBtn");
+  if(resetBtn){
+    resetBtn.addEventListener("click", ()=>{
+      localStorage.removeItem("acf_offline_db_v1");
+      localStorage.removeItem("acf_seed_once");
+      toast("已重置");
+      setTimeout(()=>location.reload(), 600);
+    });
+  }
 })();
 </script>
+
 </body>
 </html>
