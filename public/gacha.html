@@ -1,155 +1,168 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>抽卡</title>
+  <meta charset="UTF-8" />
+  <title>Gacha</title>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      background: radial-gradient(circle at top, #1b1f2a, #0b0d12);
+      color: #fff;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont;
+      margin: 0;
+    }
+    .gacha-root {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 20px;
+      text-align: center;
+    }
+    .feature {
+      margin-bottom: 30px;
+    }
+    .feature img {
+      width: 320px;
+      height: auto;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    }
+    .buttons {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 40px;
+    }
+    .buttons button {
+      padding: 14px 26px;
+      font-size: 16px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      background: linear-gradient(135deg, #ffcc66, #ff7b00);
+      color: #1a1a1a;
+      font-weight: 700;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+    }
+    .buttons button.alt {
+      background: linear-gradient(135deg, #8adcff, #3aa3ff);
+    }
+    .gacha-stage {
+      position: relative;
+      margin: 0 auto;
+      width: 900px;
+      max-width: 100%;
+      height: 180px;
+      overflow: hidden;
+      border-radius: 20px;
+      background: linear-gradient(180deg, #20263a, #121626);
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,0.05),
+                  0 20px 60px rgba(0,0,0,0.6);
+    }
+    .marker {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 4px;
+      transform: translateX(-50%);
+      background: linear-gradient(180deg, transparent, gold, transparent);
+      box-shadow: 0 0 20px gold;
+      pointer-events: none;
+    }
+    .belt {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      gap: 12px;
+      will-change: transform;
+    }
+    .card {
+      width: 120px;
+      height: 120px;
+      border-radius: 12px;
+      background: #000;
+      overflow: hidden;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+      flex-shrink: 0;
+    }
+    .card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .card.win {
+      box-shadow: 0 0 30px 6px gold;
+      transform: scale(1.05);
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <div class="topbar">
-      <a class="brand" href="index.html">
-        <div class="logo"></div>
-        <h1>Anime Character Forge</h1>
-      </a>
-      <div class="right">
-        <div class="badge" id="netBadge">Connecting</div>
-        <a class="badge" href="profile.html">My</a>
-      </div>
+  <div class="gacha-root">
+    <div class="feature">
+      <h2>本期 Featured 角色</h2>
+      <img src="assets/feature_character.png" alt="feature" />
     </div>
 
-    
-<div class="card">
-  <div class="cardHeader">
-    <h2>抽卡</h2>
-    <a class="badge" href="hub.html">返回</a>
-  </div>
-  <div class="cardBody">
-    <div class="grid">
-      <div class="col5">
-        <label class="help">抽哪一類</label>
-        <select class="input" id="typeSel">
-          <option value="head">頭部</option>
-          <option value="body">身體</option>
-          <option value="accessory">附件</option>
-          <option value="background">背景</option>
-        </select>
-        <div style="height:12px"></div>
-
-        <label class="help">抽幾抽</label>
-        <select class="input" id="countSel">
-          <option value="1">1</option>
-          <option value="10">10</option>
-        </select>
-
-        <div style="height:12px"></div>
-
-        <button class="btn btnPrimary" id="pullBtn">開始抽</button>
-
-        <div class="hr"></div>
-
-        <div class="notice">
-          你可以先用離線模式玩
-          部署 Cloudflare 後端後抽卡與背包會自動切到線上
-        </div>
-      </div>
-
-      <div class="col7">
-        <div class="stage" style="aspect-ratio: 16 / 9;">
-          <img class="layer" id="pullPreview" alt="pull preview" />
-        </div>
-        <div style="height:10px"></div>
-
-        <table class="table" id="resultTable">
-          <thead><tr><th>結果</th><th>稀有度</th><th>素材</th></tr></thead>
-          <tbody></tbody>
-        </table>
-      </div>
+    <div class="buttons">
+      <button onclick="startGacha(1)">單次抽卡</button>
+      <button onclick="startGacha(10)">10 連抽</button>
+      <button class="alt">高級抽卡</button>
+      <button class="alt">特定素材抽卡</button>
     </div>
-  </div>
-</div>
 
+    <div class="gacha-stage">
+      <div class="marker"></div>
+      <div class="belt" id="belt"></div>
+    </div>
   </div>
 
   <script src="app.js"></script>
-  
-<script>
-(async function(){
-  await initSession();
-  q("#netBadge").textContent = APP.offline ? "Offline" : "Online";
+  <script>
+    const belt = document.getElementById("belt");
+    let animating = false;
 
-  const tbody = q("#resultTable tbody");
-  const db = offlineDb();
-  const cached = getAssetsCached();
-  const assetsAll = (cached && cached.length) ? cached : db.assets;
-  const byId = new Map(assetsAll.map(a=>[a.assetId,a]));
+    async function startGacha(count) {
+      if (animating) return;
+      animating = true;
+      belt.innerHTML = "";
 
-  function addToInventory(uid, assetId){
-    const k = `${uid}:${assetId}`;
-    db.userAssets[k] = (db.userAssets[k] || 0) + 1;
-  }
+      // mock assets for animation (replace with Worker API result)
+      const pool = Array.from({length: 20}).map((_, i) => ({
+        thumb: `assets/thumb_${(i%6)+1}.png`
+      }));
 
-  async function pullOffline(type, count){
-    const pool = db.assets.filter(a=>a.type===type);
-    const items = [];
-    for(let i=0;i<count;i++){
-      const rarity = pickWeightedRarity();
-      const cand = pool.filter(a=>a.rarity===rarity);
-      const picked = randPick(cand.length ? cand : pool);
-      items.push(picked.assetId);
-      addToInventory(APP.uid, picked.assetId);
+      pool.forEach(p => {
+        const div = document.createElement("div");
+        div.className = "card";
+        div.innerHTML = `<img src="${p.thumb}" />`;
+        belt.appendChild(div);
+      });
+
+      let pos = 0;
+      let speed = 60;
+      const total = 2000;
+      const start = performance.now();
+
+      function frame(t) {
+        const elapsed = t - start;
+        const progress = Math.min(elapsed / total, 1);
+        const ease = 1 - Math.pow(1 - progress, 3);
+        pos = -ease * (belt.scrollWidth - 900);
+        belt.style.transform = `translate(${pos}px, -50%)`;
+
+        if (progress < 1) {
+          requestAnimationFrame(frame);
+        } else {
+          const cards = belt.children;
+          const centerIndex = Math.floor(cards.length / 2);
+          cards[centerIndex].classList.add("win");
+          animating = false;
+        }
+      }
+      requestAnimationFrame(frame);
     }
-    saveOfflineDb(db);
-    return { ok:true, items };
-  }
-
-  async function pullOnline(type, count){
-    const data = await api("/api/gacha", {
-      method:"POST",
-      body: JSON.stringify({ type, rolls: count })
-    });
-    if(!data || !data.ok) return null;
-
-    // sync local inventory so other pages can reuse the same store
-    const db2 = offlineDb();
-    const uid = APP.uid;
-    for(const it of (data.pulled || [])){
-      const k = `${uid}:${it.assetId}`;
-      db2.userAssets[k] = (db2.userAssets[k] || 0) + 1;
-    }
-    saveOfflineDb(db2);
-
-    return { ok:true, items: (data.pulled||[]).map(x=>x.assetId), pulled: data.pulled||[] };
-  }
-
-  function render(items, pulledObjs){
-    tbody.innerHTML = "";
-    const firstObj = (pulledObjs && pulledObjs.length) ? pulledObjs[0] : null;
-    const firstId = items.slice(0,1)[0];
-    const a0 = firstObj || byId.get(firstId);
-    q("#pullPreview").src = a0?.imageUrl || "";
-
-    items.forEach((id, idx)=>{
-      const a = (pulledObjs && pulledObjs[idx]) ? pulledObjs[idx] : byId.get(id);
-      const tr = document.createElement("tr");
-      tr.innerHTML = `<td>#${idx+1}</td><td>${rarityPill(a?.rarity||1)}</td><td>${a?.name||id}</td>`;
-      tbody.appendChild(tr);
-    });
-  }
-
-  q("#pullBtn").addEventListener("click", async ()=>{
-    const type = q("#typeSel").value;
-    const count = Number(q("#countSel").value);
-    toast("抽卡中");
-    let data = await pullOnline(type, count);
-    if(!data) data = await pullOffline(type, count);
-    q("#netBadge").textContent = APP.offline ? "Offline" : "Online";
-    render(data.items || [], data.pulled || null);
-    toast("抽到了");
-  });
-})();
-</script>
-
+  </script>
 </body>
 </html>
