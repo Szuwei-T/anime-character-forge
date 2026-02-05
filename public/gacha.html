@@ -1,247 +1,208 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-Hant">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Anime Character Forge - 抽卡</title>
+  <title>抽卡</title>
   <link rel="stylesheet" href="style.css" />
-  <style>
-    .gacha-wrap { display:flex; gap:24px; align-items:flex-start; }
-    .gacha-left { width:360px; }
-    .gacha-stage { flex:1; min-height:520px; border-radius:18px; border:1px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.03); overflow:hidden; position:relative; }
-    .roulette-center-line { position:absolute; top:0; bottom:0; left:50%; width:2px; transform:translateX(-1px); background:rgba(255,255,255,0.18); pointer-events:none; }
-    .roulette-track { position:absolute; left:0; top:50%; transform:translateY(-50%); display:flex; gap:14px; padding:0 40px; will-change:transform; }
-    .roulette-item { width:96px; height:96px; border-radius:14px; border:1px solid rgba(255,255,255,0.18); background:rgba(255,255,255,0.04); display:flex; align-items:center; justify-content:center; overflow:hidden; box-shadow: 0 8px 20px rgba(0,0,0,0.25); }
-    .roulette-item img { width:100%; height:100%; object-fit:cover; display:block; }
-    .roulette-item.win { outline:3px solid rgba(120, 220, 255, 0.95); box-shadow: 0 0 0 6px rgba(120, 220, 255, 0.18), 0 18px 40px rgba(0,0,0,0.35); transform: translateY(-4px); }
-    .gacha-result { margin-top:14px; display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px; }
-    .gacha-card { padding:14px 14px; border-radius:14px; border:1px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.03); min-height:64px; }
-    .small-muted { opacity:0.85; font-size:13px; line-height:1.3; }
-    .btn { cursor:pointer; user-select:none; }
-  </style>
-</head>
 
+<style>
+.roulette-stage{position:relative;height:100%;width:100%;border-radius:18px;overflow:hidden;background:rgba(0,0,0,.18);display:flex;align-items:center;}
+.roulette-track{display:flex;gap:12px;align-items:center;will-change:transform;padding:0 24px;}
+.roulette-item{width:140px;height:210px;object-fit:contain;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);box-shadow:0 6px 18px rgba(0,0,0,.25);}
+.roulette-center{position:absolute;left:50%;top:0;transform:translateX(-50%);width:4px;height:100%;background:rgba(255,255,255,.22);pointer-events:none;}
+.roulette-item.hit{outline:3px solid rgba(0,255,170,.65);box-shadow:0 0 0 8px rgba(0,255,170,.12), 0 10px 28px rgba(0,0,0,.35);}
+</style>
+
+</head>
 <body>
-  <div class="topbar">
-    <div class="brand">Anime Character Forge</div>
-    <div class="top-actions">
-      <button id="modeBtn" class="pill">Online</button>
-      <a class="pill" href="profile">My</a>
+  <div class="container">
+    <div class="topbar">
+      <a class="brand" href="index.html">
+        <div class="logo"></div>
+        <h1>Anime Character Forge</h1>
+      </a>
+      <div class="right">
+        <div class="badge" id="netBadge">Connecting</div>
+        <a class="badge" href="profile.html">My</a>
+      </div>
+    </div>
+
+    
+<div class="card">
+  <div class="cardHeader">
+    <h2>抽卡</h2>
+    <a class="badge" href="hub.html">返回</a>
+  </div>
+  <div class="cardBody">
+    <div class="grid">
+      <div class="col5">
+        <label class="help">抽哪一類</label>
+        <select class="input" id="typeSel">
+          <option value="head">頭部</option>
+          <option value="body">身體</option>
+          <option value="accessory">附件</option>
+          <option value="background">背景</option>
+        </select>
+        <div style="height:12px"></div>
+
+        <label class="help">抽幾抽</label>
+        <select class="input" id="countSel">
+          <option value="1">1</option>
+          <option value="10">10</option>
+        </select>
+
+        <div style="height:12px"></div>
+
+        <button class="btn btnPrimary" id="pullBtn">開始抽</button>
+
+        <div class="hr"></div>
+
+        <div class="notice">
+          你可以先用離線模式玩
+          部署 Cloudflare 後端後抽卡與背包會自動切到線上
+        </div>
+      </div>
+
+      <div class="col7">
+        <div class="stage" style="aspect-ratio: 16 / 9;">
+          <img class="layer" id="pullPreview" alt="pull preview" />
+        </div>
+        <div style="height:10px"></div>
+
+        <table class="table" id="resultTable" style="display:none">
+          <thead><tr><th>結果</th><th>稀有度</th><th>素材</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </div>
   </div>
+</div>
 
-  <div class="panel">
-    <div class="panel-title">抽卡</div>
-
-    <div class="gacha-wrap">
-      <div class="gacha-left">
-        <div class="field">
-          <div class="label">抽哪一類</div>
-          <select id="typeSelect" class="input">
-            <option value="head">頭部</option>
-            <option value="body">身體</option>
-            <option value="accessory">飾品</option>
-            <option value="background">背景</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <div class="label">抽幾抽</div>
-          <select id="countSelect" class="input">
-            <option value="1">1</option>
-            <option value="10">10</option>
-          </select>
-        </div>
-
-        <button id="startBtn" class="btn primary-btn" style="width:100%; margin-top:10px;">開始抽</button>
-
-        <div class="hint-box" style="margin-top:14px;">
-          <div class="small-muted">
-            會先從資料庫現有素材中隨機產生 20 張縮圖跑馬燈，之後減速並停在中間亮起的那張就是抽到的素材（允許重複）。
-          </div>
-        </div>
-      </div>
-
-      <div class="gacha-stage" id="stage">
-        <div class="roulette-center-line"></div>
-        <div class="roulette-track" id="track"></div>
-      </div>
-    </div>
-
-    <div class="gacha-result">
-      <div class="gacha-card">
-        <div class="small-muted">結果</div>
-        <div id="resultNo">—</div>
-      </div>
-      <div class="gacha-card">
-        <div class="small-muted">稀有度</div>
-        <div id="resultRarity">—</div>
-      </div>
-      <div class="gacha-card">
-        <div class="small-muted">素材</div>
-        <div id="resultAsset">—</div>
-      </div>
-    </div>
   </div>
 
   <script src="app.js"></script>
-  <script>
-    const byId = (id) => document.getElementById(id);
+  
+<script>
+(async function(){
+  await initSession();
+  q("#netBadge").textContent = APP.offline ? "Offline" : "Online";
 
-    const stage = byId("stage");
-    const track = byId("track");
-    const startBtn = byId("startBtn");
-    const typeSelect = byId("typeSelect");
-    const countSelect = byId("countSelect");
+  const assets = await getAssetsCached(false);
+  const byId = new Map(assets.map(a=>[a.assetId,a]));
 
-    function setModePill() {
-      const btn = byId("modeBtn");
-      btn.textContent = (window.APP && APP.offline) ? "Offline" : "Online";
-    }
-    setModePill();
+  const resultNo = q("#resultNo");
+  const resultRarity = q("#resultRarity");
+  const resultName = q("#resultName");
 
-    function randInt(n) { return Math.floor(Math.random() * n); }
+  const stage = q("#rouletteStage");
+  const track = q("#rouletteTrack");
 
-    function clearTrack() {
-      track.innerHTML = "";
-      track.style.transform = "translate3d(0, -50%, 0)";
-    }
+  function assetsByType(type){
+    return assets.filter(a=>a.type===type);
+  }
 
-    function renderItems(items) {
-      clearTrack();
-      for (const it of items) {
-        const el = document.createElement("div");
-        el.className = "roulette-item";
-        const img = document.createElement("img");
-        img.alt = it.assetId || "";
-        img.src = resolveAssetPath(it, true);
-        el.appendChild(img);
-        track.appendChild(el);
-      }
-    }
+  function pickRandomAssetId(type){
+    const pool = assetsByType(type);
+    const picked = randPick(pool);
+    return picked ? picked.assetId : null;
+  }
 
-    async function pullOnceFromWorker(type) {
-      // Try POST first, fallback to GET
-      const uid = APP.uid || localStorage.getItem("acf_uid");
-      const payload = { uid, type, count: 1 };
-      try {
-        const res = await apiFetch("/api/gacha/pull", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-        if (res && res.ok && (res.item || res.asset || res.result)) return res;
-      } catch (e) {}
-      const qs = new URLSearchParams({ uid, type, count: "1" }).toString();
-      const res2 = await apiFetch("/api/gacha/pull?" + qs, { method: "GET" });
-      return res2;
-    }
-
-    function pickRandom(pool, n) {
-      const out = [];
-      for (let i = 0; i < n; i++) out.push(pool[randInt(pool.length)]);
-      return out;
-    }
-
-    function getCenterIndex() {
-      // For 20 items, we choose the 11th (index 10) as the "win" slot.
-      return 10;
-    }
-
-    async function runRoulette(items) {
-      // Layout
-      const itemW = 96;
-      const gap = 14;
-      const step = itemW + gap;
-      const centerIndex = getCenterIndex();
-
-      // Compute target translateX so that chosen item center aligns with stage center
-      const stageRect = stage.getBoundingClientRect();
-      const centerX = stageRect.width / 2;
-      const targetX = centerX - (40 + centerIndex * step + itemW / 2); // 40 = track padding-left
-
-      // Animation (fast then slow)
-      let x = 40; // start a bit to the right
-      let v = 38; // px per frame
-      let minV = 0.6;
-      let decel = 0.985;
-      const t0 = performance.now();
-      const durationMin = 1200; // ensure it spins a bit
-
-      return await new Promise((resolve) => {
-        function tick(now) {
-          // move left (track moves left as x decreases)
-          x -= v;
-          v *= decel;
-          if (v < minV && (now - t0) > durationMin) {
-            // snap to target
-            x = targetX;
-            track.style.transform = `translate3d(${x}px, -50%, 0)`;
-            resolve(centerIndex);
-            return;
-          }
-          track.style.transform = `translate3d(${x}px, -50%, 0)`;
-          requestAnimationFrame(tick);
-        }
-        requestAnimationFrame(tick);
-      });
-    }
-
-    async function doOneDraw(seqNo = 1) {
-      startBtn.disabled = true;
-
-      try {
-        await initSession(); // sets APP.uid + APP.apiBase
-        const type = typeSelect.value;
-
-        const assets = await getAssetsCached();
-        const pool = assets.filter(a => a.type === type);
-        if (!pool.length) {
-          alert("這個分類目前沒有任何素材（DB assets 表裡找不到）。");
-          return;
-        }
-
-        // Server decides the real result
-        const pullRes = await pullOnceFromWorker(type);
-        if (!pullRes || !pullRes.ok) {
-          console.error("pullRes", pullRes);
-          alert("抽卡 API 失敗。請看 Console / Worker Logs。");
-          return;
-        }
-
-        const won = pullRes.item || pullRes.asset || pullRes.result;
-        const wonId = won.assetId || won.asset_id || won.id || won;
-        const wonAsset = (APP.cache.assetsById && APP.cache.assetsById[wonId]) || pool.find(a=>a.assetId===wonId) || won;
-
-        // Build 20 roulette items, force win at centerIndex
-        const items = pickRandom(pool, 20);
-        const centerIndex = getCenterIndex();
-        items[centerIndex] = wonAsset;
-
-        renderItems(items);
-        const winIndex = await runRoulette(items);
-
-        // Highlight winner
-        const children = [...track.children];
-        children.forEach((c, i) => c.classList.toggle("win", i === winIndex));
-
-        // Show results
-        byId("resultNo").textContent = "#" + seqNo;
-        byId("resultRarity").textContent = (wonAsset.rarity ?? won.rarity ?? "—");
-        byId("resultAsset").textContent = (wonAsset.assetId ?? wonId ?? "—");
-
-      } finally {
-        startBtn.disabled = false;
-      }
-    }
-
-    startBtn.addEventListener("click", async () => {
-      const n = parseInt(countSelect.value, 10) || 1;
-      for (let i = 1; i <= n; i++) {
-        await doOneDraw(i);
-        if (n > 1) await new Promise(r => setTimeout(r, 450));
-      }
+  async function pullOnline(type){
+    const data = await apiFetch("/api/gacha/pull", {
+      method:"POST",
+      body: JSON.stringify({ uid: APP.uid, type, count: 1 })
     });
-  </script>
+    if(!data || data.ok===false) return null;
+    const it0 = (data.items && data.items[0]) || (data.item) || null;
+    const id = (typeof it0 === "string") ? it0 : (it0 && (it0.assetId || it0.id));
+    return { data, assetId: id || null };
+  }
+
+  function buildPool(type, hitId){
+    const pool = [];
+    for(let i=0;i<20;i++){
+      const id = pickRandomAssetId(type) || hitId;
+      pool.push(id);
+    }
+    const mid = Math.floor(pool.length/2);
+    pool[mid] = hitId;
+    return pool;
+  }
+
+  function renderTrack(pool){
+    track.innerHTML = "";
+    pool.forEach((id)=>{
+      const a = byId.get(id) || { assetId:id, imageUrl:"" };
+      const img = document.createElement("img");
+      img.className = "roulette-item";
+      img.alt = id;
+      img.src = toThumb(a.imageUrl || "");
+      track.appendChild(img);
+    });
+  }
+
+  async function animateRoulette(){
+    track.style.transition = "none";
+    track.style.transform = "translateX(0px)";
+    void track.offsetWidth;
+
+    const items = qa(".roulette-item", track);
+    if(!items.length) return;
+
+    const itemW = items[0].getBoundingClientRect().width;
+    const gap = 12;
+    const step = itemW + gap;
+
+    const midIndex = Math.floor(items.length/2);
+    const stageW = stage.getBoundingClientRect().width;
+    const centerX = stageW / 2;
+
+    const itemCenterAt0 = (midIndex * step) + (itemW/2);
+    const offsetNeeded = centerX - itemCenterAt0;
+
+    const extraLoops = 2;
+    const extra = extraLoops * items.length * step;
+
+    const targetX = offsetNeeded - extra;
+
+    track.style.transition = "transform 2.8s cubic-bezier(0.08, 0.82, 0.12, 1)";
+    track.style.transform = `translateX(${targetX}px)`;
+
+    await new Promise(r=>setTimeout(r, 2850));
+    items.forEach(el=>el.classList.remove("hit"));
+    items[midIndex].classList.add("hit");
+  }
+
+  function showResult(assetId){
+    const a = byId.get(assetId);
+    resultNo.textContent = "#1";
+    resultRarity.innerHTML = rarityPill(a?.rarity || 1);
+    resultName.textContent = a?.assetId || assetId || "—";
+  }
+
+  q("#pullBtn").addEventListener("click", async ()=>{
+    const type = q("#typeSel").value;
+    toast("抽卡中");
+    await initSession();
+
+    const pulled = await pullOnline(type);
+    if(!pulled || !pulled.assetId){
+      toast("抽卡失敗（API）");
+      q("#netBadge").textContent = "Offline";
+      return;
+    }
+
+    const pool = buildPool(type, pulled.assetId);
+    renderTrack(pool);
+    await animateRoulette();
+    showResult(pulled.assetId);
+
+    getAssetsCached(true).catch(()=>{});
+    toast("抽到了");
+  });
+})();
+
+</script>
 </body>
 </html>

@@ -1,278 +1,175 @@
-const APP = {
-  apiBase: WORKER_BASE || "",
-  offline: IS_OFFLINE,
-  uid: null,
-  name: null,
-  cache: { assets: null, assetsById: null },
-};
+// app.js - shared helpers for Anime Character Forge (Pages + Workers)
+//
+// Goal: always call the Worker API when online (avoid /api on Pages).
+// You can override Worker base via localStorage key "acf_worker_base".
 
-const WORKER_BASE =
-  (location.hostname === "127.0.0.1" || location.hostname === "localhost")
-    ? ""
-    : "https://acf-api.dream-league-baseball.workers.dev";
+(function(){
+  // ---------- config ----------
+  const DEFAULT_WORKER_BASE = "https://acf-api.dream-league-baseball.workers.dev";
+  const IS_LOCALHOST = ["localhost","127.0.0.1"].includes(location.hostname);
 
-const IS_OFFLINE = WORKER_BASE === "";
+  // Using var to avoid any temporal-dead-zone issues if other scripts reference early.
+  var WORKER_BASE = (function(){
+    try { return localStorage.getItem("acf_worker_base") || DEFAULT_WORKER_BASE; }
+    catch(e){ return DEFAULT_WORKER_BASE; }
+  })();
 
-function q(sel, root=document){ return root.querySelector(sel); }
-function qa(sel, root=document){ return Array.from(root.querySelectorAll(sel)); }
+  // Global APP bag (var so it exists immediately)
+  var APP = window.APP || (window.APP = {});
+  APP.workerBase = WORKER_BASE;
+  APP.apiBase = IS_LOCALHOST ? "" : WORKER_BASE; // IMPORTANT: Pages must call Worker
+  APP.offline = IS_LOCALHOST && (new URLSearchParams(location.search).get("offline")==="1");
 
-function toast(msg){
-  let el = q("#toast");
-  if(!el){
-    el = document.createElement("div");
-    el.id = "toast";
-    el.className = "toast hidden";
-    document.body.appendChild(el);
+  // ---------- tiny DOM helpers ----------
+  window.q  = window.q  || ((sel, root=document)=>root.querySelector(sel));
+  window.qa = window.qa || ((sel, root=document)=>Array.from(root.querySelectorAll(sel)));
+
+  // ---------- uid ----------
+  function uuidv4(){
+    if (crypto && crypto.randomUUID) return crypto.randomUUID();
+    const a = crypto.getRandomValues(new Uint8Array(16));
+    a[6] = (a[6] & 0x0f) | 0x40;
+    a[8] = (a[8] & 0x3f) | 0x80;
+    const h = [...a].map(b=>b.toString(16).padStart(2,"0")).join("");
+    return `${h.slice(0,8)}-${h.slice(8,12)}-${h.slice(12,16)}-${h.slice(16,20)}-${h.slice(20)}`;
   }
-  el.textContent = msg;
-  el.classList.remove("hidden");
-  clearTimeout(el._t);
-  el._t = setTimeout(()=>el.classList.add("hidden"), 2400);
-}
 
-function getOrCreateUid(){
-  const k = "acf_uid";
-  let uid = localStorage.getItem(k);
-  if(!uid){
-    uid = crypto.randomUUID();
-    localStorage.setItem(k, uid);
+  function getOrCreateUid(){
+    try{
+      const k = "acf_uid";
+      let uid = localStorage.getItem(k);
+      if(!uid){ uid = uuidv4(); localStorage.setItem(k, uid); }
+      return uid;
+    }catch(e){
+      return uuidv4();
+    }
   }
-  return uid;
-}
 
-function getName(){
-  return localStorage.getItem("acf_name") || "Player";
-}
+  // ---------- fetch wrapper ----------
+  async function apiFetch(path, options={}){
+    const base = (APP.offline ? "" : (APP.apiBase || APP.workerBase || ""));
+    const url = (base ? base.replace(/\/$/,"") : "") + path;
 
-function setName(n){
-  localStorage.setItem("acf_name", n || "Player");
-}
+    const headers = new Headers(options.headers || {});
+    if(!headers.has("Content-Type") && options.body) headers.set("Content-Type","application/json");
+    if(APP.uid && !headers.has("x-user-id")) headers.set("x-user-id", APP.uid);
 
-function offlineDb(){
-  const key = "acf_offline_db_v1";
-  const raw = localStorage.getItem(key);
-  if(raw){
-    try{ return JSON.parse(raw); }catch(e){}
+    const res = await fetch(url, { ...options, headers });
+    if(!res.ok){
+      let t = "";
+      try{ t = await res.text(); }catch(e){}
+      console.error("apiFetch fail", res.status, url, t);
+      return { ok:false, error:`http_${res.status}`, detail:t };
+    }
+    const ct = res.headers.get("content-type") || "";
+    if(ct.includes("application/json")) return await res.json();
+    return await res.text();
   }
-  const seed = {
-    users: {},
-    assets: seedAssets(),
-    userAssets: {},
-    builds: [],
-    ratings: {},
-    unlocks: {},
-    recipes: seedRecipes(),
-    seasonId: "S1",
-  };
-  localStorage.setItem(key, JSON.stringify(seed));
-  return seed;
 
-  function seedAssets(){
-    const items = [];
-    const types = ["head","body","accessory","background"];
-    const rarities = [1,2,3,4,5];
-    let idc = 1;
-    for(const t of types){
-      for(const r of rarities){
-        const n = t === "accessory" ? 6 : 4;
-        for(let i=1;i<=n;i++){
-          const id = `A${String(idc).padStart(3,"0")}`;
-          idc++;
-          items.push({
-            assetId: id,
-            type: t,
-            rarity: r,
-            name: `${t} ${r}.${i}`,
-            imageUrl: `assets/${t}_${r}_${i}.png`,
-          });
+  async function apiGet(path){ return apiFetch(path, { method:"GET" }); }
+  async function apiPost(path, body){ return apiFetch(path, { method:"POST", body: JSON.stringify(body||{}) }); }
+
+  // ---------- assets cache ----------
+  function normalizeAsset(a){
+    if(!a) return null;
+    const assetId = a.assetId || a.id || a.key || a.name;
+    const imageUrl = a.imageUrl || a.url || (a.image ? a.image.url : "");
+    const type = a.type || a.category;
+    const rarity = Number(a.rarity || a.star || 1);
+    return { ...a, assetId, imageUrl, type, rarity };
+  }
+
+  async function fetchAssetsOnline(){
+    const data = await apiGet("/api/assets");
+    if(!data || data.ok===false) return null;
+    const list = (data.assets || data.items || data.data || []);
+    return list.map(normalizeAsset).filter(Boolean);
+  }
+
+  async function getAssetsCached(force=false){
+    const key = "acf_assets_cache_v1";
+    if(!force){
+      try{
+        const raw = localStorage.getItem(key);
+        if(raw){
+          const parsed = JSON.parse(raw);
+          if(Array.isArray(parsed) && parsed.length){
+            return parsed.map(normalizeAsset).filter(Boolean);
+          }
         }
-      }
+      }catch(e){}
     }
-    return items;
+    const list = await fetchAssetsOnline();
+    if(list){
+      try{ localStorage.setItem(key, JSON.stringify(list)); }catch(e){}
+      return list;
+    }
+    return [];
   }
 
-  function seedRecipes(){
-    return [
-      {
-        recipeId:"R001",
-        name:"Sky Duelist",
-        headId:"A001",
-        bodyId:"A101",
-        bgId:"A301",
-        accessoryIds:["A201","A202"],
-        rarity:4,
-        previewUrl:"assets/recipe_1.png",
-      },
-      {
-        recipeId:"R002",
-        name:"Neon Mage",
-        headId:"A010",
-        bodyId:"A120",
-        bgId:"A320",
-        accessoryIds:["A240"],
-        rarity:5,
-        previewUrl:"assets/recipe_2.png",
-      },
-      {
-        recipeId:"R003",
-        name:"Crimson Knight",
-        headId:"A020",
-        bodyId:"A130",
-        bgId:"A330",
-        accessoryIds:["A260","A261","A262"],
-        rarity:5,
-        previewUrl:"assets/recipe_3.png",
-      },
-    ];
+  function toThumb(imageUrl){
+    if(!imageUrl) return "";
+    if(/_thumb\.(png|jpg|jpeg|webp)$/i.test(imageUrl)) return imageUrl;
+    const m = imageUrl.match(/^([^?#]+)([?#].*)?$/);
+    const base = (m && m[1]) ? m[1] : imageUrl;
+    const suffix = (m && m[2]) ? m[2] : "";
+    const ext = base.match(/\.(png|jpg|jpeg|webp)$/i);
+    if(!ext) return imageUrl;
+    return base.replace(ext[0], `_thumb${ext[0]}`) + suffix;
   }
-}
 
-function saveOfflineDb(db){
-  localStorage.setItem("acf_offline_db_v1", JSON.stringify(db));
-}
+  // ---------- session ----------
+  async function initSession(){
+    APP.uid = APP.uid || getOrCreateUid();
+    if(APP.offline) return { ok:true, uid: APP.uid, offline:true };
 
-async function apiFetch(path, options={}){
-  const url = (APP.apiBase || "") + path;
-  const headers = Object.assign({ "Content-Type":"application/json" }, options.headers || {});
-  const opts = Object.assign({}, options, { headers });
-  try{
-    const res = await fetch(url, opts);
-    if(!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    APP.offline = false;
-    return data;
-  }catch(e){
+    const data = await apiPost("/api/session/init", { uid: APP.uid });
+    if(data && data.ok){
+      APP.userId = data.userId || data.uid || APP.uid;
+      return data;
+    }
     APP.offline = true;
-    return null;
+    return { ok:false, uid: APP.uid, offline:true, error: data?.error || "init_failed" };
   }
-}
 
-function toThumbName(filename) {
-  if (!filename) return filename;
-  if (filename.includes("_thumb.")) return filename;
-  const dot = filename.lastIndexOf(".");
-  if (dot === -1) return filename + "_thumb";
-  return filename.slice(0, dot) + "_thumb" + filename.slice(dot);
-}
-
-function resolveAssetPath(asset, preferThumb = false) {
-  const type = (asset && asset.type) ? asset.type : "";
-  let url = "";
-  if (!asset) return "";
-  if (typeof asset === "string") url = asset;
-  else url = asset.imageUrl || asset.url || asset.filename || `${asset.assetId || ""}.png`;
-
-  if (preferThumb) url = toThumbName(url);
-
-  if (/^https?:\/\//i.test(url) || url.startsWith("/")) return url;
-  if (url.includes("/")) return url;
-  if (type) return `assets/${type}/${url}`;
-  return `assets/${url}`;
-}
-
-async function getAssetsCached(force = false) {
-  if (IS_OFFLINE) return [];
-  if (!force && Array.isArray(APP.cache.assets) && APP.cache.assets.length) return APP.cache.assets;
-  const res = await apiFetch("/api/assets");
-  if (!res.ok) throw new Error(res.error || "assets_fetch_failed");
-  const assets = res.assets || res.items || [];
-  APP.cache.assets = assets;
-  const byId = {};
-  for (const a of assets) {
-    if (a && a.assetId) byId[a.assetId] = a;
+  // ---------- small UI helpers ----------
+  function toast(msg){
+    try{
+      let el = document.getElementById("toast");
+      if(!el){
+        el = document.createElement("div");
+        el.id = "toast";
+        el.style.cssText = "position:fixed;left:50%;bottom:24px;transform:translateX(-50%);padding:10px 14px;border-radius:12px;background:rgba(0,0,0,.65);color:#fff;font-size:14px;z-index:9999;opacity:0;transition:.2s;";
+        document.body.appendChild(el);
+      }
+      el.textContent = msg;
+      el.style.opacity = "1";
+      clearTimeout(el._t);
+      el._t = setTimeout(()=>{ el.style.opacity="0"; }, 1200);
+    }catch(e){}
   }
-  APP.cache.assetsById = byId;
-  return assets;
-}
 
-async function initSession(){
-  APP.uid = getOrCreateUid();
-  APP.name = getName();
-  const data = await apiFetch("/api/session/init", {
-    method:"POST",
-    body: JSON.stringify({ uid: APP.uid, displayName: APP.name })
-  });
-  if(!data){
-    const db = offlineDb();
-    if(!db.users[APP.uid]){
-      db.users[APP.uid] = { uid: APP.uid, displayName: APP.name, createdAt: Date.now() };
-      saveOfflineDb(db);
-    }
-    return { ok:true, offline:true };
+  function rarityPill(r){
+    const n = Number(r||1);
+    const star = "★".repeat(Math.max(1, Math.min(5, n)));
+    return `<span class="pill">${star} ${n}</span>`;
   }
-  return data;
-}
 
-function rarityPill(r){
-  return `<span class="pill">⭐ ${r}</span>`;
-}
-
-function byRarityDesc(a,b){ return (b.rarity||0)-(a.rarity||0); }
-
-function pickWeightedRarity(){
-  const r = Math.random();
-  if(r < 0.01) return 5;
-  if(r < 0.07) return 4;
-  if(r < 0.25) return 3;
-  if(r < 0.55) return 2;
-  return 1;
-}
-
-function randPick(arr){
-  return arr[Math.floor(Math.random()*arr.length)];
-}
-
-function normalizeAccessoryIds(ids){
-  return Array.from(new Set((ids||[]).filter(Boolean))).sort();
-}
-
-function sameSet(a,b){
-  if(a.length !== b.length) return false;
-  for(let i=0;i<a.length;i++) if(a[i]!==b[i]) return false;
-  return true;
-}
-
-async function api(path, opts){
-  if(IS_OFFLINE){
-    throw new Error("offline_mode_no_worker");
+  function randPick(arr){
+    if(!arr || !arr.length) return null;
+    return arr[Math.floor(Math.random()*arr.length)];
   }
-  const res = await fetch(WORKER_BASE + path, {
-    ...opts,
-    headers: {
-      ...(opts?.headers || {}),
-      "content-type": "application/json",
-      "x-user-id": getOrCreateUid()
-    }
-  });
-  return await res.json();
-}
 
-function getOrCreateUid(){
-  let uid = localStorage.getItem("acf_uid");
-  if(!uid){
-    uid = crypto.randomUUID();
-    localStorage.setItem("acf_uid", uid);
-  }
-  return uid;
-}
-
-window.APP = APP;
-window.q = q;
-window.qa = qa;
-window.toast = toast;
-window.initSession = initSession;
-window.apiFetch = apiFetch;
-window.offlineDb = offlineDb;
-window.saveOfflineDb = saveOfflineDb;
-window.rarityPill = rarityPill;
-window.byRarityDesc = byRarityDesc;
-window.pickWeightedRarity = pickWeightedRarity;
-window.randPick = randPick;
-window.normalizeAccessoryIds = normalizeAccessoryIds;
-window.sameSet = sameSet;
-window.setName = setName;
-window.getName = getName;
-
-
-window.getAssetsCached = getAssetsCached;
-window.resolveAssetPath = resolveAssetPath;
+  window.WORKER_BASE = WORKER_BASE;
+  window.APP = APP;
+  window.apiFetch = apiFetch;
+  window.apiGet = apiGet;
+  window.apiPost = apiPost;
+  window.getOrCreateUid = getOrCreateUid;
+  window.initSession = initSession;
+  window.getAssetsCached = getAssetsCached;
+  window.toThumb = toThumb;
+  window.toast = window.toast || toast;
+  window.rarityPill = window.rarityPill || rarityPill;
+  window.randPick = window.randPick || randPick;
+})();
