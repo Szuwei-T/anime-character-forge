@@ -1,8 +1,9 @@
 const APP = {
-  apiBase: "",
-  offline: false,
+  apiBase: WORKER_BASE || "",
+  offline: IS_OFFLINE,
   uid: null,
   name: null,
+  cache: { assets: null, assetsById: null },
 };
 
 const WORKER_BASE =
@@ -146,6 +147,44 @@ async function apiFetch(path, options={}){
   }
 }
 
+function toThumbName(filename) {
+  if (!filename) return filename;
+  if (filename.includes("_thumb.")) return filename;
+  const dot = filename.lastIndexOf(".");
+  if (dot === -1) return filename + "_thumb";
+  return filename.slice(0, dot) + "_thumb" + filename.slice(dot);
+}
+
+function resolveAssetPath(asset, preferThumb = false) {
+  const type = (asset && asset.type) ? asset.type : "";
+  let url = "";
+  if (!asset) return "";
+  if (typeof asset === "string") url = asset;
+  else url = asset.imageUrl || asset.url || asset.filename || `${asset.assetId || ""}.png`;
+
+  if (preferThumb) url = toThumbName(url);
+
+  if (/^https?:\/\//i.test(url) || url.startsWith("/")) return url;
+  if (url.includes("/")) return url;
+  if (type) return `assets/${type}/${url}`;
+  return `assets/${url}`;
+}
+
+async function getAssetsCached(force = false) {
+  if (IS_OFFLINE) return [];
+  if (!force && Array.isArray(APP.cache.assets) && APP.cache.assets.length) return APP.cache.assets;
+  const res = await apiFetch("/api/assets");
+  if (!res.ok) throw new Error(res.error || "assets_fetch_failed");
+  const assets = res.assets || res.items || [];
+  APP.cache.assets = assets;
+  const byId = {};
+  for (const a of assets) {
+    if (a && a.assetId) byId[a.assetId] = a;
+  }
+  APP.cache.assetsById = byId;
+  return assets;
+}
+
 async function initSession(){
   APP.uid = getOrCreateUid();
   APP.name = getName();
@@ -233,3 +272,7 @@ window.normalizeAccessoryIds = normalizeAccessoryIds;
 window.sameSet = sameSet;
 window.setName = setName;
 window.getName = getName;
+
+
+window.getAssetsCached = getAssetsCached;
+window.resolveAssetPath = resolveAssetPath;
