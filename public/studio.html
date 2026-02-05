@@ -3,8 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <base href="/"/>
   <title>工作室</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="/style.css" />
 <style id="thumbStyle">
   .picker-section{margin-bottom:14px;}
   .picker-title{font-size:14px;opacity:.9;margin:10px 0 10px;}
@@ -148,7 +149,7 @@
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <script src="/app.js"></script>
   <script>
   (async function(){
     await initSession();
@@ -280,16 +281,7 @@ function makeVirtualGrid(container, items, getSelectedId, onSelect, options){
         img.className = "asset-thumb";
         img.loading = "lazy";
         img.decoding = "async";
-        const fullSrc = it.imageUrl || "";
-        const thumb1 = (window.toThumbUrlSameDir ? window.toThumbUrlSameDir(fullSrc) : fullSrc) || "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
-        const thumb2 = (window.toThumbUrlAssetsThumbs ? window.toThumbUrlAssetsThumbs(fullSrc) : fullSrc) || thumb1;
-        img.src = thumb1;
-        img.dataset.full = fullSrc;
-        img.dataset.thumb2 = thumb2;
-        img.onerror = () => {
-          if (img.dataset.thumb2 && img.src !== img.dataset.thumb2) { img.src = img.dataset.thumb2; return; }
-          if (img.dataset.full && img.src !== img.dataset.full) { img.src = img.dataset.full; return; }
-        };
+        img.src = it.imageUrl || "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
         if(getSelectedId() === it.assetId) img.classList.add("active");
 
         img.addEventListener("click", ()=>{
@@ -441,16 +433,7 @@ function renderGrid(gridId, items, onSelect){
   g.innerHTML = "";
   items.forEach(it=>{
     const img = document.createElement("img");
-    const fullSrc = it.imageUrl || "";
-    const thumb1 = (window.toThumbUrlSameDir ? window.toThumbUrlSameDir(fullSrc) : fullSrc) || "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
-    const thumb2 = (window.toThumbUrlAssetsThumbs ? window.toThumbUrlAssetsThumbs(fullSrc) : fullSrc) || thumb1;
-    img.src = thumb1;
-    img.dataset.full = fullSrc;
-    img.dataset.thumb2 = thumb2;
-    img.onerror = () => {
-      if (img.dataset.thumb2 && img.src !== img.dataset.thumb2) { img.src = img.dataset.thumb2; return; }
-      if (img.dataset.full && img.src !== img.dataset.full) { img.src = img.dataset.full; return; }
-    };
+    img.src = it.imageUrl || "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
     img.className = "asset-thumb";
     img.onclick = ()=>{
       g.querySelectorAll(".asset-thumb").forEach(x=>x.classList.remove("active"));

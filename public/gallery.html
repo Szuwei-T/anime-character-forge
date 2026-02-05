@@ -3,8 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <base href="/"/>
   <title>展示牆</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
   <div class="container">
@@ -39,11 +40,7 @@
       </div>
       <div class="col7">
         <div class="stage" style="aspect-ratio: 16 / 9;">
-          <img class="layer" id="pvBg" alt="bg" />
-          <img class="layer" id="pvAddon2" alt="addon2" />
-          <img class="layer" id="pvHead" alt="head" />
-          <img class="layer" id="pvBody" alt="body" />
-          <img class="layer" id="pvAddon1" alt="addon1" />
+          <img class="layer" id="previewImg" alt="preview" />
         </div>
         <div style="height:10px"></div>
         <table class="table" id="buildTable">
@@ -64,102 +61,84 @@
 
   </div>
 
-  <script src="app.js"></script>
+  <script src="/app.js"></script>
   
 <script>
 (async function(){
   await initSession();
   q("#netBadge").textContent = APP.offline ? "Offline" : "Online";
-
   const db = offlineDb();
-  const cached = getAssetsCached();
-  const assetsAll = (cached && cached.length) ? cached : db.assets;
-  const byId = new Map(assetsAll.map(a=>[a.assetId,a]));
+  const byId = new Map(db.assets.map(a=>[a.assetId,a]));
 
-  function setPreview(item){
-    const bg = item.bgUrl || byId.get(item.bgId)?.imageUrl || "";
-    const a2 = item.addon2Url || (item.addon2Id ? byId.get(item.addon2Id)?.imageUrl : "") || "";
-    const head = item.headUrl || byId.get(item.headId)?.imageUrl || "";
-    const body = item.bodyUrl || byId.get(item.bodyId)?.imageUrl || "";
-    const a1 = item.addon1Url || (item.addon1Id ? byId.get(item.addon1Id)?.imageUrl : "") || "";
-
-    q("#pvBg").src = bg;
-    q("#pvAddon2").src = a2;
-    q("#pvHead").src = head;
-    q("#pvBody").src = body;
-    q("#pvAddon1").src = a1;
-
-    q("#pvAddon2").style.display = a2 ? "block" : "none";
-    q("#pvAddon1").style.display = a1 ? "block" : "none";
-  }
-
-  async function listOnline(){
-    try{
-      const data = await api("/api/gallery", { method:"GET" });
-      if(!data || !data.ok) return null;
-      return data;
-    }catch(e){
-      return null;
-    }
+  function buildPreviewUrl(b){
+    // Use recipe preview style placeholder by composing
+    // For MVP we just show background
+    const bg = byId.get(b.bgId);
+    return bg?.imageUrl || "";
   }
 
   async function listOffline(){
-    // offline builds may not have urls
-    return { ok:true, items: (db.builds||[]).slice(0,100).map(b=>({
-      showcaseId: b.buildId,
-      userId: b.uid,
-      title: b.title,
-      headId: b.headId,
-      bodyId: b.bodyId,
-      bgId: b.bgId,
-      addon1Id: (b.accessoryIds||[])[0] || "",
-      addon2Id: (b.accessoryIds||[])[1] || "",
-      avgScore: b.scoreCount ? (b.scoreSum/b.scoreCount) : 0,
-      votes: b.scoreCount || 0,
-      createdAt: b.createdAt || 0
-    })) };
+    return { ok:true, builds: db.builds.slice(0,40) };
   }
 
-  async function voteOnline(showcaseId, score){
-    try{
-      return await api("/api/vote", {
-        method:"POST",
-        body: JSON.stringify({ showcaseId, score })
-      });
-    }catch(e){
-      return null;
+  async function listOnline(){
+    const data = await apiFetch("/api/gallery?seasonId=S1&sort=top");
+    if(!data) return null;
+    return data;
+  }
+
+  async function rateOffline(buildId, score){
+    const key = `${APP.uid}:${buildId}`;
+    if(db.ratings[key]) return { ok:false, error:"already" };
+    db.ratings[key] = score;
+
+    const b = db.builds.find(x=>x.buildId===buildId);
+    if(b){
+      b.scoreSum += score;
+      b.scoreCount += 1;
     }
+    saveOfflineDb(db);
+    return { ok:true };
   }
 
-  function scoreText(it){
-    const avg = Number(it.avgScore || 0);
-    const cnt = Number(it.votes || 0);
-    return `${avg.toFixed(1)}  ${cnt}`;
+  async function rateOnline(buildId, score){
+    const data = await apiFetch("/api/ratings", {
+      method:"POST",
+      body: JSON.stringify({ buildId, raterUid: APP.uid, score })
+    });
+    if(!data) return null;
+    return data;
   }
 
-  function render(items){
+  function scoreText(b){
+    if(!b.scoreCount) return "0.0  0";
+    const avg = (b.scoreSum / b.scoreCount);
+    return `${avg.toFixed(1)}  ${b.scoreCount}`;
+  }
+
+  function render(builds){
     const tbody = q("#buildTable tbody");
     tbody.innerHTML = "";
-    if(!items || items.length === 0){
+    if(!builds || builds.length===0){
       const tr = document.createElement("tr");
       tr.innerHTML = `<td colspan="4">還沒有作品 先去工作室提交</td>`;
       tbody.appendChild(tr);
-      setPreview({ bgId:"", headId:"", bodyId:"" });
+      q("#previewImg").src = "";
       return;
     }
 
-    setPreview(items[0]);
+    q("#previewImg").src = buildPreviewUrl(builds[0]);
 
-    items.forEach((it, idx)=>{
+    builds.forEach((b, idx)=>{
       const tr = document.createElement("tr");
-      const author = (it.userId || "anon").slice(0,6);
-      const title = it.title || `作品 ${idx+1}`;
+      const author = b.uid ? b.uid.slice(0,6) : "anon";
+      const title = b.title || `作品 ${idx+1}`;
       tr.innerHTML = `
-        <td><a href="#" data-id="${it.showcaseId}" class="pick">${title}</a></td>
+        <td><a href="#" data-b="${b.buildId}" class="pick">${title}</a></td>
         <td>${author}</td>
-        <td>${scoreText(it)}</td>
+        <td>${scoreText(b)}</td>
         <td>
-          <select data-id="${it.showcaseId}" class="input" style="padding:8px;border-radius:12px">
+          <select data-s="${b.buildId}" class="input" style="padding:8px;border-radius:12px">
             <option value="">給分</option>
             <option value="5">5</option>
             <option value="4">4</option>
@@ -175,30 +154,26 @@
     qa("a.pick").forEach(a=>{
       a.addEventListener("click", (e)=>{
         e.preventDefault();
-        const id = a.getAttribute("data-id");
-        const it = items.find(x=>x.showcaseId===id);
-        if(it) setPreview(it);
+        const id = a.getAttribute("data-b");
+        const b = builds.find(x=>x.buildId===id);
+        if(b) q("#previewImg").src = buildPreviewUrl(b);
       });
     });
 
-    qa("select[data-id]").forEach(s=>{
+    qa("select[data-s]").forEach(s=>{
       s.addEventListener("change", async ()=>{
-        const showcaseId = s.getAttribute("data-id");
-        const score = Number(s.value||0);
-        if(!score) return;
-
+        const buildId = s.getAttribute("data-s");
+        const val = Number(s.value||0);
+        if(!val) return;
         toast("送出評分");
-        let r = await voteOnline(showcaseId, score);
-        if(!r){
-          toast("目前離線無法評分");
-          s.value = "";
-          return;
-        }
+        let r = await rateOnline(buildId, val);
+        if(!r) r = await rateOffline(buildId, val);
+        q("#netBadge").textContent = APP.offline ? "Offline" : "Online";
         if(r.ok){
           toast("已評分");
           await load();
         }else{
-          toast("評分失敗");
+          toast("你已評過這個作品");
         }
         s.value = "";
       });
@@ -209,18 +184,14 @@
     let data = await listOnline();
     if(!data) data = await listOffline();
     q("#netBadge").textContent = APP.offline ? "Offline" : "Online";
-    const items = (data.items || []).slice();
-    // sort top by avgScore then votes
-    items.sort((a,b)=>{
-      const aa = Number(a.avgScore||0);
-      const bb = Number(b.avgScore||0);
+    // sort top
+    const builds = (data.builds || []).slice().sort((a,b)=>{
+      const aa = a.scoreCount ? a.scoreSum/a.scoreCount : 0;
+      const bb = b.scoreCount ? b.scoreSum/b.scoreCount : 0;
       if(bb !== aa) return bb-aa;
-      const av = Number(a.votes||0);
-      const bv = Number(b.votes||0);
-      if(bv !== av) return bv-av;
-      return Number(b.createdAt||0) - Number(a.createdAt||0);
+      return (b.createdAt||0)-(a.createdAt||0);
     });
-    render(items);
+    render(builds);
   }
 
   q("#refreshBtn").addEventListener("click", load);

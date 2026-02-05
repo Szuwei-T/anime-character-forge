@@ -3,255 +3,140 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <base href="/"/>
   <title>抽卡</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
-  <div class="topbar">
-    <div class="brand">
-      <div class="logo"></div>
-      <div class="title">Anime Character Forge</div>
+  <div class="container">
+    <div class="topbar">
+      <a class="brand" href="index.html">
+        <div class="logo"></div>
+        <h1>Anime Character Forge</h1>
+      </a>
+      <div class="right">
+        <div class="badge" id="netBadge">Connecting</div>
+        <a class="badge" href="profile.html">My</a>
+      </div>
     </div>
-    <div class="nav">
-      <a class="pill" href="hub.html">Online</a>
-      <a class="pill" href="profile.html">My</a>
-    </div>
+
+    
+<div class="card">
+  <div class="cardHeader">
+    <h2>抽卡</h2>
+    <a class="badge" href="hub.html">返回</a>
   </div>
+  <div class="cardBody">
+    <div class="grid">
+      <div class="col5">
+        <label class="help">抽哪一類</label>
+        <select class="input" id="typeSel">
+          <option value="head">頭部</option>
+          <option value="body">身體</option>
+          <option value="accessory">附件</option>
+          <option value="background">背景</option>
+        </select>
+        <div style="height:12px"></div>
 
-  <div class="panel">
-    <div class="panelHeader">
-      <div class="panelTitle">抽卡</div>
-      <div class="panelRight">
-        <span class="badge" id="netBadge">...</span>
-        <a class="btnSmall" href="hub.html">返回</a>
-      </div>
-    </div>
+        <label class="help">抽幾抽</label>
+        <select class="input" id="countSel">
+          <option value="1">1</option>
+          <option value="10">10</option>
+        </select>
 
-    <div class="grid2">
-      <div class="card">
-        <div class="formRow">
-          <label>抽哪一類</label>
-          <select id="typeSel">
-            <option value="head">頭部</option>
-            <option value="body">身體</option>
-            <option value="addon1">add on 1</option>
-            <option value="addon2">add on 2</option>
-            <option value="background">背景</option>
-          </select>
-        </div>
+        <div style="height:12px"></div>
 
-        <div class="formRow">
-          <label>抽幾抽</label>
-          <select id="countSel">
-            <option value="1">1</option>
-          </select>
-        </div>
+        <button class="btn btnPrimary" id="pullBtn">開始抽</button>
 
-        <button class="btnPrimary" id="pullBtn">開始抽</button>
+        <div class="hr"></div>
 
-        <div class="hintBox">
-          會先從資料庫現有素材中隨機產生 20 張縮圖跑馬燈，最後停在中間亮起的那張就是你抽到的素材（允許重複）。
+        <div class="notice">
+          你可以先用離線模式玩
+          部署 Cloudflare 後端後抽卡與背包會自動切到線上
         </div>
       </div>
 
-      <div class="card">
-        <div class="rouletteWrap">
-          <div class="rouletteWindow" id="rouletteWindow">
-            <div class="rouletteCenterLine"></div>
-            <div class="rouletteReel" id="rouletteReel"></div>
-          </div>
-
-          <div class="resultBar">
-            <div class="resultCell">
-              <div class="resultLabel">結果</div>
-              <div class="resultValue" id="resultName">—</div>
-            </div>
-            <div class="resultCell">
-              <div class="resultLabel">稀有度</div>
-              <div class="resultValue" id="resultRarity">—</div>
-            </div>
-            <div class="resultCell">
-              <div class="resultLabel">素材</div>
-              <div class="resultValue" id="resultType">—</div>
-            </div>
-          </div>
-
-          <div class="pullMsg" id="pullMsg"></div>
+      <div class="col7">
+        <div class="stage" style="aspect-ratio: 16 / 9;">
+          <img class="layer" id="pullPreview" alt="pull preview" />
         </div>
+        <div style="height:10px"></div>
+
+        <table class="table" id="resultTable">
+          <thead><tr><th>結果</th><th>稀有度</th><th>素材</th></tr></thead>
+          <tbody></tbody>
+        </table>
       </div>
     </div>
   </div>
+</div>
 
-  <script src="app.js"></script>
-  <script>
-  (async function(){
-    await initSession();
+  </div>
+
+  <script src="/app.js"></script>
+  
+<script>
+(async function(){
+  await initSession();
+  q("#netBadge").textContent = APP.offline ? "Offline" : "Online";
+
+  const tbody = q("#resultTable tbody");
+  const db = offlineDb();
+  const byId = new Map(db.assets.map(a=>[a.assetId,a]));
+
+  function addToInventory(uid, assetId){
+    const k = `${uid}:${assetId}`;
+    db.userAssets[k] = (db.userAssets[k] || 0) + 1;
+  }
+
+  async function pullOffline(type, count){
+    const pool = db.assets.filter(a=>a.type===type);
+    const items = [];
+    for(let i=0;i<count;i++){
+      const rarity = pickWeightedRarity();
+      const cand = pool.filter(a=>a.rarity===rarity);
+      const picked = randPick(cand.length ? cand : pool);
+      items.push(picked.assetId);
+      addToInventory(APP.uid, picked.assetId);
+    }
+    saveOfflineDb(db);
+    return { ok:true, items };
+  }
+
+  async function pullOnline(type, count){
+    const data = await apiFetch("/api/gacha/pull", {
+      method:"POST",
+      body: JSON.stringify({ uid: APP.uid, type, count })
+    });
+    if(!data) return null;
+    return data;
+  }
+
+  function render(items){
+    tbody.innerHTML = "";
+    const show = items.slice(0,1)[0];
+    const a0 = byId.get(show);
+    q("#pullPreview").src = a0?.imageUrl || "";
+    items.forEach((id, idx)=>{
+      const a = byId.get(id);
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>#${idx+1}</td><td>${rarityPill(a?.rarity||1)}</td><td>${a?.name||id}</td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  q("#pullBtn").addEventListener("click", async ()=>{
+    const type = q("#typeSel").value;
+    const count = Number(q("#countSel").value);
+    toast("抽卡中");
+    let data = await pullOnline(type, count);
+    if(!data) data = await pullOffline(type, count);
     q("#netBadge").textContent = APP.offline ? "Offline" : "Online";
+    render(data.items || []);
+    toast("抽到了");
+  });
+})();
+</script>
 
-    const typeSel = q("#typeSel");
-    const pullBtn = q("#pullBtn");
-    const reelEl = q("#rouletteReel");
-    const winEl = q("#rouletteWindow");
-    const msgEl = q("#pullMsg");
-
-    const resName = q("#resultName");
-    const resRarity = q("#resultRarity");
-    const resType = q("#resultType");
-
-    const SLOT_W = 110;
-    const SLOT_GAP = 10;
-    const STEP = SLOT_W + SLOT_GAP;
-    const SLOT_COUNT = 20;
-    const CENTER_INDEX = 9;
-
-    let ASSETS = [];
-
-    function toast(t){
-      msgEl.textContent = t || "";
-    }
-
-    function toThumb(url){
-      if(!url) return url;
-      const m = url.match(/^(.*)(\.[a-zA-Z0-9]+)$/);
-      if(m) return m[1] + "_thumb" + m[2];
-      return url + "_thumb";
-    }
-
-    function assetThumb(asset){
-      return asset.thumbUrl || toThumb(asset.imageUrl || asset.url || "");
-    }
-
-    function renderReel(ids){
-      reelEl.innerHTML = "";
-      const byId = new Map(ASSETS.map(a => [a.assetId, a]));
-      ids.forEach((id, idx) => {
-        const a = byId.get(id);
-        const div = document.createElement("div");
-        div.className = "slot";
-        div.dataset.assetId = id;
-        div.dataset.idx = idx;
-        const img = document.createElement("img");
-        img.alt = id;
-        img.loading = "lazy";
-        img.src = a ? assetThumb(a) : "";
-        div.appendChild(img);
-        reelEl.appendChild(div);
-      });
-      reelEl.style.transform = "translateX(0px)";
-      qa(".slot", reelEl).forEach(s => s.classList.remove("win"));
-    }
-
-    async function loadAssets(){
-      const data = await apiFetch("/api/assets");
-      if(!data || !data.ok || !Array.isArray(data.assets)){
-        throw new Error("assets_not_ready");
-      }
-      ASSETS = data.assets;
-    }
-
-    function pickRandomId(poolIds){
-      if(poolIds.length === 0) return null;
-      return poolIds[Math.floor(Math.random() * poolIds.length)];
-    }
-
-    function buildIds(poolIds, winnerId){
-      const ids = new Array(SLOT_COUNT).fill(null).map(()=> pickRandomId(poolIds) || winnerId);
-      ids[CENTER_INDEX] = winnerId;
-      return ids;
-    }
-
-    function getTranslateForCenter(){
-      const w = winEl.clientWidth;
-      return (w/2 - SLOT_W/2) - (CENTER_INDEX * STEP);
-    }
-
-    function animateToCenter(durationMs=2600){
-      return new Promise(resolve => {
-        const start = performance.now();
-        const fromX = 40;
-        const toX = getTranslateForCenter();
-        function easeOutCubic(t){ return 1 - Math.pow(1-t, 3); }
-        function frame(now){
-          const t = Math.min(1, (now - start) / durationMs);
-          const e = easeOutCubic(t);
-          const x = fromX + (toX - fromX) * e;
-          reelEl.style.transform = `translateX(${x}px)`;
-          if(t < 1) requestAnimationFrame(frame);
-          else resolve();
-        }
-        requestAnimationFrame(frame);
-      });
-    }
-
-    async function pullOnce(){
-      toast("");
-      resName.textContent = "—";
-      resRarity.textContent = "—";
-      resType.textContent = "—";
-
-      try{
-        if(ASSETS.length === 0) await loadAssets();
-      }catch(e){
-        toast("assets 還沒好，先確認 Worker /api/assets 可以打開。");
-        return;
-      }
-
-      const type = typeSel.value;
-      const pool = ASSETS.filter(a => a.type === type);
-      const poolIds = pool.map(a => a.assetId);
-
-      pullBtn.disabled = true;
-
-      const draw = await apiFetch("/api/gacha/pull", {
-        method: "POST",
-        body: JSON.stringify({ uid: APP.uid, type, count: 1 })
-      });
-
-      if(!draw || !draw.ok){
-        toast("抽卡失敗，請看 Worker logs（/api/gacha/pull）");
-        pullBtn.disabled = false;
-        return;
-      }
-
-      const winner = draw.item || draw.result || draw.asset || draw;
-      const winnerId = winner.assetId || winner.asset_id || winner.id;
-      const winnerRarity = winner.rarity ?? winner.r ?? "—";
-
-      const ids = buildIds(poolIds, winnerId);
-      renderReel(ids);
-
-      await animateToCenter(2600);
-
-      const slots = qa(".slot", reelEl);
-      const winSlot = slots[CENTER_INDEX];
-      if(winSlot) winSlot.classList.add("win");
-
-      resName.textContent = winnerId || "—";
-      resRarity.textContent = String(winnerRarity);
-      resType.textContent = type;
-
-      toast("已抽到並寫入背包。");
-      pullBtn.disabled = false;
-    }
-
-    pullBtn.addEventListener("click", pullOnce);
-  })();
-  </script>
-
-  <style>
-    .grid2{ display:grid; grid-template-columns: 360px 1fr; gap: 16px; align-items:start; }
-    .rouletteWindow{ position: relative; overflow: hidden; border-radius: 16px; height: 320px; background: rgba(0,0,0,0.18); border: 1px solid rgba(255,255,255,0.10); }
-    .rouletteCenterLine{ position:absolute; top:0; bottom:0; left:50%; width: 2px; transform: translateX(-1px); background: rgba(255,255,255,0.22); pointer-events:none; }
-    .rouletteReel{ position:absolute; top: 50%; left: 0; display:flex; gap: 10px; transform: translateX(0px) translateY(-50%); will-change: transform; padding-left: 20px; }
-    .slot{ width: 110px; height: 280px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.06); overflow:hidden; display:flex; align-items:center; justify-content:center; }
-    .slot img{ width:100%; height:100%; object-fit: cover; display:block; }
-    .slot.win{ outline: 2px solid rgba(122,255,203,0.9); box-shadow: 0 0 0 6px rgba(122,255,203,0.12); }
-    .resultBar{ display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 14px; align-items:center; }
-    .resultCell{ padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.10); background: rgba(255,255,255,0.05); }
-    .resultLabel{ font-size: 12px; opacity: 0.75; margin-bottom: 6px; }
-    .resultValue{ font-size: 14px; font-weight: 600; overflow:hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .pullMsg{ margin-top: 12px; font-size: 13px; opacity: 0.85; min-height: 18px; }
-    @media (max-width: 980px){ .grid2{ grid-template-columns: 1fr; } }
-  </style>
 </body>
 </html>

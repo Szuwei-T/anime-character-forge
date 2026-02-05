@@ -10,8 +10,6 @@ const WORKER_BASE =
     ? ""
     : "https://acf-api.dream-league-baseball.workers.dev";
 
-APP.apiBase = WORKER_BASE;
-
 const IS_OFFLINE = WORKER_BASE === "";
 
 function q(sel, root=document){ return root.querySelector(sel); }
@@ -132,7 +130,7 @@ function saveOfflineDb(db){
   localStorage.setItem("acf_offline_db_v1", JSON.stringify(db));
 }
 
-async async function apiFetch(path, options={}){
+async function apiFetch(path, options={}){
   const url = (APP.apiBase || "") + path;
   const headers = Object.assign({ "Content-Type":"application/json" }, options.headers || {});
   const opts = Object.assign({}, options, { headers });
