@@ -153,8 +153,52 @@
   (async function(){
     await initSession();
     q("#netBadge").textContent = APP.offline ? "Offline" : "Online";
+function toThumbUrl(url){
+  if(!url) return "";
+  if(url.includes("_thumb.")) return url;
+  const parts = String(url).split("?");
+  const base = parts[0];
+  const qs = parts.length > 1 ? "?" + parts.slice(1).join("?") : "";
+  const m = base.match(/^(.*)\.(png|webp|jpg|jpeg)$/i);
+  if(!m) return url;
+  return m[1] + "_thumb." + m[2] + qs;
+}
+function bestThumb(url){
+  const t = toThumbUrl(url);
+  return t || url || "";
+}
 
-    const db = offlineDb();
+    let db = offlineDb();
+
+// Online: hydrate assets and inventory from Worker so Studio shows thumbnails from D1.
+if(!APP.offline){
+  try{
+    const assetsRes = await fetch(WORKER_BASE + "/api/assets").then(r=>r.json());
+    const rawAssets = assetsRes.assets || assetsRes.items || assetsRes.rows || assetsRes.results || [];
+    const assets = (rawAssets || []).map(a=>{
+      const t = String(a.type || "");
+      let type = t;
+      if(t === "bg") type = "background";
+      if(t === "addon1" || t === "addon2") type = "accessory";
+      if(t === "backgrounds") type = "background";
+      return { assetId: a.assetId, type, rarity: Number(a.rarity||1), imageUrl: a.imageUrl };
+    });
+
+    const invRes = await fetch(WORKER_BASE + "/api/me/assets?uid=" + encodeURIComponent(APP.uid)).then(r=>r.json());
+    const items = invRes.items || invRes.assets || invRes.rows || invRes.results || [];
+    const store = {};
+    for(const it of (items || [])){
+      const aid = it.assetId || it.asset_id || it.id;
+      if(!aid) continue;
+      store[`${APP.uid}:${aid}`] = Number(it.count || it.qty || 1);
+    }
+
+    db = { assets, userAssets: store, unlocks: {} };
+  }catch(e){
+    db = offlineDb();
+  }
+}
+
     const byId = new Map(db.assets.map(a=>[a.assetId,a]));
 
     function invHas(assetId){
@@ -280,7 +324,7 @@ function makeVirtualGrid(container, items, getSelectedId, onSelect, options){
         img.className = "asset-thumb";
         img.loading = "lazy";
         img.decoding = "async";
-        img.src = it.imageUrl || "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
+        img.src = bestThumb(it.imageUrl) || "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
         if(getSelectedId() === it.assetId) img.classList.add("active");
 
         img.addEventListener("click", ()=>{
@@ -289,7 +333,7 @@ function makeVirtualGrid(container, items, getSelectedId, onSelect, options){
         });
 
         img.addEventListener("mouseenter", (e)=>{
-          showHover(it.imageUrl, e.clientX, e.clientY);
+          showHover(bestThumb(it.imageUrl), e.clientX, e.clientY);
         });
         img.addEventListener("mousemove", (e)=>{
           moveHover(e.clientX, e.clientY);
@@ -432,7 +476,7 @@ function renderGrid(gridId, items, onSelect){
   g.innerHTML = "";
   items.forEach(it=>{
     const img = document.createElement("img");
-    img.src = it.imageUrl || "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
+    img.src = bestThumb(it.imageUrl) || "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
     img.className = "asset-thumb";
     img.onclick = ()=>{
       g.querySelectorAll(".asset-thumb").forEach(x=>x.classList.remove("active"));
