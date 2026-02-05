@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Gacha</title>
   <link rel="stylesheet" href="style.css" />
-  <style>
+  <style>:root{--cardSize:124px;}
+
     body{
       background: radial-gradient(circle at top, #1b1f2a, #0b0d12);
       color:#fff;
@@ -155,8 +156,8 @@
       will-change: transform;
     }
     .card{
-      width:124px;
-      height:124px;
+      width:var(--cardSize);
+      height:var(--cardSize);
       border-radius:14px;
       background: rgba(0,0,0,0.35);
       overflow:hidden;
@@ -203,7 +204,22 @@
       box-shadow: 0 14px 36px rgba(0,0,0,0.5);
     }
     .confirm.show{ display:inline-block; }
-  </style>
+  
+    .centerBox{
+      position:absolute;
+      top:50%;
+      left:50%;
+      width:var(--cardSize);
+      height:var(--cardSize);
+      transform: translate(-50%, -50%);
+      border-radius:16px;
+      pointer-events:none;
+      box-shadow:
+        0 0 0 3px rgba(255,214,102,0.95),
+        0 0 26px rgba(255,214,102,0.85),
+        inset 0 0 18px rgba(255,214,102,0.35);
+    }
+</style>
 </head>
 <body>
   <div class="gacha-root">
@@ -233,6 +249,7 @@
 
       <div class="gacha-stage">
         <div class="marker"></div>
+        <div class="centerBox"></div>
         <div class="belt" id="belt"></div>
       </div>
 
@@ -277,14 +294,93 @@
       return m[1] + "_thumb." + m[2] + qs;
     }
 
-    // TODO: replace mock with Worker gacha response
-    function mockPick20(){
-      // 20 thumbs for animation
-      return Array.from({length: 20}).map((_, i) => ({
-        thumb: `assets/thumb_${(i%6)+1}.png`
-      }));
-    }
+    function buildQuery(params){
+  const q = new URLSearchParams();
+  Object.entries(params||{}).forEach(([k,v]) => {
+    if(v === undefined || v === null || v === "") return;
+    q.set(k, String(v));
+  });
+  return q.toString();
+}
 
+function getUid(){
+  try{
+    if(window.getOrCreateUid) return window.getOrCreateUid();
+  }catch(e){}
+  const k = "acf_uid";
+  let uid = localStorage.getItem(k);
+  if(!uid){
+    uid = "u_" + Math.random().toString(16).slice(2) + Date.now().toString(16);
+    localStorage.setItem(k, uid);
+  }
+  return uid;
+}
+
+function apiBase(){
+  // if app.js defines WORKER_BASE use it, else allow storing in localStorage
+  const b = (window.WORKER_BASE || localStorage.getItem("WORKER_BASE") || "").trim();
+  return b.replace(/\/$/,"");
+}
+
+async function apiFetch(path, opts){
+  const url = path.startsWith("http") ? path : (apiBase() + path);
+  const r = await fetch(url, {
+    ...opts,
+    headers: { "Content-Type":"application/json", ...(opts && opts.headers ? opts.headers : {}) }
+  });
+  const t = await r.text();
+  let j;
+  try{ j = t ? JSON.parse(t) : {}; }catch(e){ j = { ok:false, error:"bad_json", raw:t }; }
+  if(!r.ok){
+    return { ok:false, status:r.status, ...j };
+  }
+  return j;
+}
+
+function normalizeRoll(res){
+  // Accept many shapes
+  const roll = res.roll || res.reel || res.items || res.assets || res.cards || res.data || [];
+  const arr = Array.isArray(roll) ? roll : [];
+  const winIndex = (
+    res.winIndex ?? res.winnerIndex ?? res.win_index ?? res.winner_index ?? res.index ?? null
+  );
+  const winner = res.winner || res.win || res.selected || res.result || null;
+  return { ok: res.ok !== false, roll: arr, winIndex, winner, raw: res };
+}
+
+async function fetchRoll(count, opts){
+  const uid = getUid();
+
+  // Prefer a single endpoint, but fall back to others if your Worker uses a different route
+  const endpoints = [
+    "/api/gacha/draw",
+    "/api/gacha",
+    "/api/gacha/pull",
+    "/api/gacha/roll"
+  ];
+
+  const params = {
+    uid,
+    count,
+    reelSize: 20,
+    premium: opts && opts.premium ? 1 : 0,
+    pick: opts && opts.pick ? 1 : 0
+  };
+
+  let lastErr = null;
+
+  for(const ep of endpoints){
+    const qs = buildQuery(params);
+    const res = await apiFetch(ep + "?" + qs, { method:"POST", body: JSON.stringify(params) }).catch(e => ({ ok:false, error:String(e) }));
+    const norm = normalizeRoll(res || {});
+    if(norm.ok && norm.roll && norm.roll.length){
+      return norm;
+    }
+    lastErr = res;
+  }
+
+  return { ok:false, roll:[], winIndex:null, winner:null, error:lastErr && (lastErr.error || lastErr.message || JSON.stringify(lastErr)) };
+}
     async function startGacha(count, opts={}){
       if(animating) return;
       animating = true;
@@ -296,12 +392,20 @@
       rollSub.textContent = "跑馬燈高速啟動";
 
       belt.innerHTML = "";
-      const pool = mockPick20();
+      const rollRes = await fetchRoll(count, opts);
+      if(!rollRes.ok){
+        rollSub.textContent = "抽卡失敗，請確認 WORKER_BASE 與 Worker 路由";
+        confirmBtn.classList.add("show");
+        animating = false;
+        return;
+      }
+      const pool = rollRes.roll.slice(0, 20);
 
       pool.forEach(p => {
         const div = document.createElement("div");
         div.className = "card";
-        div.innerHTML = `<img src="${thumbUrl(p.thumb)}" alt="">`;
+        const url = p.imageUrl || p.url || p.thumb || p.thumbUrl || "";
+        div.innerHTML = `<img src="${thumbUrl(url)}" alt="">`;
         belt.appendChild(div);
       });
 
@@ -316,7 +420,10 @@
       const step = cardW + gap;
 
       // choose winner index (middle is visually clean)
-      const winnerIndex = Math.floor(cards.length / 2);
+      let winnerIndex = Number.isInteger(rollRes.winIndex) ? rollRes.winIndex : (Number.isInteger(rollRes.winnerIndex) ? rollRes.winnerIndex : null);
+      if(winnerIndex === null || winnerIndex < 0 || winnerIndex >= cards.length){
+        winnerIndex = Math.floor(cards.length / 2);
+      }
 
       // compute target translateX so that winner center aligns to stage center
       const beltPaddingLeft = 24; // must match CSS padding on .belt
@@ -348,6 +455,10 @@
         }else{
           // highlight winner + show confirm
           cards[winnerIndex].classList.add("win");
+          try{
+            const winObj = pool[winnerIndex] || rollRes.winner || null;
+            if(winObj) localStorage.setItem("acf_last_win", JSON.stringify(winObj));
+          }catch(e){}
           rollSub.textContent = "抽到結果";
           confirmBtn.classList.add("show");
           overlayClose.style.display = "none";
