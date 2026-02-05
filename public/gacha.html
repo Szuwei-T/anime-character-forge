@@ -5,418 +5,253 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>抽卡</title>
   <link rel="stylesheet" href="style.css" />
-
-  <style>
-    /* Gacha roulette */
-    .rouletteWrap{ position:relative; width:100%; height:100%; }
-    .rouletteViewport{
-      position:absolute; inset:0;
-      display:flex; align-items:center; justify-content:center;
-      overflow:hidden;
-      border-radius:16px;
-      background: rgba(0,0,0,0.12);
-      border: 1px solid rgba(255,255,255,0.10);
-    }
-    .reel{
-      display:flex;
-      gap:10px;
-      will-change: transform;
-      transform: translateX(0px);
-      padding: 0 20px;
-    }
-    .reelItem{
-      width: 110px;
-      height: 156px;
-      border-radius: 14px;
-      overflow:hidden;
-      border: 1px solid rgba(255,255,255,0.18);
-      background: rgba(255,255,255,0.04);
-      flex: 0 0 auto;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      position:relative;
-      box-shadow: 0 6px 22px rgba(0,0,0,0.25);
-    }
-    .reelItem img{
-      width:100%;
-      height:100%;
-      object-fit: cover;
-      display:block;
-    }
-    .centerLine{
-      position:absolute;
-      top: 10%;
-      bottom: 10%;
-      width: 2px;
-      left: 50%;
-      transform: translateX(-1px);
-      background: rgba(255,255,255,0.35);
-      filter: drop-shadow(0 0 10px rgba(255,255,255,0.25));
-      pointer-events:none;
-    }
-    .winGlow{
-      outline: 2px solid rgba(120,255,180,0.9);
-      box-shadow: 0 0 0 4px rgba(120,255,180,0.18), 0 0 30px rgba(120,255,180,0.45);
-    }
-    .rouletteHint{
-      position:absolute;
-      top: 12px;
-      left: 14px;
-      font-size: 14px;
-      color: rgba(255,255,255,0.8);
-      letter-spacing: 0.5px;
-      text-shadow: 0 2px 10px rgba(0,0,0,0.35);
-      pointer-events:none;
-    }
-  </style>
-
 </head>
 <body>
-  <div class="container">
-    <div class="topbar">
-      <a class="brand" href="index.html">
-        <div class="logo"></div>
-        <h1>Anime Character Forge</h1>
-      </a>
-      <div class="right">
-        <div class="badge" id="netBadge">Connecting</div>
-        <a class="badge" href="profile.html">My</a>
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo"></div>
+      <div class="title">Anime Character Forge</div>
+    </div>
+    <div class="nav">
+      <a class="pill" href="hub.html">Online</a>
+      <a class="pill" href="profile.html">My</a>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panelHeader">
+      <div class="panelTitle">抽卡</div>
+      <div class="panelRight">
+        <span class="badge" id="netBadge">...</span>
+        <a class="btnSmall" href="hub.html">返回</a>
       </div>
     </div>
 
-    
-<div class="card">
-  <div class="cardHeader">
-    <h2>抽卡</h2>
-    <a class="badge" href="hub.html">返回</a>
-  </div>
-  <div class="cardBody">
-    <div class="grid">
-      <div class="col5">
-        <label class="help">抽哪一類</label>
-        <select class="input" id="typeSel">
-          <option value="head">頭部</option>
-          <option value="body">身體</option>
-          <option value="accessory">附件</option>
-          <option value="background">背景</option>
-        </select>
-        <div style="height:12px"></div>
+    <div class="grid2">
+      <div class="card">
+        <div class="formRow">
+          <label>抽哪一類</label>
+          <select id="typeSel">
+            <option value="head">頭部</option>
+            <option value="body">身體</option>
+            <option value="addon1">add on 1</option>
+            <option value="addon2">add on 2</option>
+            <option value="background">背景</option>
+          </select>
+        </div>
 
-        <label class="help">抽幾抽</label>
-        <select class="input" id="countSel">
-          <option value="1">1</option>
-          <option value="10">10</option>
-        </select>
+        <div class="formRow">
+          <label>抽幾抽</label>
+          <select id="countSel">
+            <option value="1">1</option>
+          </select>
+        </div>
 
-        <div style="height:12px"></div>
+        <button class="btnPrimary" id="pullBtn">開始抽</button>
 
-        <button class="btn btnPrimary" id="pullBtn">開始抽</button>
-
-        <div class="hr"></div>
-
-        <div class="notice">
-          你可以先用離線模式玩
-          部署 Cloudflare 後端後抽卡與背包會自動切到線上
+        <div class="hintBox">
+          會先從資料庫現有素材中隨機產生 20 張縮圖跑馬燈，最後停在中間亮起的那張就是你抽到的素材（允許重複）。
         </div>
       </div>
 
-      <div class="col7">
-        <div class="stage" style="aspect-ratio: 16 / 9;">
-          <img class="layer" id="pullPreview" alt="pull preview" />
-        </div>
-        <div style="height:10px"></div>
+      <div class="card">
+        <div class="rouletteWrap">
+          <div class="rouletteWindow" id="rouletteWindow">
+            <div class="rouletteCenterLine"></div>
+            <div class="rouletteReel" id="rouletteReel"></div>
+          </div>
 
-        <table class="table" id="resultTable">
-          <thead><tr><th>結果</th><th>稀有度</th><th>素材</th></tr></thead>
-          <tbody></tbody>
-        </table>
+          <div class="resultBar">
+            <div class="resultCell">
+              <div class="resultLabel">結果</div>
+              <div class="resultValue" id="resultName">—</div>
+            </div>
+            <div class="resultCell">
+              <div class="resultLabel">稀有度</div>
+              <div class="resultValue" id="resultRarity">—</div>
+            </div>
+            <div class="resultCell">
+              <div class="resultLabel">素材</div>
+              <div class="resultValue" id="resultType">—</div>
+            </div>
+          </div>
+
+          <div class="pullMsg" id="pullMsg"></div>
+        </div>
       </div>
     </div>
-  </div>
-</div>
-
   </div>
 
   <script src="app.js"></script>
-  
-<script>
-(async function(){
-  await initSession();
-  q("#netBadge").textContent = APP.offline ? "Offline" : "Online";
+  <script>
+  (async function(){
+    await initSession();
+    q("#netBadge").textContent = APP.offline ? "Offline" : "Online";
 
-  const tbody = q("#resultTable tbody");
+    const typeSel = q("#typeSel");
+    const pullBtn = q("#pullBtn");
+    const reelEl = q("#rouletteReel");
+    const winEl = q("#rouletteWindow");
+    const msgEl = q("#pullMsg");
 
-  // ---------- helpers ----------
-  const sleep = (ms)=>new Promise(r=>setTimeout(r, ms));
+    const resName = q("#resultName");
+    const resRarity = q("#resultRarity");
+    const resType = q("#resultType");
 
-  function thumbUrlFromImageUrl(url){
-    if(!url) return "";
-    // Insert _thumb before extension
-    const m = url.match(/^(.*?)(\.[a-zA-Z0-9]+)(\?.*)?$/);
-    if(!m) return url;
-    const base = m[1], ext = m[2], qs = m[3] || "";
-    if(base.endsWith("_thumb")) return url;
-    return `${base}_thumb${ext}${qs}`;
-  }
+    const SLOT_W = 110;
+    const SLOT_GAP = 10;
+    const STEP = SLOT_W + SLOT_GAP;
+    const SLOT_COUNT = 20;
+    const CENTER_INDEX = 9;
 
-  async function fetchAssetsOnline(){
-    try{
+    let ASSETS = [];
+
+    function toast(t){
+      msgEl.textContent = t || "";
+    }
+
+    function toThumb(url){
+      if(!url) return url;
+      const m = url.match(/^(.*)(\.[a-zA-Z0-9]+)$/);
+      if(m) return m[1] + "_thumb" + m[2];
+      return url + "_thumb";
+    }
+
+    function assetThumb(asset){
+      return asset.thumbUrl || toThumb(asset.imageUrl || asset.url || "");
+    }
+
+    function renderReel(ids){
+      reelEl.innerHTML = "";
+      const byId = new Map(ASSETS.map(a => [a.assetId, a]));
+      ids.forEach((id, idx) => {
+        const a = byId.get(id);
+        const div = document.createElement("div");
+        div.className = "slot";
+        div.dataset.assetId = id;
+        div.dataset.idx = idx;
+        const img = document.createElement("img");
+        img.alt = id;
+        img.loading = "lazy";
+        img.src = a ? assetThumb(a) : "";
+        div.appendChild(img);
+        reelEl.appendChild(div);
+      });
+      reelEl.style.transform = "translateX(0px)";
+      qa(".slot", reelEl).forEach(s => s.classList.remove("win"));
+    }
+
+    async function loadAssets(){
       const data = await apiFetch("/api/assets");
-      if(data && data.ok && Array.isArray(data.assets)) return data.assets;
-      // Some older workers return {assets:[...]} without ok
-      if(data && Array.isArray(data.assets)) return data.assets;
-      return [];
-    }catch(e){
-      return [];
-    }
-  }
-
-  async function fetchInventoryOnline(){
-    try{
-      const data = await apiFetch(`/api/me/assets?uid=${encodeURIComponent(APP.uid)}`);
-      if(data && data.ok && Array.isArray(data.items)) return data.items;
-      if(data && Array.isArray(data.items)) return data.items;
-      return [];
-    }catch(e){
-      return [];
-    }
-  }
-
-  // Offline assets/inventory fallback
-  function getOfflineDbSafe(){
-    try{ return offlineDb(); }catch(e){ return { assets:[], userAssets:{} }; }
-  }
-
-  // Build id->asset map (online first, fallback offline)
-  let ASSETS = [];
-  let ASSET_BY_ID = new Map();
-
-  async function refreshAssetCatalog(){
-    if(!APP.offline){
-      ASSETS = await fetchAssetsOnline();
-    }
-    if(!ASSETS.length){
-      const db = getOfflineDbSafe();
-      ASSETS = db.assets || [];
-    }
-    ASSET_BY_ID = new Map(ASSETS.map(a=>[a.assetId, a]));
-  }
-
-  // ---------- roulette UI ----------
-  const stage = q(".stage");
-  stage.classList.add("rouletteWrap");
-
-  // Create roulette viewport overlay once
-  const viewport = document.createElement("div");
-  viewport.className = "rouletteViewport";
-  viewport.innerHTML = `
-    <div class="rouletteHint">Roulette</div>
-    <div class="reel" id="reel"></div>
-    <div class="centerLine"></div>
-  `;
-  stage.appendChild(viewport);
-
-  const reelEl = viewport.querySelector("#reel");
-  const previewImg = q("#pullPreview");
-
-  // Keep preview image behind roulette (optional). We'll show preview only after win.
-  previewImg.style.opacity = "0";
-  previewImg.style.pointerEvents = "none";
-
-  function buildReel(pool, winnerId){
-    // pick 20, ensure winner at stopIndex
-    const stopIndex = 14; // 0-based, near middle
-    const n = 20;
-    const ids = [];
-    for(let i=0;i<n;i++){
-      ids.push(null);
-    }
-    ids[stopIndex] = winnerId;
-
-    const poolIds = pool.map(a=>a.assetId).filter(Boolean);
-    for(let i=0;i<n;i++){
-      if(ids[i]) continue;
-      if(!poolIds.length){
-        ids[i] = winnerId;
-      }else{
-        ids[i] = poolIds[Math.floor(Math.random()*poolIds.length)];
+      if(!data || !data.ok || !Array.isArray(data.assets)){
+        throw new Error("assets_not_ready");
       }
+      ASSETS = data.assets;
     }
 
-    reelEl.innerHTML = "";
-    const frag = document.createDocumentFragment();
-    ids.forEach((id)=>{
-      const a = ASSET_BY_ID.get(id) || pool.find(x=>x.assetId===id) || { imageUrl:"" };
-      const item = document.createElement("div");
-      item.className = "reelItem";
-      item.dataset.assetId = id;
-      const img = document.createElement("img");
+    function pickRandomId(poolIds){
+      if(poolIds.length === 0) return null;
+      return poolIds[Math.floor(Math.random() * poolIds.length)];
+    }
 
-      // thumb attempt
-      const thumb = thumbUrlFromImageUrl(a.imageUrl || "");
-      img.src = thumb || (a.imageUrl || "");
-      img.onerror = ()=>{
-        // fallback to original image
-        if(img.src !== (a.imageUrl || "")) img.src = a.imageUrl || "";
-      };
+    function buildIds(poolIds, winnerId){
+      const ids = new Array(SLOT_COUNT).fill(null).map(()=> pickRandomId(poolIds) || winnerId);
+      ids[CENTER_INDEX] = winnerId;
+      return ids;
+    }
 
-      item.appendChild(img);
-      frag.appendChild(item);
-    });
-    reelEl.appendChild(frag);
+    function getTranslateForCenter(){
+      const w = winEl.clientWidth;
+      return (w/2 - SLOT_W/2) - (CENTER_INDEX * STEP);
+    }
 
-    return { stopIndex, itemWidth: 120 /* 110 + gap(10) */, ids };
-  }
-
-  async function spinRoulette(pool, winnerId){
-    const { stopIndex, itemWidth } = buildReel(pool, winnerId);
-
-    // clear previous glow
-    [...reelEl.children].forEach(el=>el.classList.remove("winGlow"));
-
-    const viewportRect = viewport.getBoundingClientRect();
-    const centerX = viewportRect.width / 2;
-
-    // final translateX so that the stopIndex item is centered
-    const finalX = centerX - (stopIndex * itemWidth + (itemWidth/2));
-
-    // start far left so it moves to the right
-    const travel = itemWidth * 26; // how far it rolls
-    const startX = finalX - travel;
-
-    const duration = 2400; // ms
-    const t0 = performance.now();
-
-    const easeOutCubic = (t)=>1 - Math.pow(1-t, 3);
-
-    // animate
-    return await new Promise(resolve=>{
-      function frame(now){
-        const t = Math.min(1, (now - t0) / duration);
-        const eased = easeOutCubic(t);
-        const x = startX + (finalX - startX) * eased;
-        reelEl.style.transform = `translateX(${x}px)`;
-
-        if(t < 1){
-          requestAnimationFrame(frame);
-        }else{
-          // highlight winner (the item at stopIndex)
-          const winnerEl = reelEl.children[stopIndex];
-          if(winnerEl) winnerEl.classList.add("winGlow");
-          resolve();
+    function animateToCenter(durationMs=2600){
+      return new Promise(resolve => {
+        const start = performance.now();
+        const fromX = 40;
+        const toX = getTranslateForCenter();
+        function easeOutCubic(t){ return 1 - Math.pow(1-t, 3); }
+        function frame(now){
+          const t = Math.min(1, (now - start) / durationMs);
+          const e = easeOutCubic(t);
+          const x = fromX + (toX - fromX) * e;
+          reelEl.style.transform = `translateX(${x}px)`;
+          if(t < 1) requestAnimationFrame(frame);
+          else resolve();
         }
+        requestAnimationFrame(frame);
+      });
+    }
+
+    async function pullOnce(){
+      toast("");
+      resName.textContent = "—";
+      resRarity.textContent = "—";
+      resType.textContent = "—";
+
+      try{
+        if(ASSETS.length === 0) await loadAssets();
+      }catch(e){
+        toast("assets 還沒好，先確認 Worker /api/assets 可以打開。");
+        return;
       }
-      reelEl.style.transform = `translateX(${startX}px)`;
-      requestAnimationFrame(frame);
-    });
-  }
 
-  // ---------- pull logic ----------
-  const db = getOfflineDbSafe();
+      const type = typeSel.value;
+      const pool = ASSETS.filter(a => a.type === type);
+      const poolIds = pool.map(a => a.assetId);
 
-  function addToInventoryOffline(uid, assetId){
-    const k = `${uid}:${assetId}`;
-    db.userAssets[k] = (db.userAssets[k] || 0) + 1;
-  }
+      pullBtn.disabled = true;
 
-  async function pullOffline(type, count){
-    const pool = (db.assets || []).filter(a=>a.type===type);
-    const items = [];
-    for(let i=0;i<count;i++){
-      const rarity = pickWeightedRarity();
-      const cand = pool.filter(a=>a.rarity===rarity);
-      const picked = randPick(cand.length ? cand : pool);
-      if(!picked) break;
-      items.push(picked.assetId);
-      addToInventoryOffline(APP.uid, picked.assetId);
-    }
-    saveOfflineDb(db);
-    return { ok:true, items };
-  }
+      const draw = await apiFetch("/api/gacha/pull", {
+        method: "POST",
+        body: JSON.stringify({ uid: APP.uid, type, count: 1 })
+      });
 
-  async function pullOnline(type, count){
-    const data = await apiFetch("/api/gacha/pull", {
-      method:"POST",
-      body: JSON.stringify({ uid: APP.uid, type, count })
-    });
-    return data;
-  }
-
-  function renderRow(id, idx){
-    const a = ASSET_BY_ID.get(id);
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td>#${idx+1}</td><td>${rarityPill(a?.rarity||1)}</td><td>${a?.name||id}</td>`;
-    tbody.appendChild(tr);
-  }
-
-  function showWinnerPreview(id){
-    const a = ASSET_BY_ID.get(id);
-    if(!a) return;
-    previewImg.src = a.imageUrl || "";
-    previewImg.style.opacity = "1";
-  }
-
-  function typeToAssetTypes(type){
-    // UI uses head/body/accessory/background. Worker catalog may use bg, addon1, addon2.
-    if(type === "background") return new Set(["background","bg"]);
-    if(type === "accessory") return new Set(["accessory","addon1","addon2"]);
-    return new Set([type]);
-  }
-
-  await refreshAssetCatalog();
-
-  q("#pullBtn").addEventListener("click", async ()=>{
-    const uiType = q("#typeSel").value;
-    const count = Number(q("#countSel").value);
-    tbody.innerHTML = "";
-
-    await refreshAssetCatalog();
-
-    toast("抽卡中");
-
-    let data = null;
-    if(!APP.offline){
-      data = await pullOnline(uiType, count);
-      if(!data || data.ok === false) data = null;
-    }
-    if(!data){
-      data = await pullOffline(uiType, count);
-      q("#netBadge").textContent = "Offline";
-    }else{
-      q("#netBadge").textContent = "Online";
-    }
-
-    const items = (data.items || []);
-    if(!items.length){
-      toast("沒有抽到任何素材（素材池可能是空的）");
-      return;
-    }
-
-    // Build pool for roulette display (from catalog)
-    const typeSet = typeToAssetTypes(uiType);
-    const pool = ASSETS.filter(a=>typeSet.has(a.type));
-
-    // For multiple pulls: spin for each item, but faster after the first
-    for(let i=0;i<items.length;i++){
-      const id = items[i];
-
-      // roulette animation
-      await spinRoulette(pool, id);
-
-      // show preview and table row
-      showWinnerPreview(id);
-      renderRow(id, i);
-
-      if(items.length > 1){
-        await sleep(150);
+      if(!draw || !draw.ok){
+        toast("抽卡失敗，請看 Worker logs（/api/gacha/pull）");
+        pullBtn.disabled = false;
+        return;
       }
+
+      const winner = draw.item || draw.result || draw.asset || draw;
+      const winnerId = winner.assetId || winner.asset_id || winner.id;
+      const winnerRarity = winner.rarity ?? winner.r ?? "—";
+
+      const ids = buildIds(poolIds, winnerId);
+      renderReel(ids);
+
+      await animateToCenter(2600);
+
+      const slots = qa(".slot", reelEl);
+      const winSlot = slots[CENTER_INDEX];
+      if(winSlot) winSlot.classList.add("win");
+
+      resName.textContent = winnerId || "—";
+      resRarity.textContent = String(winnerRarity);
+      resType.textContent = type;
+
+      toast("已抽到並寫入背包。");
+      pullBtn.disabled = false;
     }
 
-    toast("抽到了");
-  });
-})();
-</script>
+    pullBtn.addEventListener("click", pullOnce);
+  })();
+  </script>
 
+  <style>
+    .grid2{ display:grid; grid-template-columns: 360px 1fr; gap: 16px; align-items:start; }
+    .rouletteWindow{ position: relative; overflow: hidden; border-radius: 16px; height: 320px; background: rgba(0,0,0,0.18); border: 1px solid rgba(255,255,255,0.10); }
+    .rouletteCenterLine{ position:absolute; top:0; bottom:0; left:50%; width: 2px; transform: translateX(-1px); background: rgba(255,255,255,0.22); pointer-events:none; }
+    .rouletteReel{ position:absolute; top: 50%; left: 0; display:flex; gap: 10px; transform: translateX(0px) translateY(-50%); will-change: transform; padding-left: 20px; }
+    .slot{ width: 110px; height: 280px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.06); overflow:hidden; display:flex; align-items:center; justify-content:center; }
+    .slot img{ width:100%; height:100%; object-fit: cover; display:block; }
+    .slot.win{ outline: 2px solid rgba(122,255,203,0.9); box-shadow: 0 0 0 6px rgba(122,255,203,0.12); }
+    .resultBar{ display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 14px; align-items:center; }
+    .resultCell{ padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.10); background: rgba(255,255,255,0.05); }
+    .resultLabel{ font-size: 12px; opacity: 0.75; margin-bottom: 6px; }
+    .resultValue{ font-size: 14px; font-weight: 600; overflow:hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .pullMsg{ margin-top: 12px; font-size: 13px; opacity: 0.85; min-height: 18px; }
+    @media (max-width: 980px){ .grid2{ grid-template-columns: 1fr; } }
+  </style>
 </body>
 </html>

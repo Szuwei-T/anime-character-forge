@@ -1,201 +1,237 @@
-// Shared app utilities for Anime Character Forge
-
 const APP = {
+  apiBase: "",
   offline: false,
   uid: null,
   name: null,
 };
 
-// When running on localhost we treat as offline (no Worker)
 const WORKER_BASE =
   (location.hostname === "127.0.0.1" || location.hostname === "localhost")
     ? ""
     : "https://acf-api.dream-league-baseball.workers.dev";
 
+APP.apiBase = WORKER_BASE;
+
 const IS_OFFLINE = WORKER_BASE === "";
 
-function q(sel, root = document) {
-  return root.querySelector(sel);
-}
-function qa(sel, root = document) {
-  return Array.from(root.querySelectorAll(sel));
-}
+function q(sel, root=document){ return root.querySelector(sel); }
+function qa(sel, root=document){ return Array.from(root.querySelectorAll(sel)); }
 
-function toast(msg) {
-  let el = document.getElementById("toast");
-  if (!el) {
+function toast(msg){
+  let el = q("#toast");
+  if(!el){
     el = document.createElement("div");
     el.id = "toast";
-    el.style.position = "fixed";
-    el.style.left = "50%";
-    el.style.bottom = "22px";
-    el.style.transform = "translateX(-50%)";
-    el.style.padding = "10px 14px";
-    el.style.borderRadius = "999px";
-    el.style.background = "rgba(0,0,0,0.6)";
-    el.style.color = "#fff";
-    el.style.fontSize = "14px";
-    el.style.zIndex = "9999";
-    el.style.backdropFilter = "blur(8px)";
-    el.style.border = "1px solid rgba(255,255,255,0.15)";
-    el.style.maxWidth = "80vw";
-    el.style.textAlign = "center";
-    el.style.pointerEvents = "none";
+    el.className = "toast hidden";
     document.body.appendChild(el);
   }
   el.textContent = msg;
-  el.style.opacity = "1";
+  el.classList.remove("hidden");
   clearTimeout(el._t);
-  el._t = setTimeout(() => (el.style.opacity = "0"), 1400);
+  el._t = setTimeout(()=>el.classList.add("hidden"), 2400);
 }
 
-function getOrCreateUid() {
+function getOrCreateUid(){
   const k = "acf_uid";
   let uid = localStorage.getItem(k);
-  if (!uid) {
+  if(!uid){
     uid = crypto.randomUUID();
     localStorage.setItem(k, uid);
   }
   return uid;
 }
-function getOrCreateName() {
-  const k = "acf_name";
-  let name = localStorage.getItem(k);
-  if (!name) {
-    name = "Player";
-    localStorage.setItem(k, name);
-  }
-  return name;
-}
-function setName(name) {
-  localStorage.setItem("acf_name", name);
-  APP.name = name;
+
+function getName(){
+  return localStorage.getItem("acf_name") || "Player";
 }
 
-// --- Cloudflare Worker API helper ---
-async function apiFetch(path, options = {}) {
-  if (IS_OFFLINE) throw new Error("offline");
-  const url = `${WORKER_BASE}${path}`;
-  const headers = new Headers(options.headers || {});
-  headers.set("Content-Type", "application/json");
-  headers.set("x-user-id", APP.uid || getOrCreateUid());
-  const res = await fetch(url, { ...options, headers });
-  const data = await res.json().catch(() => null);
-  if (!res.ok) return data || { ok: false, error: `http_${res.status}` };
+function setName(n){
+  localStorage.setItem("acf_name", n || "Player");
+}
+
+function offlineDb(){
+  const key = "acf_offline_db_v1";
+  const raw = localStorage.getItem(key);
+  if(raw){
+    try{ return JSON.parse(raw); }catch(e){}
+  }
+  const seed = {
+    users: {},
+    assets: seedAssets(),
+    userAssets: {},
+    builds: [],
+    ratings: {},
+    unlocks: {},
+    recipes: seedRecipes(),
+    seasonId: "S1",
+  };
+  localStorage.setItem(key, JSON.stringify(seed));
+  return seed;
+
+  function seedAssets(){
+    const items = [];
+    const types = ["head","body","accessory","background"];
+    const rarities = [1,2,3,4,5];
+    let idc = 1;
+    for(const t of types){
+      for(const r of rarities){
+        const n = t === "accessory" ? 6 : 4;
+        for(let i=1;i<=n;i++){
+          const id = `A${String(idc).padStart(3,"0")}`;
+          idc++;
+          items.push({
+            assetId: id,
+            type: t,
+            rarity: r,
+            name: `${t} ${r}.${i}`,
+            imageUrl: `assets/${t}_${r}_${i}.png`,
+          });
+        }
+      }
+    }
+    return items;
+  }
+
+  function seedRecipes(){
+    return [
+      {
+        recipeId:"R001",
+        name:"Sky Duelist",
+        headId:"A001",
+        bodyId:"A101",
+        bgId:"A301",
+        accessoryIds:["A201","A202"],
+        rarity:4,
+        previewUrl:"assets/recipe_1.png",
+      },
+      {
+        recipeId:"R002",
+        name:"Neon Mage",
+        headId:"A010",
+        bodyId:"A120",
+        bgId:"A320",
+        accessoryIds:["A240"],
+        rarity:5,
+        previewUrl:"assets/recipe_2.png",
+      },
+      {
+        recipeId:"R003",
+        name:"Crimson Knight",
+        headId:"A020",
+        bodyId:"A130",
+        bgId:"A330",
+        accessoryIds:["A260","A261","A262"],
+        rarity:5,
+        previewUrl:"assets/recipe_3.png",
+      },
+    ];
+  }
+}
+
+function saveOfflineDb(db){
+  localStorage.setItem("acf_offline_db_v1", JSON.stringify(db));
+}
+
+async async function apiFetch(path, options={}){
+  const url = (APP.apiBase || "") + path;
+  const headers = Object.assign({ "Content-Type":"application/json" }, options.headers || {});
+  const opts = Object.assign({}, options, { headers });
+  try{
+    const res = await fetch(url, opts);
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    APP.offline = false;
+    return data;
+  }catch(e){
+    APP.offline = true;
+    return null;
+  }
+}
+
+async function initSession(){
+  APP.uid = getOrCreateUid();
+  APP.name = getName();
+  const data = await apiFetch("/api/session/init", {
+    method:"POST",
+    body: JSON.stringify({ uid: APP.uid, displayName: APP.name })
+  });
+  if(!data){
+    const db = offlineDb();
+    if(!db.users[APP.uid]){
+      db.users[APP.uid] = { uid: APP.uid, displayName: APP.name, createdAt: Date.now() };
+      saveOfflineDb(db);
+    }
+    return { ok:true, offline:true };
+  }
   return data;
 }
 
-// --- Session init ---
-// IMPORTANT: we no longer call /api/session/init (it doesn't exist). Session is client-side only.
-async function initSession() {
-  APP.uid = getOrCreateUid();
-  APP.name = getOrCreateName();
-  APP.offline = IS_OFFLINE;
-  return { ok: true, uid: APP.uid, name: APP.name, offline: APP.offline };
+function rarityPill(r){
+  return `<span class="pill">⭐ ${r}</span>`;
 }
 
-// --- Assets caching (fix: gacha.html expects getAssetsCached) ---
-async function getAssetsCached(force = false) {
-  const key = "acf_assets_cache_v1";
-  if (!force) {
-    try {
-      const raw = localStorage.getItem(key);
-      if (raw) {
-        const obj = JSON.parse(raw);
-        if (obj && Array.isArray(obj.assets)) return obj.assets;
-      }
-    } catch {}
-  }
-  if (IS_OFFLINE) {
-    const db = offlineDb();
-    localStorage.setItem(key, JSON.stringify({ assets: db.assets }));
-    return db.assets;
-  }
-  const data = await apiFetch("/api/assets");
-  const assets = data?.assets || data?.items || data || [];
-  localStorage.setItem(key, JSON.stringify({ assets }));
-  return assets;
-}
+function byRarityDesc(a,b){ return (b.rarity||0)-(a.rarity||0); }
 
-// Build a thumbnail URL for an asset imageUrl.
-// Strategy used by studio:
-// - primary: same folder: foo.png -> foo_thumb.png
-// - fallback via onerror: /assets/thumbs/<foo>_thumb.png, then original
-function toThumbUrlSameDir(imageUrl) {
-  if (!imageUrl) return "";
-  const u = String(imageUrl);
-  const noQuery = u.split("?")[0];
-  if (!noQuery.endsWith(".png")) return u;
-  const base = noQuery.slice(0, -4);
-  return `${base}_thumb.png`;
-}
-function toThumbUrlAssetsThumbs(imageUrl) {
-  if (!imageUrl) return "";
-  const u = String(imageUrl);
-  const noQuery = u.split("?")[0];
-  const parts = noQuery.split("/");
-  const file = parts.pop() || "";
-  if (!file.endsWith(".png")) return u;
-  const base = file.slice(0, -4);
-  // keep /assets root, append /thumbs/
-  const idx = parts.lastIndexOf("assets");
-  if (idx >= 0) {
-    const dir = parts.slice(0, idx + 1).join("/");
-    return `${dir}/thumbs/${base}_thumb.png`;
-  }
-  return `/assets/thumbs/${base}_thumb.png`;
-}
-
-// --- Offline DB for local testing (kept for backward compatibility) ---
-function offlineDb() {
-  const k = "acf_offline_db_v1";
-  let db;
-  try {
-    db = JSON.parse(localStorage.getItem(k) || "null");
-  } catch {
-    db = null;
-  }
-  if (!db) {
-    db = { assets: [], recipes: [], userAssets: {}, unlocks: {}, showcases: [], votes: {} };
-  }
-  return db;
-}
-function saveOfflineDb(db) {
-  const k = "acf_offline_db_v1";
-  localStorage.setItem(k, JSON.stringify(db));
-}
-
-// weighted rarity picker (1..5)
-function pickWeightedRarity() {
+function pickWeightedRarity(){
   const r = Math.random();
-  if (r < 0.65) return 1;
-  if (r < 0.88) return 2;
-  if (r < 0.96) return 3;
-  if (r < 0.995) return 4;
-  return 5;
-}
-function randPick(arrOrLen) {
-  if (Array.isArray(arrOrLen)) return arrOrLen[Math.floor(Math.random() * arrOrLen.length)];
-  const len = Number(arrOrLen) || 0;
-  return Math.floor(Math.random() * Math.max(1, len));
-}
-function rarityPill(r) {
-  const m = { 1: "C", 2: "B", 3: "A", 4: "S", 5: "SS" };
-  return m[r] || String(r);
+  if(r < 0.01) return 5;
+  if(r < 0.07) return 4;
+  if(r < 0.25) return 3;
+  if(r < 0.55) return 2;
+  return 1;
 }
 
-// expose for inline scripts
+function randPick(arr){
+  return arr[Math.floor(Math.random()*arr.length)];
+}
+
+function normalizeAccessoryIds(ids){
+  return Array.from(new Set((ids||[]).filter(Boolean))).sort();
+}
+
+function sameSet(a,b){
+  if(a.length !== b.length) return false;
+  for(let i=0;i<a.length;i++) if(a[i]!==b[i]) return false;
+  return true;
+}
+
+async function api(path, opts){
+  if(IS_OFFLINE){
+    throw new Error("offline_mode_no_worker");
+  }
+  const res = await fetch(WORKER_BASE + path, {
+    ...opts,
+    headers: {
+      ...(opts?.headers || {}),
+      "content-type": "application/json",
+      "x-user-id": getOrCreateUid()
+    }
+  });
+  return await res.json();
+}
+
+function getOrCreateUid(){
+  let uid = localStorage.getItem("acf_uid");
+  if(!uid){
+    uid = crypto.randomUUID();
+    localStorage.setItem("acf_uid", uid);
+  }
+  return uid;
+}
+
 window.APP = APP;
 window.q = q;
 window.qa = qa;
 window.toast = toast;
 window.initSession = initSession;
 window.apiFetch = apiFetch;
-window.getAssetsCached = getAssetsCached;
-window.toThumbUrlSameDir = toThumbUrlSameDir;
-window.toThumbUrlAssetsThumbs = toThumbUrlAssetsThumbs;
 window.offlineDb = offlineDb;
 window.saveOfflineDb = saveOfflineDb;
+window.rarityPill = rarityPill;
+window.byRarityDesc = byRarityDesc;
 window.pickWeightedRarity = pickWeightedRarity;
 window.randPick = randPick;
-window.rarityPill = rarityPill;
+window.normalizeAccessoryIds = normalizeAccessoryIds;
+window.sameSet = sameSet;
+window.setName = setName;
+window.getName = getName;
