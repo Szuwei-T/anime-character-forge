@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>抽卡</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="topbar">
+      <a class="brand" href="index.html">
+        <div class="logo"></div>
+        <h1>Anime Character Forge</h1>
+      </a>
+      <div class="right">
+        <div class="badge" id="netBadge">Connecting</div>
+        <a class="badge" href="profile.html">My</a>
+      </div>
+    </div>
+
+    
+<div class="card">
+  <div class="cardHeader">
+    <h2>抽卡</h2>
+    <a class="badge" href="hub.html">返回</a>
+  </div>
+  <div class="cardBody">
+    <div class="grid">
+      <div class="col5">
+        <label class="help">抽哪一類</label>
+        <select class="input" id="typeSel">
+          <option value="head">頭部</option>
+          <option value="body">身體</option>
+          <option value="accessory">附件</option>
+          <option value="background">背景</option>
+        </select>
+        <div style="height:12px"></div>
+
+        <label class="help">抽幾抽</label>
+        <select class="input" id="countSel">
+          <option value="1">1</option>
+          <option value="10">10</option>
+        </select>
+
+        <div style="height:12px"></div>
+
+        <button class="btn btnPrimary" id="pullBtn">開始抽</button>
+
+        <div class="hr"></div>
+
+        <div class="notice">
+          你可以先用離線模式玩
+          部署 Cloudflare 後端後抽卡與背包會自動切到線上
+        </div>
+      </div>
+
+      <div class="col7">
+        <div class="stage" style="aspect-ratio: 16 / 9;">
+          <img class="layer" id="pullPreview" alt="pull preview" />
+        </div>
+        <div style="height:10px"></div>
+
+        <table class="table" id="resultTable">
+          <thead><tr><th>結果</th><th>稀有度</th><th>素材</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+  </div>
+
+  <script src="app.js"></script>
+  
+<script>
+(async function(){
+  await initSession();
+  q("#netBadge").textContent = APP.offline ? "Offline" : "Online";
+
+  const tbody = q("#resultTable tbody");
+  const db = offlineDb();
+  const cached = getAssetsCached();
+  const assetsAll = (cached && cached.length) ? cached : db.assets;
+  const byId = new Map(assetsAll.map(a=>[a.assetId,a]));
+
+  function addToInventory(uid, assetId){
+    const k = `${uid}:${assetId}`;
+    db.userAssets[k] = (db.userAssets[k] || 0) + 1;
+  }
+
+  async function pullOffline(type, count){
+    const pool = db.assets.filter(a=>a.type===type);
+    const items = [];
+    for(let i=0;i<count;i++){
+      const rarity = pickWeightedRarity();
+      const cand = pool.filter(a=>a.rarity===rarity);
+      const picked = randPick(cand.length ? cand : pool);
+      items.push(picked.assetId);
+      addToInventory(APP.uid, picked.assetId);
+    }
+    saveOfflineDb(db);
+    return { ok:true, items };
+  }
+
+  async function pullOnline(type, count){
+    const data = await api("/api/gacha", {
+      method:"POST",
+      body: JSON.stringify({ type, rolls: count })
+    });
+    if(!data || !data.ok) return null;
+
+    // sync local inventory so other pages can reuse the same store
+    const db2 = offlineDb();
+    const uid = APP.uid;
+    for(const it of (data.pulled || [])){
+      const k = `${uid}:${it.assetId}`;
+      db2.userAssets[k] = (db2.userAssets[k] || 0) + 1;
+    }
+    saveOfflineDb(db2);
+
+    return { ok:true, items: (data.pulled||[]).map(x=>x.assetId), pulled: data.pulled||[] };
+  }
+
+  function render(items, pulledObjs){
+    tbody.innerHTML = "";
+    const firstObj = (pulledObjs && pulledObjs.length) ? pulledObjs[0] : null;
+    const firstId = items.slice(0,1)[0];
+    const a0 = firstObj || byId.get(firstId);
+    q("#pullPreview").src = a0?.imageUrl || "";
+
+    items.forEach((id, idx)=>{
+      const a = (pulledObjs && pulledObjs[idx]) ? pulledObjs[idx] : byId.get(id);
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>#${idx+1}</td><td>${rarityPill(a?.rarity||1)}</td><td>${a?.name||id}</td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  q("#pullBtn").addEventListener("click", async ()=>{
+    const type = q("#typeSel").value;
+    const count = Number(q("#countSel").value);
+    toast("抽卡中");
+    let data = await pullOnline(type, count);
+    if(!data) data = await pullOffline(type, count);
+    q("#netBadge").textContent = APP.offline ? "Offline" : "Online";
+    render(data.items || [], data.pulled || null);
+    toast("抽到了");
+  });
+})();
+</script>
+
+</body>
+</html>
