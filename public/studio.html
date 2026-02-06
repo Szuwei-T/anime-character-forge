@@ -163,12 +163,14 @@ function toThumbUrl(url){
   if(!m) return url;
   return m[1] + "_thumb." + m[2] + qs;
 }
-function bestThumb(url){
-  const t = toThumbUrl(url);
-  return t || url || "";
+function displayUrl(it){
+  const url = (it && it.imageUrl) ? it.imageUrl : "";
+  const aid = (it && it.assetId) ? String(it.assetId) : "";
+  const type = (it && it.type) ? String(it.type) : "";
+  const isHead = type === "head" || aid.startsWith("head_");
+  return isHead ? (toThumbUrl(url) || url) : (url || "");
 }
-
-    let db = offlineDb();
+let db = offlineDb();
 
 // Online: hydrate assets and inventory from Worker so Studio shows thumbnails from D1.
 if(!APP.offline){
@@ -386,7 +388,7 @@ function makeVirtualGrid(container, items, getSelectedId, onSelect, options){
         img.className = "asset-thumb";
         img.loading = "lazy";
         img.decoding = "async";
-        img.src = bestThumb(it.imageUrl) || "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
+        img.src = displayUrl(it) || "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
         if(getSelectedId() === it.assetId) img.classList.add("active");
 
         img.addEventListener("click", ()=>{
@@ -395,7 +397,7 @@ function makeVirtualGrid(container, items, getSelectedId, onSelect, options){
         });
 
         img.addEventListener("mouseenter", (e)=>{
-          showHover(bestThumb(it.imageUrl), e.clientX, e.clientY);
+          showHover(displayUrl(it), e.clientX, e.clientY);
         });
         img.addEventListener("mousemove", (e)=>{
           moveHover(e.clientX, e.clientY);
@@ -537,7 +539,7 @@ function renderGrid(gridId, items, onSelect){
   g.innerHTML = "";
   items.forEach(it=>{
     const img = document.createElement("img");
-    img.src = bestThumb(it.imageUrl) || "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
+    img.src = displayUrl(it) || "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
     img.className = "asset-thumb";
     img.onclick = ()=>{
       g.querySelectorAll(".asset-thumb").forEach(x=>x.classList.remove("active"));
