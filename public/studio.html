@@ -168,22 +168,6 @@ function bestThumb(url){
   return t || url || "";
 }
 
-function listImgUrl(it){
-  const id = (it && it.assetId) ? String(it.assetId) : "";
-  const url = (it && it.imageUrl) ? String(it.imageUrl) : "";
-  if(id.startsWith("head_") || id.startsWith("body_")) return toThumbUrl(url) || url;
-  return url;
-}
-
-function genderTag(assetId){
-  const id = String(assetId || "");
-  const parts = id.split("_").map(s=>s.toLowerCase());
-  if(parts.includes("f")) return "f";
-  if(parts.includes("m")) return "m";
-  return "";
-}
-
-
     let db = offlineDb();
 
 // Online: hydrate assets and inventory from Worker so Studio shows thumbnails from D1.
@@ -362,8 +346,7 @@ function hideHover(){
 }
 
 // virtual grid renderer (lazy by default because we only render visible subset)
-function makeVirtualGrid(container, items0, getSelectedId, onSelect, options){
-  let items = items0 || [];
+function makeVirtualGrid(container, items, getSelectedId, onSelect, options){
   const opt = Object.assign({thumbW:64, thumbH:96, gap:8}, options || {});
   const spacer = container.querySelector(".asset-spacer") || container;
   spacer.innerHTML = "";
@@ -403,7 +386,7 @@ function makeVirtualGrid(container, items0, getSelectedId, onSelect, options){
         img.className = "asset-thumb";
         img.loading = "lazy";
         img.decoding = "async";
-        img.src = listImgUrl(it) || "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
+        img.src = bestThumb(it.imageUrl) || "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
         if(getSelectedId() === it.assetId) img.classList.add("active");
 
         img.addEventListener("click", ()=>{
@@ -412,7 +395,7 @@ function makeVirtualGrid(container, items0, getSelectedId, onSelect, options){
         });
 
         img.addEventListener("mouseenter", (e)=>{
-          showHover(listImgUrl(it), e.clientX, e.clientY);
+          showHover(bestThumb(it.imageUrl), e.clientX, e.clientY);
         });
         img.addEventListener("mousemove", (e)=>{
           moveHover(e.clientX, e.clientY);
@@ -439,40 +422,20 @@ function makeVirtualGrid(container, items0, getSelectedId, onSelect, options){
   window.addEventListener("resize", rerender);
   rerender();
 
-  return { rerender, setItems: (next)=>{ items = Array.isArray(next) ? next : []; container.scrollTop = 0; rerender(); } };
+  return { rerender };
 }
 
 // build thumbnail pickers (virtualized)
 const grids = {};
 
 const headItems = ownedOptions("head");
-const bodyItemsAll = ownedOptions("body");
-let bodyItems = bodyItemsAll;
+const bodyItems = ownedOptions("body");
 const bgItems = ownedOptions("background");
 
 // default selection: first item if exists
 SEL.headId = headItems[0]?.assetId || "";
 SEL.bodyId = bodyItems[0]?.assetId || "";
 SEL.bgId = bgItems[0]?.assetId || "";
-
-
-function applyBodyGenderRule(){
-  const g = genderTag(SEL.headId);
-  let filtered = bodyItemsAll;
-  if(g){
-    const match = bodyItemsAll.filter(it=>genderTag(it.assetId) === g);
-    filtered = match.length ? match : bodyItemsAll;
-  }
-  bodyItems = filtered;
-  if(SEL.bodyId && !bodyItems.some(it=>it.assetId === SEL.bodyId)){
-    SEL.bodyId = bodyItems[0]?.assetId || "";
-  }
-  if(grids.body && grids.body.setItems){
-    grids.body.setItems(bodyItems);
-  }
-}
-
-applyBodyGenderRule();
 
 const addonAll = ownedOptions("accessory");
 
@@ -495,7 +458,7 @@ if(addon1Pool.length === 0 && addon2Pool.length === 0){
 
 const noneItem = { assetId:"", imageUrl:"", rarity:1 };
 
-grids.head = makeVirtualGrid(q("#headGrid"), headItems, ()=>SEL.headId, (id)=>{ SEL.headId=id; applyBodyGenderRule(); refreshPreview(); }, {thumbW:64, thumbH:96, gap:8});
+grids.head = makeVirtualGrid(q("#headGrid"), headItems, ()=>SEL.headId, (id)=>{ SEL.headId=id; refreshPreview(); }, {thumbW:64, thumbH:96, gap:8});
 grids.body = makeVirtualGrid(q("#bodyGrid"), bodyItems, ()=>SEL.bodyId, (id)=>{ SEL.bodyId=id; refreshPreview(); }, {thumbW:64, thumbH:96, gap:8});
 grids.bg = makeVirtualGrid(q("#bgGrid"), bgItems, ()=>SEL.bgId, (id)=>{ SEL.bgId=id; refreshPreview(); }, {thumbW:64, thumbH:96, gap:8});
 grids.addon1 = makeVirtualGrid(q("#addon1Grid"), [noneItem, ...addon1Pool], ()=>SEL.addon1Id, (id)=>{ SEL.addon1Id=id; refreshPreview(); }, {thumbW:64, thumbH:96, gap:8});
@@ -507,8 +470,7 @@ refreshPreview();
     q("#randomBtn").addEventListener("click", ()=>{
   // random pick from owned pools
   const headItems = ownedOptions("head");
-  const bodyItemsAll = ownedOptions("body");
-let bodyItems = bodyItemsAll;
+  const bodyItems = ownedOptions("body");
   const bgItems = ownedOptions("background");
 
   if(headItems.length === 0) return toast("先去抽卡拿頭部");
@@ -520,9 +482,7 @@ let bodyItems = bodyItemsAll;
   SEL.bgId = randPick(bgItems).assetId;
 
   // add on pools by filename prefix
-  applyBodyGenderRule();
-
-const addonAll = ownedOptions("accessory");
+  const addonAll = ownedOptions("accessory");
   const p1 = addonAll.filter(a=> (a.imageUrl||"").split("/").pop().startsWith("addon1_"));
   const p2 = addonAll.filter(a=> (a.imageUrl||"").split("/").pop().startsWith("addon2_"));
 
@@ -568,6 +528,22 @@ const addonAll = ownedOptions("accessory");
   })();
   </script>
 <div id="hoverPreview"><img alt="preview"/></div>
+
+<script>
+function getGenderFromId(id){
+  if(id.endsWith('m')) return 'm';
+  if(id.endsWith('f')) return 'f';
+  return null;
+}
+
+function genderCompatible(headId, bodyId){
+  const hg = getGenderFromId(headId);
+  const bg = getGenderFromId(bodyId);
+  if(!hg || !bg) return true;
+  return hg === bg;
+}
+</script>
+
 </body>
 </html>
 
@@ -577,7 +553,7 @@ function renderGrid(gridId, items, onSelect){
   g.innerHTML = "";
   items.forEach(it=>{
     const img = document.createElement("img");
-    img.src = listImgUrl(it) || "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
+    img.src = bestThumb(it.imageUrl) || "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
     img.className = "asset-thumb";
     img.onclick = ()=>{
       g.querySelectorAll(".asset-thumb").forEach(x=>x.classList.remove("active"));
