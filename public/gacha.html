@@ -134,15 +134,21 @@
         inset 0 -40px 80px rgba(0,0,0,0.35),
         0 24px 70px rgba(0,0,0,0.65);
     }
-    .marker{
+        .marker{
       position:absolute;
-      top:0;
-      bottom:0;
+      top:50%;
       left:50%;
-      width:4px;
-      transform: translateX(-50%);
-      background: linear-gradient(180deg, transparent, rgba(255,214,102,1), transparent);
-      box-shadow: 0 0 22px rgba(255,214,102,0.9);
+      width:124px;
+      height:124px;
+      transform: translate(-50%, -50%);
+      border-radius:14px;
+      box-shadow:
+        0 0 0 2px rgba(255,214,102,0.95),
+        0 0 40px 10px rgba(255,214,102,0.35),
+        inset 0 0 0 1px rgba(255,255,255,0.10);
+      background:
+        radial-gradient(circle at 30% 25%, rgba(255,255,255,0.18), transparent 45%),
+        radial-gradient(circle at 70% 80%, rgba(255,214,102,0.18), transparent 55%);
       pointer-events:none;
     }
     .belt{
@@ -252,28 +258,6 @@
 
     let animating = false;
 
-    let cachedAssets = null;
-
-    async function ensureAssetsLoaded(){
-      if(cachedAssets) return cachedAssets;
-      try{
-        const data = await api("/api/assets");
-        if(data && data.ok && Array.isArray(data.assets)){
-          cachedAssets = data.assets;
-          // also refresh offline cache so offline mode can use real assets
-          const db = offlineDb();
-          db.assets = data.assets;
-          saveOfflineDb(db);
-          return cachedAssets;
-        }
-      }catch(e){}
-      // fallback to offlineDb if available
-      const db = offlineDb();
-      cachedAssets = db.assets || [];
-      return cachedAssets;
-    }
-
-
     function showOverlay(){
       overlay.classList.add("show");
       overlay.setAttribute("aria-hidden","false");
@@ -299,15 +283,153 @@
       return m[1] + "_thumb." + m[2] + qs;
     }
 
-    // TODO: replace mock with Worker gacha response
-    function mockPick20(){
-      // 20 thumbs for animation
-      return Array.from({length: 20}).map((_, i) => ({
-        thumb: `assets/thumb_${(i%6)+1}.png`
-      }));
+    // Online gacha via Worker. If it fails, we clearly tell you and fall back to offlineDb.
+    function normalizeType(t){
+      const x = String(t||"");
+      if(x === "bg") return "background";
+      if(x === "backgrounds") return "background";
+      if(x === "addon1" || x === "addon2") return "accessory";
+      return x;
+    }
+
+    async function onlineGacha(count, opts={}){
+      const payload = { count: Number(count||1), premium: !!opts.premium, pick: !!opts.pick, type: opts.type || "" };
+      const data = await api("/api/gacha", { method:"POST", body: JSON.stringify(payload) });
+
+      // Accept both shapes: {results:[...]} or {pulled:[...]}
+      const arr = (data && (data.results || data.pulled)) || [];
+      if(!data || !data.ok || !Array.isArray(arr) || arr.length === 0) return null;
+
+      const r = arr[0];
+      return {
+        assetId: r.assetId,
+        type: normalizeType(r.type),
+        rarity: Number(r.rarity || 1),
+        imageUrl: r.imageUrl || "",
+      };
+    }
+
+    function pickFillerFromAssets(){
+      const list = cachedAssets || [];
+      if(!Array.isArray(list) || list.length === 0) return null;
+      const a = list[Math.floor(Math.random() * list.length)];
+      if(!a) return null;
+      return { assetId: a.assetId, type: normalizeType(a.type), rarity: Number(a.rarity||1), imageUrl: a.imageUrl || "" };
     }
 
     async function startGacha(count, opts={}){
+      if(animating) return;
+      animating = true;
+
+      // Make sure we have the real asset pool for fillers and offline fallback
+      await ensureAssetsLoaded();
+
+      // show layer only while rolling
+      showOverlay();
+      confirmBtn.classList.remove("show");
+      overlayClose.style.display = "none";
+      rollSub.textContent = "連線中";
+
+      let win = null;
+      let source = "online";
+
+      try{
+        win = await onlineGacha(count, opts);
+        if(!win){
+          source = "offline";
+        }
+      }catch(e){
+        source = "offline";
+      }
+
+      if(source === "offline"){
+        rollSub.textContent = "連線失敗，改用離線抽卡";
+        const off = offlineDb();
+        const assets = off.assets || [];
+        if(assets.length > 0){
+          // Pick one offline asset and also write to offline inventory
+          const a = assets[Math.floor(Math.random() * assets.length)];
+          win = { assetId: a.assetId, type: normalizeType(a.type), rarity: Number(a.rarity||1), imageUrl: a.imageUrl || "" };
+
+          off.userAssets = off.userAssets || {};
+          const k = `${APP.uid}:${win.assetId}`;
+          off.userAssets[k] = Number(off.userAssets[k] || 0) + 1;
+          saveOfflineDb(off);
+        }
+      }
+
+      if(!win){
+        toast("抽卡失敗");
+        hideOverlay();
+        animating = false;
+        return;
+      }
+
+      belt.innerHTML = "";
+
+      const beltCount = 20;
+      const winnerIndex = Math.floor(beltCount / 2);
+
+      const fillers = [];
+      for(let i=0;i<beltCount;i++){
+        if(i === winnerIndex){
+          fillers.push(win);
+        }else{
+          fillers.push(pickFillerFromAssets() || win);
+        }
+      }
+
+      fillers.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "card";
+        const src = item.imageUrl || "";
+        div.innerHTML = `<img src="${src}" alt="">`;
+        belt.appendChild(div);
+      });
+
+      rollSub.textContent = source === "online" ? "跑馬燈高速啟動" : "離線模式跑馬燈";
+
+      // Animation: fast spin -> slow down -> stop with center aligned
+      const stage = document.querySelector(".gacha-stage");
+      const stageWidth = stage.getBoundingClientRect().width;
+
+      const cards = Array.from(belt.children);
+      const cardW = cards[0].getBoundingClientRect().width;
+      const gap = 12;
+      const step = cardW + gap;
+
+      const beltPaddingLeft = 24; // must match CSS padding on .belt
+      const winnerCenterX = beltPaddingLeft + winnerIndex * step + cardW / 2;
+      const targetX = (stageWidth / 2) - winnerCenterX;
+      const startX = targetX - (step * 10);
+
+      const duration = 2400;
+      const t0 = performance.now();
+
+      function easeOutCubic(p){ return 1 - Math.pow(1 - p, 3); }
+
+      function frame(t){
+        const p = Math.min((t - t0) / duration, 1);
+
+        if(p < 0.25) rollSub.textContent = "跑馬燈高速旋轉";
+        else if(p < 0.85) rollSub.textContent = "減速中";
+        else rollSub.textContent = "即將停下";
+
+        const e = easeOutCubic(p);
+        const x = startX + (targetX - startX) * e;
+        belt.style.transform = `translate(${x}px, -50%)`;
+
+        if(p < 1){
+          requestAnimationFrame(frame);
+        }else{
+          cards[winnerIndex].classList.add("win");
+          rollSub.textContent = `抽到 ${win.assetId}  ⭐ ${win.rarity}`;
+          confirmBtn.classList.add("show");
+          animating = false;
+        }
+      }
+      requestAnimationFrame(frame);
+    }){
       if(animating) return;
       animating = true;
 
