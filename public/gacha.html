@@ -1,13 +1,3 @@
-
-
-    function displaySrc(item){
-      if(!item) return "";
-      const t = String(item.type || "");
-      if(t === "head" || t === "body"){
-        return item.thumbUrl || item.imageUrl || "";
-      }
-      return item.imageUrl || "";
-    }
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -254,6 +244,34 @@
 
   <script src="app.js"></script>
   <script>
+    function toThumb(url){
+      if(!url) return "";
+      const s = String(url);
+      if(s.includes("_thumb.")) return s;
+
+      // only make thumb for head/body assets
+      const lower = s.toLowerCase();
+      if(!(lower.includes("/assets/head_") || lower.includes("/assets/body_"))) return s;
+
+      const parts = s.split("?");
+      const base = parts[0];
+      const qs = parts.length > 1 ? "?" + parts.slice(1).join("?") : "";
+      const m = base.match(/^(.*)\.(png|webp|jpg|jpeg)$/i);
+      if(!m) return s;
+      return m[1] + "_thumb." + m[2] + qs;
+    }
+
+    function displaySrc(item){
+      if(!item) return "";
+      const t = String(item.type || "");
+      if(t === "head" || t === "body"){
+        // prefer derived thumb from imageUrl, fallback to thumbUrl if server provided it
+        return toThumb(item.imageUrl || "") || (item.thumbUrl || item.imageUrl || "");
+      }
+      return item.imageUrl || "";
+    }
+
+
     const overlay = document.getElementById("gachaOverlay");
     const overlayClose = document.getElementById("overlayClose");
     const confirmBtn = document.getElementById("confirmBtn");
