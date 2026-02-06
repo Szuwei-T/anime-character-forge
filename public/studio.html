@@ -176,11 +176,26 @@ function listImgUrl(it){
 }
 
 function genderTag(assetId){
-  const id = String(assetId || "");
-  const parts = id.split("_").map(s=>s.toLowerCase());
-  if(parts.includes("f")) return "f";
-  if(parts.includes("m")) return "m";
+  const id = String(assetId || "").toLowerCase();
+  // 檢查 assetId 中是否包含 f 或 m
+  if(id.includes("f")) return "f";
+  if(id.includes("m")) return "m";
   return "";
+}
+
+// 檢查 head 和 body 是否性別匹配
+function isGenderCompatible(headId, bodyId){
+  const headGender = genderTag(headId);
+  const bodyGender = genderTag(bodyId);
+  
+  // 如果 head 沒有性別標記，可以配任何 body
+  if(!headGender) return true;
+  
+  // 如果 body 沒有性別標記，可以配任何 head
+  if(!bodyGender) return true;
+  
+  // 如果都有性別標記，必須相同
+  return headGender === bodyGender;
 }
 
 
@@ -457,16 +472,24 @@ SEL.bgId = bgItems[0]?.assetId || "";
 
 
 function applyBodyGenderRule(){
-  const g = genderTag(SEL.headId);
+  const headGender = genderTag(SEL.headId);
   let filtered = bodyItemsAll;
-  if(g){
-    const match = bodyItemsAll.filter(it=>genderTag(it.assetId) === g);
-    filtered = match.length ? match : bodyItemsAll;
+  
+  if(headGender){
+    // 如果 head 有性別標記，只顯示相同性別或無性別標記的 body
+    filtered = bodyItemsAll.filter(it => {
+      const bodyGender = genderTag(it.assetId);
+      return !bodyGender || bodyGender === headGender;
+    });
   }
-  bodyItems = filtered;
+  
+  bodyItems = filtered.length > 0 ? filtered : bodyItemsAll;
+  
+  // 如果當前選中的 body 不在過濾後的列表中，自動選擇第一個
   if(SEL.bodyId && !bodyItems.some(it=>it.assetId === SEL.bodyId)){
     SEL.bodyId = bodyItems[0]?.assetId || "";
   }
+  
   if(grids.body && grids.body.setItems){
     grids.body.setItems(bodyItems);
   }
@@ -508,21 +531,39 @@ refreshPreview();
   // random pick from owned pools
   const headItems = ownedOptions("head");
   const bodyItemsAll = ownedOptions("body");
-let bodyItems = bodyItemsAll;
   const bgItems = ownedOptions("background");
 
   if(headItems.length === 0) return toast("先去抽卡拿頭部");
-  if(bodyItems.length === 0) return toast("先去抽卡拿身體");
+  if(bodyItemsAll.length === 0) return toast("先去抽卡拿身體");
   if(bgItems.length === 0) return toast("先去抽卡拿背景");
 
+  // 隨機選擇 head
   SEL.headId = randPick(headItems).assetId;
-  SEL.bodyId = randPick(bodyItems).assetId;
+  
+  // 根據 head 的性別過濾 body
+  const headGender = genderTag(SEL.headId);
+  let compatibleBodies = bodyItemsAll;
+  
+  if(headGender){
+    // 如果 head 有性別標記，只選擇相同性別或無性別標記的 body
+    compatibleBodies = bodyItemsAll.filter(it => {
+      const bodyGender = genderTag(it.assetId);
+      return !bodyGender || bodyGender === headGender;
+    });
+  }
+  
+  // 如果沒有兼容的 body，使用所有 body
+  if(compatibleBodies.length === 0){
+    compatibleBodies = bodyItemsAll;
+  }
+  
+  SEL.bodyId = randPick(compatibleBodies).assetId;
   SEL.bgId = randPick(bgItems).assetId;
 
   // add on pools by filename prefix
   applyBodyGenderRule();
 
-const addonAll = ownedOptions("accessory");
+  const addonAll = ownedOptions("accessory");
   const p1 = addonAll.filter(a=> (a.imageUrl||"").split("/").pop().startsWith("addon1_"));
   const p2 = addonAll.filter(a=> (a.imageUrl||"").split("/").pop().startsWith("addon2_"));
 
@@ -553,6 +594,12 @@ const addonAll = ownedOptions("accessory");
   seasonId: "S1"
 };
       if(!payload.headId || !payload.bodyId || !payload.bgId) return toast("素材不足 先去抽卡");
+      
+      // 檢查性別匹配
+      if(!isGenderCompatible(payload.headId, payload.bodyId)){
+        return toast("頭部和身體性別不匹配，請重新選擇");
+      }
+      
       toast("提交中");
 
       let data = await submitOnline(payload);
