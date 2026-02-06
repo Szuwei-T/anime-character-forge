@@ -252,6 +252,28 @@
 
     let animating = false;
 
+    let cachedAssets = null;
+
+    async function ensureAssetsLoaded(){
+      if(cachedAssets) return cachedAssets;
+      try{
+        const data = await api("/api/assets");
+        if(data && data.ok && Array.isArray(data.assets)){
+          cachedAssets = data.assets;
+          // also refresh offline cache so offline mode can use real assets
+          const db = offlineDb();
+          db.assets = data.assets;
+          saveOfflineDb(db);
+          return cachedAssets;
+        }
+      }catch(e){}
+      // fallback to offlineDb if available
+      const db = offlineDb();
+      cachedAssets = db.assets || [];
+      return cachedAssets;
+    }
+
+
     function showOverlay(){
       overlay.classList.add("show");
       overlay.setAttribute("aria-hidden","false");
