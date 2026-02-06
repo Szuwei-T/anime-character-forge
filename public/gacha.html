@@ -244,6 +244,7 @@
 
   <script src="app.js"></script>
   <script>
+    
     const overlay = document.getElementById("gachaOverlay");
     const overlayClose = document.getElementById("overlayClose");
     const confirmBtn = document.getElementById("confirmBtn");
@@ -251,6 +252,7 @@
     const belt = document.getElementById("belt");
 
     let animating = false;
+    let assetPool = [];
 
     function showOverlay(){
       overlay.classList.add("show");
@@ -277,54 +279,104 @@
       return m[1] + "_thumb." + m[2] + qs;
     }
 
-    // TODO: replace mock with Worker gacha response
-    function mockPick20(){
-      // 20 thumbs for animation
-      return Array.from({length: 20}).map((_, i) => ({
-        thumb: `assets/thumb_${(i%6)+1}.png`
-      }));
+    function pickTypePrompt(){
+      const raw = prompt("輸入類型 head body bg addon1 addon2 或留空隨機", "");
+      const t = String(raw || "").trim();
+      if(!t) return "";
+      const ok = ["head","body","bg","addon1","addon2","background","accessory"];
+      if(ok.includes(t)) return t;
+      toast("類型無效 改成隨機");
+      return "";
+    }
+
+    function randPick(arr){
+      return arr[Math.floor(Math.random()*arr.length)];
+    }
+
+    async function ensureAssets(){
+      if(assetPool.length) return;
+      try{
+        const res = await apiFetch("/api/assets");
+        const list = res?.assets || [];
+        assetPool = list.filter(x=>x && x.imageUrl);
+      }catch(e){
+        assetPool = [];
+      }
+    }
+
+    function buildBeltItems(winner){
+      const items = [];
+      const total = 20;
+      for(let i=0;i<total;i++){
+        items.push(randPick(assetPool));
+      }
+      const mid = Math.floor(total/2);
+      items[mid] = winner;
+      return items;
     }
 
     async function startGacha(count, opts={}){
       if(animating) return;
       animating = true;
 
-      // show layer only while rolling
+      await initSession();
+      await ensureAssets();
+
+      const pick = !!opts.pick;
+      const premium = !!opts.premium;
+      let type = "";
+      if(pick) type = pickTypePrompt();
+
       showOverlay();
       confirmBtn.classList.remove("show");
       overlayClose.style.display = "none";
-      rollSub.textContent = "跑馬燈高速啟動";
+      rollSub.textContent = "連線抽卡中";
+
+      let pullRes = null;
+      try{
+        pullRes = await api("/api/gacha", {
+          method:"POST",
+          body: JSON.stringify({ count: 1, premium, pick, type })
+        });
+      }catch(e){
+        pullRes = null;
+      }
+
+      if(!pullRes || !pullRes.ok || !(pullRes.results || pullRes.pulled) ){
+        toast("抽卡失敗 已切離線");
+        animating = false;
+        hideOverlay();
+        return;
+      }
+
+      const win = (pullRes.results && pullRes.results[0]) ? pullRes.results[0] : pullRes.pulled[0];
+      const winThumb = win.thumbUrl || thumbUrl(win.imageUrl);
+
+      const beltItems = assetPool.length ? buildBeltItems({ ...win, imageUrl: win.imageUrl, thumbUrl: winThumb }) : Array.from({length:20}).map(()=>({ thumbUrl: winThumb, imageUrl: win.imageUrl }));
+      const winnerIndex = Math.floor(beltItems.length/2);
 
       belt.innerHTML = "";
-      const pool = mockPick20();
-
-      pool.forEach(p => {
+      beltItems.forEach((p) => {
         const div = document.createElement("div");
         div.className = "card";
-        div.innerHTML = `<img src="${thumbUrl(p.thumb)}" alt="">`;
+        const t = p.thumbUrl || thumbUrl(p.imageUrl || p.thumb || "");
+        div.innerHTML = `<img src="${t}" alt="">`;
         belt.appendChild(div);
       });
 
-      // Animation: fast spin -> slow down -> stop with center aligned
       const stage = document.querySelector(".gacha-stage");
       const stageWidth = stage.getBoundingClientRect().width;
 
-      // ensure we can land a specific card at center marker
       const cards = Array.from(belt.children);
       const cardW = cards[0].getBoundingClientRect().width;
       const gap = 12;
       const step = cardW + gap;
 
-      // choose winner index (middle is visually clean)
-      const winnerIndex = Math.floor(cards.length / 2);
-
-      // compute target translateX so that winner center aligns to stage center
-      const beltPaddingLeft = 24; // must match CSS padding on .belt
+      const beltPaddingLeft = 24;
       const winnerCenterX = beltPaddingLeft + winnerIndex * step + cardW / 2;
       const targetX = (stageWidth / 2) - winnerCenterX;
 
-      // start from a fast offset (more to the left) and ease to target
-      const startX = targetX - (step * 10); // makes it feel like it travelled a lot
+      const startX = targetX - (step * 10);
 
       const duration = 2400;
       const t0 = performance.now();
@@ -334,7 +386,6 @@
       function frame(t){
         const p = Math.min((t - t0) / duration, 1);
 
-        // text feedback
         if(p < 0.25) rollSub.textContent = "跑馬燈高速旋轉";
         else if(p < 0.85) rollSub.textContent = "減速中";
         else rollSub.textContent = "即將停下";
@@ -346,9 +397,8 @@
         if(p < 1){
           requestAnimationFrame(frame);
         }else{
-          // highlight winner + show confirm
           cards[winnerIndex].classList.add("win");
-          rollSub.textContent = "抽到結果";
+          rollSub.textContent = "抽到結果 已寫入背包";
           confirmBtn.classList.add("show");
           overlayClose.style.display = "none";
           animating = false;
@@ -356,6 +406,7 @@
       }
       requestAnimationFrame(frame);
     }
+
   </script>
 </body>
 </html>

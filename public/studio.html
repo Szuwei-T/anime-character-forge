@@ -201,6 +201,68 @@ if(!APP.offline){
 
     const byId = new Map(db.assets.map(a=>[a.assetId,a]));
 
+
+    async function submitOnline(payload){
+      try{
+        const res = await api("/api/submit", {
+          method: "POST",
+          body: JSON.stringify(payload)
+        });
+        if(res && res.ok) return res;
+        return res || null;
+      }catch(e){
+        return null;
+      }
+    }
+
+    async function submitOffline(payload){
+      const db2 = offlineDb();
+      const buildId = crypto.randomUUID();
+      const createdAt = Date.now();
+      const b = {
+        buildId,
+        uid: APP.uid,
+        title: payload.title || "",
+        headId: payload.headId,
+        bodyId: payload.bodyId,
+        bgId: payload.bgId,
+        addon1Id: payload.addon1Id || "",
+        addon2Id: payload.addon2Id || "",
+        createdAt,
+        seasonId: payload.seasonId || "S1",
+        scoreSum: 0,
+        scoreCount: 0
+      };
+      db2.builds = db2.builds || [];
+      db2.builds.unshift(b);
+
+      const unlockedRecipes = [];
+      const recipes = db2.recipes || [];
+      for(const r of recipes){
+        const a = normalizeAccessoryIds(r.accessoryIds || []);
+        const bAcc = normalizeAccessoryIds([payload.addon1Id, payload.addon2Id].filter(Boolean));
+        const sameAcc = sameSet(a, bAcc);
+        if(r.headId === payload.headId && r.bodyId === payload.bodyId && r.bgId === payload.bgId && sameAcc){
+          const k = `${APP.uid}:${r.recipeId}`;
+          db2.unlocks[k] = Date.now();
+          unlockedRecipes.push(r.recipeId);
+        }
+      }
+
+      saveOfflineDb(db2);
+      return { ok:true, buildId, unlockedRecipes };
+    }
+
+    function showUnlock(ids){
+      const el = q("#unlockHint");
+      if(!el) return;
+      if(!ids || ids.length === 0){
+        el.textContent = "沒有觸發成品解鎖";
+        return;
+      }
+      el.textContent = `已解鎖成品 ${ids.join("  ")}`;
+    }
+
     function invHas(assetId){
   const k = `${APP.uid}:${assetId}`;
   const store = db.userAssets || db.playerAssets || db.assetsOwned || {};
@@ -442,14 +504,13 @@ refreshPreview();
 
     q("#submitBtn").addEventListener("click", async ()=>{
       const payload = {
-  uid: APP.uid,
   title: q("#titleInput").value.trim(),
-  headId: q("#headSel").value,
-  bodyId: q("#bodySel").value,
-  bgId: q("#bgSel").value,
-  addon1Id: getAddon1(),
-  addon2Id: getAddon2(),
-  seasonId: db.seasonId || "S1"
+  headId: SEL.headId,
+  bodyId: SEL.bodyId,
+  bgId: SEL.bgId,
+  addon1Id: SEL.addon1Id || "",
+  addon2Id: SEL.addon2Id || "",
+  seasonId: "S1"
 };
       if(!payload.headId || !payload.bodyId || !payload.bgId) return toast("素材不足 先去抽卡");
       toast("提交中");
