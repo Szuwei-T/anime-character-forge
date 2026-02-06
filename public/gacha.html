@@ -47,108 +47,74 @@
       flex-wrap:wrap;
       margin: 18px 0 0;
     }
-    .buttons button{
-      padding:14px 22px;
-      font-size:16px;
+    .btn{
+      border:0;
       border-radius:999px;
-      border:none;
+      padding:12px 18px;
+      font-size:15px;
+      font-weight:700;
+      letter-spacing:0.3px;
       cursor:pointer;
-      background: linear-gradient(135deg, #ffcc66, #ff7b00);
-      color:#141414;
-      font-weight:800;
-      box-shadow: 0 10px 28px rgba(0,0,0,0.45);
-      transition: transform 0.08s ease, filter 0.12s ease;
+      color:#111;
+      background: linear-gradient(135deg, #ffde88, #caa54a);
+      box-shadow: 0 18px 45px rgba(0,0,0,0.35);
     }
-    .buttons button:hover{ filter: brightness(1.02); }
-    .buttons button:active{ transform: translateY(1px) scale(0.99); }
-    .buttons button.alt{
-      background: linear-gradient(135deg, #8adcff, #3aa3ff);
+    .btn.secondary{
+      background: rgba(255,255,255,0.10);
+      color:#fff;
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow:none;
     }
 
-    /* Overlay layer (only visible during gacha) */
     .overlay{
       position:fixed;
       inset:0;
       display:none;
       align-items:center;
       justify-content:center;
-      padding:22px;
-      background: rgba(0,0,0,0.62);
-      backdrop-filter: blur(10px);
-      z-index: 999;
+      background: rgba(0,0,0,0.55);
+      padding: 18px;
+      z-index: 50;
     }
     .overlay.show{ display:flex; }
-    .overlay-card{
-      width:min(980px, 96vw);
-      border-radius:22px;
-      background: linear-gradient(180deg, rgba(35,42,66,0.92), rgba(16,19,34,0.92));
-      box-shadow:
-        inset 0 0 0 1px rgba(255,255,255,0.06),
-        0 28px 90px rgba(0,0,0,0.75);
-      padding: 22px 18px 18px;
+    .panel{
+      width:min(1100px, 96vw);
+      border-radius:26px;
+      background: rgba(18,22,32,0.92);
+      border: 1px solid rgba(255,255,255,0.10);
+      box-shadow: 0 30px 120px rgba(0,0,0,0.65);
+      padding: 22px 22px 18px;
+      text-align:left;
+      position:relative;
+      overflow:hidden;
     }
-    .overlay-title{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      margin-bottom: 14px;
-    }
-    .overlay-title .left{
+    .panel h3{
+      margin:0;
+      font-size:22px;
+      letter-spacing:0.4px;
       display:flex;
       align-items:baseline;
-      gap:10px;
+      gap:12px;
     }
-    .overlay-title h3{
-      margin:0;
-      font-size:18px;
-      letter-spacing:0.5px;
+    .sub{
+      opacity:0.75;
+      font-size:14px;
+      font-weight:600;
     }
-    .overlay-title .sub{
-      opacity:0.7;
-      font-size:13px;
-    }
-    .overlay-close{
-      border:none;
-      background: rgba(255,255,255,0.08);
-      color:#fff;
-      border-radius:999px;
-      padding:10px 14px;
-      cursor:pointer;
-      font-weight:700;
-      opacity:0.9;
-    }
-    .overlay-close:hover{ opacity:1; }
-
     .gacha-stage{
-      position:relative;
-      margin: 8px auto 14px;
-      width: 920px;
-      max-width:100%;
+      margin-top: 16px;
       height: 190px;
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+      position:relative;
       overflow:hidden;
-      border-radius: 20px;
-      background: linear-gradient(180deg, #20263a, #121626);
-      box-shadow:
-        inset 0 0 0 2px rgba(255,255,255,0.05),
-        inset 0 -40px 80px rgba(0,0,0,0.35),
-        0 24px 70px rgba(0,0,0,0.65);
-    }
-    .marker{
-      position:absolute;
-      top:0;
-      bottom:0;
-      left:50%;
-      width:4px;
-      transform: translateX(-50%);
-      background: linear-gradient(180deg, transparent, rgba(255,214,102,1), transparent);
-      box-shadow: 0 0 22px rgba(255,214,102,0.9);
-      pointer-events:none;
     }
     .belt{
       position:absolute;
       top:50%;
-      transform: translateY(-50%);
+      left:0;
+      transform: translate(0, -50%);
       display:flex;
       gap:12px;
       padding: 0 24px;
@@ -157,184 +123,268 @@
     .card{
       width:124px;
       height:124px;
-      border-radius:14px;
-      background: rgba(0,0,0,0.35);
+      border-radius:18px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.25);
+      display:flex;
+      align-items:center;
+      justify-content:center;
       overflow:hidden;
-      box-shadow: 0 10px 26px rgba(0,0,0,0.55);
-      flex-shrink:0;
-      position:relative;
-    }
-    .card::after{
-      content:"";
-      position:absolute;
-      inset:0;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
-      border-radius:14px;
-      pointer-events:none;
     }
     .card img{
       width:100%;
       height:100%;
-      object-fit:cover;
+      object-fit:contain;
       display:block;
-      transform: scale(1.02);
+      background: rgba(0,0,0,0.12);
+    }
+    .marker{
+      position:absolute;
+      top:50%;
+      left:50%;
+      width:124px;
+      height:124px;
+      transform: translate(-50%, -50%);
+      border-radius:14px;
+      box-shadow:
+        0 0 0 2px rgba(255,214,102,0.95),
+        0 0 40px 10px rgba(255,214,102,0.35),
+        inset 0 0 0 1px rgba(255,255,255,0.10);
+      background:
+        radial-gradient(circle at 30% 25%, rgba(255,255,255,0.18), transparent 45%),
+        radial-gradient(circle at 70% 80%, rgba(255,214,102,0.18), transparent 55%);
+      pointer-events:none;
     }
     .card.win{
-      box-shadow: 0 0 34px 8px rgba(255,214,102,0.95);
-      transform: scale(1.06);
-      z-index: 3;
+      box-shadow:
+        0 0 0 2px rgba(255,214,102,0.95),
+        0 0 42px 12px rgba(255,214,102,0.40),
+        inset 0 0 0 1px rgba(255,255,255,0.10);
+      border-color: rgba(255,214,102,0.55);
     }
-
-    .confirm-area{
+    .footer{
       display:flex;
       justify-content:center;
-      margin-top: 12px;
+      margin-top: 16px;
+      gap: 10px;
+      align-items:center;
     }
     .confirm{
-      display:none;
-      padding: 14px 34px;
-      font-size:16px;
+      border:0;
       border-radius: 999px;
-      border:none;
+      padding: 12px 26px;
+      font-size: 16px;
+      font-weight: 800;
       cursor:pointer;
-      background: linear-gradient(135deg, #ffe08a, #ffb84d);
-      color:#151515;
-      font-weight:900;
-      box-shadow: 0 14px 36px rgba(0,0,0,0.5);
+      background: linear-gradient(135deg, #ffde88, #caa54a);
+      color:#111;
+      display:none;
     }
-    .confirm.show{ display:inline-block; }
+    .confirm.show{ display:inline-flex; }
   </style>
 </head>
 <body>
   <div class="gacha-root">
     <div class="feature">
-      <h2>本期 Featured 角色</h2>
-      <img src="assets/feature_character.png" alt="feature" />
-    </div>
-
-    <div class="buttons">
-      <button onclick="startGacha(1)">單次抽卡</button>
-      <button onclick="startGacha(10)">10 連抽</button>
-      <button class="alt" onclick="startGacha(1, { premium:true })">高級抽卡</button>
-      <button class="alt" onclick="startGacha(1, { pick:true })">特定素材抽卡</button>
+      <h2>抽卡</h2>
+      <img src="assets/hero.png" alt="">
+      <div class="buttons">
+        <button class="btn" id="btnOnce">抽 1 次</button>
+        <button class="btn secondary" id="btnOncePremium">高級抽 1 次</button>
+        <a class="btn secondary" href="hub.html" style="text-decoration:none;display:inline-flex;align-items:center;">返回</a>
+      </div>
     </div>
   </div>
 
-  <!-- Gacha overlay layer (hidden until rolling) -->
-  <div class="overlay" id="gachaOverlay" aria-hidden="true">
-    <div class="overlay-card">
-      <div class="overlay-title">
-        <div class="left">
-          <h3>抽卡中</h3>
-          <div class="sub" id="rollSub">跑馬燈減速中</div>
-        </div>
-        <button class="overlay-close" id="overlayClose" type="button" title="關閉" style="display:none;">關閉</button>
-      </div>
-
+  <div class="overlay" id="overlay">
+    <div class="panel">
+      <h3>抽卡中 <span class="sub" id="rollSub">連線中</span></h3>
       <div class="gacha-stage">
-        <div class="marker"></div>
         <div class="belt" id="belt"></div>
+        <div class="marker"></div>
       </div>
-
-      <div class="confirm-area">
-        <button class="confirm" id="confirmBtn" type="button">確認</button>
+      <div class="footer">
+        <button class="confirm" id="confirmBtn">確認</button>
       </div>
     </div>
   </div>
 
   <script src="app.js"></script>
   <script>
-    const overlay = document.getElementById("gachaOverlay");
-    const overlayClose = document.getElementById("overlayClose");
-    const confirmBtn = document.getElementById("confirmBtn");
-    const rollSub = document.getElementById("rollSub");
+    const overlay = document.getElementById("overlay");
     const belt = document.getElementById("belt");
+    const rollSub = document.getElementById("rollSub");
+    const confirmBtn = document.getElementById("confirmBtn");
+    const btnOnce = document.getElementById("btnOnce");
+    const btnOncePremium = document.getElementById("btnOncePremium");
 
     let animating = false;
 
-    function showOverlay(){
-      overlay.classList.add("show");
-      overlay.setAttribute("aria-hidden","false");
-    }
-    function hideOverlay(){
-      overlay.classList.remove("show");
-      overlay.setAttribute("aria-hidden","true");
-    }
+    function showOverlay(){ overlay.classList.add("show"); }
+    function hideOverlay(){ overlay.classList.remove("show"); }
 
-    overlayClose.addEventListener("click", hideOverlay);
-    confirmBtn.addEventListener("click", () => {
-      hideOverlay();
-    });
+    confirmBtn.addEventListener("click", () => hideOverlay());
 
-    function thumbUrl(url){
+    function localThumb(url){
       if(!url) return "";
-      if(url.includes("_thumb.")) return url;
-      const parts = String(url).split("?");
+      const s = String(url);
+      if(s.includes("_thumb.")) return s;
+      const parts = s.split("?");
       const base = parts[0];
       const qs = parts.length > 1 ? "?" + parts.slice(1).join("?") : "";
       const m = base.match(/^(.*)\.(png|webp|jpg|jpeg)$/i);
-      if(!m) return url;
+      if(!m) return s;
       return m[1] + "_thumb." + m[2] + qs;
     }
 
-    // TODO: replace mock with Worker gacha response
-    function mockPick20(){
-      // 20 thumbs for animation
-      return Array.from({length: 20}).map((_, i) => ({
-        thumb: `assets/thumb_${(i%6)+1}.png`
-      }));
+    function normalizeType(t){
+      const x = String(t||"");
+      if(x === "bg") return "background";
+      if(x === "backgrounds") return "background";
+      if(x === "addon1" || x === "addon2") return "accessory";
+      return x;
     }
 
-    async function startGacha(count, opts={}){
+    async function onlineGacha(opts={}){
+      const payload = { count: 1, premium: !!opts.premium, pick: !!opts.pick, type: opts.type || "" };
+      const data = await api("/api/gacha", { method:"POST", body: JSON.stringify(payload) });
+      if(!data || !data.ok) return null;
+      const r = (data.results && data.results[0]) || (data.pulled && data.pulled[0]) || null;
+      if(!r) return null;
+      return {
+        assetId: r.assetId,
+        type: normalizeType(r.type),
+        rarity: Number(r.rarity || 1),
+        imageUrl: r.imageUrl || "",
+        thumbUrl: r.thumbUrl || localThumb(r.imageUrl || "")
+      };
+    }
+
+    function offlinePickOne(opts={}){
+      const db = offlineDb();
+      const assets = db.assets || [];
+      if(assets.length === 0) return null;
+
+      const r = Math.random();
+      let rarity = 1;
+      if(opts.premium){
+        if(r < 0.02) rarity = 5;
+        else if(r < 0.10) rarity = 4;
+        else if(r < 0.30) rarity = 3;
+        else if(r < 0.60) rarity = 2;
+        else rarity = 1;
+      }else{
+        if(r < 0.01) rarity = 5;
+        else if(r < 0.07) rarity = 4;
+        else if(r < 0.25) rarity = 3;
+        else if(r < 0.55) rarity = 2;
+        else rarity = 1;
+      }
+
+      let pool = assets.filter(a => Number(a.rarity||1) === rarity);
+      if(opts.pick && opts.type){
+        pool = pool.filter(a => String(a.type||"") === String(opts.type));
+      }
+      if(pool.length === 0) pool = assets;
+
+      const a = pool[Math.floor(Math.random()*pool.length)];
+      return {
+        assetId: a.assetId,
+        type: normalizeType(a.type),
+        rarity: Number(a.rarity||1),
+        imageUrl: a.imageUrl || "",
+        thumbUrl: localThumb(a.imageUrl || "")
+      };
+    }
+
+    function commitOfflineWin(win){
+      const db = offlineDb();
+      db.userAssets = db.userAssets || {};
+      const k = `${APP.uid}:${win.assetId}`;
+      db.userAssets[k] = Number(db.userAssets[k] || 0) + 1;
+      saveOfflineDb(db);
+    }
+
+    async function startGacha(opts={}){
       if(animating) return;
       animating = true;
 
-      // show layer only while rolling
       showOverlay();
       confirmBtn.classList.remove("show");
-      overlayClose.style.display = "none";
-      rollSub.textContent = "跑馬燈高速啟動";
+      rollSub.textContent = "連線中";
+
+      let win = null;
+      let source = "online";
+
+      try{
+        win = await onlineGacha(opts);
+        if(!win){
+          source = "offline";
+          win = offlinePickOne(opts);
+          if(win) commitOfflineWin(win);
+        }
+      }catch(e){
+        source = "offline";
+        win = offlinePickOne(opts);
+        if(win) commitOfflineWin(win);
+      }
+
+      if(!win){
+        toast("抽卡失敗");
+        hideOverlay();
+        animating = false;
+        return;
+      }
 
       belt.innerHTML = "";
-      const pool = mockPick20();
 
-      pool.forEach(p => {
+      const beltCount = 20;
+      const winnerIndex = Math.floor(beltCount / 2);
+
+      const fillers = [];
+      for(let i=0;i<beltCount;i++){
+        if(i === winnerIndex){
+          fillers.push(win);
+        }else{
+          const f = offlinePickOne({ premium: !!opts.premium });
+          fillers.push(f || win);
+        }
+      }
+
+      fillers.forEach(p => {
+        const item = p || win;
+        if(!item) return;
+
         const div = document.createElement("div");
         div.className = "card";
-        div.innerHTML = `<img src="${thumbUrl(p.thumb)}" alt="">`;
+        const src = (item.thumbUrl || item.imageUrl || "");
+        div.innerHTML = `<img src="${src}" alt="">`;
         belt.appendChild(div);
       });
 
-      // Animation: fast spin -> slow down -> stop with center aligned
+      rollSub.textContent = source === "online" ? "跑馬燈高速啟動" : "離線模式跑馬燈";
+
       const stage = document.querySelector(".gacha-stage");
       const stageWidth = stage.getBoundingClientRect().width;
 
-      // ensure we can land a specific card at center marker
       const cards = Array.from(belt.children);
       const cardW = cards[0].getBoundingClientRect().width;
       const gap = 12;
       const step = cardW + gap;
 
-      // choose winner index (middle is visually clean)
-      const winnerIndex = Math.floor(cards.length / 2);
-
-      // compute target translateX so that winner center aligns to stage center
-      const beltPaddingLeft = 24; // must match CSS padding on .belt
+      const beltPaddingLeft = 24;
       const winnerCenterX = beltPaddingLeft + winnerIndex * step + cardW / 2;
       const targetX = (stageWidth / 2) - winnerCenterX;
-
-      // start from a fast offset (more to the left) and ease to target
-      const startX = targetX - (step * 10); // makes it feel like it travelled a lot
+      const startX = targetX - (step * 10);
 
       const duration = 2400;
       const t0 = performance.now();
-
       function easeOutCubic(p){ return 1 - Math.pow(1 - p, 3); }
 
       function frame(t){
         const p = Math.min((t - t0) / duration, 1);
 
-        // text feedback
         if(p < 0.25) rollSub.textContent = "跑馬燈高速旋轉";
         else if(p < 0.85) rollSub.textContent = "減速中";
         else rollSub.textContent = "即將停下";
@@ -346,16 +396,17 @@
         if(p < 1){
           requestAnimationFrame(frame);
         }else{
-          // highlight winner + show confirm
           cards[winnerIndex].classList.add("win");
-          rollSub.textContent = "抽到結果";
+          rollSub.textContent = `抽到 ${win.assetId}  ⭐ ${win.rarity}`;
           confirmBtn.classList.add("show");
-          overlayClose.style.display = "none";
           animating = false;
         }
       }
       requestAnimationFrame(frame);
     }
+
+    btnOnce.addEventListener("click", () => startGacha({ premium:false }));
+    btnOncePremium.addEventListener("click", () => startGacha({ premium:true }));
   </script>
 </body>
 </html>
