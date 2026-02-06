@@ -205,7 +205,7 @@
       <div class="badge">
         <span style="opacity:0.8">feature</span>
       </div>
-      <img src="assets/hero.png" alt="">
+      <img src="assets/feature_character.png" alt="">
     </div>
 
     <div class="btnRow">
@@ -257,6 +257,16 @@
       return x;
     }
 
+    function toThumbIfNeeded(asset){
+      if(!asset || !asset.imageUrl) return "";
+      const t = String(asset.type || "");
+      if(t === "head" || t === "body"){
+        if(String(asset.imageUrl).includes("_thumb.")) return asset.imageUrl;
+        return String(asset.imageUrl).replace(/\.(png|webp|jpg|jpeg)$/i, "_thumb.$1");
+      }
+      return asset.imageUrl;
+    }
+
     async function ensureAssetsLoaded(){
       if(cachedAssets) return cachedAssets;
       try{
@@ -303,7 +313,7 @@
 
       const a = pool[Math.floor(Math.random()*pool.length)];
       return {
-        assetId: a.assetId || a.assetId,
+        assetId: a.assetId,
         type: normalizeType(a.type),
         rarity: Number(a.rarity||1),
         imageUrl: a.imageUrl || ""
@@ -320,7 +330,7 @@
 
     async function onlineGacha(opts={}){
       const payload = {
-        count: Number(opts.count || 1),
+        rolls: Number(opts.count || 1),
         premium: !!opts.premium,
         pick: !!opts.pick,
         type: opts.type || ""
@@ -335,7 +345,7 @@
         assetId: r.assetId,
         type: normalizeType(r.type),
         rarity: Number(r.rarity || 1),
-        imageUrl: r.imageUrl || (r.thumbUrl || "")
+        imageUrl: r.imageUrl || ""
       }));
     }
 
@@ -358,7 +368,7 @@
           rollSub.textContent = "連線失敗 改用離線抽卡";
           pulled = [];
           const n = Number(opts.count || 1);
-          for(let i=0;i<n;i++){
+          for(let i = 0; i < n; i++){
             const x = offlinePickOne(opts);
             if(x) pulled.push(x);
           }
@@ -369,7 +379,7 @@
         rollSub.textContent = "連線失敗 改用離線抽卡";
         pulled = [];
         const n = Number(opts.count || 1);
-        for(let i=0;i<n;i++){
+        for(let i = 0; i < n; i++){
           const x = offlinePickOne(opts);
           if(x) pulled.push(x);
         }
@@ -390,7 +400,7 @@
       const winnerIndex = Math.floor(beltCount / 2);
 
       const fillers = [];
-      for(let i=0;i<beltCount;i++){
+      for(let i = 0; i < beltCount; i++){
         if(i === winnerIndex){
           fillers.push(win);
         }else{
@@ -405,7 +415,7 @@
 
         const div = document.createElement("div");
         div.className = "card";
-        const src = String(item.imageUrl || "");
+        const src = toThumbIfNeeded(item);
         div.innerHTML = `<img src="${src}" alt="">`;
         belt.appendChild(div);
       });
@@ -452,7 +462,7 @@
     btnPremium.addEventListener("click", () => startGacha({ count: 1, premium: true }));
 
     btnPick.addEventListener("click", async () => {
-      const type = prompt("輸入類型 head body bg addon1 addon2");
+      const type = prompt("輸入類型 head body background accessory");
       if(!type) return;
       await startGacha({ count: 1, premium: false, pick: true, type: type.trim() });
     });
