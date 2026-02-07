@@ -3,14 +3,41 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>工作室</title>
+  <title>工作室 - 進階版</title>
   <link rel="stylesheet" href="style.css" />
 <style id="thumbStyle">
-  .picker-section{margin-bottom:14px;}
-  .picker-title{font-size:14px;opacity:.9;margin:10px 0 10px;}
+  .picker-section{margin-bottom:14px; display: none;}
+  .picker-section.active{display: block;}
+  .picker-title{font-size:14px;opacity:.9;margin:10px 0 10px; display: none;}
+  
+  /* Tabs Styling */
+  .tabs-container {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .tab-btn {
+    padding: 8px 16px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    color: #fff;
+    cursor: pointer;
+    white-space: nowrap;
+    font-size: 13px;
+    transition: all 0.2s;
+  }
+  .tab-btn.active {
+    background: rgba(74,222,128,0.2);
+    border-color: rgba(74,222,128,0.5);
+    color: #4ade80;
+  }
+
   .asset-grid{
     position: relative;
-    height: 240px;
+    height: 400px; /* Increased height for better tab view */
     overflow: auto;
     padding: 10px;
     border-radius: 16px;
@@ -42,10 +69,37 @@
   .r4 .asset-thumb{border-color: rgba(168,85,247,0.75);}
   .r5 .asset-thumb{border-color: rgba(245,158,11,0.85);}
 
+  /* Count Badge (Top Right) */
+  .badge-count {
+    position: absolute;
+    right: -4px;
+    top: -4px;
+    background: rgba(0,0,0,0.75);
+    color: #fff;
+    font-size: 10px;
+    padding: 2px 5px;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.2);
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  /* Star Badge (Bottom Left) */
+  .badge-stars {
+    position: absolute;
+    left: 4px;
+    bottom: 4px;
+    color: #fbbf24;
+    font-size: 10px;
+    text-shadow: 0 0 4px rgba(0,0,0,0.8);
+    z-index: 2;
+    pointer-events: none;
+  }
+
   /* unlocked tick */
   .badge-unlocked{
     position:absolute;
-    right:-6px;
+    right: 20px; /* Shifted to avoid overlap with count */
     top:-6px;
     width:18px;
     height:18px;
@@ -59,6 +113,7 @@
     justify-content:center;
     box-shadow: 0 6px 18px rgba(0,0,0,0.35);
     pointer-events:none;
+    z-index: 3;
   }
 
   /* hover preview */
@@ -124,20 +179,26 @@
           </div>
 
           <div class="col5">
+            <div class="tabs-container" id="assetTabs">
+              <button class="tab-btn active" data-target="headGrid">頭部</button>
+              <button class="tab-btn" data-target="bodyGrid">身體</button>
+              <button class="tab-btn" data-target="bgGrid">背景</button>
+              <button class="tab-btn" data-target="addon1Grid">Addon 1</button>
+              <button class="tab-btn" data-target="addon2Grid">Addon 2</button>
+            </div>
             <div class="grid">
               <div class="col12">
-                <div class="picker-section"><div class="picker-title">頭部</div><div id="headGrid" class="asset-grid"><div class="asset-spacer"></div></div></div>
+                <div class="picker-section active" id="headSection"><div id="headGrid" class="asset-grid"><div class="asset-spacer"></div></div></div>
               </div>
               <div class="col12">
-                <div class="picker-section"><div class="picker-title">身體</div><div id="bodyGrid" class="asset-grid"><div class="asset-spacer"></div></div></div>
+                <div class="picker-section" id="bodySection"><div id="bodyGrid" class="asset-grid"><div class="asset-spacer"></div></div></div>
               </div>
               <div class="col12">
-                <div class="picker-section"><div class="picker-title">背景</div><div id="bgGrid" class="asset-grid"><div class="asset-spacer"></div></div></div>
+                <div class="picker-section" id="bgSection"><div id="bgGrid" class="asset-grid"><div class="asset-spacer"></div></div></div>
               </div>
               <div class="col12">
-                <div class="picker-section"><div class="picker-title">add on 1</div><div id="addon1Grid" class="asset-grid"><div class="asset-spacer"></div></div></div>
-<div style="height:10px"></div>
-<div class="picker-section"><div class="picker-title">add on 2</div><div id="addon2Grid" class="asset-grid"><div class="asset-spacer"></div></div></div>
+                <div class="picker-section" id="addon1Section"><div id="addon1Grid" class="asset-grid"><div class="asset-spacer"></div></div></div>
+                <div class="picker-section" id="addon2Section"><div id="addon2Grid" class="asset-grid"><div class="asset-spacer"></div></div></div>
               </div>
             </div>
             <div class="hr"></div>
@@ -153,6 +214,28 @@
   (async function(){
     await initSession();
     q("#netBadge").textContent = APP.offline ? "Offline" : "Online";
+
+    // --- Tab Logic ---
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const sections = document.querySelectorAll('.picker-section');
+    
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetId = btn.getAttribute('data-target');
+        const targetSectionId = targetId.replace('Grid', 'Section');
+        
+        tabBtns.forEach(b => b.classList.remove('active'));
+        sections.forEach(s => s.classList.remove('active'));
+        
+        btn.classList.add('active');
+        document.getElementById(targetSectionId).classList.add('active');
+        
+        // Trigger rerender for virtual grid when tab switches
+        const gridKey = targetId.replace('Grid', '');
+        if(grids[gridKey]) grids[gridKey].rerender();
+      });
+    });
+
 function toThumbUrl(url){
   if(!url) return "";
   if(url.includes("_thumb.")) return url;
@@ -177,31 +260,45 @@ function listImgUrl(it){
 
 function genderTag(assetId){
   const id = String(assetId || "").toLowerCase();
-  // 檢查 assetId 中是否包含 f 或 m
   if(id.includes("f")) return "f";
   if(id.includes("m")) return "m";
   return "";
 }
 
-// 檢查 head 和 body 是否性別匹配
 function isGenderCompatible(headId, bodyId){
   const headGender = genderTag(headId);
   const bodyGender = genderTag(bodyId);
-  
-  // 如果 head 沒有性別標記，可以配任何 body
-  if(!headGender) return true;
-  
-  // 如果 body 沒有性別標記，可以配任何 head
-  if(!bodyGender) return true;
-  
-  // 如果都有性別標記，必須相同
+  if(!headGender || !bodyGender) return true;
   return headGender === bodyGender;
+}
+
+// --- Star & Count Logic ---
+function getAssetStats(assetId, count) {
+  let stars = 1;
+  let currentCount = count;
+  let neededForNext = 10;
+  
+  // 1->2: 10, 2->3: 20, 3->4: 30, 4->5: 40
+  while (stars < 5) {
+    let cost = stars * 10;
+    if (currentCount >= cost) {
+      currentCount -= cost;
+      stars++;
+      neededForNext = stars * 10;
+    } else {
+      neededForNext = stars * 10;
+      break;
+    }
+  }
+  
+  if (stars === 5) neededForNext = "MAX";
+  
+  return { stars, currentCount, neededForNext, totalCount: count };
 }
 
 
     let db = offlineDb();
 
-// Online: hydrate assets and inventory from Worker so Studio shows thumbnails from D1.
 if(!APP.offline){
   try{
     const assetsRes = await fetch(WORKER_BASE + "/api/assets").then(r=>r.json());
@@ -232,7 +329,6 @@ if(!APP.offline){
 
     const byId = new Map(db.assets.map(a=>[a.assetId,a]));
 
-
     async function submitOnline(payload){
       try{
         const res = await api("/api/submit", {
@@ -251,35 +347,24 @@ if(!APP.offline){
       const buildId = crypto.randomUUID();
       const createdAt = Date.now();
       const b = {
-        buildId,
-        uid: APP.uid,
-        title: payload.title || "",
-        headId: payload.headId,
-        bodyId: payload.bodyId,
-        bgId: payload.bgId,
-        addon1Id: payload.addon1Id || "",
-        addon2Id: payload.addon2Id || "",
-        createdAt,
-        seasonId: payload.seasonId || "S1",
-        scoreSum: 0,
-        scoreCount: 0
+        buildId, uid: APP.uid, title: payload.title || "",
+        headId: payload.headId, bodyId: payload.bodyId, bgId: payload.bgId,
+        addon1Id: payload.addon1Id || "", addon2Id: payload.addon2Id || "",
+        createdAt, seasonId: payload.seasonId || "S1", scoreSum: 0, scoreCount: 0
       };
       db2.builds = db2.builds || [];
       db2.builds.unshift(b);
-
       const unlockedRecipes = [];
       const recipes = db2.recipes || [];
       for(const r of recipes){
         const a = normalizeAccessoryIds(r.accessoryIds || []);
         const bAcc = normalizeAccessoryIds([payload.addon1Id, payload.addon2Id].filter(Boolean));
-        const sameAcc = sameSet(a, bAcc);
-        if(r.headId === payload.headId && r.bodyId === payload.bodyId && r.bgId === payload.bgId && sameAcc){
+        if(r.headId === payload.headId && r.bodyId === payload.bodyId && r.bgId === payload.bgId && sameSet(a, bAcc)){
           const k = `${APP.uid}:${r.recipeId}`;
           db2.unlocks[k] = Date.now();
           unlockedRecipes.push(r.recipeId);
         }
       }
-
       saveOfflineDb(db2);
       return { ok:true, buildId, unlockedRecipes };
     }
@@ -287,68 +372,42 @@ if(!APP.offline){
     function showUnlock(ids){
       const el = q("#unlockHint");
       if(!el) return;
-      if(!ids || ids.length === 0){
-        el.textContent = "沒有觸發成品解鎖";
-        return;
-      }
-      el.textContent = `已解鎖成品 ${ids.join("  ")}`;
+      el.textContent = (!ids || ids.length === 0) ? "沒有觸發成品解鎖" : `已解鎖成品 ${ids.join("  ")}`;
     }
 
-    function invHas(assetId){
-  const k = `${APP.uid}:${assetId}`;
-  const store = db.userAssets || db.playerAssets || db.assetsOwned || {};
-  return (store[k] || store[assetId] || 0) > 0;
-}
+    function invCount(assetId){
+      const k = `${APP.uid}:${assetId}`;
+      const store = db.userAssets || db.playerAssets || db.assetsOwned || {};
+      return Number(store[k] || store[assetId] || 0);
+    }
 
     function ownedOptions(type){
-      const list = db.assets.filter(a=>a.type===type && invHas(a.assetId));
+      const list = db.assets.filter(a=>a.type===type && invCount(a.assetId) > 0);
       list.sort(byRarityDesc);
       return list;
     }
-    // selected ids (no visible names)
-const SEL = {
-  headId: "",
-  bodyId: "",
-  bgId: "",
-  addon1Id: "",
-  addon2Id: ""
-};
 
-// assets used in unlocked recipes will show a small tick on thumbnails
+const SEL = { headId: "", bodyId: "", bgId: "", addon1Id: "", addon2Id: "" };
+
 const unlockedAssetIds = new Set();
 for(const key of Object.keys(db.unlocks || {})){
   if(!key.startsWith(APP.uid + ":")) continue;
   const recipeId = key.split(":")[1];
   const r = (db.recipes || []).find(x=>x.recipeId === recipeId);
   if(!r) continue;
-  if(r.headId) unlockedAssetIds.add(r.headId);
-  if(r.bodyId) unlockedAssetIds.add(r.bodyId);
-  if(r.bgId) unlockedAssetIds.add(r.bgId);
-  const a1 = (r.accessoryIds && r.accessoryIds[0]) ? r.accessoryIds[0] : "";
-  const a2 = (r.accessoryIds && r.accessoryIds[1]) ? r.accessoryIds[1] : "";
-  if(a1) unlockedAssetIds.add(a1);
-  if(a2) unlockedAssetIds.add(a2);
+  [r.headId, r.bodyId, r.bgId, ...(r.accessoryIds||[])].filter(Boolean).forEach(id => unlockedAssetIds.add(id));
 }
 
 function setLayers(){
-  const head = byId.get(SEL.headId);
-  const body = byId.get(SEL.bodyId);
-  const bg = byId.get(SEL.bgId);
-  const a1 = byId.get(SEL.addon1Id);
-  const a2 = byId.get(SEL.addon2Id);
-
-  q("#bgLayer").src = bg?.imageUrl || "";
-  q("#addon2Layer").src = a2?.imageUrl || "";
-  q("#headLayer").src = head?.imageUrl || "";
-  q("#bodyLayer").src = body?.imageUrl || "";
-  q("#addon1Layer").src = a1?.imageUrl || "";
+  q("#bgLayer").src = byId.get(SEL.bgId)?.imageUrl || "";
+  q("#addon2Layer").src = byId.get(SEL.addon2Id)?.imageUrl || "";
+  q("#headLayer").src = byId.get(SEL.headId)?.imageUrl || "";
+  q("#bodyLayer").src = byId.get(SEL.bodyId)?.imageUrl || "";
+  q("#addon1Layer").src = byId.get(SEL.addon1Id)?.imageUrl || "";
 }
 
-function refreshPreview(){
-  setLayers();
-}
+function refreshPreview(){ setLayers(); }
 
-// hover preview
 const hoverBox = q("#hoverPreview");
 const hoverImg = hoverBox.querySelector("img");
 function showHover(src, x, y){
@@ -360,32 +419,22 @@ function moveHover(x, y){
   const pad = 16;
   const w = hoverBox.offsetWidth || 213;
   const h = hoverBox.offsetHeight || 320;
-  const vw = window.innerWidth;
-  const vh = window.innerHeight;
-
   let left = x + pad;
   let top = y + pad;
-  if(left + w > vw - 8) left = x - w - pad;
-  if(top + h > vh - 8) top = y - h - pad;
-
+  if(left + w > window.innerWidth - 8) left = x - w - pad;
+  if(top + h > window.innerHeight - 8) top = y - h - pad;
   hoverBox.style.left = left + "px";
   hoverBox.style.top = top + "px";
 }
-function hideHover(){
-  hoverBox.style.display = "none";
-  hoverImg.src = "";
-}
+function hideHover(){ hoverBox.style.display = "none"; hoverImg.src = ""; }
 
-// virtual grid renderer (lazy by default because we only render visible subset)
 function makeVirtualGrid(container, items0, getSelectedId, onSelect, options){
   let items = items0 || [];
   const opt = Object.assign({thumbW:64, thumbH:96, gap:8}, options || {});
   const spacer = container.querySelector(".asset-spacer") || container;
-  spacer.innerHTML = "";
-
+  
   function calcCols(){
-    const w = container.clientWidth;
-    return Math.max(1, Math.floor((w + opt.gap) / (opt.thumbW + opt.gap)));
+    return Math.max(1, Math.floor((container.clientWidth + opt.gap) / (opt.thumbW + opt.gap)));
   }
 
   function rerender(){
@@ -394,13 +443,10 @@ function makeVirtualGrid(container, items0, getSelectedId, onSelect, options){
     const rows = Math.ceil(items.length / cols);
     spacer.style.height = (rows * rowH) + "px";
     spacer.style.position = "relative";
-
     const scrollTop = container.scrollTop;
     const viewH = container.clientHeight;
-
     const startRow = Math.max(0, Math.floor(scrollTop / rowH) - 2);
     const endRow = Math.min(rows, Math.ceil((scrollTop + viewH) / rowH) + 2);
-
     spacer.innerHTML = "";
 
     for(let r = startRow; r < endRow; r++){
@@ -408,7 +454,6 @@ function makeVirtualGrid(container, items0, getSelectedId, onSelect, options){
         const idx = r * cols + c;
         if(idx >= items.length) break;
         const it = items[idx];
-
         const wrap = document.createElement("div");
         wrap.className = "asset-item " + `r${it.rarity || 1}`;
         wrap.style.left = (c * (opt.thumbW + opt.gap)) + "px";
@@ -416,27 +461,32 @@ function makeVirtualGrid(container, items0, getSelectedId, onSelect, options){
 
         const img = document.createElement("img");
         img.className = "asset-thumb";
-        img.loading = "lazy";
-        img.decoding = "async";
         img.src = listImgUrl(it) || "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
         if(getSelectedId() === it.assetId) img.classList.add("active");
 
-        img.addEventListener("click", ()=>{
-          onSelect(it.assetId);
-          rerender(); // refresh active highlight
-        });
-
-        img.addEventListener("mouseenter", (e)=>{
-          showHover(listImgUrl(it), e.clientX, e.clientY);
-        });
-        img.addEventListener("mousemove", (e)=>{
-          moveHover(e.clientX, e.clientY);
-        });
-        img.addEventListener("mouseleave", ()=>{
-          hideHover();
-        });
-
+        img.addEventListener("click", ()=>{ onSelect(it.assetId); rerender(); });
+        img.addEventListener("mouseenter", (e)=>showHover(listImgUrl(it), e.clientX, e.clientY));
+        img.addEventListener("mousemove", (e)=>moveHover(e.clientX, e.clientY));
+        img.addEventListener("mouseleave", hideHover);
         wrap.appendChild(img);
+
+        // --- Stats Badges ---
+        if(it.assetId) {
+          const count = invCount(it.assetId);
+          const stats = getAssetStats(it.assetId, count);
+          
+          // Count Badge (Top Right)
+          const cBadge = document.createElement("div");
+          cBadge.className = "badge-count";
+          cBadge.textContent = `${stats.totalCount}/${stats.neededForNext}`;
+          wrap.appendChild(cBadge);
+          
+          // Star Badge (Bottom Left)
+          const sBadge = document.createElement("div");
+          sBadge.className = "badge-stars";
+          sBadge.textContent = "★".repeat(stats.stars);
+          wrap.appendChild(sBadge);
+        }
 
         if(unlockedAssetIds.has(it.assetId)){
           const b = document.createElement("div");
@@ -444,194 +494,95 @@ function makeVirtualGrid(container, items0, getSelectedId, onSelect, options){
           b.textContent = "✓";
           wrap.appendChild(b);
         }
-
         spacer.appendChild(wrap);
       }
     }
   }
-
   container.addEventListener("scroll", rerender);
   window.addEventListener("resize", rerender);
   rerender();
-
   return { rerender, setItems: (next)=>{ items = Array.isArray(next) ? next : []; container.scrollTop = 0; rerender(); } };
 }
 
-// build thumbnail pickers (virtualized)
 const grids = {};
-
 const headItems = ownedOptions("head");
 const bodyItemsAll = ownedOptions("body");
 let bodyItems = bodyItemsAll;
 const bgItems = ownedOptions("background");
 
-// default selection: first item if exists
 SEL.headId = headItems[0]?.assetId || "";
 SEL.bodyId = bodyItems[0]?.assetId || "";
 SEL.bgId = bgItems[0]?.assetId || "";
 
-
 function applyBodyGenderRule(){
   const headGender = genderTag(SEL.headId);
   let filtered = bodyItemsAll;
-  
   if(headGender){
-    // 如果 head 有性別標記，只顯示相同性別或無性別標記的 body
     filtered = bodyItemsAll.filter(it => {
       const bodyGender = genderTag(it.assetId);
       return !bodyGender || bodyGender === headGender;
     });
   }
-  
   bodyItems = filtered.length > 0 ? filtered : bodyItemsAll;
-  
-  // 如果當前選中的 body 不在過濾後的列表中，自動選擇第一個
   if(SEL.bodyId && !bodyItems.some(it=>it.assetId === SEL.bodyId)){
     SEL.bodyId = bodyItems[0]?.assetId || "";
   }
-  
-  if(grids.body && grids.body.setItems){
-    grids.body.setItems(bodyItems);
-  }
+  if(grids.body) grids.body.setItems(bodyItems);
 }
 
 applyBodyGenderRule();
 
 const addonAll = ownedOptions("accessory");
-
-const byPrefix = (prefix) => addonAll.filter(a=>{
-  const fn = (a.imageUrl || "").split("/").pop() || "";
-  return fn.startsWith(prefix);
-});
-
+const byPrefix = (prefix) => addonAll.filter(a=>((a.imageUrl || "").split("/").pop() || "").startsWith(prefix));
 let addon1Pool = byPrefix("addon1_");
 let addon2Pool = byPrefix("addon2_");
-
-// compatible mode: if not renamed yet, show all in both
-if(addon1Pool.length === 0 && addon2Pool.length === 0){
-  addon1Pool = addonAll;
-  addon2Pool = addonAll;
-}else{
-  if(addon1Pool.length === 0) addon1Pool = addonAll;
-  if(addon2Pool.length === 0) addon2Pool = addonAll;
-}
+if(addon1Pool.length === 0 && addon2Pool.length === 0){ addon1Pool = addonAll; addon2Pool = addonAll; }
+else { if(addon1Pool.length === 0) addon1Pool = addonAll; if(addon2Pool.length === 0) addon2Pool = addonAll; }
 
 const noneItem = { assetId:"", imageUrl:"", rarity:1 };
 
-grids.head = makeVirtualGrid(q("#headGrid"), headItems, ()=>SEL.headId, (id)=>{ SEL.headId=id; applyBodyGenderRule(); refreshPreview(); }, {thumbW:64, thumbH:96, gap:8});
-grids.body = makeVirtualGrid(q("#bodyGrid"), bodyItems, ()=>SEL.bodyId, (id)=>{ SEL.bodyId=id; refreshPreview(); }, {thumbW:64, thumbH:96, gap:8});
-grids.bg = makeVirtualGrid(q("#bgGrid"), bgItems, ()=>SEL.bgId, (id)=>{ SEL.bgId=id; refreshPreview(); }, {thumbW:64, thumbH:96, gap:8});
-grids.addon1 = makeVirtualGrid(q("#addon1Grid"), [noneItem, ...addon1Pool], ()=>SEL.addon1Id, (id)=>{ SEL.addon1Id=id; refreshPreview(); }, {thumbW:64, thumbH:96, gap:8});
-grids.addon2 = makeVirtualGrid(q("#addon2Grid"), [noneItem, ...addon2Pool], ()=>SEL.addon2Id, (id)=>{ SEL.addon2Id=id; refreshPreview(); }, {thumbW:64, thumbH:96, gap:8});
+grids.head = makeVirtualGrid(q("#headGrid"), headItems, ()=>SEL.headId, (id)=>{ SEL.headId=id; applyBodyGenderRule(); refreshPreview(); });
+grids.body = makeVirtualGrid(q("#bodyGrid"), bodyItems, ()=>SEL.bodyId, (id)=>{ SEL.bodyId=id; refreshPreview(); });
+grids.bg = makeVirtualGrid(q("#bgGrid"), bgItems, ()=>SEL.bgId, (id)=>{ SEL.bgId=id; refreshPreview(); });
+grids.addon1 = makeVirtualGrid(q("#addon1Grid"), [noneItem, ...addon1Pool], ()=>SEL.addon1Id, (id)=>{ SEL.addon1Id=id; refreshPreview(); });
+grids.addon2 = makeVirtualGrid(q("#addon2Grid"), [noneItem, ...addon2Pool], ()=>SEL.addon2Id, (id)=>{ SEL.addon2Id=id; refreshPreview(); });
 
 refreshPreview();
 
-
-    q("#randomBtn").addEventListener("click", ()=>{
-  // random pick from owned pools
-  const headItems = ownedOptions("head");
-  const bodyItemsAll = ownedOptions("body");
-  const bgItems = ownedOptions("background");
-
-  if(headItems.length === 0) return toast("先去抽卡拿頭部");
-  if(bodyItemsAll.length === 0) return toast("先去抽卡拿身體");
-  if(bgItems.length === 0) return toast("先去抽卡拿背景");
-
-  // 隨機選擇 head
-  SEL.headId = randPick(headItems).assetId;
-  
-  // 根據 head 的性別過濾 body
-  const headGender = genderTag(SEL.headId);
-  let compatibleBodies = bodyItemsAll;
-  
-  if(headGender){
-    // 如果 head 有性別標記，只選擇相同性別或無性別標記的 body
-    compatibleBodies = bodyItemsAll.filter(it => {
-      const bodyGender = genderTag(it.assetId);
-      return !bodyGender || bodyGender === headGender;
-    });
-  }
-  
-  // 如果沒有兼容的 body，使用所有 body
-  if(compatibleBodies.length === 0){
-    compatibleBodies = bodyItemsAll;
-  }
-  
-  SEL.bodyId = randPick(compatibleBodies).assetId;
-  SEL.bgId = randPick(bgItems).assetId;
-
-  // add on pools by filename prefix
+q("#randomBtn").addEventListener("click", ()=>{
+  const hItems = ownedOptions("head");
+  const bItemsAll = ownedOptions("body");
+  const gItems = ownedOptions("background");
+  if(hItems.length === 0 || bItemsAll.length === 0 || gItems.length === 0) return toast("素材不足");
+  SEL.headId = randPick(hItems).assetId;
+  const hGender = genderTag(SEL.headId);
+  let cBodies = hGender ? bItemsAll.filter(it => !genderTag(it.assetId) || genderTag(it.assetId) === hGender) : bItemsAll;
+  SEL.bodyId = randPick(cBodies.length ? cBodies : bItemsAll).assetId;
+  SEL.bgId = randPick(gItems).assetId;
   applyBodyGenderRule();
-
-  const addonAll = ownedOptions("accessory");
-  const p1 = addonAll.filter(a=> (a.imageUrl||"").split("/").pop().startsWith("addon1_"));
-  const p2 = addonAll.filter(a=> (a.imageUrl||"").split("/").pop().startsWith("addon2_"));
-
-  // allow empty (not used)
+  const aAll = ownedOptions("accessory");
+  const p1 = aAll.filter(a=> (a.imageUrl||"").split("/").pop().startsWith("addon1_"));
+  const p2 = aAll.filter(a=> (a.imageUrl||"").split("/").pop().startsWith("addon2_"));
   SEL.addon1Id = (p1.length ? randPick([ {assetId:""}, ...p1 ]).assetId : "");
   SEL.addon2Id = (p2.length ? randPick([ {assetId:""}, ...p2 ]).assetId : "");
-
   refreshPreview();
-
-  // rerender highlight
-  grids.head?.rerender();
-  grids.body?.rerender();
-  grids.bg?.rerender();
-  grids.addon1?.rerender();
-  grids.addon2?.rerender();
-
+  Object.values(grids).forEach(g => g.rerender());
   toast("已隨機搭配");
 });
 
-    q("#submitBtn").addEventListener("click", async ()=>{
-      const payload = {
-  title: q("#titleInput").value.trim(),
-  headId: SEL.headId,
-  bodyId: SEL.bodyId,
-  bgId: SEL.bgId,
-  addon1Id: SEL.addon1Id || "",
-  addon2Id: SEL.addon2Id || "",
-  seasonId: "S1"
-};
-      if(!payload.headId || !payload.bodyId || !payload.bgId) return toast("素材不足 先去抽卡");
-      
-      // 檢查性別匹配
-      if(!isGenderCompatible(payload.headId, payload.bodyId)){
-        return toast("頭部和身體性別不匹配，請重新選擇");
-      }
-      
-      toast("提交中");
-
-      let data = await submitOnline(payload);
-      if(!data) data = await submitOffline(payload);
-
-      q("#netBadge").textContent = APP.offline ? "Offline" : "Online";
-      showUnlock(data.unlockedRecipes || []);
-      toast("已提交到展示牆");
-      setTimeout(()=>location.href="gallery.html", 700);
-    });
-
-    refreshPreview();
-  })();
-  </script>
+q("#submitBtn").addEventListener("click", async ()=>{
+  const payload = { title: q("#titleInput").value.trim(), headId: SEL.headId, bodyId: SEL.bodyId, bgId: SEL.bgId, addon1Id: SEL.addon1Id || "", addon2Id: SEL.addon2Id || "", seasonId: "S1" };
+  if(!payload.headId || !payload.bodyId || !payload.bgId) return toast("素材不足");
+  if(!isGenderCompatible(payload.headId, payload.bodyId)) return toast("性別不匹配");
+  toast("提交中");
+  let data = await submitOnline(payload) || await submitOffline(payload);
+  showUnlock(data.unlockedRecipes || []);
+  toast("已提交");
+  setTimeout(()=>location.href="gallery.html", 700);
+});
+refreshPreview();
+})();
+</script>
 <div id="hoverPreview"><img alt="preview"/></div>
 </body>
 </html>
-
-<script>
-function renderGrid(gridId, items, onSelect){
-  const g = document.getElementById(gridId);
-  g.innerHTML = "";
-  items.forEach(it=>{
-    const img = document.createElement("img");
-    img.src = listImgUrl(it) || "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
-    img.className = "asset-thumb";
-    img.onclick = ()=>{
-      g.querySelectorAll(".asset-thumb").forEach(x=>x.classList.remove("active"));
-      img.classList.add("active");
-      onSelect(it.assetId);
-    };
-    g.appendChild(img);
-  });
-}
-</script>
