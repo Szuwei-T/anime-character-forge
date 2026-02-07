@@ -223,7 +223,8 @@
       <div class="gacha-stage">
         <div class="belt" id="belt"></div>
         <div class="marker"></div>
-      </div>
+      <pre id="sqlDebug" style="display:none;background:#0b0d12;color:#9f9;padding:12px;border-radius:12px;font-size:12px;white-space:pre-wrap;max-height:220px;overflow:auto;"></pre>
+</div>
       <div class="footer">
         <button class="confirm" id="confirmBtn">確認</button>
       </div>
@@ -393,7 +394,35 @@
         return;
       }
 
-      const win = pulled[0];
+      const win = pulled\[0\];
+      const sqlBox = document.getElementById("sqlDebug");
+      if (sqlBox) {
+        const lines = [];
+        for (let i = 0; i < pulled.length; i++) {
+          const it = pulled[i];
+          if (!it || !it._debug) continue;
+          lines.push(`ROLL ${i + 1}`);
+          lines.push(`assetId: ${it.assetId}`);
+          lines.push(`type: ${it.type} rarity: ${it.rarity}`);
+          lines.push(`SQL: ${it._debug.sql}`);
+          lines.push(`PARAMS: ${JSON.stringify(it._debug.params)}`);
+          if (it._debug.error) {
+            lines.push(`ERROR: ${it._debug.error}`);
+          } else {
+            lines.push(`RESULT: ${JSON.stringify(it._debug.result)}`);
+            lines.push(`AFTER: ${JSON.stringify(it._debug.after)}`);
+          }
+          lines.push("");
+        }
+        if (lines.length) {
+          sqlBox.textContent = lines.join("
+");
+          sqlBox.style.display = "block";
+        } else {
+          sqlBox.style.display = "none";
+        }
+      }
+
 
       belt.innerHTML = "";
       const beltCount = 20;
