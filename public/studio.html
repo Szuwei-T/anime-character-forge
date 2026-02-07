@@ -69,45 +69,77 @@
   .r4 .asset-thumb{border-color: rgba(168,85,247,0.75);}
   .r5 .asset-thumb{border-color: rgba(245,158,11,0.85);}
 
+  /* Rarity Badge (Top Left) */
+  .badge-rarity {
+    position: absolute;
+    left: 4px;
+    top: 4px;
+    background: rgba(0,0,0,0.85);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 6px;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.3);
+    z-index: 2;
+    pointer-events: none;
+    line-height: 1;
+  }
+  /* Rarity colors */
+  .r1 .badge-rarity { color: rgba(148,163,184,1); border-color: rgba(148,163,184,0.5); }
+  .r2 .badge-rarity { color: rgba(34,197,94,1); border-color: rgba(34,197,94,0.5); }
+  .r3 .badge-rarity { color: rgba(59,130,246,1); border-color: rgba(59,130,246,0.5); }
+  .r4 .badge-rarity { color: rgba(168,85,247,1); border-color: rgba(168,85,247,0.5); }
+  .r5 .badge-rarity { color: rgba(245,158,11,1); border-color: rgba(245,158,11,0.5); }
+
   /* Count Badge (Top Right) */
   .badge-count {
     position: absolute;
-    right: -4px;
-    top: -4px;
-    background: rgba(0,0,0,0.75);
+    right: 4px;
+    top: 4px;
+    background: rgba(0,0,0,0.85);
     color: #fff;
     font-size: 10px;
-    padding: 2px 5px;
+    font-weight: 600;
+    padding: 3px 6px;
     border-radius: 6px;
-    border: 1px solid rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.3);
     z-index: 2;
     pointer-events: none;
+    line-height: 1;
   }
 
-  /* Star Badge (Bottom Left) */
+  /* Star Badge (Bottom Right) - Larger with background */
   .badge-stars {
     position: absolute;
-    left: 4px;
+    right: 4px;
     bottom: 4px;
+    background: rgba(0,0,0,0.85);
     color: #fbbf24;
-    font-size: 10px;
-    text-shadow: 0 0 4px rgba(0,0,0,0.8);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 4px 7px;
+    border-radius: 6px;
+    border: 1px solid rgba(251,191,36,0.4);
     z-index: 2;
     pointer-events: none;
+    text-shadow: 0 0 6px rgba(251,191,36,0.6);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    line-height: 1;
   }
 
   /* unlocked tick */
   .badge-unlocked{
     position:absolute;
-    right: 20px; /* Shifted to avoid overlap with count */
-    top:-6px;
-    width:18px;
-    height:18px;
+    left: 4px;
+    bottom: 4px;
+    width:20px;
+    height:20px;
     border-radius:999px;
     background: rgba(34,197,94,0.95);
     color:#04130a;
     font-weight:800;
-    font-size:12px;
+    font-size:13px;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -235,178 +267,127 @@ async function doUpgrade(assetId){
   if(card) card.classList.remove("upgrading");
 }
 </script>
-
-
   <script>
-  (async function(){
-    await initSession();
-    q("#netBadge").textContent = APP.offline ? "Offline" : "Online";
+(async function(){
+  const q = s => document.querySelector(s);
+  const qa = s => [...document.querySelectorAll(s)];
 
-    // --- Tab Logic ---
-    const tabBtns = document.querySelectorAll('.tab-btn');
-    const sections = document.querySelectorAll('.picker-section');
-    
-    tabBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const targetId = btn.getAttribute('data-target');
-        const targetSectionId = targetId.replace('Grid', 'Section');
-        
-        tabBtns.forEach(b => b.classList.remove('active'));
-        sections.forEach(s => s.classList.remove('active'));
-        
-        btn.classList.add('active');
-        document.getElementById(targetSectionId).classList.add('active');
-        
-        // Trigger rerender for virtual grid when tab switches
-        const gridKey = targetId.replace('Grid', '');
-        if(grids[gridKey]) grids[gridKey].rerender();
+  function toast(msg, duration = 2000) {
+    const div = document.createElement("div");
+    div.textContent = msg;
+    div.style.cssText = "position:fixed;top:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.85);color:#fff;padding:12px 24px;border-radius:8px;z-index:9999;";
+    document.body.appendChild(div);
+    setTimeout(() => div.remove(), duration);
+  }
+
+  function randPick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+  async function loadDb() {
+    try {
+      const uid = localStorage.getItem("acf_uid") || "";
+      const [assetsRes, meRes] = await Promise.all([
+        fetch(window.WORKER_BASE + "/api/assets").then(r => r.json()),
+        fetch(window.WORKER_BASE + "/api/me/assets", {
+          headers: { "x-user-id": uid }
+        }).then(r => r.json())
+      ]);
+      
+      const assets = assetsRes.assets || [];
+      const myAssets = meRes.items || [];
+      
+      // Create inventory map with stars from database
+      const inventory = {};
+      myAssets.forEach(item => {
+        inventory[item.assetId] = {
+          count: item.count || 0,
+          stars: item.stars || 1  // Use database stars value
+        };
       });
-    });
-
-function toThumbUrl(url){
-  if(!url) return "";
-  if(url.includes("_thumb.")) return url;
-  const parts = String(url).split("?");
-  const base = parts[0];
-  const qs = parts.length > 1 ? "?" + parts.slice(1).join("?") : "";
-  const m = base.match(/^(.*)\.(png|webp|jpg|jpeg)$/i);
-  if(!m) return url;
-  return m[1] + "_thumb." + m[2] + qs;
-}
-function bestThumb(url){
-  const t = toThumbUrl(url);
-  return t || url || "";
-}
-
-function listImgUrl(it){
-  const id = (it && it.assetId) ? String(it.assetId) : "";
-  const url = (it && it.imageUrl) ? String(it.imageUrl) : "";
-  if(id.startsWith("head_") || id.startsWith("body_")) return toThumbUrl(url) || url;
-  return url;
-}
-
-function genderTag(assetId){
-  const id = String(assetId || "").toLowerCase();
-  if(id.includes("f")) return "f";
-  if(id.includes("m")) return "m";
-  return "";
-}
-
-function isGenderCompatible(headId, bodyId){
-  const headGender = genderTag(headId);
-  const bodyGender = genderTag(bodyId);
-  if(!headGender || !bodyGender) return true;
-  return headGender === bodyGender;
-}
-
-// --- Star & Count Logic ---
-function getAssetStats(assetId, count) {
-  let stars = 1;
-  let currentCount = count;
-  let neededForNext = 10;
-  
-  // 1->2: 10, 2->3: 20, 3->4: 30, 4->5: 40
-  while (stars < 5) {
-    let cost = stars * 10;
-    if (currentCount >= cost) {
-      currentCount -= cost;
-      stars++;
-      neededForNext = stars * 10;
-    } else {
-      neededForNext = stars * 10;
-      break;
+      
+      return { assets, inventory };
+    } catch (e) {
+      console.error("loadDb error:", e);
+      return { assets: [], inventory: {} };
     }
   }
-  
-  if (stars === 5) neededForNext = "MAX";
-  
-  return { stars, currentCount, neededForNext, totalCount: count };
-}
 
+  const db = await loadDb();
+  const byId = new Map(db.assets.map(a => [a.assetId, a]));
 
-    let db = offlineDb();
-
-if(!APP.offline){
-  try{
-    const assetsRes = await fetch(WORKER_BASE + "/api/assets").then(r=>r.json());
-    const rawAssets = assetsRes.assets || assetsRes.items || assetsRes.rows || assetsRes.results || [];
-    const assets = (rawAssets || []).map(a=>{
-      const t = String(a.type || "");
-      let type = t;
-      if(t === "bg") type = "background";
-      if(t === "addon1" || t === "addon2") type = "accessory";
-      if(t === "backgrounds") type = "background";
-      return { assetId: a.assetId, type, rarity: Number(a.rarity||1), imageUrl: a.imageUrl };
-    });
-
-    const invRes = await fetch(WORKER_BASE + "/api/me/assets?uid=" + encodeURIComponent(APP.uid)).then(r=>r.json());
-    const items = invRes.items || invRes.assets || invRes.rows || invRes.results || [];
-    const store = {};
-    for(const it of (items || [])){
-      const aid = it.assetId || it.asset_id || it.id;
-      if(!aid) continue;
-      store[`${APP.uid}:${aid}`] = Number(it.count || it.qty || 1);
-    }
-
-    db = { assets, userAssets: store, unlocks: {} };
-  }catch(e){
-    db = offlineDb();
+  // Get rarity label
+  function getRarityLabel(rarity) {
+    const labels = { 1: "C", 2: "R", 3: "SR", 4: "SSR", 5: "UR" };
+    return labels[rarity] || "C";
   }
-}
 
-    const byId = new Map(db.assets.map(a=>[a.assetId,a]));
+  function invCount(assetId) {
+    return db.inventory[assetId]?.count || 0;
+  }
 
-    async function submitOnline(payload){
-      try{
-        const res = await api("/api/submit", {
-          method: "POST",
-          body: JSON.stringify(payload)
-        });
-        if(res && res.ok) return res;
-        return res || null;
-      }catch(e){
-        return null;
-      }
+  function invStars(assetId) {
+    // Always use stars from database
+    return db.inventory[assetId]?.stars || 1;
+  }
+
+  function getAssetStats(assetId, count) {
+    const stars = invStars(assetId);
+    const thresholds = [0, 5, 15, 30, 50];
+    let neededForNext = 999;
+    if (stars < 5) {
+      neededForNext = thresholds[stars];
     }
+    return { totalCount: count || 0, stars, neededForNext };
+  }
 
-    async function submitOffline(payload){
-      const db2 = offlineDb();
-      const buildId = crypto.randomUUID();
-      const createdAt = Date.now();
-      const b = {
-        buildId, uid: APP.uid, title: payload.title || "",
-        headId: payload.headId, bodyId: payload.bodyId, bgId: payload.bgId,
-        addon1Id: payload.addon1Id || "", addon2Id: payload.addon2Id || "",
-        createdAt, seasonId: payload.seasonId || "S1", scoreSum: 0, scoreCount: 0
-      };
-      db2.builds = db2.builds || [];
-      db2.builds.unshift(b);
-      const unlockedRecipes = [];
-      const recipes = db2.recipes || [];
-      for(const r of recipes){
-        const a = normalizeAccessoryIds(r.accessoryIds || []);
-        const bAcc = normalizeAccessoryIds([payload.addon1Id, payload.addon2Id].filter(Boolean));
-        if(r.headId === payload.headId && r.bodyId === payload.bodyId && r.bgId === payload.bgId && sameSet(a, bAcc)){
-          const k = `${APP.uid}:${r.recipeId}`;
-          db2.unlocks[k] = Date.now();
-          unlockedRecipes.push(r.recipeId);
-        }
-      }
-      saveOfflineDb(db2);
-      return { ok:true, buildId, unlockedRecipes };
-    }
+  function listImgUrl(item) {
+    return item.imageUrl || "";
+  }
 
-    function showUnlock(ids){
-      const el = q("#unlockHint");
-      if(!el) return;
-      el.textContent = (!ids || ids.length === 0) ? "沒有觸發成品解鎖" : `已解鎖成品 ${ids.join("  ")}`;
-    }
+  function byRarityDesc(a, b) {
+    if (a.rarity !== b.rarity) return b.rarity - a.rarity;
+    return (a.assetId || "").localeCompare(b.assetId || "");
+  }
 
-    function invCount(assetId){
-      const k = `${APP.uid}:${assetId}`;
-      const store = db.userAssets || db.playerAssets || db.assetsOwned || {};
-      return Number(store[k] || store[assetId] || 0);
+  function genderTag(assetId) {
+    if (!assetId) return "";
+    if (assetId.includes("_m_") || assetId.includes("_male_")) return "male";
+    if (assetId.includes("_f_") || assetId.includes("_female_")) return "female";
+    return "";
+  }
+
+  function isGenderCompatible(headId, bodyId) {
+    const hg = genderTag(headId);
+    const bg = genderTag(bodyId);
+    if (!hg || !bg) return true;
+    return hg === bg;
+  }
+
+  async function submitOnline(payload) {
+    try {
+      const uid = localStorage.getItem("acf_uid") || "";
+      const res = await fetch(window.WORKER_BASE + "/api/submit", {
+        method: "POST",
+        headers: { "content-type": "application/json", "x-user-id": uid },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (data.ok) return data;
+      throw new Error(data.error || "submit failed");
+    } catch (e) {
+      console.error("submitOnline error:", e);
+      return null;
     }
+  }
+
+  async function submitOffline(payload) {
+    return { ok: true, showcaseId: "offline-" + Date.now(), unlockedRecipes: [] };
+  }
+
+  function showUnlock(recipes) {
+    if (!recipes || recipes.length === 0) return;
+    const hint = q("#unlockHint");
+    if (hint) hint.textContent = "🎉 解鎖新成品: " + recipes.join(", ");
+  }
 
     function ownedOptions(type){
       const list = db.assets.filter(a=>a.type===type && invCount(a.assetId) > 0);
@@ -499,6 +480,12 @@ function makeVirtualGrid(container, items0, getSelectedId, onSelect, options){
 
         // --- Stats Badges ---
         if(it.assetId) {
+          // Rarity Badge (Top Left)
+          const rBadge = document.createElement("div");
+          rBadge.className = "badge-rarity";
+          rBadge.textContent = getRarityLabel(it.rarity);
+          wrap.appendChild(rBadge);
+
           const count = invCount(it.assetId);
           const stats = getAssetStats(it.assetId, count);
           
@@ -508,7 +495,7 @@ function makeVirtualGrid(container, items0, getSelectedId, onSelect, options){
           cBadge.textContent = `${stats.totalCount}/${stats.neededForNext}`;
           wrap.appendChild(cBadge);
           
-          // Star Badge (Bottom Left)
+          // Star Badge (Bottom Right) - Use stars from database
           const sBadge = document.createElement("div");
           sBadge.className = "badge-stars";
           sBadge.textContent = "★".repeat(stats.stars);
@@ -608,6 +595,26 @@ q("#submitBtn").addEventListener("click", async ()=>{
   setTimeout(()=>location.href="gallery.html", 700);
 });
 refreshPreview();
+
+// Tab functionality
+const tabBtns = qa(".tab-btn");
+const sections = qa(".picker-section");
+
+tabBtns.forEach(btn => {
+  btn.addEventListener("click", () => {
+    const target = btn.dataset.target;
+    
+    // Update tab buttons
+    tabBtns.forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    
+    // Update sections
+    sections.forEach(s => s.classList.remove("active"));
+    const targetSection = q(`#${target}`).closest(".picker-section");
+    if (targetSection) targetSection.classList.add("active");
+  });
+});
+
 })();
 
 async function doUpgrade(assetId){
