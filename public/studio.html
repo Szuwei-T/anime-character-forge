@@ -3,433 +3,138 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>角色工作室 Pro</title>
+  <title>工作室 - 進階版</title>
   <link rel="stylesheet" href="style.css" />
-<style>
-  :root {
-    --star-gold: #fbbf24;
-    --star-glow: #f59e0b;
-    --upgrade-green: #10b981;
-    --upgrade-glow: #059669;
-    --disabled-gray: #6b7280;
-    --error-red: #ef4444;
-  }
-
-  body {
-    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
-    min-height: 100vh;
-  }
-
-  .picker-section {
-    margin-bottom: 14px;
-    display: none;
-  }
-  .picker-section.active {
-    display: block;
-  }
+<style id="thumbStyle">
+  .picker-section{margin-bottom:14px; display: none;}
+  .picker-section.active{display: block;}
+  .picker-title{font-size:14px;opacity:.9;margin:10px 0 10px; display: none;}
   
-  /* Professional Tabs */
+  /* Tabs Styling */
   .tabs-container {
     display: flex;
-    gap: 6px;
-    margin-bottom: 16px;
+    gap: 8px;
+    margin-bottom: 12px;
     overflow-x: auto;
-    padding: 4px;
-    background: rgba(0,0,0,0.2);
-    border-radius: 12px;
-    border: 1px solid rgba(255,255,255,0.05);
+    padding-bottom: 4px;
   }
   .tab-btn {
-    padding: 10px 20px;
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.08);
+    padding: 8px 16px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
     border-radius: 8px;
-    color: rgba(255,255,255,0.6);
+    color: #fff;
     cursor: pointer;
     white-space: nowrap;
     font-size: 13px;
-    font-weight: 600;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
-  }
-  .tab-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-    transition: left 0.5s;
-  }
-  .tab-btn:hover::before {
-    left: 100%;
-  }
-  .tab-btn:hover {
-    background: rgba(255,255,255,0.08);
-    border-color: rgba(74,222,128,0.3);
-    color: rgba(255,255,255,0.9);
-    transform: translateY(-1px);
+    transition: all 0.2s;
   }
   .tab-btn.active {
-    background: linear-gradient(135deg, rgba(74,222,128,0.25), rgba(34,197,94,0.2));
+    background: rgba(74,222,128,0.2);
     border-color: rgba(74,222,128,0.5);
     color: #4ade80;
-    box-shadow: 0 4px 12px rgba(74,222,128,0.2), inset 0 1px 0 rgba(255,255,255,0.1);
   }
 
-  /* Asset Grid with Glassmorphism */
-  .asset-grid {
+  .asset-grid{
     position: relative;
-    height: 450px;
+    height: 400px; /* Increased height for better tab view */
     overflow: auto;
-    padding: 12px;
+    padding: 10px;
     border-radius: 16px;
-    border: 1px solid rgba(255,255,255,0.1);
-    background: linear-gradient(135deg, rgba(0,0,0,0.3), rgba(0,0,0,0.15));
-    backdrop-filter: blur(10px);
-    box-shadow: inset 0 2px 8px rgba(0,0,0,0.2);
+    border: 1px solid rgba(255,255,255,0.10);
+    background: rgba(0,0,0,0.12);
   }
-  .asset-grid::-webkit-scrollbar {
-    width: 8px;
+  .asset-spacer{width:100%; position:relative;}
+  .asset-item{
+    position:absolute;
+    width:64px;
+    height:96px;
   }
-  .asset-grid::-webkit-scrollbar-track {
-    background: rgba(0,0,0,0.2);
-    border-radius: 4px;
+  .asset-thumb{
+    width:64px;
+    height:96px;
+    border-radius:12px;
+    border:2px solid rgba(255,255,255,0.18);
+    cursor:pointer;
+    object-fit:contain;
+    background: rgba(0,0,0,0.20);
+    display:block;
   }
-  .asset-grid::-webkit-scrollbar-thumb {
-    background: rgba(74,222,128,0.3);
-    border-radius: 4px;
-  }
-  .asset-grid::-webkit-scrollbar-thumb:hover {
-    background: rgba(74,222,128,0.5);
-  }
+  .asset-thumb.active{outline:2px solid rgba(74,222,128,0.9); outline-offset:2px;}
 
-  .asset-spacer {
-    width: 100%;
-    position: relative;
-  }
+  /* rarity borders */
+  .r1 .asset-thumb{border-color: rgba(148,163,184,0.75);}
+  .r2 .asset-thumb{border-color: rgba(34,197,94,0.75);}
+  .r3 .asset-thumb{border-color: rgba(59,130,246,0.75);}
+  .r4 .asset-thumb{border-color: rgba(168,85,247,0.75);}
+  .r5 .asset-thumb{border-color: rgba(245,158,11,0.85);}
 
-  /* Professional Asset Cards */
-  .asset-item {
-    position: absolute;
-    width: 80px;
-    height: 120px;
-    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  .asset-item:hover {
-    transform: scale(1.05) translateY(-2px);
-    z-index: 10;
-  }
-
-  .asset-thumb {
-    width: 80px;
-    height: 120px;
-    border-radius: 12px;
-    border: 2px solid rgba(255,255,255,0.15);
-    cursor: pointer;
-    object-fit: contain;
-    background: linear-gradient(135deg, rgba(0,0,0,0.4), rgba(0,0,0,0.2));
-    display: block;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  }
-  .asset-thumb:hover {
-    border-color: rgba(74,222,128,0.5);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.4), 0 0 20px rgba(74,222,128,0.2);
-  }
-  .asset-thumb.active {
-    outline: 3px solid rgba(74,222,128,0.9);
-    outline-offset: 2px;
-    box-shadow: 0 8px 24px rgba(74,222,128,0.3), 0 0 30px rgba(74,222,128,0.3);
-  }
-
-  /* Premium Rarity Borders with Glow */
-  .r1 .asset-thumb { border-color: rgba(148,163,184,0.7); }
-  .r1 .asset-thumb:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.4), 0 0 20px rgba(148,163,184,0.3); }
-  
-  .r2 .asset-thumb { border-color: rgba(34,197,94,0.7); }
-  .r2 .asset-thumb:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.4), 0 0 20px rgba(34,197,94,0.4); }
-  
-  .r3 .asset-thumb { border-color: rgba(59,130,246,0.8); }
-  .r3 .asset-thumb:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.4), 0 0 25px rgba(59,130,246,0.4); }
-  
-  .r4 .asset-thumb { border-color: rgba(168,85,247,0.85); }
-  .r4 .asset-thumb:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.4), 0 0 30px rgba(168,85,247,0.5); }
-  
-  .r5 .asset-thumb { 
-    border-color: rgba(245,158,11,0.9);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3), 0 0 15px rgba(245,158,11,0.2);
-  }
-  .r5 .asset-thumb:hover { 
-    box-shadow: 0 8px 24px rgba(0,0,0,0.4), 0 0 35px rgba(245,158,11,0.6); 
-  }
-
-  /* Count Badge - Modern Design */
+  /* Count Badge (Top Right) */
   .badge-count {
     position: absolute;
-    right: 4px;
-    top: 4px;
-    background: linear-gradient(135deg, rgba(0,0,0,0.85), rgba(0,0,0,0.7));
+    right: -4px;
+    top: -4px;
+    background: rgba(0,0,0,0.75);
     color: #fff;
-    font-size: 11px;
-    font-weight: 700;
-    padding: 3px 7px;
-    border-radius: 8px;
+    font-size: 10px;
+    padding: 2px 5px;
+    border-radius: 6px;
     border: 1px solid rgba(255,255,255,0.2);
     z-index: 2;
     pointer-events: none;
-    backdrop-filter: blur(8px);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-  }
-  .badge-count.can-upgrade {
-    background: linear-gradient(135deg, rgba(16,185,129,0.95), rgba(5,150,105,0.9));
-    color: #fff;
-    border-color: rgba(16,185,129,0.5);
-    animation: pulse-green 2s ease-in-out infinite;
-  }
-  .badge-count.insufficient {
-    color: rgba(239,68,68,0.9);
   }
 
-  @keyframes pulse-green {
-    0%, 100% { box-shadow: 0 2px 8px rgba(0,0,0,0.4), 0 0 8px rgba(16,185,129,0.3); }
-    50% { box-shadow: 0 2px 8px rgba(0,0,0,0.4), 0 0 16px rgba(16,185,129,0.6); }
-  }
-
-  /* Star Badge - Glowing Stars */
+  /* Star Badge (Bottom Left) */
   .badge-stars {
     position: absolute;
-    left: 6px;
-    bottom: 6px;
-    color: var(--star-gold);
-    font-size: 12px;
-    text-shadow: 
-      0 0 4px rgba(0,0,0,0.9),
-      0 0 8px rgba(251,191,36,0.5);
+    left: 4px;
+    bottom: 4px;
+    color: #fbbf24;
+    font-size: 10px;
+    text-shadow: 0 0 4px rgba(0,0,0,0.8);
     z-index: 2;
     pointer-events: none;
-    letter-spacing: 1px;
   }
 
-  /* Upgrade Overlay */
-  .upgrade-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, rgba(16,185,129,0.85), rgba(5,150,105,0.75));
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transition: opacity 0.3s;
-    pointer-events: none;
-    z-index: 5;
-    backdrop-filter: blur(4px);
-  }
-  .asset-item.can-upgrade .upgrade-overlay {
-    opacity: 1;
-    pointer-events: auto;
-    cursor: pointer;
-  }
-  .upgrade-overlay:hover {
-    background: linear-gradient(135deg, rgba(16,185,129,0.95), rgba(5,150,105,0.85));
-  }
-
-  .upgrade-text {
-    color: #fff;
-    font-size: 13px;
-    font-weight: 700;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-    text-align: center;
-    line-height: 1.3;
-  }
-  .upgrade-icon {
-    font-size: 24px;
-    margin-bottom: 4px;
-    animation: bounce-upgrade 1.5s ease-in-out infinite;
-  }
-
-  @keyframes bounce-upgrade {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-4px); }
-  }
-
-  /* Upgrade Animation */
-  @keyframes upgrade-burst {
-    0% {
-      transform: scale(1);
-      opacity: 1;
-    }
-    50% {
-      transform: scale(1.5);
-      opacity: 0.8;
-    }
-    100% {
-      transform: scale(2);
-      opacity: 0;
-    }
-  }
-
-  @keyframes upgrade-particle {
-    0% {
-      transform: translate(0, 0) scale(1);
-      opacity: 1;
-    }
-    100% {
-      transform: translate(var(--tx), var(--ty)) scale(0);
-      opacity: 0;
-    }
-  }
-
-  .upgrade-animation {
-    position: fixed;
-    pointer-events: none;
-    z-index: 9999;
-  }
-
-  .upgrade-burst {
-    position: absolute;
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(16,185,129,0.8), transparent);
-    animation: upgrade-burst 0.6s ease-out;
-  }
-
-  .upgrade-particle {
-    position: absolute;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--upgrade-green);
-    box-shadow: 0 0 8px var(--upgrade-glow);
-    animation: upgrade-particle 0.8s ease-out forwards;
-  }
-
-  /* Unlocked Badge - Premium Style */
-  .badge-unlocked {
-    position: absolute;
-    right: 28px;
-    top: 4px;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, rgba(34,197,94,1), rgba(22,163,74,1));
-    color: #fff;
-    font-weight: 900;
-    font-size: 13px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 
-      0 4px 12px rgba(34,197,94,0.4),
-      0 0 20px rgba(34,197,94,0.3),
-      inset 0 1px 0 rgba(255,255,255,0.3);
-    pointer-events: none;
+  /* unlocked tick */
+  .badge-unlocked{
+    position:absolute;
+    right: 20px; /* Shifted to avoid overlap with count */
+    top:-6px;
+    width:18px;
+    height:18px;
+    border-radius:999px;
+    background: rgba(34,197,94,0.95);
+    color:#04130a;
+    font-weight:800;
+    font-size:12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+    pointer-events:none;
     z-index: 3;
   }
 
-  /* Hover Preview - Enhanced */
-  #hoverPreview {
+  /* hover preview */
+  #hoverPreview{
     position: fixed;
     z-index: 9999;
-    width: 240px;
-    height: 360px;
-    border-radius: 16px;
-    border: 1px solid rgba(255,255,255,0.2);
-    background: linear-gradient(135deg, rgba(0,0,0,0.9), rgba(0,0,0,0.8));
-    backdrop-filter: blur(20px);
-    display: none;
-    overflow: hidden;
-    pointer-events: none;
-    box-shadow: 
-      0 32px 80px rgba(0,0,0,0.6),
-      0 0 40px rgba(74,222,128,0.1),
-      inset 0 1px 0 rgba(255,255,255,0.1);
+    width: 213px;
+    height: 320px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.16);
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(10px);
+    display:none;
+    overflow:hidden;
+    pointer-events:none;
+    box-shadow: 0 24px 70px rgba(0,0,0,0.55);
   }
-  #hoverPreview img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-  }
-
-  /* Stage Area Enhancement */
-  .stage {
-    border-radius: 20px;
-    border: 2px solid rgba(255,255,255,0.15);
-    box-shadow: 
-      0 12px 40px rgba(0,0,0,0.3),
-      inset 0 2px 8px rgba(255,255,255,0.05);
-    background: linear-gradient(135deg, rgba(0,0,0,0.3), rgba(0,0,0,0.1));
-  }
-
-  /* Professional Buttons */
-  .smallBtn {
-    background: linear-gradient(135deg, rgba(74,222,128,0.2), rgba(34,197,94,0.15));
-    border: 1px solid rgba(74,222,128,0.4);
-    color: #4ade80;
-    font-weight: 600;
-    padding: 10px 20px;
-    border-radius: 10px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  }
-  .smallBtn:hover {
-    background: linear-gradient(135deg, rgba(74,222,128,0.3), rgba(34,197,94,0.25));
-    border-color: rgba(74,222,128,0.6);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(74,222,128,0.3);
-  }
-
-  /* Toast Notification - Modern */
-  .toast {
-    position: fixed;
-    bottom: 30px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: linear-gradient(135deg, rgba(0,0,0,0.95), rgba(0,0,0,0.9));
-    color: #fff;
-    padding: 14px 24px;
-    border-radius: 12px;
-    border: 1px solid rgba(255,255,255,0.2);
-    backdrop-filter: blur(20px);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-    z-index: 10000;
-    font-size: 14px;
-    font-weight: 600;
-    animation: toast-in 0.3s ease-out;
-  }
-
-  @keyframes toast-in {
-    from {
-      opacity: 0;
-      transform: translateX(-50%) translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
-  }
-
-  /* Loading Spinner */
-  .spinner {
-    display: inline-block;
-    width: 14px;
-    height: 14px;
-    border: 2px solid rgba(255,255,255,0.3);
-    border-top-color: #fff;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    margin-left: 8px;
-  }
-
-  @keyframes spin {
-    to { transform: rotate(360deg); }
+  #hoverPreview img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
   }
 </style>
 </head>
@@ -441,14 +146,14 @@
         <h1>Anime Character Forge</h1>
       </a>
       <div class="right">
-        <div class="badge" id="netBadge">連接中</div>
-        <a class="badge" href="profile.html">個人</a>
+        <div class="badge" id="netBadge">Connecting</div>
+        <a class="badge" href="profile.html">My</a>
       </div>
     </div>
 
     <div class="card">
       <div class="cardHeader">
-        <h2>🎨 角色工作室 Pro</h2>
+        <h2>工作室</h2>
         <a class="badge" href="hub.html">返回</a>
       </div>
       <div class="cardBody">
@@ -456,57 +161,48 @@
           <div class="col7">
             <div class="stage">
               <img class="layer" id="bgLayer" alt="background" />
-              <img class="layer" id="addon2Layer" alt="addon 2" />
-              <img class="layer" id="headLayer" alt="head" />
-              <img class="layer" id="bodyLayer" alt="body" />
-              <img class="layer" id="addon1Layer" alt="addon 1" />
+<img class="layer" id="addon2Layer" alt="add on 2" />
+<img class="layer" id="headLayer" alt="head" />
+<img class="layer" id="bodyLayer" alt="body" />
+<img class="layer" id="addon1Layer" alt="add on 1" />
+
 
               <div class="stageOverlay">
-                <button class="smallBtn" id="randomBtn">✨ 隨機搭配</button>
-                <button class="smallBtn" id="submitBtn">🚀 提交展示</button>
+                <button class="smallBtn" id="randomBtn">隨機搭配</button>
+                <button class="smallBtn" id="submitBtn">提交展示</button>
               </div>
             </div>
-            <div style="height:12px"></div>
-            <input class="input" id="titleInput" placeholder="✏️ 作品標題 (例如 Neon Queen)" />
-            <div style="height:12px"></div>
+            <div style="height:10px"></div>
+            <input class="input" id="titleInput" placeholder="作品標題 例如 Neon Queen" />
+            <div style="height:10px"></div>
             <div class="help" id="unlockHint"></div>
           </div>
 
           <div class="col5">
             <div class="tabs-container" id="assetTabs">
-              <button class="tab-btn active" data-target="headGrid">👤 頭部</button>
-              <button class="tab-btn" data-target="bodyGrid">👕 身體</button>
-              <button class="tab-btn" data-target="bgGrid">🖼️ 背景</button>
-              <button class="tab-btn" data-target="addon1Grid">✨ 配飾 1</button>
-              <button class="tab-btn" data-target="addon2Grid">💫 配飾 2</button>
+              <button class="tab-btn active" data-target="headGrid">頭部</button>
+              <button class="tab-btn" data-target="bodyGrid">身體</button>
+              <button class="tab-btn" data-target="bgGrid">背景</button>
+              <button class="tab-btn" data-target="addon1Grid">Addon 1</button>
+              <button class="tab-btn" data-target="addon2Grid">Addon 2</button>
             </div>
             <div class="grid">
               <div class="col12">
-                <div class="picker-section active" id="headSection">
-                  <div id="headGrid" class="asset-grid"><div class="asset-spacer"></div></div>
-                </div>
+                <div class="picker-section active" id="headSection"><div id="headGrid" class="asset-grid"><div class="asset-spacer"></div></div></div>
               </div>
               <div class="col12">
-                <div class="picker-section" id="bodySection">
-                  <div id="bodyGrid" class="asset-grid"><div class="asset-spacer"></div></div>
-                </div>
+                <div class="picker-section" id="bodySection"><div id="bodyGrid" class="asset-grid"><div class="asset-spacer"></div></div></div>
               </div>
               <div class="col12">
-                <div class="picker-section" id="bgSection">
-                  <div id="bgGrid" class="asset-grid"><div class="asset-spacer"></div></div>
-                </div>
+                <div class="picker-section" id="bgSection"><div id="bgGrid" class="asset-grid"><div class="asset-spacer"></div></div></div>
               </div>
               <div class="col12">
-                <div class="picker-section" id="addon1Section">
-                  <div id="addon1Grid" class="asset-grid"><div class="asset-spacer"></div></div>
-                </div>
-                <div class="picker-section" id="addon2Section">
-                  <div id="addon2Grid" class="asset-grid"><div class="asset-spacer"></div></div>
-                </div>
+                <div class="picker-section" id="addon1Section"><div id="addon1Grid" class="asset-grid"><div class="asset-spacer"></div></div></div>
+                <div class="picker-section" id="addon2Section"><div id="addon2Grid" class="asset-grid"><div class="asset-spacer"></div></div></div>
               </div>
             </div>
             <div class="hr"></div>
-            <a class="btn" href="recipes.html">📚 查看成品庫</a>
+            <a class="btn" href="recipes.html">去看成品庫</a>
           </div>
         </div>
       </div>
@@ -517,122 +213,7 @@
   <script>
   (async function(){
     await initSession();
-    q("#netBadge").textContent = APP.offline ? "離線" : "在線";
-
-    // --- Upgrade System Functions ---
-    function calculateStars(count) {
-      if (count >= 256) return 5;
-      if (count >= 128) return 4;
-      if (count >= 64) return 3;
-      if (count >= 32) return 2;
-      if (count >= 16) return 1;
-      return 0;
-    }
-
-    function getUpgradeCost(stars) {
-      const costs = [16, 32, 64, 128, 256];
-      if (stars >= 0 && stars < costs.length) return costs[stars];
-      return 999; // Max stars
-    }
-
-    function getAssetStats(assetId, count) {
-      const stars = calculateStars(count);
-      const needed = getUpgradeCost(stars);
-      const canUpgrade = stars < 5 && count >= needed;
-      return { 
-        totalCount: count, 
-        stars, 
-        neededForNext: needed,
-        canUpgrade,
-        isMaxStars: stars >= 5
-      };
-    }
-
-    // --- Upgrade Animation ---
-    function playUpgradeAnimation(element) {
-      const rect = element.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-
-      const container = document.createElement('div');
-      container.className = 'upgrade-animation';
-      container.style.left = centerX + 'px';
-      container.style.top = centerY + 'px';
-      document.body.appendChild(container);
-
-      // Burst effect
-      const burst = document.createElement('div');
-      burst.className = 'upgrade-burst';
-      burst.style.left = '-50px';
-      burst.style.top = '-50px';
-      container.appendChild(burst);
-
-      // Particles
-      for (let i = 0; i < 12; i++) {
-        const particle = document.createElement('div');
-        particle.className = 'upgrade-particle';
-        const angle = (i / 12) * Math.PI * 2;
-        const distance = 50 + Math.random() * 30;
-        particle.style.setProperty('--tx', Math.cos(angle) * distance + 'px');
-        particle.style.setProperty('--ty', Math.sin(angle) * distance + 'px');
-        particle.style.left = '-4px';
-        particle.style.top = '-4px';
-        particle.style.animationDelay = (i * 0.05) + 's';
-        container.appendChild(particle);
-      }
-
-      // Star burst
-      for (let i = 0; i < 5; i++) {
-        const star = document.createElement('div');
-        star.textContent = '★';
-        star.style.position = 'absolute';
-        star.style.color = 'var(--star-gold)';
-        star.style.fontSize = '20px';
-        star.style.textShadow = '0 0 10px var(--star-glow)';
-        const angle = (i / 5) * Math.PI * 2;
-        const distance = 40;
-        star.style.left = (Math.cos(angle) * distance - 10) + 'px';
-        star.style.top = (Math.sin(angle) * distance - 10) + 'px';
-        star.style.animation = 'upgrade-particle 0.8s ease-out forwards';
-        star.style.animationDelay = '0.1s';
-        container.appendChild(star);
-      }
-
-      setTimeout(() => container.remove(), 1000);
-    }
-
-    // --- Toast Notification ---
-    function toast(message, duration = 2000) {
-      const existing = document.querySelector('.toast');
-      if (existing) existing.remove();
-
-      const toast = document.createElement('div');
-      toast.className = 'toast';
-      toast.textContent = message;
-      document.body.appendChild(toast);
-
-      setTimeout(() => toast.remove(), duration);
-    }
-
-    // --- API Calls ---
-    async function upgradeAsset(assetId) {
-      try {
-        const res = await fetch(`${APP.apiBase}/api/upgrade`, {
-          method: 'POST',
-          headers: {
-            'content-type': 'application/json',
-            'x-user-id': APP.uid
-          },
-          body: JSON.stringify({ assetId })
-        });
-        const data = await res.json();
-        if (!data.ok) throw new Error(data.error || 'Upgrade failed');
-        return data;
-      } catch (e) {
-        console.error('Upgrade error:', e);
-        return null;
-      }
-    }
+    q("#netBadge").textContent = APP.offline ? "Offline" : "Online";
 
     // --- Tab Logic ---
     const tabBtns = document.querySelectorAll('.tab-btn');
@@ -647,418 +228,361 @@
         sections.forEach(s => s.classList.remove('active'));
         
         btn.classList.add('active');
-        const targetSection = document.getElementById(targetSectionId);
-        if (targetSection) targetSection.classList.add('active');
+        document.getElementById(targetSectionId).classList.add('active');
+        
+        // Trigger rerender for virtual grid when tab switches
+        const gridKey = targetId.replace('Grid', '');
+        if(grids[gridKey]) grids[gridKey].rerender();
       });
     });
 
-    // --- Data Loading ---
-    let db = loadOfflineDb();
-    if (!APP.offline) {
-      const [aResp, mResp] = await Promise.all([
-        fetch(`${APP.apiBase}/api/assets`),
-        fetch(`${APP.apiBase}/api/me/assets`, { headers: { 'x-user-id': APP.uid } })
-      ]);
-      const aData = await aResp.json();
-      const mData = await mResp.json();
-      if (aData.ok && mData.ok) {
-        db.assets = aData.assets;
-        const inv = {};
-        for (const item of mData.items) {
-          const k = `${APP.uid}:${item.assetId}`;
-          inv[k] = item.count;
-        }
-        db.userAssets = inv;
-        saveOfflineDb(db);
-      }
+function toThumbUrl(url){
+  if(!url) return "";
+  if(url.includes("_thumb.")) return url;
+  const parts = String(url).split("?");
+  const base = parts[0];
+  const qs = parts.length > 1 ? "?" + parts.slice(1).join("?") : "";
+  const m = base.match(/^(.*)\.(png|webp|jpg|jpeg)$/i);
+  if(!m) return url;
+  return m[1] + "_thumb." + m[2] + qs;
+}
+function bestThumb(url){
+  const t = toThumbUrl(url);
+  return t || url || "";
+}
+
+function listImgUrl(it){
+  const id = (it && it.assetId) ? String(it.assetId) : "";
+  const url = (it && it.imageUrl) ? String(it.imageUrl) : "";
+  if(id.startsWith("head_") || id.startsWith("body_")) return toThumbUrl(url) || url;
+  return url;
+}
+
+function genderTag(assetId){
+  const id = String(assetId || "").toLowerCase();
+  if(id.includes("f")) return "f";
+  if(id.includes("m")) return "m";
+  return "";
+}
+
+function isGenderCompatible(headId, bodyId){
+  const headGender = genderTag(headId);
+  const bodyGender = genderTag(bodyId);
+  if(!headGender || !bodyGender) return true;
+  return headGender === bodyGender;
+}
+
+// --- Star & Count Logic ---
+function getAssetStats(assetId, count) {
+  let stars = 1;
+  let currentCount = count;
+  let neededForNext = 10;
+  
+  // 1->2: 10, 2->3: 20, 3->4: 30, 4->5: 40
+  while (stars < 5) {
+    let cost = stars * 10;
+    if (currentCount >= cost) {
+      currentCount -= cost;
+      stars++;
+      neededForNext = stars * 10;
+    } else {
+      neededForNext = stars * 10;
+      break;
+    }
+  }
+  
+  if (stars === 5) neededForNext = "MAX";
+  
+  return { stars, currentCount, neededForNext, totalCount: count };
+}
+
+
+    let db = offlineDb();
+
+if(!APP.offline){
+  try{
+    const assetsRes = await fetch(WORKER_BASE + "/api/assets").then(r=>r.json());
+    const rawAssets = assetsRes.assets || assetsRes.items || assetsRes.rows || assetsRes.results || [];
+    const assets = (rawAssets || []).map(a=>{
+      const t = String(a.type || "");
+      let type = t;
+      if(t === "bg") type = "background";
+      if(t === "addon1" || t === "addon2") type = "accessory";
+      if(t === "backgrounds") type = "background";
+      return { assetId: a.assetId, type, rarity: Number(a.rarity||1), imageUrl: a.imageUrl };
+    });
+
+    const invRes = await fetch(WORKER_BASE + "/api/me/assets?uid=" + encodeURIComponent(APP.uid)).then(r=>r.json());
+    const items = invRes.items || invRes.assets || invRes.rows || invRes.results || [];
+    const store = {};
+    for(const it of (items || [])){
+      const aid = it.assetId || it.asset_id || it.id;
+      if(!aid) continue;
+      store[`${APP.uid}:${aid}`] = Number(it.count || it.qty || 1);
     }
 
-    const byId = new Map();
-    for (const a of db.assets || []) byId.set(a.assetId, a);
+    db = { assets, userAssets: store, unlocks: {} };
+  }catch(e){
+    db = offlineDb();
+  }
+}
 
-    function listImgUrl(a) {
-      if (!a) return "";
-      if (a.imageUrl && a.imageUrl.startsWith("http")) return a.imageUrl;
-      const url = a.imageUrl || "";
-      if (url.startsWith("/")) return APP.cdnBase + url;
-      return url;
-    }
+    const byId = new Map(db.assets.map(a=>[a.assetId,a]));
 
-    function byRarityDesc(a, b) {
-      const diff = (b.rarity || 1) - (a.rarity || 1);
-      if (diff !== 0) return diff;
-      return (a.assetId || "").localeCompare(b.assetId || "");
-    }
-
-    function genderTag(assetId) {
-      const s = String(assetId || "").toLowerCase();
-      if (s.includes("_f_") || s.includes("_girl_") || s.includes("female")) return "f";
-      if (s.includes("_m_") || s.includes("_boy_") || s.includes("male")) return "m";
-      return "";
-    }
-
-    function isGenderCompatible(headId, bodyId) {
-      const hg = genderTag(headId);
-      const bg = genderTag(bodyId);
-      if (!hg || !bg) return true;
-      return hg === bg;
-    }
-
-    function randPick(arr) {
-      return arr[Math.floor(Math.random() * arr.length)];
-    }
-
-    async function submitOnline(payload) {
-      try {
-        const res = await fetch(`${APP.apiBase}/api/submit`, {
-          method: 'POST',
-          headers: { 'content-type': 'application/json', 'x-user-id': APP.uid },
+    async function submitOnline(payload){
+      try{
+        const res = await api("/api/submit", {
+          method: "POST",
           body: JSON.stringify(payload)
         });
-        const data = await res.json();
-        return data.ok ? data : null;
-      } catch (e) {
+        if(res && res.ok) return res;
+        return res || null;
+      }catch(e){
         return null;
       }
     }
 
-    async function submitOffline(payload) {
-      const db2 = loadOfflineDb();
+    async function submitOffline(payload){
+      const db2 = offlineDb();
       const buildId = crypto.randomUUID();
-      const k = `${APP.uid}:${buildId}`;
-      db2.showcases = db2.showcases || {};
-      db2.showcases[k] = { ...payload, buildId, userId: APP.uid, createdAt: Date.now() };
-
+      const createdAt = Date.now();
+      const b = {
+        buildId, uid: APP.uid, title: payload.title || "",
+        headId: payload.headId, bodyId: payload.bodyId, bgId: payload.bgId,
+        addon1Id: payload.addon1Id || "", addon2Id: payload.addon2Id || "",
+        createdAt, seasonId: payload.seasonId || "S1", scoreSum: 0, scoreCount: 0
+      };
+      db2.builds = db2.builds || [];
+      db2.builds.unshift(b);
       const unlockedRecipes = [];
-      for (const r of db2.recipes || []) {
-        const match =
-          r.headId === payload.headId &&
-          r.bodyId === payload.bodyId &&
-          r.bgId === payload.bgId &&
-          (r.addon1Id || "") === (payload.addon1Id || "") &&
-          (r.addon2Id || "") === (payload.addon2Id || "");
-        if (match) {
+      const recipes = db2.recipes || [];
+      for(const r of recipes){
+        const a = normalizeAccessoryIds(r.accessoryIds || []);
+        const bAcc = normalizeAccessoryIds([payload.addon1Id, payload.addon2Id].filter(Boolean));
+        if(r.headId === payload.headId && r.bodyId === payload.bodyId && r.bgId === payload.bgId && sameSet(a, bAcc)){
           const k = `${APP.uid}:${r.recipeId}`;
-          db2.unlocks = db2.unlocks || {};
           db2.unlocks[k] = Date.now();
           unlockedRecipes.push(r.recipeId);
         }
       }
       saveOfflineDb(db2);
-      return { ok: true, buildId, unlockedRecipes };
+      return { ok:true, buildId, unlockedRecipes };
     }
 
-    function showUnlock(ids) {
+    function showUnlock(ids){
       const el = q("#unlockHint");
-      if (!el) return;
-      el.textContent = (!ids || ids.length === 0) ? "沒有觸發成品解鎖" : `✨ 已解鎖成品: ${ids.join(", ")}`;
+      if(!el) return;
+      el.textContent = (!ids || ids.length === 0) ? "沒有觸發成品解鎖" : `已解鎖成品 ${ids.join("  ")}`;
     }
 
-    function invCount(assetId) {
+    function invCount(assetId){
       const k = `${APP.uid}:${assetId}`;
       const store = db.userAssets || db.playerAssets || db.assetsOwned || {};
       return Number(store[k] || store[assetId] || 0);
     }
 
-    function ownedOptions(type) {
-      const list = db.assets.filter(a => a.type === type && invCount(a.assetId) > 0);
+    function ownedOptions(type){
+      const list = db.assets.filter(a=>a.type===type && invCount(a.assetId) > 0);
       list.sort(byRarityDesc);
       return list;
     }
 
-    const SEL = { headId: "", bodyId: "", bgId: "", addon1Id: "", addon2Id: "" };
+const SEL = { headId: "", bodyId: "", bgId: "", addon1Id: "", addon2Id: "" };
 
-    const unlockedAssetIds = new Set();
-    for (const key of Object.keys(db.unlocks || {})) {
-      if (!key.startsWith(APP.uid + ":")) continue;
-      const recipeId = key.split(":")[1];
-      const r = (db.recipes || []).find(x => x.recipeId === recipeId);
-      if (!r) continue;
-      [r.headId, r.bodyId, r.bgId, ...(r.accessoryIds || [])].filter(Boolean).forEach(id => unlockedAssetIds.add(id));
-    }
+const unlockedAssetIds = new Set();
+for(const key of Object.keys(db.unlocks || {})){
+  if(!key.startsWith(APP.uid + ":")) continue;
+  const recipeId = key.split(":")[1];
+  const r = (db.recipes || []).find(x=>x.recipeId === recipeId);
+  if(!r) continue;
+  [r.headId, r.bodyId, r.bgId, ...(r.accessoryIds||[])].filter(Boolean).forEach(id => unlockedAssetIds.add(id));
+}
 
-    function setLayers() {
-      q("#bgLayer").src = byId.get(SEL.bgId)?.imageUrl || "";
-      q("#addon2Layer").src = byId.get(SEL.addon2Id)?.imageUrl || "";
-      q("#headLayer").src = byId.get(SEL.headId)?.imageUrl || "";
-      q("#bodyLayer").src = byId.get(SEL.bodyId)?.imageUrl || "";
-      q("#addon1Layer").src = byId.get(SEL.addon1Id)?.imageUrl || "";
-    }
+function setLayers(){
+  q("#bgLayer").src = byId.get(SEL.bgId)?.imageUrl || "";
+  q("#addon2Layer").src = byId.get(SEL.addon2Id)?.imageUrl || "";
+  q("#headLayer").src = byId.get(SEL.headId)?.imageUrl || "";
+  q("#bodyLayer").src = byId.get(SEL.bodyId)?.imageUrl || "";
+  q("#addon1Layer").src = byId.get(SEL.addon1Id)?.imageUrl || "";
+}
 
-    function refreshPreview() {
-      setLayers();
-    }
+function refreshPreview(){ setLayers(); }
 
-    const hoverBox = q("#hoverPreview");
-    const hoverImg = hoverBox.querySelector("img");
-    
-    function showHover(src, x, y) {
-      hoverImg.src = src;
-      hoverBox.style.display = "block";
-      moveHover(x, y);
-    }
-    
-    function moveHover(x, y) {
-      const pad = 20;
-      const w = hoverBox.offsetWidth || 240;
-      const h = hoverBox.offsetHeight || 360;
-      let left = x + pad;
-      let top = y + pad;
-      if (left + w > window.innerWidth - 8) left = x - w - pad;
-      if (top + h > window.innerHeight - 8) top = y - h - pad;
-      hoverBox.style.left = left + "px";
-      hoverBox.style.top = top + "px";
-    }
-    
-    function hideHover() {
-      hoverBox.style.display = "none";
-      hoverImg.src = "";
-    }
+const hoverBox = q("#hoverPreview");
+const hoverImg = hoverBox.querySelector("img");
+function showHover(src, x, y){
+  hoverImg.src = src;
+  hoverBox.style.display = "block";
+  moveHover(x, y);
+}
+function moveHover(x, y){
+  const pad = 16;
+  const w = hoverBox.offsetWidth || 213;
+  const h = hoverBox.offsetHeight || 320;
+  let left = x + pad;
+  let top = y + pad;
+  if(left + w > window.innerWidth - 8) left = x - w - pad;
+  if(top + h > window.innerHeight - 8) top = y - h - pad;
+  hoverBox.style.left = left + "px";
+  hoverBox.style.top = top + "px";
+}
+function hideHover(){ hoverBox.style.display = "none"; hoverImg.src = ""; }
 
-    // --- Enhanced Virtual Grid with Upgrade Support ---
-    function makeVirtualGrid(container, items0, getSelectedId, onSelect, options) {
-      let items = items0 || [];
-      const opt = Object.assign({ thumbW: 80, thumbH: 120, gap: 10 }, options || {});
-      const spacer = container.querySelector(".asset-spacer") || container;
-      
-      function calcCols() {
-        return Math.max(1, Math.floor((container.clientWidth + opt.gap) / (opt.thumbW + opt.gap)));
-      }
+function makeVirtualGrid(container, items0, getSelectedId, onSelect, options){
+  let items = items0 || [];
+  const opt = Object.assign({thumbW:64, thumbH:96, gap:8}, options || {});
+  const spacer = container.querySelector(".asset-spacer") || container;
+  
+  function calcCols(){
+    return Math.max(1, Math.floor((container.clientWidth + opt.gap) / (opt.thumbW + opt.gap)));
+  }
 
-      function rerender() {
-        const cols = calcCols();
-        const rowH = opt.thumbH + opt.gap;
-        const rows = Math.ceil(items.length / cols);
-        spacer.style.height = (rows * rowH) + "px";
-        spacer.style.position = "relative";
-        const scrollTop = container.scrollTop;
-        const viewH = container.clientHeight;
-        const startRow = Math.max(0, Math.floor(scrollTop / rowH) - 2);
-        const endRow = Math.min(rows, Math.ceil((scrollTop + viewH) / rowH) + 2);
-        spacer.innerHTML = "";
+  function rerender(){
+    const cols = calcCols();
+    const rowH = opt.thumbH + opt.gap;
+    const rows = Math.ceil(items.length / cols);
+    spacer.style.height = (rows * rowH) + "px";
+    spacer.style.position = "relative";
+    const scrollTop = container.scrollTop;
+    const viewH = container.clientHeight;
+    const startRow = Math.max(0, Math.floor(scrollTop / rowH) - 2);
+    const endRow = Math.min(rows, Math.ceil((scrollTop + viewH) / rowH) + 2);
+    spacer.innerHTML = "";
 
-        for (let r = startRow; r < endRow; r++) {
-          for (let c = 0; c < cols; c++) {
-            const idx = r * cols + c;
-            if (idx >= items.length) break;
-            const it = items[idx];
-            const wrap = document.createElement("div");
-            wrap.className = "asset-item " + `r${it.rarity || 1}`;
-            wrap.style.left = (c * (opt.thumbW + opt.gap)) + "px";
-            wrap.style.top = (r * rowH) + "px";
+    for(let r = startRow; r < endRow; r++){
+      for(let c = 0; c < cols; c++){
+        const idx = r * cols + c;
+        if(idx >= items.length) break;
+        const it = items[idx];
+        const wrap = document.createElement("div");
+        wrap.className = "asset-item " + `r${it.rarity || 1}`;
+        wrap.style.left = (c * (opt.thumbW + opt.gap)) + "px";
+        wrap.style.top = (r * rowH) + "px";
 
-            const img = document.createElement("img");
-            img.className = "asset-thumb";
-            img.src = listImgUrl(it) || "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
-            if (getSelectedId() === it.assetId) img.classList.add("active");
+        const img = document.createElement("img");
+        img.className = "asset-thumb";
+        img.src = listImgUrl(it) || "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
+        if(getSelectedId() === it.assetId) img.classList.add("active");
 
-            img.addEventListener("click", () => { onSelect(it.assetId); rerender(); });
-            img.addEventListener("mouseenter", (e) => showHover(listImgUrl(it), e.clientX, e.clientY));
-            img.addEventListener("mousemove", (e) => moveHover(e.clientX, e.clientY));
-            img.addEventListener("mouseleave", hideHover);
-            wrap.appendChild(img);
+        img.addEventListener("click", ()=>{ onSelect(it.assetId); rerender(); });
+        img.addEventListener("mouseenter", (e)=>showHover(listImgUrl(it), e.clientX, e.clientY));
+        img.addEventListener("mousemove", (e)=>moveHover(e.clientX, e.clientY));
+        img.addEventListener("mouseleave", hideHover);
+        wrap.appendChild(img);
 
-            // --- Stats & Upgrade Logic ---
-            if (it.assetId) {
-              const count = invCount(it.assetId);
-              const stats = getAssetStats(it.assetId, count);
-              
-              // Count Badge
-              const cBadge = document.createElement("div");
-              cBadge.className = "badge-count";
-              if (stats.canUpgrade) {
-                cBadge.classList.add("can-upgrade");
-              } else if (count < stats.neededForNext && !stats.isMaxStars) {
-                cBadge.classList.add("insufficient");
-              }
-              cBadge.textContent = stats.isMaxStars ? `${stats.totalCount} MAX` : `${stats.totalCount}/${stats.neededForNext}`;
-              wrap.appendChild(cBadge);
-              
-              // Star Badge
-              if (stats.stars > 0) {
-                const sBadge = document.createElement("div");
-                sBadge.className = "badge-stars";
-                sBadge.textContent = "★".repeat(stats.stars);
-                wrap.appendChild(sBadge);
-              }
-
-              // Upgrade Overlay
-              if (stats.canUpgrade) {
-                wrap.classList.add("can-upgrade");
-                const overlay = document.createElement("div");
-                overlay.className = "upgrade-overlay";
-                overlay.innerHTML = `
-                  <div class="upgrade-text">
-                    <div class="upgrade-icon">⬆️</div>
-                    <div>可升級</div>
-                  </div>
-                `;
-                overlay.addEventListener("click", async (e) => {
-                  e.stopPropagation();
-                  
-                  // Show loading
-                  overlay.innerHTML = '<div class="upgrade-text">升級中<span class="spinner"></span></div>';
-                  
-                  // Call upgrade API
-                  const result = await upgradeAsset(it.assetId);
-                  
-                  if (result && result.ok) {
-                    // Play animation
-                    playUpgradeAnimation(wrap);
-                    
-                    // Update local data
-                    const k = `${APP.uid}:${it.assetId}`;
-                    db.userAssets[k] = result.newCount;
-                    saveOfflineDb(db);
-                    
-                    // Show success message
-                    toast(`✨ 升級成功！ ${result.previousStars}★ → ${result.newStars}★`);
-                    
-                    // Refresh grid after animation
-                    setTimeout(() => {
-                      rerender();
-                    }, 600);
-                  } else {
-                    toast('❌ 升級失敗，請重試');
-                    overlay.innerHTML = `
-                      <div class="upgrade-text">
-                        <div class="upgrade-icon">⬆️</div>
-                        <div>可升級</div>
-                      </div>
-                    `;
-                  }
-                });
-                wrap.appendChild(overlay);
-              }
-            }
-
-            // Unlocked Badge
-            if (unlockedAssetIds.has(it.assetId)) {
-              const b = document.createElement("div");
-              b.className = "badge-unlocked";
-              b.textContent = "✓";
-              wrap.appendChild(b);
-            }
-            
-            spacer.appendChild(wrap);
-          }
+        // --- Stats Badges ---
+        if(it.assetId) {
+          const count = invCount(it.assetId);
+          const stats = getAssetStats(it.assetId, count);
+          
+          // Count Badge (Top Right)
+          const cBadge = document.createElement("div");
+          cBadge.className = "badge-count";
+          cBadge.textContent = `${stats.totalCount}/${stats.neededForNext}`;
+          wrap.appendChild(cBadge);
+          
+          // Star Badge (Bottom Left)
+          const sBadge = document.createElement("div");
+          sBadge.className = "badge-stars";
+          sBadge.textContent = "★".repeat(stats.stars);
+          wrap.appendChild(sBadge);
         }
+
+        if(unlockedAssetIds.has(it.assetId)){
+          const b = document.createElement("div");
+          b.className = "badge-unlocked";
+          b.textContent = "✓";
+          wrap.appendChild(b);
+        }
+        spacer.appendChild(wrap);
       }
-      
-      container.addEventListener("scroll", rerender);
-      window.addEventListener("resize", rerender);
-      rerender();
-      return { 
-        rerender, 
-        setItems: (next) => { 
-          items = Array.isArray(next) ? next : []; 
-          container.scrollTop = 0; 
-          rerender(); 
-        } 
-      };
     }
+  }
+  container.addEventListener("scroll", rerender);
+  window.addEventListener("resize", rerender);
+  rerender();
+  return { rerender, setItems: (next)=>{ items = Array.isArray(next) ? next : []; container.scrollTop = 0; rerender(); } };
+}
 
-    // --- Grid Setup ---
-    const grids = {};
-    const headItems = ownedOptions("head");
-    const bodyItemsAll = ownedOptions("body");
-    let bodyItems = bodyItemsAll;
-    const bgItems = ownedOptions("background");
+const grids = {};
+const headItems = ownedOptions("head");
+const bodyItemsAll = ownedOptions("body");
+let bodyItems = bodyItemsAll;
+const bgItems = ownedOptions("background");
 
-    SEL.headId = headItems[0]?.assetId || "";
+SEL.headId = headItems[0]?.assetId || "";
+SEL.bodyId = bodyItems[0]?.assetId || "";
+SEL.bgId = bgItems[0]?.assetId || "";
+
+function applyBodyGenderRule(){
+  const headGender = genderTag(SEL.headId);
+  let filtered = bodyItemsAll;
+  if(headGender){
+    filtered = bodyItemsAll.filter(it => {
+      const bodyGender = genderTag(it.assetId);
+      return !bodyGender || bodyGender === headGender;
+    });
+  }
+  bodyItems = filtered.length > 0 ? filtered : bodyItemsAll;
+  if(SEL.bodyId && !bodyItems.some(it=>it.assetId === SEL.bodyId)){
     SEL.bodyId = bodyItems[0]?.assetId || "";
-    SEL.bgId = bgItems[0]?.assetId || "";
+  }
+  if(grids.body) grids.body.setItems(bodyItems);
+}
 
-    function applyBodyGenderRule() {
-      const headGender = genderTag(SEL.headId);
-      let filtered = bodyItemsAll;
-      if (headGender) {
-        filtered = bodyItemsAll.filter(it => {
-          const bodyGender = genderTag(it.assetId);
-          return !bodyGender || bodyGender === headGender;
-        });
-      }
-      bodyItems = filtered.length > 0 ? filtered : bodyItemsAll;
-      if (SEL.bodyId && !bodyItems.some(it => it.assetId === SEL.bodyId)) {
-        SEL.bodyId = bodyItems[0]?.assetId || "";
-      }
-      if (grids.body) grids.body.setItems(bodyItems);
-    }
+applyBodyGenderRule();
 
-    applyBodyGenderRule();
+const addonAll = ownedOptions("accessory");
+const byPrefix = (prefix) => addonAll.filter(a=>((a.imageUrl || "").split("/").pop() || "").startsWith(prefix));
+let addon1Pool = byPrefix("addon1_");
+let addon2Pool = byPrefix("addon2_");
+if(addon1Pool.length === 0 && addon2Pool.length === 0){ addon1Pool = addonAll; addon2Pool = addonAll; }
+else { if(addon1Pool.length === 0) addon1Pool = addonAll; if(addon2Pool.length === 0) addon2Pool = addonAll; }
 
-    const addonAll = ownedOptions("accessory");
-    const byPrefix = (prefix) => addonAll.filter(a => ((a.imageUrl || "").split("/").pop() || "").startsWith(prefix));
-    let addon1Pool = byPrefix("addon1_");
-    let addon2Pool = byPrefix("addon2_");
-    if (addon1Pool.length === 0 && addon2Pool.length === 0) {
-      addon1Pool = addonAll;
-      addon2Pool = addonAll;
-    } else {
-      if (addon1Pool.length === 0) addon1Pool = addonAll;
-      if (addon2Pool.length === 0) addon2Pool = addonAll;
-    }
+const noneItem = { assetId:"", imageUrl:"", rarity:1 };
 
-    const noneItem = { assetId: "", imageUrl: "", rarity: 1 };
+grids.head = makeVirtualGrid(q("#headGrid"), headItems, ()=>SEL.headId, (id)=>{ SEL.headId=id; applyBodyGenderRule(); refreshPreview(); });
+grids.body = makeVirtualGrid(q("#bodyGrid"), bodyItems, ()=>SEL.bodyId, (id)=>{ SEL.bodyId=id; refreshPreview(); });
+grids.bg = makeVirtualGrid(q("#bgGrid"), bgItems, ()=>SEL.bgId, (id)=>{ SEL.bgId=id; refreshPreview(); });
+grids.addon1 = makeVirtualGrid(q("#addon1Grid"), [noneItem, ...addon1Pool], ()=>SEL.addon1Id, (id)=>{ SEL.addon1Id=id; refreshPreview(); });
+grids.addon2 = makeVirtualGrid(q("#addon2Grid"), [noneItem, ...addon2Pool], ()=>SEL.addon2Id, (id)=>{ SEL.addon2Id=id; refreshPreview(); });
 
-    grids.head = makeVirtualGrid(q("#headGrid"), headItems, () => SEL.headId, (id) => { SEL.headId = id; applyBodyGenderRule(); refreshPreview(); });
-    grids.body = makeVirtualGrid(q("#bodyGrid"), bodyItems, () => SEL.bodyId, (id) => { SEL.bodyId = id; refreshPreview(); });
-    grids.bg = makeVirtualGrid(q("#bgGrid"), bgItems, () => SEL.bgId, (id) => { SEL.bgId = id; refreshPreview(); });
-    grids.addon1 = makeVirtualGrid(q("#addon1Grid"), [noneItem, ...addon1Pool], () => SEL.addon1Id, (id) => { SEL.addon1Id = id; refreshPreview(); });
-    grids.addon2 = makeVirtualGrid(q("#addon2Grid"), [noneItem, ...addon2Pool], () => SEL.addon2Id, (id) => { SEL.addon2Id = id; refreshPreview(); });
+refreshPreview();
 
-    refreshPreview();
+q("#randomBtn").addEventListener("click", ()=>{
+  const hItems = ownedOptions("head");
+  const bItemsAll = ownedOptions("body");
+  const gItems = ownedOptions("background");
+  if(hItems.length === 0 || bItemsAll.length === 0 || gItems.length === 0) return toast("素材不足");
+  SEL.headId = randPick(hItems).assetId;
+  const hGender = genderTag(SEL.headId);
+  let cBodies = hGender ? bItemsAll.filter(it => !genderTag(it.assetId) || genderTag(it.assetId) === hGender) : bItemsAll;
+  SEL.bodyId = randPick(cBodies.length ? cBodies : bItemsAll).assetId;
+  SEL.bgId = randPick(gItems).assetId;
+  applyBodyGenderRule();
+  const aAll = ownedOptions("accessory");
+  const p1 = aAll.filter(a=> (a.imageUrl||"").split("/").pop().startsWith("addon1_"));
+  const p2 = aAll.filter(a=> (a.imageUrl||"").split("/").pop().startsWith("addon2_"));
+  SEL.addon1Id = (p1.length ? randPick([ {assetId:""}, ...p1 ]).assetId : "");
+  SEL.addon2Id = (p2.length ? randPick([ {assetId:""}, ...p2 ]).assetId : "");
+  refreshPreview();
+  Object.values(grids).forEach(g => g.rerender());
+  toast("已隨機搭配");
+});
 
-    // --- Random Button ---
-    q("#randomBtn").addEventListener("click", () => {
-      const hItems = ownedOptions("head");
-      const bItemsAll = ownedOptions("body");
-      const gItems = ownedOptions("background");
-      if (hItems.length === 0 || bItemsAll.length === 0 || gItems.length === 0) return toast("素材不足");
-      
-      SEL.headId = randPick(hItems).assetId;
-      const hGender = genderTag(SEL.headId);
-      let cBodies = hGender ? bItemsAll.filter(it => !genderTag(it.assetId) || genderTag(it.assetId) === hGender) : bItemsAll;
-      SEL.bodyId = randPick(cBodies.length ? cBodies : bItemsAll).assetId;
-      SEL.bgId = randPick(gItems).assetId;
-      applyBodyGenderRule();
-      
-      const aAll = ownedOptions("accessory");
-      const p1 = aAll.filter(a => (a.imageUrl || "").split("/").pop().startsWith("addon1_"));
-      const p2 = aAll.filter(a => (a.imageUrl || "").split("/").pop().startsWith("addon2_"));
-      SEL.addon1Id = (p1.length ? randPick([{ assetId: "" }, ...p1]).assetId : "");
-      SEL.addon2Id = (p2.length ? randPick([{ assetId: "" }, ...p2]).assetId : "");
-      
-      refreshPreview();
-      Object.values(grids).forEach(g => g.rerender());
-      toast("✨ 已隨機搭配");
-    });
-
-    // --- Submit Button ---
-    q("#submitBtn").addEventListener("click", async () => {
-      const payload = {
-        title: q("#titleInput").value.trim(),
-        headId: SEL.headId,
-        bodyId: SEL.bodyId,
-        bgId: SEL.bgId,
-        addon1Id: SEL.addon1Id || "",
-        addon2Id: SEL.addon2Id || "",
-        seasonId: "S1"
-      };
-      
-      if (!payload.headId || !payload.bodyId || !payload.bgId) return toast("❌ 素材不足");
-      if (!isGenderCompatible(payload.headId, payload.bodyId)) return toast("❌ 性別不匹配");
-      
-      toast("🚀 提交中...");
-      let data = await submitOnline(payload) || await submitOffline(payload);
-      showUnlock(data.unlockedRecipes || []);
-      toast("✅ 提交成功！");
-      setTimeout(() => location.href = "gallery.html", 1000);
-    });
-
-    refreshPreview();
-  })();
-  </script>
-  <div id="hoverPreview"><img alt="preview" /></div>
+q("#submitBtn").addEventListener("click", async ()=>{
+  const payload = { title: q("#titleInput").value.trim(), headId: SEL.headId, bodyId: SEL.bodyId, bgId: SEL.bgId, addon1Id: SEL.addon1Id || "", addon2Id: SEL.addon2Id || "", seasonId: "S1" };
+  if(!payload.headId || !payload.bodyId || !payload.bgId) return toast("素材不足");
+  if(!isGenderCompatible(payload.headId, payload.bodyId)) return toast("性別不匹配");
+  toast("提交中");
+  let data = await submitOnline(payload) || await submitOffline(payload);
+  showUnlock(data.unlockedRecipes || []);
+  toast("已提交");
+  setTimeout(()=>location.href="gallery.html", 700);
+});
+refreshPreview();
+})();
+</script>
+<div id="hoverPreview"><img alt="preview"/></div>
 </body>
 </html>
