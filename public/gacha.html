@@ -524,7 +524,15 @@
       if(opts.type){
         pool = pool.filter(a => String(a.type||"") === String(opts.type));
       }
-      if(pool.length === 0) pool = assets;
+      if(pool.length === 0){
+        // 如果指定了 type 但該稀有度沒有素材，改成只放寬 rarity 仍然限制在同一個 type
+        if(opts.type){
+          const tp = String(opts.type);
+          pool = assets.filter(a => String(a.type||"") === tp);
+        }
+        // 最後才退回全素材，避免轉盤出現其他類型造成誤解
+        if(pool.length === 0) pool = assets;
+      }
 
       const a = pool[Math.floor(Math.random()*pool.length)];
       return {
