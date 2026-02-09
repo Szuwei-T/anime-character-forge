@@ -169,7 +169,7 @@
 
               <div class="stageOverlay">
                 <button class="smallBtn" id="randomBtn">隨機搭配</button>
-                <button class="smallBtn" id="submitBtn">提交展示</button>
+                <button class="smallBtn" id="submitBtn">保存</button>
               </div>
             </div>
             <div style="height:10px"></div>
@@ -377,9 +377,9 @@ if(!APP.offline){
 
     const byId = new Map(db.assets.map(a=>[a.assetId,a]));
 
-    async function submitOnline(payload){
+    async function saveOnline(payload){
       try{
-        const res = await api("/api/submit", {
+        const res = await api("/api/save", {
           method: "POST",
           body: JSON.stringify(payload)
         });
@@ -390,31 +390,24 @@ if(!APP.offline){
       }
     }
 
-    async function submitOffline(payload){
+    async function saveOffline(payload){
       const db2 = offlineDb();
-      const buildId = crypto.randomUUID();
-      const createdAt = Date.now();
-      const b = {
-        buildId, uid: APP.uid, title: payload.title || "",
-        headId: payload.headId, bodyId: payload.bodyId, bgId: payload.bgId,
-        addon1Id: payload.addon1Id || "", addon2Id: payload.addon2Id || "",
-        createdAt, seasonId: payload.seasonId || "S1", scoreSum: 0, scoreCount: 0
+      const id = crypto.randomUUID();
+      const savedOn = Date.now();
+      const row = {
+        id,
+        userId: APP.uid,
+        headId: payload.headId,
+        bodyId: payload.bodyId,
+        bgId: payload.bgId,
+        addon1Id: payload.addon1Id || "",
+        addon2Id: payload.addon2Id || "",
+        savedOn
       };
-      db2.builds = db2.builds || [];
-      db2.builds.unshift(b);
-      const unlockedRecipes = [];
-      const recipes = db2.recipes || [];
-      for(const r of recipes){
-        const a = normalizeAccessoryIds(r.accessoryIds || []);
-        const bAcc = normalizeAccessoryIds([payload.addon1Id, payload.addon2Id].filter(Boolean));
-        if(r.headId === payload.headId && r.bodyId === payload.bodyId && r.bgId === payload.bgId && sameSet(a, bAcc)){
-          const k = `${APP.uid}:${r.recipeId}`;
-          db2.unlocks[k] = Date.now();
-          unlockedRecipes.push(r.recipeId);
-        }
-      }
+      db2.saves = db2.saves || [];
+      db2.saves.unshift(row);
       saveOfflineDb(db2);
-      return { ok:true, buildId, unlockedRecipes };
+      return { ok:true, id, savedOn };
     }
 
     function showUnlock(ids){
@@ -673,17 +666,21 @@ q("#randomBtn").addEventListener("click", ()=>{
 });
 
 q("#submitBtn").addEventListener("click", async ()=>{
-  const payload = { title: q("#titleInput").value.trim(), headId: SEL.headId, bodyId: SEL.bodyId, bgId: SEL.bgId, addon1Id: SEL.addon1Id || "", addon2Id: SEL.addon2Id || "", seasonId: "S1" };
+  const payload = { headId: SEL.headId, bodyId: SEL.bodyId, bgId: SEL.bgId, addon1Id: SEL.addon1Id || "", addon2Id: SEL.addon2Id || "" };
   if(!payload.headId || !payload.bodyId || !payload.bgId) return toast("素材不足");
   if(!isGenderCompatible(payload.headId, payload.bodyId)) return toast("性別不匹配");
-  toast("提交中");
-  let data = await submitOnline(payload) || await submitOffline(payload);
-  showUnlock(data.unlockedRecipes || []);
-  toast("已提交");
-  setTimeout(()=>location.href="gallery.html", 700);
+  toast("保存中");
+  let data = await saveOnline(payload) || await saveOffline(payload);
+  if(data && data.ok){
+    toast("已保存");
+  }else{
+    toast("保存失敗");
+    console.log("save_failed", data);
+  }
 });
 refreshPreview();
 })();
+
 
 async function doUpgrade(assetId){
   const uid = localStorage.getItem("acf_uid");
