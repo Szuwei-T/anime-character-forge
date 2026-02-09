@@ -14,56 +14,161 @@
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, "Noto Sans TC", sans-serif;
     }
     .wrap{
-      max-width: 1100px;
+      max-width: 1200px;
       margin: 0 auto;
-      padding: 70px 20px 90px;
-      text-align:center;
+      padding: 56px 20px 88px;
     }
     h1{
       margin:0 0 18px;
-      font-size: 30px;
+      font-size: 28px;
       letter-spacing: 0.6px;
       opacity: 0.92;
+      text-align:center;
     }
+
+    .heroGrid{
+      display:grid;
+      grid-template-columns: 1fr 340px;
+      gap: 18px;
+      align-items:start;
+    }
+    @media (max-width: 940px){
+      .heroGrid{ grid-template-columns: 1fr; }
+    }
+
     .featured{
       display:flex;
       flex-direction:column;
       align-items:center;
-      gap:10px;
-      margin-bottom: 18px;
+      gap:12px;
+      margin-bottom: 14px;
     }
     .featured .badge{
       display:flex;
       align-items:center;
       gap:10px;
       opacity:0.85;
-      font-weight:700;
+      font-weight:800;
       letter-spacing:0.3px;
     }
-    .featured img{
-      width: 460px;
-      max-width: 90vw;
-      border-radius: 22px;
+    .featureStage{
+      width:min(520px, 92vw);
+      aspect-ratio: 1 / 1;
+      border-radius: 26px;
       background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.10);
       box-shadow: 0 28px 90px rgba(0,0,0,0.60);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;
+      position:relative;
+    }
+    .featureStage:before{
+      content:"";
+      position:absolute;
+      inset:-40%;
+      background: radial-gradient(circle at 30% 25%, rgba(255,255,255,0.12), transparent 55%),
+                  radial-gradient(circle at 70% 80%, rgba(121,215,255,0.10), transparent 55%),
+                  radial-gradient(circle at 40% 70%, rgba(255,198,106,0.10), transparent 60%);
+      filter: blur(10px);
+      transform: rotate(15deg);
+      pointer-events:none;
+    }
+    @keyframes floaty{
+      0%{ transform: translateY(0) scale(1); }
+      50%{ transform: translateY(-10px) scale(1.01); }
+      100%{ transform: translateY(0) scale(1); }
+    }
+    .featureStage img{
+      width: 96%;
+      height: 96%;
+      object-fit: contain;
+      display:block;
+      animation: floaty 3.2s ease-in-out infinite;
+      position:relative;
+      z-index:1;
+    }
+
+    .side{
+      display:flex;
+      flex-direction:column;
+      gap: 12px;
+    }
+    .sideCard{
+      border-radius: 18px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      box-shadow: 0 18px 60px rgba(0,0,0,0.35);
+      padding: 12px 12px 12px;
+    }
+    .sideCard .title{
+      font-weight: 900;
+      letter-spacing: 0.3px;
+      opacity: 0.95;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .miniRow{
+      display:flex;
+      gap: 10px;
+    }
+
+    .bottomGrid{
+      margin-top: 16px;
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    @media (max-width: 760px){
+      .bottomGrid{ grid-template-columns: 1fr; }
+    }
+    .sectionCard{
+      border-radius: 22px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      box-shadow: 0 18px 70px rgba(0,0,0,0.40);
+      padding: 16px;
+    }
+    .sectionCard .head{
+      display:flex;
+      align-items:baseline;
+      justify-content:space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .sectionCard .head .name{
+      font-weight: 950;
+      letter-spacing: 0.4px;
+      font-size: 18px;
+    }
+    .sectionCard .head .desc{
+      opacity: 0.75;
+      font-size: 13px;
+      font-weight: 700;
     }
     .btnRow{
       display:flex;
-      justify-content:center;
-      gap: 14px;
+      gap: 12px;
       flex-wrap:wrap;
-      margin-top: 18px;
+      align-items:center;
+      justify-content:flex-start;
     }
+
     .btn{
       border:0;
       border-radius: 999px;
-      padding: 14px 22px;
-      font-size: 16px;
-      font-weight: 900;
+      padding: 12px 18px;
+      font-size: 15px;
+      font-weight: 950;
       cursor:pointer;
       letter-spacing:0.4px;
       box-shadow: 0 18px 45px rgba(0,0,0,0.35);
       user-select:none;
+      white-space:nowrap;
     }
     .btn.orange{
       background: linear-gradient(135deg, #ffc66a, #ff9f2f);
@@ -78,6 +183,11 @@
       color:#fff;
       border: 1px solid rgba(255,255,255,0.12);
       box-shadow:none;
+    }
+    .btn.small{
+      padding: 10px 14px;
+      font-size: 14px;
+      box-shadow: none;
     }
 
     .overlay{
@@ -113,7 +223,7 @@
     .sub{
       opacity:0.75;
       font-size:14px;
-      font-weight:700;
+      font-weight:800;
     }
     .gacha-stage{
       margin-top: 16px;
@@ -189,7 +299,7 @@
       border-radius: 999px;
       padding: 12px 26px;
       font-size: 16px;
-      font-weight: 900;
+      font-weight: 950;
       cursor:pointer;
       background: linear-gradient(135deg, #ffde88, #caa54a);
       color:#111;
@@ -201,19 +311,85 @@
 <body>
   <div class="wrap">
     <h1>本期 Featured 角色</h1>
-    <div class="featured">
-      <div class="badge">
-        <span style="opacity:0.8">feature</span>
-      </div>
-      <img src="assets/feature_character.png" alt="">
-    </div>
 
-    <div class="btnRow">
-      <button class="btn orange" id="btnOnce">單次抽卡</button>
-      <button class="btn orange" id="btnTen">10 連抽</button>
-      <button class="btn blue" id="btnPremium">高級抽卡</button>
-      <button class="btn blue" id="btnPick">特定素材抽卡</button>
-      <a class="btn gray" href="hub.html" style="text-decoration:none;display:inline-flex;align-items:center;">返回</a>
+    <div class="heroGrid">
+      <div>
+        <div class="featured">
+          <div class="badge">
+            <span style="opacity:0.8">feature</span>
+          </div>
+          <div class="featureStage">
+            <img src="assets/feature_character.png" alt="">
+          </div>
+        </div>
+
+        <div class="bottomGrid">
+          <div class="sectionCard">
+            <div class="head">
+              <div class="name">普通抽卡</div>
+              <div class="desc">單次 或 10 連抽</div>
+            </div>
+            <div class="btnRow">
+              <button class="btn orange" id="btnNormal1">1次</button>
+              <button class="btn orange" id="btnNormal10">10次</button>
+            </div>
+          </div>
+
+          <div class="sectionCard">
+            <div class="head">
+              <div class="name">高級抽卡</div>
+              <div class="desc">單次 或 10 連抽</div>
+            </div>
+            <div class="btnRow">
+              <button class="btn blue" id="btnPremium1">1次</button>
+              <button class="btn blue" id="btnPremium10">10次</button>
+              <a class="btn gray" href="hub.html" style="text-decoration:none;display:inline-flex;align-items:center;">返回</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="side">
+        <div class="sideCard">
+          <div class="title"><span>抽角色</span><span style="opacity:0.7;font-weight:800">head</span></div>
+          <div class="miniRow">
+            <button class="btn gray small" id="btnHead1">1次</button>
+            <button class="btn gray small" id="btnHead10">10次</button>
+          </div>
+        </div>
+
+        <div class="sideCard">
+          <div class="title"><span>抽服裝</span><span style="opacity:0.7;font-weight:800">body</span></div>
+          <div class="miniRow">
+            <button class="btn gray small" id="btnBody1">1次</button>
+            <button class="btn gray small" id="btnBody10">10次</button>
+          </div>
+        </div>
+
+        <div class="sideCard">
+          <div class="title"><span>抽背景</span><span style="opacity:0.7;font-weight:800">background</span></div>
+          <div class="miniRow">
+            <button class="btn gray small" id="btnBg1">1次</button>
+            <button class="btn gray small" id="btnBg10">10次</button>
+          </div>
+        </div>
+
+        <div class="sideCard">
+          <div class="title"><span>抽特效1</span><span style="opacity:0.7;font-weight:800">addon1</span></div>
+          <div class="miniRow">
+            <button class="btn gray small" id="btnAddon11">1次</button>
+            <button class="btn gray small" id="btnAddon110">10次</button>
+          </div>
+        </div>
+
+        <div class="sideCard">
+          <div class="title"><span>抽特效2</span><span style="opacity:0.7;font-weight:800">addon2</span></div>
+          <div class="miniRow">
+            <button class="btn gray small" id="btnAddon21">1次</button>
+            <button class="btn gray small" id="btnAddon210">10次</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -237,10 +413,21 @@
     const rollSub = document.getElementById("rollSub");
     const confirmBtn = document.getElementById("confirmBtn");
 
-    const btnOnce = document.getElementById("btnOnce");
-    const btnTen = document.getElementById("btnTen");
-    const btnPremium = document.getElementById("btnPremium");
-    const btnPick = document.getElementById("btnPick");
+    const btnNormal1 = document.getElementById("btnNormal1");
+    const btnNormal10 = document.getElementById("btnNormal10");
+    const btnPremium1 = document.getElementById("btnPremium1");
+    const btnPremium10 = document.getElementById("btnPremium10");
+
+    const btnHead1 = document.getElementById("btnHead1");
+    const btnHead10 = document.getElementById("btnHead10");
+    const btnBody1 = document.getElementById("btnBody1");
+    const btnBody10 = document.getElementById("btnBody10");
+    const btnBg1 = document.getElementById("btnBg1");
+    const btnBg10 = document.getElementById("btnBg10");
+    const btnAddon11 = document.getElementById("btnAddon11");
+    const btnAddon110 = document.getElementById("btnAddon110");
+    const btnAddon21 = document.getElementById("btnAddon21");
+    const btnAddon210 = document.getElementById("btnAddon210");
 
     let animating = false;
     let cachedAssets = null;
@@ -306,7 +493,9 @@
       }
 
       let pool = assets.filter(a => Number(a.rarity||1) === rarity);
-      if(opts.pick && opts.type){
+
+      // 注意: offline 也支援強制 type
+      if(opts.type){
         pool = pool.filter(a => String(a.type||"") === String(opts.type));
       }
       if(pool.length === 0) pool = assets;
@@ -332,7 +521,6 @@
       const payload = {
         rolls: Number(opts.count || 1),
         premium: !!opts.premium,
-        pick: !!opts.pick,
         type: opts.type || ""
       };
       const data = await api("/api/gacha", { method:"POST", body: JSON.stringify(payload) });
@@ -404,7 +592,7 @@
         if(i === winnerIndex){
           fillers.push(win);
         }else{
-          const f = offlinePickOne({ premium: !!opts.premium });
+          const f = offlinePickOne({ premium: !!opts.premium, type: opts.type || "" });
           fillers.push(f || win);
         }
       }
@@ -420,7 +608,9 @@
         belt.appendChild(div);
       });
 
-      rollSub.textContent = (source === "online" ? "跑馬燈高速啟動" : "離線模式跑馬燈") + ` 抽到 ${win.assetId} ⭐ ${win.rarity}`;
+      const tag = opts.premium ? "高級" : "普通";
+      const typeTag = opts.type ? ` 類型 ${opts.type}` : "";
+      rollSub.textContent = (source === "online" ? "跑馬燈高速啟動" : "離線模式跑馬燈") + ` ${tag}${typeTag} 抽到 ${win.assetId} ⭐ ${win.rarity}`;
 
       const stage = document.querySelector(".gacha-stage");
       const stageWidth = stage.getBoundingClientRect().width;
@@ -457,15 +647,27 @@
       requestAnimationFrame(frame);
     }
 
-    btnOnce.addEventListener("click", () => startGacha({ count: 1, premium: false }));
-    btnTen.addEventListener("click", () => startGacha({ count: 10, premium: false }));
-    btnPremium.addEventListener("click", () => startGacha({ count: 1, premium: true }));
+    // 底下 2 個大區塊
+    btnNormal1.addEventListener("click", () => startGacha({ count: 1, premium: false }));
+    btnNormal10.addEventListener("click", () => startGacha({ count: 10, premium: false }));
+    btnPremium1.addEventListener("click", () => startGacha({ count: 1, premium: true }));
+    btnPremium10.addEventListener("click", () => startGacha({ count: 10, premium: true }));
 
-    btnPick.addEventListener("click", async () => {
-      const type = prompt("輸入類型 head body background accessory");
-      if(!type) return;
-      await startGacha({ count: 1, premium: false, pick: true, type: type.trim() });
-    });
+    // 右側 5 個分類區塊 (普通抽卡 但強制 type)
+    btnHead1.addEventListener("click", () => startGacha({ count: 1, premium: false, type: "head" }));
+    btnHead10.addEventListener("click", () => startGacha({ count: 10, premium: false, type: "head" }));
+
+    btnBody1.addEventListener("click", () => startGacha({ count: 1, premium: false, type: "body" }));
+    btnBody10.addEventListener("click", () => startGacha({ count: 10, premium: false, type: "body" }));
+
+    btnBg1.addEventListener("click", () => startGacha({ count: 1, premium: false, type: "background" }));
+    btnBg10.addEventListener("click", () => startGacha({ count: 10, premium: false, type: "background" }));
+
+    btnAddon11.addEventListener("click", () => startGacha({ count: 1, premium: false, type: "addon1" }));
+    btnAddon110.addEventListener("click", () => startGacha({ count: 10, premium: false, type: "addon1" }));
+
+    btnAddon21.addEventListener("click", () => startGacha({ count: 1, premium: false, type: "addon2" }));
+    btnAddon210.addEventListener("click", () => startGacha({ count: 10, premium: false, type: "addon2" }));
   </script>
 </body>
 </html>
