@@ -245,6 +245,7 @@
       will-change: transform;
     }
     .card{
+      position:relative;
       width:124px;
       height:124px;
       border-radius:18px;
@@ -306,7 +307,24 @@
       display:none;
     }
     .confirm.show{ display:inline-flex; }
-  </style>
+  
+    .card.broken{
+      outline: 2px solid rgba(255, 80, 80, 0.75);
+    }
+    .broken-debug{
+      position:absolute;
+      left:8px;
+      right:8px;
+      bottom:8px;
+      font-size:12px;
+      line-height:1.2;
+      color: rgba(255,255,255,0.92);
+      background: rgba(0,0,0,0.55);
+      padding:6px 8px;
+      border-radius:10px;
+      word-break: break-all;
+    }
+</style>
 </head>
 <body>
   <div class="wrap">
@@ -440,7 +458,15 @@
     function normalizeType(t){
       const x = String(t||"");
       if(x === "bg") return "background";
-      if(x === "addon1" || x === "addon2") return "accessory";
+      if(x === "background") return "background";
+      if(x === "addon1") return "addon1";
+      if(x === "addon2") return "addon2";
+      return x;
+    }
+
+    function requestType(t){
+      const x = String(t||"");
+      if(x === "background") return "bg";
       return x;
     }
 
@@ -521,7 +547,7 @@
       const payload = {
         rolls: Number(opts.count || 1),
         premium: !!opts.premium,
-        type: opts.type || ""
+        type: (opts.type ? requestType(opts.type) : "")
       };
       const data = await api("/api/gacha", { method:"POST", body: JSON.stringify(payload) });
       if(!data || !data.ok) return null;
@@ -540,6 +566,8 @@
     async function startGacha(opts={}){
       if(animating) return;
       animating = true;
+      opts = Object.assign({}, opts);
+      if(opts.type) opts.pick = true;
 
       await ensureAssetsLoaded();
       showOverlay();
@@ -592,7 +620,7 @@
         if(i === winnerIndex){
           fillers.push(win);
         }else{
-          const f = offlinePickOne({ premium: !!opts.premium, type: opts.type || "" });
+          const f = offlinePickOne({ premium: !!opts.premium, type: (opts.type ? requestType(opts.type) : "") });
           fillers.push(f || win);
         }
       }
@@ -604,7 +632,29 @@
         const div = document.createElement("div");
         div.className = "card";
         const src = toThumbIfNeeded(item);
-        div.innerHTML = `<img src="${src}" alt="">`;
+
+        const img = document.createElement("img");
+        img.src = src;
+        img.alt = "";
+
+        const dbg = document.createElement("div");
+        dbg.className = "broken-debug";
+        dbg.style.display = "none";
+        dbg.textContent = `broken | ${item.type} | ${item.assetId} | ⭐${item.rarity} | ${src}`;
+
+        img.addEventListener("error", () => {
+          const cur = img.getAttribute("src") || "";
+          // fallback: head/body thumbs might not exist
+          if(cur.includes("_thumb.")){
+            img.src = cur.replace("_thumb.", ".");
+            return;
+          }
+          div.classList.add("broken");
+          dbg.style.display = "block";
+        });
+
+        div.appendChild(img);
+        div.appendChild(dbg);
         belt.appendChild(div);
       });
 
