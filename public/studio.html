@@ -84,37 +84,16 @@
     pointer-events: none;
   }
 
-  /* Star Badge (Bottom Right - Modified) */
+  /* Star Badge (Bottom Left) */
   .badge-stars {
     position: absolute;
-    right: 4px;
+    left: 4px;
     bottom: 4px;
     color: #fbbf24;
-    font-size: 12px;
-    background: rgba(0,0,0,0.6);
-    padding: 1px 4px;
-    border-radius: 4px;
+    font-size: 10px;
     text-shadow: 0 0 4px rgba(0,0,0,0.8);
     z-index: 2;
     pointer-events: none;
-    display: flex;
-    align-items: center;
-    gap: 1px;
-  }
-
-  /* Rarity Badge (Top Left - New) */
-  .badge-rarity {
-    position: absolute;
-    left: 4px;
-    top: 4px;
-    background: rgba(0,0,0,0.6);
-    color: #fff;
-    font-size: 10px;
-    padding: 1px 4px;
-    border-radius: 4px;
-    z-index: 2;
-    pointer-events: none;
-    font-weight: bold;
   }
 
   /* unlocked tick */
@@ -158,47 +137,6 @@
     object-fit:contain;
   }
 </style>
-
-<script>
-const TRANSPARENT_PIXEL = "data:image/gif;base64,R0lGODlhAQABAAAAACwAAAAAAQABAAA=";
-
-function setImgWithFallback(imgEl, thumbUrl, originalUrl){
-  imgEl.onerror = null;
-  imgEl.src = TRANSPARENT_PIXEL;
-  let triedOriginal = false;
-  imgEl.onerror = () => {
-    if(!triedOriginal && originalUrl){
-      triedOriginal = true;
-      imgEl.src = originalUrl;
-      return;
-    }
-    imgEl.onerror = null;
-    imgEl.src = TRANSPARENT_PIXEL;
-    imgEl.style.visibility = "hidden";
-  };
-  imgEl.style.visibility = "visible";
-  imgEl.src = thumbUrl || originalUrl || TRANSPARENT_PIXEL;
-}
-
-function renderEmptySlot(el){
-  el.innerHTML = "";
-  const d = document.createElement("div");
-  d.className = "slot-placeholder";
-  el.appendChild(d);
-}
-</script>
-
-
-<style>
-.slot-placeholder{
-  width:100%;
-  height:100%;
-  border-radius:12px;
-  border:1px solid rgba(255,255,255,0.18);
-  background:rgba(255,255,255,0.04);
-}
-</style>
-
 </head>
 <body>
   <div class="container">
@@ -271,7 +209,34 @@ function renderEmptySlot(el){
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <script src="app.js">
+function upgradeCost(stars){
+  if(stars >= 5) return null;
+  return stars * 10;
+}
+
+async function doUpgrade(assetId){
+  const uid = localStorage.getItem("acf_uid");
+  const card = document.querySelector(`[data-asset-id='${assetId}']`);
+  if(card) card.classList.add("upgrading");
+
+  const res = await fetch(WORKER_BASE + "/api/upgrade", {
+    method:"POST",
+    headers:{ "content-type":"application/json", "x-user-id": uid },
+    body: JSON.stringify({ uid, assetId })
+  }).then(r=>r.json());
+
+  if(res.ok){
+    await reloadInventory();
+  }else{
+    alert(res.error || "upgrade failed");
+  }
+
+  if(card) card.classList.remove("upgrading");
+}
+</script>
+
+
   <script>
   (async function(){
     await initSession();
@@ -367,14 +332,69 @@ if(!APP.offline){
     const rawAssets = assetsRes.assets || assetsRes.items || assetsRes.rows || assetsRes.results || [];
     const assets = (rawAssets || []).map(a=>{
       const t = String(a.type || "");
-      return a;
+      let type = t;
+      if(t === "bg") type = "background";
+      if(t === "addon1" || t === "addon2") type = "accessory";
+      if(t === "backgrounds") type = "background";
+      return { assetId: a.assetId, type, rarity: Number(a.rarity||1), imageUrl: a.imageUrl };
     });
-    if(assets.length > 0) db.assets = assets;
-  }catch(e){}
+
+    const invRes = await fetch(WORKER_BASE + "/api/me/assets?uid=" + encodeURIComponent(APP.uid)).then(r=>r.json());
+    const items = invRes.items || invRes.assets || invRes.rows || invRes.results || [];
+    const store = {};
+    for(const it of (items || [])){
+      const aid = it.assetId || it.asset_id || it.id;
+      if(!aid) continue;
+      store[`${APP.uid}:${aid}`] = Number(it.count || it.qty || 1);
+    }
+
+    db = { assets, userAssets: store, unlocks: {} };
+  }catch(e){
+    db = offlineDb();
+  }
 }
 
-    const byId = new Map(db.assets.map(a=>[a.assetId, a]));
-    const byRarityDesc = (a,b) => (b.rarity||1) - (a.rarity||1);
+    const byId = new Map(db.assets.map(a=>[a.assetId,a]));
+
+    async function submitOnline(payload){
+      try{
+        const res = await api("/api/submit", {
+          method: "POST",
+          body: JSON.stringify(payload)
+        });
+        if(res && res.ok) return res;
+        return res || null;
+      }catch(e){
+        return null;
+      }
+    }
+
+    async function submitOffline(payload){
+      const db2 = offlineDb();
+      const buildId = crypto.randomUUID();
+      const createdAt = Date.now();
+      const b = {
+        buildId, uid: APP.uid, title: payload.title || "",
+        headId: payload.headId, bodyId: payload.bodyId, bgId: payload.bgId,
+        addon1Id: payload.addon1Id || "", addon2Id: payload.addon2Id || "",
+        createdAt, seasonId: payload.seasonId || "S1", scoreSum: 0, scoreCount: 0
+      };
+      db2.builds = db2.builds || [];
+      db2.builds.unshift(b);
+      const unlockedRecipes = [];
+      const recipes = db2.recipes || [];
+      for(const r of recipes){
+        const a = normalizeAccessoryIds(r.accessoryIds || []);
+        const bAcc = normalizeAccessoryIds([payload.addon1Id, payload.addon2Id].filter(Boolean));
+        if(r.headId === payload.headId && r.bodyId === payload.bodyId && r.bgId === payload.bgId && sameSet(a, bAcc)){
+          const k = `${APP.uid}:${r.recipeId}`;
+          db2.unlocks[k] = Date.now();
+          unlockedRecipes.push(r.recipeId);
+        }
+      }
+      saveOfflineDb(db2);
+      return { ok:true, buildId, unlockedRecipes };
+    }
 
     function showUnlock(ids){
       const el = q("#unlockHint");
@@ -385,17 +405,7 @@ if(!APP.offline){
     function invCount(assetId){
       const k = `${APP.uid}:${assetId}`;
       const store = db.userAssets || db.playerAssets || db.assetsOwned || {};
-      return Number(store[k]?.count || store[k] || store[assetId]?.count || store[assetId] || 0);
-    }
-
-    // New function to get stars from database
-    function invStars(assetId){
-      const k = `${APP.uid}:${assetId}`;
-      const store = db.userAssets || db.playerAssets || db.assetsOwned || {};
-      const entry = store[k] || store[assetId];
-      if(entry && typeof entry === 'object' && entry.stars !== undefined) return Number(entry.stars);
-      // Fallback to calculated stars if not explicitly in DB
-      return getAssetStats(assetId, invCount(assetId)).stars;
+      return Number(store[k] || store[assetId] || 0);
     }
 
     function ownedOptions(type){
@@ -478,8 +488,7 @@ function makeVirtualGrid(container, items0, getSelectedId, onSelect, options){
 
         const img = document.createElement("img");
         img.className = "asset-thumb";
-        const thumbUrl = listImgUrl(it);
-        img.src = thumbUrl || "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
+        img.src = listImgUrl(it) || "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
         if(getSelectedId() === it.assetId) img.classList.add("active");
 
         img.addEventListener("click", ()=>{ onSelect(it.assetId); rerender(); });
@@ -492,37 +501,17 @@ function makeVirtualGrid(container, items0, getSelectedId, onSelect, options){
         if(it.assetId) {
           const count = invCount(it.assetId);
           const stats = getAssetStats(it.assetId, count);
-          const stars = invStars(it.assetId); // Use DB stars
           
-          // Rarity Badge (Top Left) - Mapping: 1:C, 2:R, 3:SR, 4:SSR, 5:UR
-          // Hide if thumb is used (user said "if using thumb then don't show")
-          // However, usually thumb is always used in grid. I'll interpret this as "if the asset has a thumbnail image".
-          // Or maybe the user meant if the asset IS a thumbnail. 
-          // Given the prompt "稀有度寫到左上角(用thumb就不用顯示)", I will show it only if it's not a "thumb" type or similar.
-          // But looking at the code, everything in the grid uses `asset-thumb`.
-          // I'll add a check: if thumbUrl exists, maybe don't show? No, that's always true.
-          // I'll just implement the rarity display and if the user wants it hidden for specific cases, they can clarify.
-          // Actually, I'll check if the asset has a rarity and show it.
-          const rarityMap = { 1: "C", 2: "R", 3: "SR", 4: "SSR", 5: "UR" };
-          const rText = rarityMap[it.rarity || 1] || "C";
-          
-          const rBadge = document.createElement("div");
-          rBadge.className = "badge-rarity";
-          rBadge.textContent = rText;
-          // The user said "(用thumb就不用顯示)". I will assume they mean if the image is a thumbnail.
-          // But in this grid, everything is a thumbnail. I'll show it for now as requested "稀有度寫到左上角".
-          wrap.appendChild(rBadge);
-
           // Count Badge (Top Right)
           const cBadge = document.createElement("div");
           cBadge.className = "badge-count";
           cBadge.textContent = `${stats.totalCount}/${stats.neededForNext}`;
           wrap.appendChild(cBadge);
           
-          // Star Badge (Bottom Right)
+          // Star Badge (Bottom Left)
           const sBadge = document.createElement("div");
           sBadge.className = "badge-stars";
-          sBadge.textContent = "★".repeat(stars);
+          sBadge.textContent = "★".repeat(stats.stars);
           wrap.appendChild(sBadge);
         }
 
