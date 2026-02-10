@@ -305,20 +305,36 @@
       signOut
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-    const firebaseConfig = {
-    apiKey: "AIzaSyDMcp3UZwmscbneDwnuaPpCDe2n6_7kKpI",
-    authDomain: "dream-league-baseball.firebaseapp.com",
-    projectId: "dream-league-baseball",
-    storageBucket: "dream-league-baseball.appspot.com",
-    messagingSenderId: "355433474466",
-    appId: "1:355433474466:web:b710e031c858c725e32afb",
-    measurementId: "G-CKBZSSK06B"
-  };
+    const firebaseConfig = await loadFirebaseConfig();
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
     const $ = (id) => document.getElementById(id);
+
+    async function loadFirebaseConfig() {
+      // We fetch the Firebase Web config from Worker to avoid hardcoding the wrong project.
+      // This fixes "auth/unauthorized-domain" that happens when authDomain/projectId is mismatched.
+      try {
+        const res = await fetch("/api/firebase-config", { method: "GET" });
+        const data = await res.json().catch(() => null);
+        if (!res.ok || !data || data.ok === false) {
+          const err = data?.error || ("http_" + res.status);
+          throw new Error(err);
+        }
+        return data.firebaseConfig;
+      } catch (e) {
+        setStatus(
+          "Firebase 設定讀取失敗\n" +
+          "請在 Cloudflare Worker 設定環境變數 FIREBASE_CONFIG\n" +
+          "並重新部署 worker.js\n\n" +
+          "錯誤: " + (e?.message || e),
+          "err"
+        );
+        throw e;
+      }
+    }
+
 
     const statusEl = $("status");
     function setStatus(msg, kind = "") {
