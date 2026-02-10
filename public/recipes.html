@@ -33,8 +33,8 @@
     .meta .parts{font-size:12px;opacity:.65;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
     /* Locked recipe cards */
-    .locked .thumb{filter:blur(4px) brightness(.55);transform:scale(1.02)}
-    .lockmask{position:absolute;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;gap:10px;flex-direction:column}
+    .locked .thumb{filter:blur(18px) brightness(.3) saturate(.2) contrast(.85);transform:scale(1.08)}
+    .lockmask{position:absolute;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;gap:10px;flex-direction:column}
     .lockmask .lock{font-size:28px;line-height:1}
     .lockmask .txt{font-size:13px;opacity:.95}
 
@@ -202,11 +202,8 @@
   window.addEventListener("keydown", (e) => { if (e.key === "Escape") modal.classList.remove("show"); });
 
   function thumbUrl(assetUrl){
-    // Prefer _thumb for head/body if exists, fallback to original
-    if (!assetUrl) return "";
-    // Only add _thumb before .png if it's a .png
-    if (assetUrl.endsWith(".png")) return assetUrl.replace(/\.png$/i, "_thumb.png");
-    return assetUrl;
+    // thumbs disabled: always use original
+    return assetUrl || "";
   }
 
   function makeStackThumb(container, layers){
@@ -219,11 +216,7 @@
       div.style.zIndex = String(l.z || 0);
       const img = document.createElement("img");
       img.loading = "lazy";
-      const primary = l.preferThumb ? thumbUrl(l.url) : l.url;
-      img.src = primary;
-      if (l.preferThumb){
-        img.onerror = () => { img.onerror = null; img.src = l.url; };
-      }
+      img.src = l.url;
       div.appendChild(img);
       container.appendChild(div);
     });
@@ -277,8 +270,8 @@
         const layersThumb = [
           { url: s.bgUrl, z: 10, preferThumb:false },
           { url: s.addon2Url, z: 20, preferThumb:false },
-          { url: s.headUrl, z: 30, preferThumb:true },
-          { url: s.bodyUrl, z: 40, preferThumb:true },
+          { url: s.headUrl, z: 30, preferThumb:false },
+          { url: s.bodyUrl, z: 40, preferThumb:false },
           { url: s.addon1Url, z: 50, preferThumb:false },
         ];
         makeStackThumb(th, layersThumb);
