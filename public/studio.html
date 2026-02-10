@@ -1158,9 +1158,28 @@ q("#submitBtn").addEventListener("click", async ()=>{
   toast("保存中");
   let data = await saveOnline(payload) || await saveOffline(payload);
   if(data && data.ok){
-    toast("已保存");
+    
+toast("已保存");
 
-    // check recipes -> unlock collection
+// If server returned unlocked recipeIds, use them directly
+const unlockedFromServer = Array.isArray(data.unlocked) ? data.unlocked : [];
+if(unlockedFromServer.length){
+  const newlyUnlocked = [];
+  for(const rid of unlockedFromServer){
+    const key = `${APP.uid}:${rid}`;
+    const already = !!(db.unlocks && db.unlocks[key]);
+    if(already) continue;
+    db.unlocks = db.unlocks || {};
+    db.unlocks[key] = Date.now();
+    newlyUnlocked.push(rid);
+  }
+  if(newlyUnlocked.length){
+    if(window.showCollectionFx) window.showCollectionFx(newlyUnlocked);
+  }
+  return;
+}
+
+// check recipes -> unlock collection
     const okRecipes = await ensureRecipesLoaded();
     if(!okRecipes){
       // no recipe list available, skip unlock
