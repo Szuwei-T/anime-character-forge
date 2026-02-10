@@ -22,6 +22,11 @@
     .card:hover{transform:translateY(-1px);border-color:rgba(255,255,255,.26)}
     .thumb{position:relative;width:100%;aspect-ratio:3/4;background:rgba(255,255,255,.04)}
     .layer{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;image-rendering:auto}
+    .layer-bg{z-index:1}
+    .layer-addon2{z-index:2}
+    .layer-head{z-index:3}
+    .layer-body{z-index:4}
+    .layer-addon1{z-index:5}
     .meta{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px 10px 12px}
     .meta .time{font-size:12px;opacity:.85;white-space:nowrap}
     .meta .parts{font-size:12px;opacity:.75;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -32,8 +37,8 @@
     .modalhead{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.12)}
     .modalhead .h{font-weight:800}
     .modalhead .x{cursor:pointer;border-radius:12px;padding:8px 10px;border:1px solid rgba(255,255,255,.16);background:rgba(0,0,0,.25)}
-    .modalbody{padding:14px}
-    .bigwrap{position:relative;width:100%;aspect-ratio:3/4;background:rgba(255,255,255,.04);border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,.10)}
+    .modalbody{padding:14px;max-height:calc(100vh - 140px);overflow:auto;-webkit-overflow-scrolling:touch}
+    .bigwrap{position:relative;width:100%;aspect-ratio:1365/2048;background:rgba(255,255,255,.04);border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,.10)}
     .bigwrap img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
     .footnote{margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;opacity:.9;font-size:12px}
     .muted{opacity:.75}
@@ -147,9 +152,9 @@
     return url;
   }
 
-  function makeLayerImg(url, preferThumb){
+  function makeLayerImg(url, preferThumb, role){
     const img = document.createElement("img");
-    img.className = "layer";
+    img.className = "layer " + (role || "");
     const raw = url || "";
     const thumb = preferThumb ? toThumb(raw) : raw;
 
@@ -165,23 +170,24 @@
   function buildThumbStack(save){
     const wrap = document.createElement("div");
     wrap.className = "thumb";
-    // ordering: bg -> body -> head -> addon1 -> addon2
-    wrap.appendChild(makeLayerImg(save.bgUrl, true));
-    wrap.appendChild(makeLayerImg(save.bodyUrl, true));
-    wrap.appendChild(makeLayerImg(save.headUrl, true));
-    if(save.addon1Url) wrap.appendChild(makeLayerImg(save.addon1Url, true));
-    if(save.addon2Url) wrap.appendChild(makeLayerImg(save.addon2Url, true));
+    // z-order required:
+    // addon1 top, body 2nd, head 3rd, addon2 4th, bg bottom
+    wrap.appendChild(makeLayerImg(save.bgUrl, true, "layer-bg"));
+    if(save.addon2Url) wrap.appendChild(makeLayerImg(save.addon2Url, true, "layer-addon2"));
+    wrap.appendChild(makeLayerImg(save.headUrl, true, "layer-head"));
+    wrap.appendChild(makeLayerImg(save.bodyUrl, true, "layer-body"));
+    if(save.addon1Url) wrap.appendChild(makeLayerImg(save.addon1Url, true, "layer-addon1"));
     return wrap;
   }
 
   function buildBigStack(save){
     const wrap = document.getElementById("bigwrap");
     wrap.innerHTML = "";
-    wrap.appendChild(makeLayerImg(save.bgUrl, false));
-    wrap.appendChild(makeLayerImg(save.bodyUrl, false));
-    wrap.appendChild(makeLayerImg(save.headUrl, false));
-    if(save.addon1Url) wrap.appendChild(makeLayerImg(save.addon1Url, false));
-    if(save.addon2Url) wrap.appendChild(makeLayerImg(save.addon2Url, false));
+    wrap.appendChild(makeLayerImg(save.bgUrl, false, "layer-bg"));
+    if(save.addon2Url) wrap.appendChild(makeLayerImg(save.addon2Url, false, "layer-addon2"));
+    wrap.appendChild(makeLayerImg(save.headUrl, false, "layer-head"));
+    wrap.appendChild(makeLayerImg(save.bodyUrl, false, "layer-body"));
+    if(save.addon1Url) wrap.appendChild(makeLayerImg(save.addon1Url, false, "layer-addon1"));
   }
 
   function openModal(save){
