@@ -341,6 +341,82 @@
   }
   #collectionFx.active{ display:flex; }
 
+
+/* === Unlock FX V3 (full-screen, big, obvious) === */
+#unlock-overlay{
+  position:fixed;
+  inset:0;
+  z-index:99999;
+  background:radial-gradient(circle at center, rgba(0,0,0,0.80), rgba(0,0,0,0.95));
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+}
+#unlock-overlay.unlock-hidden{ display:none; }
+
+#unlock-overlay .unlock-text{
+  font-size:64px;
+  font-weight:900;
+  letter-spacing:4px;
+  text-align:center;
+  padding:40px 60px;
+  border-radius:20px;
+  background:linear-gradient(90deg,#ffdf00,#ff6a00,#ff00ff,#00e5ff,#00ff9c);
+  background-size:400% 400%;
+  color:#fff;
+  text-shadow:
+    0 0 20px rgba(255,255,255,0.8),
+    0 0 60px rgba(255,215,0,0.9),
+    0 0 120px rgba(255,0,255,0.6);
+  animation:unlockGradient 2s linear infinite, unlockPulse 0.8s ease-in-out infinite;
+  transform:scale(0.6);
+  max-width:min(92vw, 980px);
+}
+
+@keyframes unlockGradient{
+  0%{ background-position:0% 50%; }
+  100%{ background-position:100% 50%; }
+}
+@keyframes unlockPulse{
+  0%{ transform:scale(0.9); }
+  50%{ transform:scale(1.06); }
+  100%{ transform:scale(0.9); }
+}
+
+#unlock-overlay .unlock-particles::before{
+  content:'';
+  position:absolute;
+  inset:-50%;
+  background-image:
+    radial-gradient(circle, rgba(255,255,255,0.85) 2px, transparent 2px),
+    radial-gradient(circle, rgba(255,215,0,0.85) 2px, transparent 2px),
+    radial-gradient(circle, rgba(0,255,255,0.80) 2px, transparent 2px);
+  background-size:80px 80px;
+  animation:particleBurst 1.2s ease-out forwards;
+}
+
+@keyframes particleBurst{
+  0%{ transform:scale(0.20); opacity:1; }
+  100%{ transform:scale(1.55); opacity:0; }
+}
+
+body.unlock-shake{
+  animation:shake 0.6s linear;
+}
+@keyframes shake{
+  0%{ transform:translate(0,0); }
+  20%{ transform:translate(-6px,3px); }
+  40%{ transform:translate(6px,-3px); }
+  60%{ transform:translate(-4px,2px); }
+  80%{ transform:translate(4px,-2px); }
+  100%{ transform:translate(0,0); }
+}
+
+/* mobile: make it even bigger */
+@media (max-width: 560px){
+  #unlock-overlay .unlock-text{ font-size:42px; padding:26px 18px; letter-spacing:2px; }
+}
 </style>
 </head>
 <body>
@@ -474,17 +550,23 @@ window.showLevelUpFx = function showLevelUpFx(){
 
 
 window.showCollectionFx = function showCollectionFx(recipeIds){
-  const fx = q("#collectionFx");
-  if(!fx) return;
-  const sub = q("#collectionFxSub");
-  const ids = Array.isArray(recipeIds) ? recipeIds.filter(Boolean) : [];
-  if(sub){
-    sub.textContent = ids.length ? ("Unlocked: " + ids.join("  ")) : "";
-  }
-  fx.style.display = "flex";
-  fx.classList.add("active");
-  clearTimeout(fx._t);
-  fx._t = setTimeout(()=>{ fx.classList.remove("active"); fx.style.display = "none"; }, 1150);
+  const overlay = document.getElementById("unlock-overlay");
+  if(!overlay) return;
+
+  // optional: show unlocked ids in console for debugging
+  try{
+    const ids = Array.isArray(recipeIds) ? recipeIds.filter(Boolean) : [];
+    if(ids.length) console.log("[unlock] new recipeIds:", ids);
+  }catch(e){}
+
+  overlay.classList.remove("unlock-hidden");
+  document.body.classList.add("unlock-shake");
+
+  clearTimeout(showCollectionFx._t);
+  showCollectionFx._t = setTimeout(()=>{
+    overlay.classList.add("unlock-hidden");
+    document.body.classList.remove("unlock-shake");
+  }, 1800);
 };
 
 
@@ -1249,5 +1331,12 @@ async function doUpgrade(assetId){
   </div>
 </div>
 
+
+
+<!-- Unlock FX Overlay -->
+<div id="unlock-overlay" class="unlock-hidden" aria-hidden="true">
+  <div class="unlock-particles"></div>
+  <div class="unlock-text">NEW COLLECTION UNLOCKED!</div>
+</div>
 </body>
 </html>
