@@ -667,6 +667,8 @@
       box.textContent = "";
     }
 
+    const API_BASE = "https://acf-api-dream-league-baseball.workers.dev";
+
     async function api(path, opts = {}){
       const init = {
         method: opts.method || "GET",
@@ -676,7 +678,7 @@
 
       let res;
       try{
-        res = await fetch(path, init);
+        res = await fetch(API_BASE + path, init);
       }catch(e){
         return { __net_error: true, message: String(e && e.message ? e.message : e) };
       }
@@ -694,6 +696,7 @@
 
       return data;
     }
+
 
     function normalizeType(t){
       if(!t) return "";
