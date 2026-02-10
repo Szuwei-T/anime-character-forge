@@ -326,6 +326,21 @@
     border-radius: 14px;
   }
 
+
+  /* Collection unlock FX */
+  #collectionFx{
+    position: fixed;
+    inset: 0;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index: 10001;
+    pointer-events:none;
+    background: rgba(0,0,0,0.22);
+    backdrop-filter: blur(2px);
+  }
+  #collectionFx.active{ display:flex; }
+
 </style>
 </head>
 <body>
@@ -453,6 +468,70 @@ window.showLevelUpFx = function showLevelUpFx(){
   clearTimeout(fx._t);
   fx._t = setTimeout(()=>{ fx.classList.remove("active"); }, 1050);
 };
+
+
+function normalizeAccessoryIds(payload){
+  const ids = [payload.addon1Id || "", payload.addon2Id || ""].filter(Boolean);
+  ids.sort();
+  return ids;
+}
+
+function recipeMatchesPayload(recipe, payload){
+  if(!recipe) return false;
+  if(recipe.headId !== payload.headId) return false;
+  if(recipe.bodyId !== payload.bodyId) return false;
+  if(recipe.bgId !== payload.bgId) return false;
+
+  const ra = (recipe.accessoryIds || []).filter(Boolean).slice().sort();
+  const pa = normalizeAccessoryIds(payload);
+  if(ra.length !== pa.length) return false;
+  for(let i=0;i<ra.length;i++){
+    if(ra[i] !== pa[i]) return false;
+  }
+  return true;
+}
+
+function findMatchingRecipeIds(payload){
+  const rs = (db.recipes || []);
+  const ids = [];
+  for(const r of rs){
+    if(recipeMatchesPayload(r, payload)) ids.push(r.recipeId);
+  }
+  return ids;
+}
+
+window.showCollectionFx = function showCollectionFx(recipeIds){
+  const fx = q("#collectionFx");
+  if(!fx) return;
+  const sub = q("#collectionFxSub");
+  if(sub) sub.textContent = (recipeIds && recipeIds.length) ? (`Recipe: ${recipeIds.join("  ")}`) : "";
+  fx.classList.add("active");
+  clearTimeout(fx._t);
+  fx._t = setTimeout(()=>{ fx.classList.remove("active"); }, 1200);
+};
+
+async function unlockRecipeOnline(recipeId){
+  try{
+    const res = await api("/api/unlock", {
+      method:"POST",
+      body: JSON.stringify({ recipeId })
+    });
+    return res;
+  }catch(e){
+    return null;
+  }
+}
+
+function unlockRecipeOffline(recipeId){
+  const db2 = offlineDb();
+  db2.unlocks = db2.unlocks || {};
+  db2.unlocks[`${APP.uid}:${recipeId}`] = Date.now();
+  saveOfflineDb(db2);
+  // keep in-memory db in sync too
+  db.unlocks = db.unlocks || {};
+  db.unlocks[`${APP.uid}:${recipeId}`] = db2.unlocks[`${APP.uid}:${recipeId}`];
+}
+
 
 
 function setImgWithFallback(imgEl, primaryUrl, fallbackUrl) {
@@ -1071,6 +1150,30 @@ q("#submitBtn").addEventListener("click", async ()=>{
   let data = await saveOnline(payload) || await saveOffline(payload);
   if(data && data.ok){
     toast("已保存");
+
+    // check recipes -> unlock collection
+    const matchIds = findMatchingRecipeIds(payload);
+    const newlyUnlocked = [];
+    for(const rid of matchIds){
+      const key = `${APP.uid}:${rid}`;
+      const already = !!(db.unlocks && db.unlocks[key]);
+      if(already) continue;
+
+      // write unlock (online first, fallback offline)
+      const u = await unlockRecipeOnline(rid);
+      if(!(u && u.ok)){
+        unlockRecipeOffline(rid);
+      }else{
+        // also mirror locally so UI updates immediately
+        db.unlocks = db.unlocks || {};
+        db.unlocks[key] = Date.now();
+      }
+      newlyUnlocked.push(rid);
+    }
+
+    if(newlyUnlocked.length){
+      if(window.showCollectionFx) window.showCollectionFx(newlyUnlocked);
+    }
   }else{
     toast("保存失敗");
     console.log("save_failed", data);
@@ -1108,6 +1211,14 @@ async function doUpgrade(assetId){
   <div>
     <div class="levelUpCard">NEW LEVEL UNLOCKED</div>
     <div class="levelUpSub">Upgrade successful</div>
+  </div>
+</div>
+
+
+<div id="collectionFx">
+  <div>
+    <div class="levelUpCard">NEW COLLECTION UNLOCKED!</div>
+    <div class="levelUpSub" id="collectionFxSub"></div>
   </div>
 </div>
 
