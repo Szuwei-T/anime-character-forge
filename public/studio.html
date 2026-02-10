@@ -342,76 +342,6 @@
   #collectionFx.active{ display:flex; }
 
 </style>
-
-<style id="unlockFxStyle">
-  /* Unlock overlay (patched) */
-  #unlock-overlay{
-    position:fixed; inset:0; z-index:999999;
-    background: radial-gradient(circle at center, rgba(0,0,0,0.72), rgba(0,0,0,0.94));
-    display:none; flex-direction:column; align-items:center; justify-content:space-between;
-    padding:40px 20px 60px;
-  }
-  #unlock-overlay.is-open{display:flex;}
-  #unlock-flash{position:absolute; inset:0; background:rgba(255,255,255,0.92); opacity:0; pointer-events:none;}
-  #unlock-overlay.is-open #unlock-flash{animation:unlockFlash .45s ease-out 1;}
-  @keyframes unlockFlash{0%{opacity:0} 15%{opacity:1} 100%{opacity:0}}
-
-  #unlock-particles{
-    position:absolute; inset:-50%;
-    opacity:0; pointer-events:none;
-    background-image:
-      radial-gradient(circle, rgba(255,255,255,0.8) 2px, transparent 2px),
-      radial-gradient(circle, rgba(255,215,0,0.75) 2px, transparent 2px),
-      radial-gradient(circle, rgba(0,229,255,0.7) 2px, transparent 2px);
-    background-size:80px 80px;
-  }
-  #unlock-overlay.is-open #unlock-particles{animation:unlockParticles 1.1s ease-out 1;}
-  @keyframes unlockParticles{0%{transform:scale(.2);opacity:1} 100%{transform:scale(1.45);opacity:0}}
-
-  .unlock-title{
-    font-size:56px; font-weight:900; letter-spacing:4px; text-align:center;
-    background:linear-gradient(90deg,#ffdf00,#ff6a00,#ff00ff,#00e5ff,#00ff9c);
-    background-size:400% 400%;
-    -webkit-background-clip:text; color:transparent;
-    text-shadow:0 0 20px rgba(255,255,255,.8), 0 0 70px rgba(255,215,0,.75);
-    animation:unlockGradient 2s linear infinite, unlockPulse .9s ease-in-out infinite;
-    z-index:1;
-  }
-  @keyframes unlockGradient{0%{background-position:0% 50%}100%{background-position:100% 50%}}
-  @keyframes unlockPulse{0%{transform:scale(.95)}50%{transform:scale(1.05)}100%{transform:scale(.95)}}
-
-  .unlock-image-wrap{flex:1; width:100%; display:flex; align-items:center; justify-content:center; z-index:1;}
-  .unlock-image{
-    max-height:70vh; max-width:min(70vw, 900px);
-    border-radius:16px;
-    box-shadow:0 0 30px rgba(255,255,255,.55), 0 0 140px rgba(255,215,0,.7);
-    transform:scale(.6); opacity:0;
-  }
-  #unlock-overlay.is-open .unlock-image{animation:unlockPop .6s ease-out forwards;}
-  @keyframes unlockPop{0%{transform:scale(.6);opacity:0}100%{transform:scale(1);opacity:1}}
-
-  .unlock-confirm{
-    padding:14px 52px; font-size:22px; font-weight:900;
-    border:none; border-radius:32px; cursor:pointer;
-    background:linear-gradient(90deg,#ffdf00,#ff6a00); color:#000;
-    box-shadow:0 0 20px rgba(255,215,0,.8), 0 0 60px rgba(255,106,0,.75);
-    transition:transform .12s ease;
-    z-index:1;
-  }
-  .unlock-confirm:hover{transform:scale(1.05)}
-  .unlock-confirm:active{transform:scale(.98)}
-
-  body.unlock-shake{animation:unlockShake .55s linear;}
-  @keyframes unlockShake{
-    0%{transform:translate(0,0)}
-    20%{transform:translate(-6px,3px)}
-    40%{transform:translate(6px,-3px)}
-    60%{transform:translate(-4px,2px)}
-    80%{transform:translate(4px,-2px)}
-    100%{transform:translate(0,0)}
-  }
-</style>
-
 </head>
 <body>
   <div class="container">
@@ -886,19 +816,16 @@ function setLayers(){
 
   setStage(bgEl, bgUrl, "");
   setStage(a2El, a2Url, "");
-
-  // If only head is selected (no body yet), show head thumb (no dim mask).
-  const headDisplayUrl = SEL.bodyId ? hUrl : bestThumb(hUrl);
-  setStage(hEl, headDisplayUrl, "");
-
+  setStage(hEl,  hUrl,  "");
   setStage(bEl,  bUrl,  "");
   setStage(a1El, a1Url, "");
 
-  // Remove the semi-transparent body-missing mask when only head is selected.
+  // body missing mask: hide parts that should be covered by body
   const maskEl = q("#bodyMissingMask");
   if(maskEl){
-    maskEl.style.display = "none";
-  }}
+    maskEl.style.display = SEL.bodyId ? "none" : "block";
+  }
+}
 
 
 function refreshPreview(){ setLayers(); }
@@ -1072,6 +999,11 @@ SEL.bodyId = bodyItems[0]?.assetId || "";
 
 function applyBodyGenderRule(){
   const headGender = genderTag(SEL.headId);
+  // if current body is opposite gender, clear it instead of keeping an invalid selection
+  if(headGender && SEL.bodyId){
+    const bg = genderTag(SEL.bodyId);
+    if(bg && bg !== headGender) SEL.bodyId = "";
+  }
   let filtered = bodyItemsAll;
 
   if(headGender){
@@ -1086,7 +1018,7 @@ bodyItems = filtered.length > 0 ? filtered : bodyItemsAll;
 
   // keep selection valid
   if(SEL.bodyId && !bodyItems.some(it=>it.assetId === SEL.bodyId)){
-    SEL.bodyId = bodyItems[0]?.assetId || "";
+    SEL.bodyId = "";
   }
   if(grids.body) grids.body.setItems(bodyItems);
 }
@@ -1123,6 +1055,20 @@ function enforceRarityAfterHeadChange(){
   if(SEL.addon1Id && !isCompatibleWithHead(SEL.addon1Id)) SEL.addon1Id = "";
   if(SEL.addon2Id && !isCompatibleWithHead(SEL.addon2Id)) SEL.addon2Id = "";
 
+
+  // gender compatibility: if head has gender, clear any selected items with opposite gender
+  const hg = genderTag(SEL.headId);
+  if(hg){
+    const clearIfMismatch = (key)=>{
+      const id = SEL[key];
+      if(!id) return;
+      const g = genderTag(id);
+      if(g && g !== hg) SEL[key] = "";
+    };
+    clearIfMismatch("bodyId");
+    clearIfMismatch("addon1Id");
+    clearIfMismatch("addon2Id");
+  }
   applyBodyGenderRule();
   applyBgRarityRule();
   applyAddonRarityRule();
@@ -1253,26 +1199,8 @@ q("#submitBtn").addEventListener("click", async ()=>{
         newlyUnlocked.push(rid);
       }
       saveOfflineDb(db2);
-
-      // Robust unlock FX triggering:
-      // - Prefer newlyUnlocked (not seen locally)
-      // - Fallback to server-matched unlocked (show once per session)
-      const unlockedFromServer =
-        (Array.isArray(data.unlocked) ? data.unlocked : []) ||
-        (Array.isArray(data.newlyUnlocked) ? data.newlyUnlocked : []) ||
-        (Array.isArray(data.new_unlocks) ? data.new_unlocks : []) ||
-        (Array.isArray(data.unlockedIds) ? data.unlockedIds : []) ||
-        [];
-
-      const toShow = (newlyUnlocked && newlyUnlocked.length) ? newlyUnlocked : unlockedFromServer;
-
-      if(toShow && toShow.length){
-        const rid = (typeof toShow[0] === "string") ? toShow[0] : null;
-        window.__seenUnlockFx = window.__seenUnlockFx || new Set();
-        if(rid && !window.__seenUnlockFx.has(rid)){
-          window.__seenUnlockFx.add(rid);
-          if(window.showCollectionFx) window.showCollectionFx(toShow);
-        }
+      if(newlyUnlocked.length){
+        if(window.showCollectionFx) window.showCollectionFx(newlyUnlocked);
       }
     }
 }else{
@@ -1322,84 +1250,6 @@ async function doUpgrade(assetId){
     <div class="levelUpSub" id="collectionFxSub"></div>
   </div>
 </div>
-
-
-
-<div id="unlock-overlay" aria-hidden="true">
-  <div id="unlock-flash"></div>
-  <div id="unlock-particles"></div>
-
-  <div class="unlock-title">NEW COLLECTION UNLOCKED!</div>
-
-  <div class="unlock-image-wrap">
-    <img id="unlock-img" class="unlock-image" alt="Unlocked Collection" />
-  </div>
-
-  <button id="unlock-confirm" class="unlock-confirm" type="button">CONFIRM</button>
-</div>
-
-
-<script id="unlockFxScript">
-(function(){
-  function qs(id){ return document.getElementById(id); }
-
-  function normalizeRecipeId(input){
-    if(!input) return null;
-    if(Array.isArray(input)) return input.length ? String(input[0]) : null;
-    return String(input);
-  }
-
-  function forceHide(){
-    const overlay = qs("unlock-overlay");
-    if(!overlay) return;
-    overlay.classList.remove("is-open");
-    overlay.style.display = "none";
-    overlay.setAttribute("aria-hidden","true");
-  }
-
-  function showCollectionFx(recipeIdOrList){
-    const rid = normalizeRecipeId(recipeIdOrList);
-    if(!rid) return;
-
-    const overlay = qs("unlock-overlay");
-    const img = qs("unlock-img");
-    if(!overlay || !img) return;
-
-    img.src = "/assets/" + rid + ".png";
-    img.onerror = function(){
-      console.warn("[unlock] image not found:", img.src);
-    };
-
-    overlay.style.display = "flex";
-    overlay.classList.add("is-open");
-    overlay.setAttribute("aria-hidden","false");
-
-    document.body.classList.add("unlock-shake");
-    setTimeout(()=>document.body.classList.remove("unlock-shake"), 550);
-  }
-
-  function closeUnlock(){
-    forceHide();
-  }
-
-  window.showCollectionFx = showCollectionFx;
-  window.closeUnlock = closeUnlock;
-
-  document.addEventListener("DOMContentLoaded", ()=>{
-    forceHide();
-
-    const btn = qs("unlock-confirm");
-    if(btn) btn.addEventListener("click", closeUnlock);
-
-    const overlay = qs("unlock-overlay");
-    if(overlay){
-      overlay.addEventListener("click", (e)=>{ if(e.target === overlay) closeUnlock(); });
-    }
-
-    window.addEventListener("keydown", (e)=>{ if(e.key === "Escape") closeUnlock(); });
-  });
-})();
-</script>
 
 </body>
 </html>
