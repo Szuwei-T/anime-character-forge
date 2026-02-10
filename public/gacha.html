@@ -4,601 +4,407 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Gacha</title>
+  <link rel="stylesheet" href="style.css" />
   <style>
-    :root{
-      --bg0:#0b0d12;
-      --bg1:#141826;
-      --card:#1f2433;
-      --card2:#262c3d;
-      --txt:#ffffff;
-      --muted:rgba(255,255,255,0.7);
-      --gold:rgba(255,210,80,1);
-      --goldGlow:rgba(255,210,80,0.45);
-      --rainbow:rgba(210,120,255,1);
-      --rainGlow:rgba(210,120,255,0.45);
-      --red:rgba(255,110,110,1);
-      --btn1:#c79b3a;
-      --btn2:#2e6f95;
-      --btn3:#2c313f;
-      --stroke:rgba(255,255,255,0.12);
-      --stroke2:rgba(255,255,255,0.18);
-      --shadow: 0 18px 60px rgba(0,0,0,0.55);
-      --radius:18px;
-    }
-
-    *{box-sizing:border-box}
     body{
       margin:0;
       min-height:100vh;
-      background: radial-gradient(circle at top, #1b1f2a, var(--bg0));
-      color:var(--txt);
+      background: radial-gradient(circle at top, #1b1f2a, #0b0d12);
+      color:#fff;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, "Noto Sans TC", sans-serif;
     }
-
     .wrap{
-      max-width: 1280px;
+      max-width: 1200px;
       margin: 0 auto;
-      padding: 28px 18px 80px;
+      padding: 56px 20px 88px;
+    }
+    h1{
+      margin:0 0 18px;
+      font-size: 28px;
+      letter-spacing: 0.6px;
+      opacity: 0.92;
+      text-align:center;
     }
 
-    .layout{
+    .heroGrid{
       display:grid;
       grid-template-columns: 1fr 340px;
       gap: 18px;
       align-items:start;
     }
-
-    .main{
-      background: rgba(20,24,38,0.55);
-      border: 1px solid var(--stroke);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      overflow:hidden;
-      min-height: 680px;
-      position:relative;
+    @media (max-width: 940px){
+      .heroGrid{ grid-template-columns: 1fr; }
     }
 
-    .mainInner{
-      padding: 22px 20px 20px;
-    }
-
-    .titleRow{
+    .featured{
       display:flex;
+      flex-direction:column;
       align-items:center;
-      justify-content:space-between;
-      gap: 12px;
+      gap:12px;
       margin-bottom: 14px;
     }
-
-    .title{
-      margin:0;
-      font-size: 22px;
-      letter-spacing: 0.4px;
-      opacity: 0.95;
-    }
-
-    .tools{
+    .featured .badge{
       display:flex;
-      gap: 10px;
       align-items:center;
+      gap:10px;
+      opacity:0.85;
+      font-weight:800;
+      letter-spacing:0.3px;
     }
-
-    .tinyBtn{
-      border: 1px solid var(--stroke2);
-      background: rgba(255,255,255,0.06);
-      color: var(--txt);
-      padding: 8px 12px;
-      border-radius: 999px;
-      cursor:pointer;
-      font-size: 13px;
-      opacity: 0.9;
-    }
-
-    .tinyBtn:hover{opacity:1}
-
-    .featuredStage{
+    .featureStage{
+      width:min(520px, 92vw);
+      aspect-ratio: 1 / 1;
+      border-radius: 26px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.10);
+      box-shadow: 0 28px 90px rgba(0,0,0,0.60);
       display:flex;
       align-items:center;
       justify-content:center;
-      height: 420px;
-      border-radius: 16px;
-      border: 1px solid var(--stroke);
-      background:
-        radial-gradient(circle at 50% 30%, rgba(255,255,255,0.07), transparent 55%),
-        linear-gradient(180deg, rgba(255,255,255,0.04), rgba(0,0,0,0.08));
-      position:relative;
       overflow:hidden;
+      position:relative;
     }
-
-    .featuredStage:before{
+    .featureStage:before{
       content:"";
       position:absolute;
       inset:-40%;
-      background: radial-gradient(circle at 50% 50%, rgba(255,210,80,0.12), transparent 50%),
-                  radial-gradient(circle at 40% 45%, rgba(110,200,255,0.10), transparent 55%),
-                  radial-gradient(circle at 60% 55%, rgba(210,120,255,0.10), transparent 55%);
+      background: radial-gradient(circle at 30% 25%, rgba(255,255,255,0.12), transparent 55%),
+                  radial-gradient(circle at 70% 80%, rgba(121,215,255,0.10), transparent 55%),
+                  radial-gradient(circle at 40% 70%, rgba(255,198,106,0.10), transparent 60%);
       filter: blur(10px);
-      animation: swirl 8s linear infinite;
-      opacity: 0.85;
+      transform: rotate(15deg);
       pointer-events:none;
     }
-
-    @keyframes swirl{
-      0%{transform: rotate(0deg)}
-      100%{transform: rotate(360deg)}
+    @keyframes floaty{
+      0%{ transform: translateY(0) scale(1); }
+      50%{ transform: translateY(-10px) scale(1.01); }
+      100%{ transform: translateY(0) scale(1); }
     }
-
-    .featuredCard{
-      position:relative;
-      width: min(360px, 70%);
-      aspect-ratio: 3 / 4;
-      border-radius: 18px;
-      border: 1px solid var(--stroke2);
-      background: rgba(0,0,0,0.18);
-      box-shadow: 0 18px 60px rgba(0,0,0,0.55);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      overflow:hidden;
-    }
-
-    .badge{
-      position:absolute;
-      top: 12px;
-      left: 12px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.08);
-      border: 1px solid var(--stroke);
-      font-size: 12px;
-      letter-spacing: 0.4px;
-      opacity: 0.9;
-      z-index:2;
-    }
-
-    .featuredImg{
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
+    .featureStage img{
+      width: 96%;
+      height: 96%;
+      object-fit: contain;
       display:block;
-      opacity: 0.95;
+      animation: floaty 3.2s ease-in-out infinite;
+      position:relative;
+      z-index:1;
     }
-
-    .featuredFallback{
-      padding: 20px;
-      text-align:center;
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.5;
-    }
-
-    .bottom2{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-      margin-top: 16px;
-    }
-
-    .bigSection{
-      border-radius: 16px;
-      border: 1px solid var(--stroke);
-      background: rgba(255,255,255,0.05);
-      padding: 14px;
-      min-height: 128px;
-    }
-
-    .bigHead{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap: 10px;
-      margin-bottom: 12px;
-    }
-
-    .bigTitle{
-      font-size: 16px;
-      margin:0;
-      opacity: 0.95;
-    }
-
-    .bigNote{
-      font-size: 12px;
-      opacity: 0.65;
-      margin:0;
-      text-align:right;
-      white-space:nowrap;
-    }
-
-    .btnRow2{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-
-    .btn{
-      border:none;
-      border-radius: 999px;
-      padding: 14px 14px;
-      cursor:pointer;
-      font-size: 16px;
-      font-weight: 700;
-      letter-spacing: 0.4px;
-      color: #0b0d12;
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      gap: 10px;
-      box-shadow: 0 14px 40px rgba(0,0,0,0.35);
-      user-select:none;
-    }
-
-    .btn.orange{background: linear-gradient(180deg, #e2bd62, var(--btn1))}
-    .btn.blue{background: linear-gradient(180deg, #66b7df, var(--btn2))}
-    .btn.gray{
-      background: rgba(255,255,255,0.10);
-      color: var(--txt);
-      border: 1px solid var(--stroke2);
-      box-shadow:none;
-      font-weight: 600;
-    }
-
-    .btn:active{transform: translateY(1px)}
 
     .side{
-      background: rgba(20,24,38,0.55);
-      border: 1px solid var(--stroke);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      overflow:hidden;
-    }
-
-    .sideInner{
-      padding: 16px;
       display:flex;
       flex-direction:column;
       gap: 12px;
     }
-
-    .sideSection{
-      border: 1px solid var(--stroke);
-      border-radius: 16px;
-      background: rgba(255,255,255,0.05);
-      padding: 12px;
+    .sideCard{
+      border-radius: 18px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      box-shadow: 0 18px 60px rgba(0,0,0,0.35);
+      padding: 12px 12px 12px;
     }
-
-    .sideHead{
+    .sideCard .title{
+      font-weight: 900;
+      letter-spacing: 0.3px;
+      opacity: 0.95;
       display:flex;
-      justify-content:space-between;
       align-items:center;
+      justify-content:space-between;
       gap: 10px;
       margin-bottom: 10px;
     }
-
-    .sideTitle{
-      margin:0;
-      font-size: 14px;
-      opacity: 0.95;
-    }
-
-    .sideKey{
-      margin:0;
-      font-size: 12px;
-      opacity: 0.65;
-      font-weight: 700;
-      letter-spacing: 0.3px;
-    }
-
-    .sideBtns{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    .miniBtn{
-      border:none;
-      border-radius: 999px;
-      padding: 10px 10px;
-      cursor:pointer;
-      font-size: 14px;
-      font-weight: 800;
-      letter-spacing: 0.3px;
-      background: rgba(255,255,255,0.10);
-      color: var(--txt);
-      border: 1px solid var(--stroke2);
-      user-select:none;
-    }
-
-    .miniBtn:hover{background: rgba(255,255,255,0.14)}
-    .miniBtn:active{transform: translateY(1px)}
-
-    .sideFooter{
-      margin-top: 4px;
+    .miniRow{
       display:flex;
       gap: 10px;
+    }
+
+    .bottomGrid{
+      margin-top: 16px;
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    @media (max-width: 760px){
+      .bottomGrid{ grid-template-columns: 1fr; }
+    }
+    .sectionCard{
+      border-radius: 22px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      box-shadow: 0 18px 70px rgba(0,0,0,0.40);
+      padding: 16px;
+    }
+    .sectionCard .head{
+      display:flex;
+      align-items:baseline;
+      justify-content:space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .sectionCard .head .name{
+      font-weight: 950;
+      letter-spacing: 0.4px;
+      font-size: 18px;
+    }
+    .sectionCard .head .desc{
+      opacity: 0.75;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .btnRow{
+      display:flex;
+      gap: 12px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:flex-start;
+    }
+
+    .btn{
+      border:0;
+      border-radius: 999px;
+      padding: 12px 18px;
+      font-size: 15px;
+      font-weight: 950;
+      cursor:pointer;
+      letter-spacing:0.4px;
+      box-shadow: 0 18px 45px rgba(0,0,0,0.35);
+      user-select:none;
+      white-space:nowrap;
+    }
+    .btn.orange{
+      background: linear-gradient(135deg, #ffc66a, #ff9f2f);
+      color:#141414;
+    }
+    .btn.blue{
+      background: linear-gradient(135deg, #79d7ff, #4aa8ff);
+      color:#0a0f18;
+    }
+    .btn.gray{
+      background: rgba(255,255,255,0.10);
+      color:#fff;
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow:none;
+    }
+    .btn.small{
+      padding: 10px 14px;
+      font-size: 14px;
+      box-shadow: none;
     }
 
     .overlay{
       position:fixed;
       inset:0;
-      background: rgba(0,0,0,0.72);
       display:none;
       align-items:center;
       justify-content:center;
+      background: rgba(0,0,0,0.55);
       padding: 18px;
       z-index: 50;
     }
-
+    .overlay.show{ display:flex; }
     .panel{
-      width: min(1260px, 96vw);
-      background: rgba(16,19,30,0.92);
+      width:min(1100px, 96vw);
+      border-radius:26px;
+      background: rgba(18,22,32,0.92);
       border: 1px solid rgba(255,255,255,0.10);
-      border-radius: 22px;
-      box-shadow: 0 24px 90px rgba(0,0,0,0.70);
-      overflow:hidden;
-    }
-
-    .panelTop{
-      padding: 16px 18px 12px;
-      border-bottom: 1px solid rgba(255,255,255,0.10);
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap: 14px;
-    }
-
-    .panelTitle{
-      margin:0;
-      font-size: 22px;
-      letter-spacing: 0.4px;
-    }
-
-    .panelSub{
-      margin-top: 6px;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.4;
-      max-width: 820px;
-    }
-
-    .panelBody{
-      padding: 14px 16px 16px;
-    }
-
-    .errorBox{
-      padding: 14px;
-      border-radius: 16px;
-      border: 1px solid rgba(255,110,110,0.35);
-      background: rgba(255,110,110,0.12);
-      color: rgba(255,210,210,0.95);
-      font-weight: 700;
-      letter-spacing: 0.2px;
-      display:none;
-      margin-bottom: 12px;
-    }
-
-    .stage{
-      border-radius: 18px;
-      border: 1px solid rgba(255,255,255,0.10);
-      background: rgba(255,255,255,0.04);
-      padding: 14px;
-      overflow:hidden;
-    }
-
-    .grid4{
-      display:grid;
-      grid-template-rows: repeat(4, 1fr);
-      gap: 12px;
-      min-height: 420px;
-    }
-
-    .row{
-      display:flex;
-      gap: 12px;
-      justify-content:center;
-      align-items:center;
-      flex-wrap:nowrap;
-      overflow:hidden;
-      padding: 6px 0;
-    }
-
-    .slot{
-      width: 118px;
-      height: 160px;
-      border-radius: 16px;
-      border: 1px solid rgba(255,255,255,0.10);
-      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(0,0,0,0.10));
+      box-shadow: 0 30px 120px rgba(0,0,0,0.65);
+      padding: 22px 22px 18px;
+      text-align:left;
       position:relative;
       overflow:hidden;
-      flex: 0 0 auto;
+    }
+    .panel h3{
+      margin:0;
+      font-size:22px;
+      letter-spacing:0.4px;
+      display:flex;
+      align-items:baseline;
+      gap:12px;
+    }
+    .sub{
+      opacity:0.75;
+      font-size:14px;
+      font-weight:800;
+    }
+    .gacha-stage{
+      margin-top: 16px;
+      height: 190px;
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+      position:relative;
+      overflow:hidden;
+    }
+    .belt{
+      position:absolute;
+      top:50%;
+      left:0;
+      transform: translate(0, -50%);
+      display:flex;
+      gap:12px;
+      padding: 0 24px;
+      will-change: transform;
+    }
+    .card{
+      position:relative;
+      width:124px;
+      height:124px;
+      border-radius:18px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.25);
       display:flex;
       align-items:center;
       justify-content:center;
-    }
-
-    .slot img{
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display:block;
-    }
-
-    .slotGold{
-      border: 2px solid rgba(255,210,80,0.95);
-      box-shadow: 0 0 0 6px rgba(255,210,80,0.10), 0 0 40px rgba(255,210,80,0.25);
-    }
-
-    .slotRainbow{
-      border: 2px solid rgba(210,120,255,0.95);
-      box-shadow: 0 0 0 6px rgba(210,120,255,0.10), 0 0 44px rgba(210,120,255,0.28);
-    }
-
-    .slotLabel{
-      position:absolute;
-      left: 8px;
-      bottom: 8px;
-      font-size: 11px;
-      padding: 4px 8px;
-      border-radius: 999px;
-      background: rgba(0,0,0,0.50);
-      border: 1px solid rgba(255,255,255,0.12);
-      color: rgba(255,255,255,0.90);
-      max-width: calc(100% - 16px);
       overflow:hidden;
-      text-overflow:ellipsis;
-      white-space:nowrap;
+    }
+    .card img{
+      width:100%;
+      height:100%;
+      object-fit:contain;
+      display:block;
+      background: rgba(0,0,0,0.10);
+    }
+    .marker{
+      position:absolute;
+      top:50%;
+      left:50%;
+      width:124px;
+      height:124px;
+      transform: translate(-50%, -50%);
+      border-radius:14px;
+      box-shadow:
+        0 0 0 2px rgba(255,214,102,0.95),
+        0 0 40px 10px rgba(255,214,102,0.35),
+        inset 0 0 0 1px rgba(255,255,255,0.10);
+      background:
+        radial-gradient(circle at 30% 25%, rgba(255,255,255,0.18), transparent 45%),
+        radial-gradient(circle at 70% 80%, rgba(255,214,102,0.18), transparent 55%);
       pointer-events:none;
     }
-
-    .brokenTag{
-      position:absolute;
-      inset: 10px;
-      border-radius: 12px;
-      border: 1px solid rgba(255,110,110,0.35);
-      background: rgba(255,110,110,0.12);
+    .card.win{
+      box-shadow:
+        0 0 0 2px rgba(255,214,102,0.95),
+        0 0 42px 12px rgba(255,214,102,0.40),
+        inset 0 0 0 1px rgba(255,255,255,0.10);
+      border-color: rgba(255,214,102,0.55);
+    }
+    .footer{
       display:flex;
+      justify-content:center;
+      margin-top: 16px;
+      gap: 10px;
       align-items:center;
-      justify-content:center;
-      padding: 10px;
-      text-align:left;
-      font-size: 12px;
-      line-height: 1.25;
-      color: rgba(255,210,210,0.95);
-      white-space:pre-wrap;
-      overflow:hidden;
     }
-
-    .panelBottom{
-      padding: 14px 16px 16px;
-      display:flex;
-      justify-content:center;
-      border-top: 1px solid rgba(255,255,255,0.10);
-    }
-
-    .confirmBtn{
-      width: 180px;
-      max-width: 90%;
-      border:none;
+    .confirm{
+      border:0;
       border-radius: 999px;
-      padding: 14px 18px;
-      cursor:pointer;
+      padding: 12px 26px;
       font-size: 16px;
-      font-weight: 900;
-      letter-spacing: 0.5px;
-      background: linear-gradient(180deg, #e2bd62, #c79b3a);
-      color: #0b0d12;
+      font-weight: 950;
+      cursor:pointer;
+      background: linear-gradient(135deg, #ffde88, #caa54a);
+      color:#111;
+      display:none;
     }
-
-    @media (max-width: 1060px){
-      .layout{grid-template-columns: 1fr}
+    .confirm.show{ display:inline-flex; }
+  
+    .card.broken{
+      outline: 2px solid rgba(255, 80, 80, 0.75);
     }
-  </style>
+    .broken-debug{
+      position:absolute;
+      left:8px;
+      right:8px;
+      bottom:8px;
+      font-size:12px;
+      line-height:1.2;
+      color: rgba(255,255,255,0.92);
+      background: rgba(0,0,0,0.55);
+      padding:6px 8px;
+      border-radius:10px;
+      word-break: break-all;
+    }
+</style>
 </head>
 <body>
   <div class="wrap">
-    <div class="layout">
-      <div class="main">
-        <div class="mainInner">
-          <div class="titleRow">
-            <h1 class="title">抽卡</h1>
-            <div class="tools">
-              <button class="tinyBtn" id="btnReloadAssets">刷新素材清單</button>
-              <button class="tinyBtn" id="btnToggleDebug">Debug 關閉</button>
-              <a class="tinyBtn" href="hub.html" style="text-decoration:none;display:inline-flex;align-items:center;">返回</a>
+    <h1>本期 Featured 角色</h1>
+
+    <div class="heroGrid">
+      <div>
+        <div class="featured">
+          <div class="badge">
+            <span style="opacity:0.8">feature</span>
+          </div>
+          <div class="featureStage">
+            <img src="assets/feature_character.png" alt="">
+          </div>
+        </div>
+
+        <div class="bottomGrid">
+          <div class="sectionCard">
+            <div class="head">
+              <div class="name">普通抽卡</div>
+              <div class="desc">單次 或 10 連抽</div>
+            </div>
+            <div class="btnRow">
+              <button class="btn orange" id="btnNormal1">1次</button>
+              <button class="btn orange" id="btnNormal10">10次</button>
             </div>
           </div>
 
-          <div class="featuredStage">
-            <div class="featuredCard">
-              <div class="badge">feature</div>
-              <img class="featuredImg" src="assets/feature_character.png" alt="" onerror="this.style.display='none'; this.parentElement.querySelector('.featuredFallback').style.display='block';">
-              <div class="featuredFallback" style="display:none;">
-                feature 角色圖不存在<br/>
-                請放置 assets/feature_character.png
-              </div>
+          <div class="sectionCard">
+            <div class="head">
+              <div class="name">高級抽卡</div>
+              <div class="desc">單次 或 10 連抽</div>
             </div>
-          </div>
-
-          <div class="bottom2">
-            <div class="bigSection">
-              <div class="bigHead">
-                <h2 class="bigTitle">普通抽卡</h2>
-                <p class="bigNote">保底 SR 以上只在 10 連</p>
-              </div>
-              <div class="btnRow2">
-                <button class="btn orange" id="btnNormal1">1次</button>
-                <button class="btn orange" id="btnNormal10">10次</button>
-              </div>
-            </div>
-
-            <div class="bigSection">
-              <div class="bigHead">
-                <h2 class="bigTitle">高級抽卡</h2>
-                <p class="bigNote">保底 SSR 以上只在 10 連</p>
-              </div>
-              <div class="btnRow2">
-                <button class="btn blue" id="btnPremium1">1次</button>
-                <button class="btn blue" id="btnPremium10">10次</button>
-              </div>
+            <div class="btnRow">
+              <button class="btn blue" id="btnPremium1">1次</button>
+              <button class="btn blue" id="btnPremium10">10次</button>
+              <a class="btn gray" href="hub.html" style="text-decoration:none;display:inline-flex;align-items:center;">返回</a>
             </div>
           </div>
         </div>
       </div>
 
       <div class="side">
-        <div class="sideInner">
-          <div class="sideSection">
-            <div class="sideHead">
-              <p class="sideTitle">抽角色</p>
-              <p class="sideKey">head</p>
-            </div>
-            <div class="sideBtns">
-              <button class="miniBtn" data-type="head" data-count="1">1次</button>
-              <button class="miniBtn" data-type="head" data-count="10">10次</button>
-            </div>
+        <div class="sideCard">
+          <div class="title"><span>抽角色</span><span style="opacity:0.7;font-weight:800">head</span></div>
+          <div class="miniRow">
+            <button class="btn gray small" id="btnHead1">1次</button>
+            <button class="btn gray small" id="btnHead10">10次</button>
           </div>
+        </div>
 
-          <div class="sideSection">
-            <div class="sideHead">
-              <p class="sideTitle">抽服裝</p>
-              <p class="sideKey">body</p>
-            </div>
-            <div class="sideBtns">
-              <button class="miniBtn" data-type="body" data-count="1">1次</button>
-              <button class="miniBtn" data-type="body" data-count="10">10次</button>
-            </div>
+        <div class="sideCard">
+          <div class="title"><span>抽服裝</span><span style="opacity:0.7;font-weight:800">body</span></div>
+          <div class="miniRow">
+            <button class="btn gray small" id="btnBody1">1次</button>
+            <button class="btn gray small" id="btnBody10">10次</button>
           </div>
+        </div>
 
-          <div class="sideSection">
-            <div class="sideHead">
-              <p class="sideTitle">抽背景</p>
-              <p class="sideKey">bg</p>
-            </div>
-            <div class="sideBtns">
-              <button class="miniBtn" data-type="bg" data-count="1">1次</button>
-              <button class="miniBtn" data-type="bg" data-count="10">10次</button>
-            </div>
+        <div class="sideCard">
+          <div class="title"><span>抽背景</span><span style="opacity:0.7;font-weight:800">background</span></div>
+          <div class="miniRow">
+            <button class="btn gray small" id="btnBg1">1次</button>
+            <button class="btn gray small" id="btnBg10">10次</button>
           </div>
+        </div>
 
-          <div class="sideSection">
-            <div class="sideHead">
-              <p class="sideTitle">抽特效1</p>
-              <p class="sideKey">addon1</p>
-            </div>
-            <div class="sideBtns">
-              <button class="miniBtn" data-type="addon1" data-count="1">1次</button>
-              <button class="miniBtn" data-type="addon1" data-count="10">10次</button>
-            </div>
+        <div class="sideCard">
+          <div class="title"><span>抽特效1</span><span style="opacity:0.7;font-weight:800">addon1</span></div>
+          <div class="miniRow">
+            <button class="btn gray small" id="btnAddon11">1次</button>
+            <button class="btn gray small" id="btnAddon110">10次</button>
           </div>
+        </div>
 
-          <div class="sideSection">
-            <div class="sideHead">
-              <p class="sideTitle">抽特效2</p>
-              <p class="sideKey">addon2</p>
-            </div>
-            <div class="sideBtns">
-              <button class="miniBtn" data-type="addon2" data-count="1">1次</button>
-              <button class="miniBtn" data-type="addon2" data-count="10">10次</button>
-            </div>
+        <div class="sideCard">
+          <div class="title"><span>抽特效2</span><span style="opacity:0.7;font-weight:800">addon2</span></div>
+          <div class="miniRow">
+            <button class="btn gray small" id="btnAddon21">1次</button>
+            <button class="btn gray small" id="btnAddon210">10次</button>
           </div>
         </div>
       </div>
@@ -607,537 +413,319 @@
 
   <div class="overlay" id="overlay">
     <div class="panel">
-      <div class="panelTop">
-        <div>
-          <h3 class="panelTitle" id="panelTitle">抽卡中</h3>
-          <div class="panelSub" id="panelSub">連線中</div>
-        </div>
+      <h3>抽卡中 <span class="sub" id="rollSub">連線中</span></h3>
+      <div class="gacha-stage">
+        <div class="belt" id="belt"></div>
+        <div class="marker"></div>
       </div>
-
-      <div class="panelBody">
-        <div class="errorBox" id="errorBox"></div>
-
-        <div class="stage">
-          <div class="grid4" id="grid4"></div>
-        </div>
-      </div>
-
-      <div class="panelBottom">
-        <button class="confirmBtn" id="btnClose">確認</button>
+      <div class="footer">
+        <button class="confirm" id="confirmBtn">確認</button>
       </div>
     </div>
   </div>
 
+  <script src="app.js"></script>
   <script>
-    const WORKER_BASE =
-      window.WORKER_BASE ||
-      localStorage.getItem("WORKER_BASE") ||
-      new URLSearchParams(location.search).get("worker") ||
-      "";
+    const overlay = document.getElementById("overlay");
+    const belt = document.getElementById("belt");
+    const rollSub = document.getElementById("rollSub");
+    const confirmBtn = document.getElementById("confirmBtn");
 
-    function apiUrl(path){
-      const base = String(WORKER_BASE || "").trim().replace(/\/+$/, "");
-      if(!base){
-        throw new Error("WORKER_BASE 未設定，請在網址加上 ?worker= 或在 localStorage 設定 WORKER_BASE");
-      }
-      return base + path;
-    }
+    const btnNormal1 = document.getElementById("btnNormal1");
+    const btnNormal10 = document.getElementById("btnNormal10");
+    const btnPremium1 = document.getElementById("btnPremium1");
+    const btnPremium10 = document.getElementById("btnPremium10");
 
-    const state = {
-      debug: false,
-      assetsLoaded: false,
-      assets: [],
-      assetsByType: new Map()
-    };
+    const btnHead1 = document.getElementById("btnHead1");
+    const btnHead10 = document.getElementById("btnHead10");
+    const btnBody1 = document.getElementById("btnBody1");
+    const btnBody10 = document.getElementById("btnBody10");
+    const btnBg1 = document.getElementById("btnBg1");
+    const btnBg10 = document.getElementById("btnBg10");
+    const btnAddon11 = document.getElementById("btnAddon11");
+    const btnAddon110 = document.getElementById("btnAddon110");
+    const btnAddon21 = document.getElementById("btnAddon21");
+    const btnAddon210 = document.getElementById("btnAddon210");
 
-    function setDebug(on){
-      state.debug = !!on;
-      const btn = document.getElementById("btnToggleDebug");
-      btn.textContent = state.debug ? "Debug 開啟" : "Debug 關閉";
-    }
+    let animating = false;
+    let cachedAssets = null;
 
-    function showOverlay(){
-      document.getElementById("overlay").style.display = "flex";
-    }
+    function showOverlay(){ overlay.classList.add("show"); }
+    function hideOverlay(){ overlay.classList.remove("show"); }
 
-    function hideOverlay(){
-      document.getElementById("overlay").style.display = "none";
-    }
-
-    function setPanelText(title, sub){
-      document.getElementById("panelTitle").textContent = title || "";
-      document.getElementById("panelSub").textContent = sub || "";
-    }
-
-    function showError(msg){
-      const box = document.getElementById("errorBox");
-      box.style.display = "block";
-      box.textContent = msg || "發生錯誤";
-    }
-
-    function clearError(){
-      const box = document.getElementById("errorBox");
-      box.style.display = "none";
-      box.textContent = "";
-    }
-
-    async function api(path, opts = {}){
-      const init = {
-        method: opts.method || "GET",
-        headers: Object.assign({ "Content-Type": "application/json" }, opts.headers || {}),
-        body: opts.body || undefined
-      };
-
-      let res;
-      try{
-        res = await fetch(apiUrl(path), init);
-      }catch(e){
-        return { __net_error: true, message: String(e && e.message ? e.message : e) };
-      }
-
-      let data = null;
-      try{
-        data = await res.json();
-      }catch(e){
-        data = null;
-      }
-
-      if(!res.ok){
-        return { __http_error: true, status: res.status, data };
-      }
-
-      return data;
-    }
+    confirmBtn.addEventListener("click", () => hideOverlay());
 
     function normalizeType(t){
-      if(!t) return "";
-      const s = String(t).trim().toLowerCase();
-      if(s === "background") return "bg";
-      return s;
+      const x = String(t||"");
+      if(x === "bg") return "background";
+      if(x === "background") return "background";
+      if(x === "addon1") return "addon1";
+      if(x === "addon2") return "addon2";
+      return x;
     }
 
-    function rarityName(r){
-      const n = Number(r || 1);
-      if(n === 5) return "SSR";
-      if(n === 4) return "SR";
-      if(n === 3) return "A";
-      if(n === 2) return "B";
-      return "C";
+    function requestType(t){
+      const x = String(t||"");
+      if(x === "background") return "bg";
+      return x;
     }
 
-    function isAtLeast(r, min){
-      return Number(r || 1) >= Number(min || 1);
-    }
-
-    function displayUrl(asset){
-      if(!asset) return "";
-      const t = normalizeType(asset.type);
-      const url = String(asset.imageUrl || "");
-      if(!url) return "";
+    function toThumbIfNeeded(asset){
+      if(!asset || !asset.imageUrl) return "";
+      const t = String(asset.type || "");
       if(t === "head" || t === "body"){
-        if(url.endsWith("_thumb.png")) return url;
-        if(url.endsWith(".png")) return url.replace(".png", "_thumb.png");
+        if(String(asset.imageUrl).includes("_thumb.")) return asset.imageUrl;
+        return String(asset.imageUrl).replace(/\.(png|webp|jpg|jpeg)$/i, "_thumb.$1");
       }
-      return url;
+      return asset.imageUrl;
     }
 
-    function makeSlot(kind){
-      const div = document.createElement("div");
-      div.className = "slot";
-      if(kind === "gold") div.classList.add("slotGold");
-      if(kind === "rainbow") div.classList.add("slotRainbow");
-      return div;
+    async function ensureAssetsLoaded(){
+      if(cachedAssets) return cachedAssets;
+      try{
+        const data = await api("/api/assets");
+        if(data && data.ok && Array.isArray(data.assets)){
+          cachedAssets = data.assets;
+          const db = offlineDb();
+          db.assets = data.assets;
+          saveOfflineDb(db);
+          return cachedAssets;
+        }
+      }catch(e){}
+      const db = offlineDb();
+      cachedAssets = db.assets || [];
+      return cachedAssets;
     }
 
-    function fillSlotWithAsset(slot, asset, metaText){
-      slot.innerHTML = "";
+    function offlinePickOne(opts={}){
+      const db = offlineDb();
+      const assets = db.assets || [];
+      if(assets.length === 0) return null;
 
-      const img = document.createElement("img");
-      const url1 = displayUrl(asset);
-      const url2 = String(asset && asset.imageUrl ? asset.imageUrl : "");
-      const labelText = metaText || "";
-
-      let triedFallback = false;
-
-      img.onload = () => {
-        if(labelText){
-          const lab = document.createElement("div");
-          lab.className = "slotLabel";
-          lab.textContent = labelText;
-          slot.appendChild(lab);
-        }
-      };
-
-      img.onerror = () => {
-        if(!triedFallback && url2 && url2 !== url1){
-          triedFallback = true;
-          img.src = url2;
-          return;
-        }
-        if(state.debug){
-          const broken = document.createElement("div");
-          broken.className = "brokenTag";
-          const t = asset ? normalizeType(asset.type) : "";
-          const id = asset ? (asset.assetId || "") : "";
-          const r = asset ? Number(asset.rarity || 1) : 1;
-          const u = triedFallback ? url2 : url1;
-          broken.textContent = "broken | " + t + " | " + id + " | " + rarityName(r) + " | " + u;
-          slot.appendChild(broken);
-        }
-      };
-
-      img.src = url1;
-      slot.appendChild(img);
-    }
-
-    async function loadAssets(){
-      const data = await api("/api/assets");
-      if(data && data.ok && Array.isArray(data.assets)){
-        state.assets = data.assets.map(a => ({
-          assetId: a.assetId || a.id || "",
-          type: normalizeType(a.type),
-          rarity: Number(a.rarity || 1),
-          imageUrl: a.imageUrl || a.url || ""
-        }));
-        state.assetsByType = new Map();
-        for(const a of state.assets){
-          const k = normalizeType(a.type);
-          if(!state.assetsByType.has(k)) state.assetsByType.set(k, []);
-          state.assetsByType.get(k).push(a);
-        }
-        state.assetsLoaded = true;
-        return true;
+      const r = Math.random();
+      let rarity = 1;
+      if(opts.premium){
+        if(r < 0.02) rarity = 5;
+        else if(r < 0.10) rarity = 4;
+        else if(r < 0.30) rarity = 3;
+        else if(r < 0.60) rarity = 2;
+        else rarity = 1;
+      }else{
+        if(r < 0.01) rarity = 5;
+        else if(r < 0.07) rarity = 4;
+        else if(r < 0.25) rarity = 3;
+        else if(r < 0.55) rarity = 2;
+        else rarity = 1;
       }
-      state.assetsLoaded = false;
-      return false;
+
+      let pool = assets.filter(a => Number(a.rarity||1) === rarity);
+
+      // 注意: offline 也支援強制 type
+      if(opts.type){
+        pool = pool.filter(a => String(a.type||"") === String(opts.type));
+      }
+      if(pool.length === 0){
+        // 如果指定了 type 但該稀有度沒有素材，改成只放寬 rarity 仍然限制在同一個 type
+        if(opts.type){
+          const tp = String(opts.type);
+          pool = assets.filter(a => String(a.type||"") === tp);
+        }
+        // 最後才退回全素材，避免轉盤出現其他類型造成誤解
+        if(pool.length === 0) pool = assets;
+      }
+
+      const a = pool[Math.floor(Math.random()*pool.length)];
+      return {
+        assetId: a.assetId,
+        type: normalizeType(a.type),
+        rarity: Number(a.rarity||1),
+        imageUrl: a.imageUrl || ""
+      };
     }
 
-    function getPool(type){
-      const t = normalizeType(type);
-      if(t && state.assetsByType.has(t)) return state.assetsByType.get(t);
-      return state.assets;
+    function commitOfflineWin(win){
+      const db = offlineDb();
+      db.userAssets = db.userAssets || {};
+      const k = `${APP.uid}:${win.assetId}`;
+      db.userAssets[k] = Number(db.userAssets[k] || 0) + 1;
+      saveOfflineDb(db);
     }
 
-    function pickRandomFrom(pool){
-      if(!pool || pool.length === 0) return null;
-      const i = Math.floor(Math.random() * pool.length);
-      return pool[i];
-    }
-
-    function sleep(ms){
-      return new Promise(r => setTimeout(r, ms));
-    }
-
-    async function onlineGacha(opts = {}){
+    async function onlineGacha(opts={}){
       const payload = {
         rolls: Number(opts.count || 1),
         premium: !!opts.premium,
-        pick: !!opts.pick,
-        type: normalizeType(opts.type || "")
+        type: (opts.type ? requestType(opts.type) : "")
       };
-
-      const data = await api("/api/gacha", { method: "POST", body: JSON.stringify(payload) });
-
-      if(data && data.__net_error){
-        return { ok: false, error: "連線失敗，請稍後再試" };
-      }
-
-      if(data && data.__http_error){
-        const s = Number(data.status || 0);
-        return { ok: false, error: "伺服器錯誤 " + s };
-      }
-
-      if(!data || !data.ok){
-        return { ok: false, error: (data && data.error) ? String(data.error) : "抽卡失敗" };
-      }
+      const data = await api("/api/gacha", { method:"POST", body: JSON.stringify(payload) });
+      if(!data || !data.ok) return null;
 
       const list = data.results || data.pulled || [];
-      if(!Array.isArray(list) || list.length === 0){
-        return { ok: false, error: "抽卡結果為空" };
-      }
+      if(!Array.isArray(list) || list.length === 0) return null;
 
-      const mapped = list.map(r => ({
-        assetId: r.assetId || "",
+      return list.map(r => ({
+        assetId: r.assetId,
         type: normalizeType(r.type),
         rarity: Number(r.rarity || 1),
         imageUrl: r.imageUrl || ""
       }));
-
-      return { ok: true, results: mapped };
     }
 
-    async function pullGuarantee(opts){
-      const minRarity = Number(opts.minRarity || 1);
-      const premium = !!opts.premium;
-      const type = normalizeType(opts.type || "");
-      const pick = !!type;
+    async function startGacha(opts={}){
+      if(animating) return;
+      animating = true;
+      opts = Object.assign({}, opts);
+      if(opts.type) opts.pick = true;
 
-      let attempts = 0;
-      while(attempts < 40){
-        attempts += 1;
-        const r = await onlineGacha({ count: 1, premium, pick, type });
-        if(!r.ok) return r;
-        const a = r.results[0];
-        if(isAtLeast(a.rarity, minRarity)) return { ok: true, result: a };
-      }
-
-      return { ok: false, error: "保底抽卡重試次數過多，請稍後再試" };
-    }
-
-    function buildGrid10(){
-      const grid = document.getElementById("grid4");
-      grid.innerHTML = "";
-
-      const rows = [];
-
-      for(let r = 0; r < 4; r++){
-        const row = document.createElement("div");
-        row.className = "row";
-
-        const slots = [];
-        const count = (r === 0) ? 5 : 7;
-
-        for(let i = 0; i < count; i++){
-          let kind = "none";
-          if(r === 0 && i === 2) kind = "rainbow";
-          if(r !== 0 && i >= 2 && i <= 4) kind = "gold";
-
-          const slot = makeSlot(kind);
-          row.appendChild(slot);
-          slots.push(slot);
-        }
-
-        grid.appendChild(row);
-        rows.push({ row, slots });
-      }
-
-      return rows;
-    }
-
-    async function animateRow(slots, pool, ms){
-      const start = Date.now();
-      let tick = 0;
-
-      while(Date.now() - start < ms){
-        tick += 1;
-        for(const s of slots){
-          const a = pickRandomFrom(pool);
-          if(!a) continue;
-          const meta = state.debug ? (normalizeType(a.type) + " " + a.assetId + " " + rarityName(a.rarity)) : "";
-          fillSlotWithAsset(s, a, meta);
-        }
-        await sleep(90 + (tick % 3) * 20);
-      }
-    }
-
-    async function doSingle(opts){
-      clearError();
+      await ensureAssetsLoaded();
       showOverlay();
-      setPanelText("抽卡中", "連線中");
+      confirmBtn.classList.remove("show");
+      rollSub.textContent = "連線中";
 
-      const gridRows = buildGrid10();
+      let source = "online";
+      let pulled = null;
 
-      const pool = getPool(opts.type);
-      for(const row of gridRows){
-        for(const s of row.slots){
-          const a = pickRandomFrom(pool);
-          if(a){
-            const meta = state.debug ? (normalizeType(a.type) + " " + a.assetId + " " + rarityName(a.rarity)) : "";
-            fillSlotWithAsset(s, a, meta);
+      try{
+        pulled = await onlineGacha(opts);
+        if(!pulled){
+          source = "offline";
+          rollSub.textContent = "連線失敗 改用離線抽卡";
+          pulled = [];
+          const n = Number(opts.count || 1);
+          for(let i = 0; i < n; i++){
+            const x = offlinePickOne(opts);
+            if(x) pulled.push(x);
           }
+          if(pulled[0]) commitOfflineWin(pulled[0]);
         }
+      }catch(e){
+        source = "offline";
+        rollSub.textContent = "連線失敗 改用離線抽卡";
+        pulled = [];
+        const n = Number(opts.count || 1);
+        for(let i = 0; i < n; i++){
+          const x = offlinePickOne(opts);
+          if(x) pulled.push(x);
+        }
+        if(pulled[0]) commitOfflineWin(pulled[0]);
       }
 
-      const r = await onlineGacha({
-        count: 1,
-        premium: !!opts.premium,
-        pick: !!opts.type,
-        type: opts.type || ""
-      });
-
-      if(!r.ok){
-        setPanelText("抽卡失敗", "請檢查連線或稍後再試");
-        showError(r.error || "抽卡失敗");
+      if(!pulled || pulled.length === 0){
+        toast("抽卡失敗");
+        hideOverlay();
+        animating = false;
         return;
       }
 
-      const got = r.results[0];
-      const t = normalizeType(got.type);
-      const sub = (opts.premium ? "高級" : "普通") + " 類型 " + (opts.type ? normalizeType(opts.type) : t) + " 抽到 " + got.assetId + " " + rarityName(got.rarity);
-      setPanelText("抽卡中", sub);
+      const win = pulled[0];
 
-      const goldSlot = gridRows[1].slots[3];
-      const pool2 = getPool(opts.type || got.type);
+      belt.innerHTML = "";
+      const beltCount = 20;
+      const winnerIndex = Math.floor(beltCount / 2);
 
-      await Promise.all([
-        animateRow(gridRows[1].slots, pool2, 1200),
-        animateRow(gridRows[2].slots, pool2, 1200),
-        animateRow(gridRows[3].slots, pool2, 1200),
-        animateRow(gridRows[0].slots, pool2, 1200)
-      ]);
-
-      fillSlotWithAsset(goldSlot, got, state.debug ? (t + " " + got.assetId + " " + rarityName(got.rarity)) : "");
-
-      const rainbowSlot = gridRows[0].slots[2];
-      fillSlotWithAsset(rainbowSlot, got, state.debug ? (t + " " + got.assetId + " " + rarityName(got.rarity)) : "");
-    }
-
-    async function doTen(opts){
-      clearError();
-      showOverlay();
-      setPanelText("抽卡中", "連線中");
-
-      const gridRows = buildGrid10();
-
-      const pool = getPool(opts.type);
-      for(const row of gridRows){
-        for(const s of row.slots){
-          const a = pickRandomFrom(pool);
-          if(a){
-            const meta = state.debug ? (normalizeType(a.type) + " " + a.assetId + " " + rarityName(a.rarity)) : "";
-            fillSlotWithAsset(s, a, meta);
-          }
-        }
-      }
-
-      const premium = !!opts.premium;
-      const type = normalizeType(opts.type || "");
-      const minRarity = premium ? 5 : 4;
-
-      const r9 = await onlineGacha({
-        count: 9,
-        premium,
-        pick: !!type,
-        type
-      });
-
-      if(!r9.ok){
-        setPanelText("抽卡失敗", "請檢查連線或稍後再試");
-        showError(r9.error || "抽卡失敗");
-        return;
-      }
-
-      const g = await pullGuarantee({
-        premium,
-        type,
-        minRarity
-      });
-
-      if(!g.ok){
-        setPanelText("抽卡失敗", "保底抽卡失敗");
-        showError(g.error || "保底抽卡失敗");
-        return;
-      }
-
-      const nine = r9.results.slice(0, 9);
-      const guarantee = g.result;
-
-      const sub = (premium ? "高級" : "普通") + " 10連 抽到 10張，保底 " + rarityName(minRarity) + " 以上";
-      setPanelText("抽卡中", sub);
-
-      const pool2 = getPool(type || "");
-
-      await Promise.all([
-        animateRow(gridRows[1].slots, pool2, 1500),
-        animateRow(gridRows[2].slots, pool2, 1500),
-        animateRow(gridRows[3].slots, pool2, 1500),
-        animateRow(gridRows[0].slots, pool2, 1600)
-      ]);
-
-      const rows3 = [
-        { rowIndex: 1, start: 0 },
-        { rowIndex: 2, start: 3 },
-        { rowIndex: 3, start: 6 }
-      ];
-
-      for(const rr of rows3){
-        const rowSlots = gridRows[rr.rowIndex].slots;
-        for(let k = 0; k < 3; k++){
-          const got = nine[rr.start + k];
-          const slot = rowSlots[2 + k];
-          const t = normalizeType(got.type);
-          const meta = state.debug ? (t + " " + got.assetId + " " + rarityName(got.rarity)) : "";
-          fillSlotWithAsset(slot, got, meta);
-        }
-      }
-
-      const rs = gridRows[0].slots[2];
-      const tG = normalizeType(guarantee.type);
-      const metaG = state.debug ? (tG + " " + guarantee.assetId + " " + rarityName(guarantee.rarity)) : "";
-      fillSlotWithAsset(rs, guarantee, metaG);
-    }
-
-    async function ensureAssetsLoaded(){
-      if(state.assetsLoaded) return true;
-      const ok = await loadAssets();
-      if(!ok){
-        showOverlay();
-        setPanelText("載入失敗", "無法取得素材清單");
-        showError("無法讀取 /api/assets，請確認後端與資料庫正常");
-        return false;
-      }
-      return true;
-    }
-
-    function bind(){
-      document.getElementById("btnClose").addEventListener("click", hideOverlay);
-
-      document.getElementById("btnToggleDebug").addEventListener("click", () => {
-        setDebug(!state.debug);
-      });
-
-      document.getElementById("btnReloadAssets").addEventListener("click", async () => {
-        const ok = await loadAssets();
-        if(ok){
-          setPanelText("完成", "素材清單已刷新");
-          clearError();
-          showOverlay();
+      const fillers = [];
+      for(let i = 0; i < beltCount; i++){
+        if(i === winnerIndex){
+          fillers.push(win);
         }else{
-          setPanelText("載入失敗", "無法取得素材清單");
-          showError("無法讀取 /api/assets，請確認後端與資料庫正常");
-          showOverlay();
+          const f = offlinePickOne({ premium: !!opts.premium, type: (opts.type ? requestType(opts.type) : "") });
+          fillers.push(f || win);
         }
-      });
+      }
 
-      document.getElementById("btnNormal1").addEventListener("click", async () => {
-        if(!await ensureAssetsLoaded()) return;
-        doSingle({ premium: false, type: "" });
-      });
+      fillers.forEach(p => {
+        const item = p || win;
+        if(!item) return;
 
-      document.getElementById("btnNormal10").addEventListener("click", async () => {
-        if(!await ensureAssetsLoaded()) return;
-        doTen({ premium: false, type: "" });
-      });
+        const div = document.createElement("div");
+        div.className = "card";
+        const src = toThumbIfNeeded(item);
 
-      document.getElementById("btnPremium1").addEventListener("click", async () => {
-        if(!await ensureAssetsLoaded()) return;
-        doSingle({ premium: true, type: "" });
-      });
+        const img = document.createElement("img");
+        img.src = src;
+        img.alt = "";
 
-      document.getElementById("btnPremium10").addEventListener("click", async () => {
-        if(!await ensureAssetsLoaded()) return;
-        doTen({ premium: true, type: "" });
-      });
+        const dbg = document.createElement("div");
+        dbg.className = "broken-debug";
+        dbg.style.display = "none";
+        dbg.textContent = `broken | ${item.type} | ${item.assetId} | ⭐${item.rarity} | ${src}`;
 
-      document.querySelectorAll(".miniBtn").forEach(btn => {
-        btn.addEventListener("click", async () => {
-          if(!await ensureAssetsLoaded()) return;
-          const type = normalizeType(btn.getAttribute("data-type") || "");
-          const count = Number(btn.getAttribute("data-count") || 1);
-          if(count === 10){
-            doTen({ premium: false, type });
-          }else{
-            doSingle({ premium: false, type });
+        img.addEventListener("error", () => {
+          const cur = img.getAttribute("src") || "";
+          // fallback: head/body thumbs might not exist
+          if(cur.includes("_thumb.")){
+            img.src = cur.replace("_thumb.", ".");
+            return;
           }
+          div.classList.add("broken");
+          dbg.style.display = "block";
         });
+
+        div.appendChild(img);
+        div.appendChild(dbg);
+        belt.appendChild(div);
       });
+
+      const tag = opts.premium ? "高級" : "普通";
+      const typeTag = opts.type ? ` 類型 ${opts.type}` : "";
+      rollSub.textContent = (source === "online" ? "跑馬燈高速啟動" : "離線模式跑馬燈") + ` ${tag}${typeTag} 抽到 ${win.assetId} ⭐ ${win.rarity}`;
+
+      const stage = document.querySelector(".gacha-stage");
+      const stageWidth = stage.getBoundingClientRect().width;
+
+      const cards = Array.from(belt.children);
+      const cardW = cards[0].getBoundingClientRect().width;
+      const gap = 12;
+      const step = cardW + gap;
+
+      const beltPaddingLeft = 24;
+      const winnerCenterX = beltPaddingLeft + winnerIndex * step + cardW / 2;
+      const targetX = (stageWidth / 2) - winnerCenterX;
+      const startX = targetX - (step * 10);
+
+      const duration = 2400;
+      const t0 = performance.now();
+
+      function easeOutCubic(p){ return 1 - Math.pow(1 - p, 3); }
+
+      function frame(t){
+        const p = Math.min((t - t0) / duration, 1);
+        const e = easeOutCubic(p);
+        const x = startX + (targetX - startX) * e;
+        belt.style.transform = `translate(${x}px, -50%)`;
+
+        if(p < 1){
+          requestAnimationFrame(frame);
+        }else{
+          cards[winnerIndex].classList.add("win");
+          confirmBtn.classList.add("show");
+          animating = false;
+        }
+      }
+      requestAnimationFrame(frame);
     }
 
-    (async function init(){
-      setDebug(false);
-      bind();
-      await loadAssets();
-    })();
+    // 底下 2 個大區塊
+    btnNormal1.addEventListener("click", () => startGacha({ count: 1, premium: false }));
+    btnNormal10.addEventListener("click", () => startGacha({ count: 10, premium: false }));
+    btnPremium1.addEventListener("click", () => startGacha({ count: 1, premium: true }));
+    btnPremium10.addEventListener("click", () => startGacha({ count: 10, premium: true }));
+
+    // 右側 5 個分類區塊 (普通抽卡 但強制 type)
+    btnHead1.addEventListener("click", () => startGacha({ count: 1, premium: false, type: "head" }));
+    btnHead10.addEventListener("click", () => startGacha({ count: 10, premium: false, type: "head" }));
+
+    btnBody1.addEventListener("click", () => startGacha({ count: 1, premium: false, type: "body" }));
+    btnBody10.addEventListener("click", () => startGacha({ count: 10, premium: false, type: "body" }));
+
+    btnBg1.addEventListener("click", () => startGacha({ count: 1, premium: false, type: "background" }));
+    btnBg10.addEventListener("click", () => startGacha({ count: 10, premium: false, type: "background" }));
+
+    btnAddon11.addEventListener("click", () => startGacha({ count: 1, premium: false, type: "addon1" }));
+    btnAddon110.addEventListener("click", () => startGacha({ count: 10, premium: false, type: "addon1" }));
+
+    btnAddon21.addEventListener("click", () => startGacha({ count: 1, premium: false, type: "addon2" }));
+    btnAddon210.addEventListener("click", () => startGacha({ count: 10, premium: false, type: "addon2" }));
   </script>
 </body>
 </html>
