@@ -527,6 +527,15 @@ function effectiveRarityById(assetId){
   return Math.min(5, base + (stars - 1));
 }
 
+function getBaseRarityById(assetId){
+  if(!assetId) return 0;
+  const fromMap = Number(byId.get(assetId)?.rarity || 0);
+  if(fromMap) return fromMap;
+  const parts = String(assetId).split("_");
+  const n = Number(parts[1] || 0);
+  return Number.isFinite(n) && n >= 1 ? n : 0;
+}
+
 function getHeadRule(){
   if(!SEL.headId) return { base: 0, max: 0 };
   const base = Number(byId.get(SEL.headId)?.rarity || 1);
