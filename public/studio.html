@@ -461,18 +461,16 @@ function bestThumb(url){
 
 const TRANSPARENT_GIF = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
 
+const q = (sel)=>document.querySelector(sel);
+
 window.showLevelUpFx = function showLevelUpFx(){
   const fx = q("#levelUpFx");
   if(!fx) return;
   fx.classList.add("active");
   clearTimeout(fx._t);
-  fx._t = setTimeout(()=>{
-// Worker base fallback (if app.js did not define it)
-if(typeof WORKER_BASE === "undefined" || !WORKER_BASE){
-  window.WORKER_BASE = "https://acf-api.dream-league-baseball.workers.dev";
-}
- fx.classList.remove("active"); }, 1050);
+  fx._t = setTimeout(()=>{ fx.classList.remove("active"); }, 1050);
 };
+
 
 
 
