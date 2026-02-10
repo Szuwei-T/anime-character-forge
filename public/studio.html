@@ -305,7 +305,28 @@
     object-fit: contain;
   }
 
-  </style>
+  
+  /* Disabled / unselectable assets */
+  .asset-item.disabled{
+    opacity: 0.35;
+    filter: grayscale(1);
+    pointer-events: auto;
+  }
+  .asset-item.disabled::after{
+    content: "不可選";
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: #fff;
+    background: rgba(0,0,0,0.45);
+    border-radius: 14px;
+  }
+
+</style>
 </head>
 <body>
   <div class="container">
@@ -770,6 +791,7 @@ function makeVirtualGrid(container, items0, getSelectedId, onSelect, options){
         const wrap = document.createElement("div");
         const baseR = it.assetId ? (typeof getBaseRarityById === 'function' ? (getBaseRarityById(it.assetId) || 1) : Number(byId.get(it.assetId)?.rarity || 1)) : Number(it.rarity || 1);
         wrap.className = "asset-item " + `r${baseR || 1}`;
+        if(it._disabled) wrap.classList.add("disabled");
         if(it.assetId) wrap.setAttribute("data-asset-id", String(it.assetId));
         wrap.style.left = (c * (opt.thumbW + opt.gap)) + "px";
         wrap.style.top = (r * rowH) + "px";
@@ -895,7 +917,7 @@ function applyBodyGenderRule(){
     });
   }
 
-  filtered = filtered.filter(it => isCompatibleWithHead(it.assetId));
+  filtered = filtered.map(it => ({...it, _disabled: !isCompatibleWithHead(it.assetId)}));
 bodyItems = filtered.length > 0 ? filtered : bodyItemsAll;
 
   // keep selection valid
@@ -906,7 +928,7 @@ bodyItems = filtered.length > 0 ? filtered : bodyItemsAll;
 }
 
 function applyBgRarityRule(){
-  const filtered = bgItemsAll.filter(it => isCompatibleWithHead(it.assetId));
+  const filtered = bgItemsAll.map(it => ({...it, _disabled: !isCompatibleWithHead(it.assetId)}));
   bgItems = filtered.length ? filtered : bgItemsAll;
   if(SEL.bgId && !bgItems.some(it=>it.assetId === SEL.bgId)){
     SEL.bgId = bgItems[0]?.assetId || "";
@@ -915,7 +937,7 @@ function applyBgRarityRule(){
 }
 
 function applyAddonRarityRule(){
-  const filterOne = (pool) => pool.filter(it => !it.assetId || isCompatibleWithHead(it.assetId));
+  const filterOne = (pool) => pool.map(it => ({...it, _disabled: !!it.assetId && !isCompatibleWithHead(it.assetId)}));
 
   addon1Pool = filterOne(addon1PoolAll);
   addon2Pool = filterOne(addon2PoolAll);
