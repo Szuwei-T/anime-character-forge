@@ -6,306 +6,273 @@
   <title>成品庫</title>
   <link rel="stylesheet" href="style.css" />
   <style>
-    .wrap{max-width:1100px;margin:0 auto;padding:16px;}
-    .topRow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;}
-    .topLeft{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
-    .pill{
-      display:inline-flex;align-items:center;gap:6px;
-      padding:6px 10px;border-radius:999px;
-      background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);
-      font-size:12px;opacity:0.95
-    }
-    .grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fill, minmax(160px, 1fr));
-      gap:12px;
-    }
-    .card{
-      border-radius:16px;
-      border:1px solid rgba(255,255,255,0.10);
-      background: rgba(0,0,0,0.12);
-      padding:10px;
-      cursor:pointer;
-      transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
-    }
-    .card:hover{
-      transform: translateY(-1px);
-      border-color: rgba(255,255,255,0.20);
-      background: rgba(255,255,255,0.04);
-    }
-    .thumbBox{
-      position:relative;
-      width:100%;
-      aspect-ratio: 1365 / 2048;
-      border-radius:14px;
-      overflow:hidden;
-      background: rgba(0,0,0,0.20);
-      border:1px solid rgba(255,255,255,0.10);
-    }
-    .layer{
-      position:absolute;left:0;top:0;width:100%;height:100%;
-      object-fit: contain;
-      image-rendering: auto;
-    }
-    .meta{margin-top:8px;display:flex;justify-content:space-between;align-items:center;gap:8px;}
-    .ts{font-size:11px;opacity:0.7;}
-    .parts{font-size:11px;opacity:0.65;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .empty{
-      padding:24px;
-      border-radius:16px;
-      border:1px dashed rgba(255,255,255,0.18);
-      background: rgba(255,255,255,0.03);
-      opacity:0.85;
-    }
+    .page-wrap{max-width:1180px;margin:0 auto;padding:22px 18px 44px;}
+    .topbar{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:14px;}
+    .title-row{display:flex;gap:14px;align-items:center;flex-wrap:wrap;}
+    .badge{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:6px 10px;background:rgba(0,0,0,.25);backdrop-filter: blur(6px);}
+    .badge .label{opacity:.85;font-size:12px}
+    .badge .value{font-weight:700;font-size:12px}
+    .pillbtn{cursor:pointer;user-select:none;display:inline-flex;align-items:center;justify-content:center;padding:10px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.22);color:#fff;min-width:120px}
+    .pillbtn:hover{background:rgba(0,0,0,.32)}
+    .navcol{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+    .statusline{margin:10px 0 16px;opacity:.9;font-size:13px}
+    .errorbox{margin-top:10px;border:1px solid rgba(255,70,70,.55);background:rgba(90,0,0,.25);padding:12px 14px;border-radius:14px;color:#ffb3b3;font-size:13px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px;margin-top:14px}
+    .card{border:1px solid rgba(255,255,255,.16);background:rgba(0,0,0,.22);border-radius:16px;overflow:hidden;cursor:pointer;transition:transform .12s ease, border-color .12s ease}
+    .card:hover{transform:translateY(-1px);border-color:rgba(255,255,255,.26)}
+    .thumb{position:relative;width:100%;aspect-ratio:3/4;background:rgba(255,255,255,.04)}
+    .layer{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;image-rendering:auto}
+    .meta{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px 10px 12px}
+    .meta .time{font-size:12px;opacity:.85;white-space:nowrap}
+    .meta .parts{font-size:12px;opacity:.75;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
-    /* Modal */
-    .modal{
-      position:fixed;left:0;top:0;width:100%;height:100%;
-      background: rgba(0,0,0,0.70);
-      display:none;
-      align-items:center;
-      justify-content:center;
-      padding:18px;
-      z-index: 9999;
-    }
-    .modal.show{display:flex;}
-    .modalPanel{
-      width:min(520px, 95vw);
-      border-radius:18px;
-      border:1px solid rgba(255,255,255,0.14);
-      background: rgba(10,10,10,0.92);
-      box-shadow: 0 20px 60px rgba(0,0,0,0.55);
-      overflow:hidden;
-    }
-    .modalHead{
-      display:flex;align-items:center;justify-content:space-between;gap:12px;
-      padding:12px 14px;border-bottom:1px solid rgba(255,255,255,0.10);
-    }
-    .modalHead .title{font-weight:800;}
-    .modalClose{
-      cursor:pointer;
-      background: rgba(255,255,255,0.06);
-      border:1px solid rgba(255,255,255,0.14);
-      color:#fff;
-      border-radius:10px;
-      padding:6px 10px;
-      font-size:12px;
-    }
-    .modalBody{padding:14px;}
-    .bigBox{
-      position:relative;
-      width:100%;
-      aspect-ratio: 1365 / 2048;
-      border-radius:16px;
-      overflow:hidden;
-      background: rgba(0,0,0,0.20);
-      border:1px solid rgba(255,255,255,0.10);
-    }
-    .hint{margin-top:10px;font-size:12px;opacity:0.7;line-height:1.35;}
-    .err{color: rgba(239,68,68,0.95);}
+    .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.72);z-index:9999;padding:18px}
+    .modal.show{display:flex}
+    .modalbox{width:min(860px,100%);border-radius:18px;border:1px solid rgba(255,255,255,.18);background:rgba(10,10,10,.75);backdrop-filter: blur(8px);overflow:hidden}
+    .modalhead{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.12)}
+    .modalhead .h{font-weight:800}
+    .modalhead .x{cursor:pointer;border-radius:12px;padding:8px 10px;border:1px solid rgba(255,255,255,.16);background:rgba(0,0,0,.25)}
+    .modalbody{padding:14px}
+    .bigwrap{position:relative;width:100%;aspect-ratio:3/4;background:rgba(255,255,255,.04);border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,.10)}
+    .bigwrap img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+    .footnote{margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;opacity:.9;font-size:12px}
+    .muted{opacity:.75}
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="topRow">
-      <div class="topLeft">
-        <div style="font-size:18px;font-weight:900;letter-spacing:0.5px">成品庫</div>
-        <div class="pill">帳號 <span id="uidText" style="font-weight:900"></span></div>
-        <div class="pill">狀態 <span id="netBadge" style="font-weight:900"></span></div>
+  <div class="page-wrap">
+    <div class="topbar">
+      <div class="title-row">
+        <div style="font-size:22px;font-weight:900;">成品庫</div>
+        <div class="badge" title="目前帳號">
+          <span class="label">帳號</span>
+          <span class="value" id="uidBadge">未登入</span>
+        </div>
+        <div class="badge" title="連線狀態">
+          <span class="label">狀態</span>
+          <span class="value" id="netBadge">檢查中</span>
+        </div>
       </div>
-      <div class="topRight" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
-        <a class="btn gray small" href="studio.html">回工作室</a>
-        <a class="btn gray small" href="gacha.html">去抽卡</a>
-        <a class="btn gray small" href="index.html">首頁</a>
+
+      <div class="navcol">
+        <button class="pillbtn" id="btnStudio">回工作室</button>
+        <button class="pillbtn" id="btnGacha">去抽卡</button>
+        <button class="pillbtn" id="btnHome">首頁</button>
       </div>
     </div>
 
-    <div id="status" class="empty" style="display:none"></div>
-    <div id="grid" class="grid"></div>
+    <div class="statusline" id="statusLine">讀取中</div>
+    <div id="errorBox" class="errorbox" style="display:none;"></div>
+
+    <div class="grid" id="grid"></div>
   </div>
 
   <div class="modal" id="modal">
-    <div class="modalPanel">
-      <div class="modalHead">
-        <div class="title" id="modalTitle">預覽</div>
-        <button class="modalClose" id="btnClose">關閉</button>
+    <div class="modalbox">
+      <div class="modalhead">
+        <div class="h" id="modalTitle">預覽</div>
+        <div class="x" id="modalClose">關閉</div>
       </div>
-      <div class="modalBody">
-        <div class="bigBox" id="bigBox"></div>
-        <div class="hint" id="modalHint"></div>
+      <div class="modalbody">
+        <div class="bigwrap" id="bigwrap"></div>
+        <div class="footnote" id="modalMeta"></div>
       </div>
     </div>
   </div>
 
-  <script src="app.js"></script>
-  <script>
-    const TRANSPARENT_GIF = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
+<script>
+(function(){
+  // Prefer global WORKER_BASE from app.js, fallback to saved config, then default.
+  const DEFAULT_WORKER = "https://acf-api.dream-league-baseball.workers.dev";
+  const WORKER_BASE = window.WORKER_BASE || localStorage.getItem("acf_worker_base") || DEFAULT_WORKER;
 
-    function toOriginalUrl(url){
-      if(!url) return "";
-      return String(url).replace("_thumb.", ".");
+  const uid = localStorage.getItem("acf_uid") || "";
+  const uidBadge = document.getElementById("uidBadge");
+  const netBadge = document.getElementById("netBadge");
+  const statusLine = document.getElementById("statusLine");
+  const errorBox = document.getElementById("errorBox");
+  const grid = document.getElementById("grid");
+
+  uidBadge.textContent = uid ? uid : "未登入";
+
+  document.getElementById("btnStudio").onclick = () => location.href = "/studio";
+  document.getElementById("btnGacha").onclick = () => location.href = "/gacha";
+  document.getElementById("btnHome").onclick = () => location.href = "/";
+
+  function showError(msg){
+    errorBox.style.display = "s = "block";
+    errorBox.textContent = msg;
+  }
+  function hideError(){ errorBox.style.display = "none"; errorBox.textContent = ""; }
+
+  async function ping(){
+    try{
+      const r = await fetch(WORKER_BASE + "/api/ping", { headers: { "x-user-id": uid || "anon" } });
+      if(!r.ok) throw new Error("ping_not_ok");
+      const j = await r.json();
+      if(j && j.ok) { netBadge.textContent = "Online"; return true; }
+      throw new Error("ping_bad");
+    }catch(e){
+      netBadge.textContent = "Offline";
+      return false;
     }
+  }
 
-    function toThumbUrl(url){
-      if(!url) return "";
-      if(String(url).includes("_thumb.")) return String(url);
-      const m = String(url).match(/^(.*)\.(png|webp|jpg|jpeg)(\?.*)?$/i);
-      if(!m) return String(url);
-      return m[1] + "_thumb." + m[2] + (m[3] || "");
-    }
-
-    function isHeadOrBody(assetId){
-      const id = String(assetId||"");
-      return id.startsWith("head_") || id.startsWith("body_");
-    }
-
-    function layerUrl(assetId, url, mode){
-      // mode: "thumb" | "full"
-      const u = String(url || "");
-      if(!u) return "";
-      if(mode === "thumb"){
-        if(isHeadOrBody(assetId)) return toThumbUrl(u);
-        return u;
-      }
-      return toOriginalUrl(u);
-    }
-
-    function makeLayerImg(src){
-      const img = document.createElement("img");
-      img.className = "layer";
-      img.alt = "";
-      img.src = src || TRANSPARENT_GIF;
-      img.onerror = () => {
-        const cur = img.getAttribute("src") || "";
-        if(cur.includes("_thumb.")){
-          img.src = cur.replace("_thumb.", ".");
-          return;
-        }
-        img.onerror = null;
-        img.src = TRANSPARENT_GIF;
-      };
-      return img;
-    }
-
-    function buildComposite(boxEl, row, mode){
-      boxEl.innerHTML = "";
-      const bg = layerUrl(row.bgId, row.bgUrl, mode);
-      const body = layerUrl(row.bodyId, row.bodyUrl, mode);
-      const head = layerUrl(row.headId, row.headUrl, mode);
-      const a1 = layerUrl(row.addon1Id, row.addon1Url, mode);
-      const a2 = layerUrl(row.addon2Id, row.addon2Url, mode);
-
-      // order: bg -> body -> head -> addons
-      boxEl.appendChild(makeLayerImg(bg));
-      boxEl.appendChild(makeLayerImg(body));
-      boxEl.appendChild(makeLayerImg(head));
-      if(a1) boxEl.appendChild(makeLayerImg(a1));
-      if(a2) boxEl.appendChild(makeLayerImg(a2));
-    }
-
-    function fmtTime(ts){
-      const n = Number(ts || 0);
-      if(!n) return "";
-      const d = new Date(n);
-      return d.toLocaleString();
-    }
-
-    function showStatus(html, isErr){
-      const el = document.getElementById("status");
-      if(!el) return;
-      el.style.display = "block";
-      el.innerHTML = isErr ? `<div class="err">${html}</div>` : html;
-    }
-    function hideStatus(){
-      const el = document.getElementById("status");
-      if(!el) return;
-      el.style.display = "none";
-      el.innerHTML = "";
-    }
-
-    function openModal(row){
-      const modal = document.getElementById("modal");
-      const bigBox = document.getElementById("bigBox");
-      const title = document.getElementById("modalTitle");
-      const hint = document.getElementById("modalHint");
-
-      title.textContent = "成品預覽";
-      buildComposite(bigBox, row, "full");
-      hint.textContent = `${fmtTime(row.savedOn)}  |  ${row.headId}  +  ${row.bodyId}  +  ${row.bgId}${row.addon1Id ? "  +  " + row.addon1Id : ""}${row.addon2Id ? "  +  " + row.addon2Id : ""}`;
-
-      modal.classList.add("show");
-    }
-
-    function closeModal(){
-      const modal = document.getElementById("modal");
-      modal.classList.remove("show");
-    }
-
-    document.getElementById("btnClose").addEventListener("click", closeModal);
-    document.getElementById("modal").addEventListener("click", (e) => {
-      if(e.target && e.target.id === "modal") closeModal();
+  async function api(path){
+    const r = await fetch(WORKER_BASE + path, {
+      method: "GET",
+      headers: { "content-type":"application/json", "x-user-id": uid || "anon" }
     });
+    const text = await r.text();
+    let j = null;
+    try{ j = JSON.parse(text); }catch(_e){ j = { ok:false, error:"bad_json", detail:text }; }
+    if(!r.ok) throw j;
+    return j;
+  }
 
-    (async function(){
-      await initSession();
-      document.getElementById("uidText").textContent = APP.uid || "";
-      document.getElementById("netBadge").textContent = APP.offline ? "Offline" : "Online";
+  function fmtTime(ts){
+    if(!ts) return "";
+    try{
+      const d = new Date(Number(ts));
+      return d.toLocaleString();
+    }catch(e){
+      return String(ts);
+    }
+  }
 
-      hideStatus();
-      showStatus("讀取中");
+  // thumb fallback: try *_thumb.png first for head/body/bg/addons
+  function toThumb(url){
+    if(!url) return "";
+    if(url.endsWith(".png")) return url.replace(".png", "_thumb.png");
+    return url;
+  }
 
-      try{
-        // Use backend table user_saves (online only)
-        const data = await api("/api/me/saves");
-        if(!data || !data.ok) throw new Error(String(data?.error || "load_failed"));
+  function makeLayerImg(url, preferThumb){
+    const img = document.createElement("img");
+    img.className = "layer";
+    const raw = url || "";
+    const thumb = preferThumb ? toThumb(raw) : raw;
 
-        const items = data.items || data.rows || data.results || [];
-        const grid = document.getElementById("grid");
-        grid.innerHTML = "";
+    // try thumb -> fallback raw
+    img.src = thumb || raw;
+    img.onerror = () => {
+      if(img.src !== raw && raw) img.src = raw;
+      else img.onerror = null;
+    };
+    return img;
+  }
 
-        if(!Array.isArray(items) || items.length === 0){
-          showStatus("你目前還沒有存入任何成品，先回工作室存一套吧");
-          return;
-        }
+  function buildThumbStack(save){
+    const wrap = document.createElement("div");
+    wrap.className = "thumb";
+    // ordering: bg -> body -> head -> addon1 -> addon2
+    wrap.appendChild(makeLayerImg(save.bgUrl, true));
+    wrap.appendChild(makeLayerImg(save.bodyUrl, true));
+    wrap.appendChild(makeLayerImg(save.headUrl, true));
+    if(save.addon1Url) wrap.appendChild(makeLayerImg(save.addon1Url, true));
+    if(save.addon2Url) wrap.appendChild(makeLayerImg(save.addon2Url, true));
+    return wrap;
+  }
 
-        hideStatus();
+  function buildBigStack(save){
+    const wrap = document.getElementById("bigwrap");
+    wrap.innerHTML = "";
+    wrap.appendChild(makeLayerImg(save.bgUrl, false));
+    wrap.appendChild(makeLayerImg(save.bodyUrl, false));
+    wrap.appendChild(makeLayerImg(save.headUrl, false));
+    if(save.addon1Url) wrap.appendChild(makeLayerImg(save.addon1Url, false));
+    if(save.addon2Url) wrap.appendChild(makeLayerImg(save.addon2Url, false));
+  }
 
-        items.forEach(row => {
-          const card = document.createElement("div");
-          card.className = "card";
+  function openModal(save){
+    const modal = document.getElementById("modal");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalMeta = document.getElementById("modalMeta");
 
-          const box = document.createElement("div");
-          box.className = "thumbBox";
-          buildComposite(box, row, "thumb");
+    modalTitle.textContent = "成品預覽";
+    buildBigStack(save);
 
-          const meta = document.createElement("div");
-          meta.className = "meta";
+    modalMeta.innerHTML = "";
+    const t = document.createElement("div");
+    t.innerHTML = "<span class='muted'>保存時間</span> " + fmtTime(save.savedOn);
 
-          const ts = document.createElement("div");
-          ts.className = "ts";
-          ts.textContent = fmtTime(row.savedOn);
+    const p = document.createElement("div");
+    const parts = [save.headId, save.bodyId, save.bgId, save.addon1Id, save.addon2Id].filter(Boolean).join(" / ");
+    p.innerHTML = "<span class='muted'>素材</span> " + (parts || "-");
 
-          const parts = document.createElement("div");
-          parts.className = "parts";
-          parts.title = `${row.headId} + ${row.bodyId} + ${row.bgId}${row.addon1Id ? " + " + row.addon1Id : ""}${row.addon2Id ? " + " + row.addon2Id : ""}`;
-          parts.textContent = parts.title;
+    modalMeta.appendChild(t);
+    modalMeta.appendChild(p);
 
-          meta.appendChild(ts);
+    modal.classList.add("show");
+  }
 
-          card.appendChild(box);
-          card.appendChild(meta);
-          card.appendChild(parts);
+  function closeModal(){
+    document.getElementById("modal").classList.remove("show");
+  }
+  document.getElementById("modalClose").onclick = closeModal;
+  document.getElementById("modal").onclick = (e)=>{ if(e.target.id==="modal") closeModal(); };
+  window.addEventListener("keydown", (e)=>{ if(e.key==="Escape") closeModal(); });
 
-          card.addEventListener("click", () => openModal(row));
-          grid.appendChild(card);
-        });
+  async function main(){
+    hideError();
+    statusLine.textContent = "讀取中...";
+    const ok = await ping();
 
-      }catch(e){
-        const msg = String(e?.message || e);
-        showStatus("讀取失敗，請確認後端已更新，並且有資料庫表 user_saves", true);
-        console.error(e);
-      }
-    })();
-  </script>
+    if(!ok){
+      showError("連線失敗：後端無回應，請確認 Worker 已部署且可連線");
+      statusLine.textContent = "讀取失敗";
+      return;
+    }
+
+    let data = null;
+    try{
+      data = await api("/api/me/saves");
+    }catch(e){
+      const detail = (e && (e.detail || e.error)) ? (" " + (e.detail || e.error)) : "";
+      showError("讀取失敗，請確認後端已更新，並且有資料庫表 user_saves。" + detail);
+      statusLine.textContent = "讀取失敗";
+      return;
+    }
+
+    const saves = (data && (data.saves || data.items)) ? (data.saves || data.items) : [];
+    if(!saves.length){
+      statusLine.textContent = "目前沒有任何已保存成品";
+      return;
+    }
+
+    statusLine.textContent = "共 " + saves.length + " 個成品";
+    grid.innerHTML = "";
+
+    saves.forEach((s) => {
+      const card = document.createElement("div");
+      card.className = "card";
+
+      const thumb = buildThumbStack(s);
+      card.appendChild(thumb);
+
+      const meta = document.createElement("div");
+      meta.className = "meta";
+
+      const time = document.createElement("div");
+      time.className = "time";
+      time.textContent = fmtTime(s.savedOn);
+
+      const parts = document.createElement("div");
+      parts.className = "parts";
+      parts.textContent = [s.headId, s.bodyId, s.bgId].filter(Boolean).join(" / ");
+
+      meta.appendChild(time);
+      meta.appendChild(parts);
+
+      card.appendChild(meta);
+
+      card.onclick = () => openModal(s);
+      grid.appendChild(card);
+    });
+  }
+
+  main();
+})();
+</script>
 </body>
 </html>
