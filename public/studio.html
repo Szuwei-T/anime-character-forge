@@ -1250,8 +1250,26 @@ q("#submitBtn").addEventListener("click", async ()=>{
         newlyUnlocked.push(rid);
       }
       saveOfflineDb(db2);
-      if(newlyUnlocked.length){
-        if(window.showCollectionFx) window.showCollectionFx(newlyUnlocked);
+
+      // Robust unlock FX triggering:
+      // - Prefer newlyUnlocked (not seen locally)
+      // - Fallback to server-matched unlocked (show once per session)
+      const unlockedFromServer =
+        (Array.isArray(data.unlocked) ? data.unlocked : []) ||
+        (Array.isArray(data.newlyUnlocked) ? data.newlyUnlocked : []) ||
+        (Array.isArray(data.new_unlocks) ? data.new_unlocks : []) ||
+        (Array.isArray(data.unlockedIds) ? data.unlockedIds : []) ||
+        [];
+
+      const toShow = (newlyUnlocked && newlyUnlocked.length) ? newlyUnlocked : unlockedFromServer;
+
+      if(toShow && toShow.length){
+        const rid = (typeof toShow[0] === "string") ? toShow[0] : null;
+        window.__seenUnlockFx = window.__seenUnlockFx || new Set();
+        if(rid && !window.__seenUnlockFx.has(rid)){
+          window.__seenUnlockFx.add(rid);
+          if(window.showCollectionFx) window.showCollectionFx(toShow);
+        }
       }
     }
 }else{
