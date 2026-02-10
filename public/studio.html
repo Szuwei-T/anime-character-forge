@@ -527,16 +527,35 @@ function effectiveRarityById(assetId){
   return Math.min(5, base + (stars - 1));
 }
 
-function getTargetRarity(){
-  if(!SEL.headId) return 0;
-  return effectiveRarityById(SEL.headId);
+function getHeadRule(){
+  if(!SEL.headId) return { base: 0, max: 0 };
+  const base = Number(byId.get(SEL.headId)?.rarity || 1);
+  const stars = clampStars(invStars(SEL.headId));
+  const max = Math.min(5, base + (stars - 1));
+  return { base, max };
 }
 
-function isSameRarityOrEmpty(assetId){
-  if(!assetId) return true;
-  const target = getTargetRarity();
-  if(!target) return true;
-  return effectiveRarityById(assetId) === target;
+// Compatibility rules (stars increase possibilities, not restrictions)
+// 1) Same or higher base rarity allowed up to head max tier (regardless of their stars)
+// 2) Lower base rarity allowed only if that item is upgraded enough to reach head base tier
+function isCompatibleWithHead(candidateId){
+  if(!candidateId) return true;
+  const rule = getHeadRule();
+  if(!rule.base) return true;
+
+  const base = Number(byId.get(candidateId)?.rarity || 1);
+  const maxEff = effectiveRarityById(candidateId);
+
+  if(base >= rule.base && base <= rule.max) return true;
+  if(base < rule.base && maxEff >= rule.base) return true;
+
+  return false;
+}
+
+function ruleHintText(){
+  const r = getHeadRule();
+  if(!r.base) return "";
+  return `可搭配 ${RARITY_LABEL[r.base] || "C"} 至 ${RARITY_LABEL[r.max] || "C"}，較低等級需升星補足`;
 }
 
 function setLayers(){
@@ -746,7 +765,6 @@ SEL.bodyId = bodyItems[0]?.assetId || "";
 
 function applyBodyGenderRule(){
   const headGender = genderTag(SEL.headId);
-  const target = getTargetRarity();
   let filtered = bodyItemsAll;
 
   if(headGender){
@@ -756,11 +774,8 @@ function applyBodyGenderRule(){
     });
   }
 
-  if(target){
-    filtered = filtered.filter(it => effectiveRarityById(it.assetId) === target);
-  }
-
-  bodyItems = filtered.length > 0 ? filtered : (target ? [] : bodyItemsAll);
+  filtered = filtered.filter(it => isCompatibleWithHead(it.assetId));
+bodyItems = filtered.length > 0 ? filtered : bodyItemsAll;
 
   // keep selection valid
   if(SEL.bodyId && !bodyItems.some(it=>it.assetId === SEL.bodyId)){
@@ -770,9 +785,8 @@ function applyBodyGenderRule(){
 }
 
 function applyBgRarityRule(){
-  const target = getTargetRarity();
-  const filtered = target ? bgItemsAll.filter(it => effectiveRarityById(it.assetId) === target) : bgItemsAll;
-  bgItems = filtered;
+  const filtered = bgItemsAll.filter(it => isCompatibleWithHead(it.assetId));
+  bgItems = filtered.length ? filtered : bgItemsAll;
   if(SEL.bgId && !bgItems.some(it=>it.assetId === SEL.bgId)){
     SEL.bgId = bgItems[0]?.assetId || "";
   }
@@ -780,11 +794,7 @@ function applyBgRarityRule(){
 }
 
 function applyAddonRarityRule(){
-  const target = getTargetRarity();
-  const filterOne = (pool) => {
-    if(!target) return pool;
-    return pool.filter(it => !it.assetId || effectiveRarityById(it.assetId) === target);
-  };
+  const filterOne = (pool) => pool.filter(it => !it.assetId || isCompatibleWithHead(it.assetId));
 
   addon1Pool = filterOne(addon1PoolAll);
   addon2Pool = filterOne(addon2PoolAll);
@@ -797,14 +807,14 @@ function applyAddonRarityRule(){
 }
 
 function enforceRarityAfterHeadChange(){
-  const target = getTargetRarity();
-  if(!target) return;
+  const r = getHeadRule();
+  if(!r.base) return;
 
   // reset incompatible selections
-  if(SEL.bodyId && effectiveRarityById(SEL.bodyId) !== target) SEL.bodyId = "";
-  if(SEL.bgId && effectiveRarityById(SEL.bgId) !== target) SEL.bgId = "";
-  if(SEL.addon1Id && effectiveRarityById(SEL.addon1Id) !== target) SEL.addon1Id = "";
-  if(SEL.addon2Id && effectiveRarityById(SEL.addon2Id) !== target) SEL.addon2Id = "";
+  if(SEL.bodyId && !isCompatibleWithHead(SEL.bodyId)) SEL.bodyId = "";
+  if(SEL.bgId && !isCompatibleWithHead(SEL.bgId)) SEL.bgId = "";
+  if(SEL.addon1Id && !isCompatibleWithHead(SEL.addon1Id)) SEL.addon1Id = "";
+  if(SEL.addon2Id && !isCompatibleWithHead(SEL.addon2Id)) SEL.addon2Id = "";
 
   applyBodyGenderRule();
   applyBgRarityRule();
@@ -813,11 +823,8 @@ function enforceRarityAfterHeadChange(){
 
 function canSelectSameRarity(newAssetId){
   if(!newAssetId) return true;
-  const target = getTargetRarity();
-  if(!target) return true;
-  const eff = effectiveRarityById(newAssetId);
-  if(eff !== target){
-    toast(`需搭配 ${RARITY_LABEL[target] || "C"} 等級素材`);
+  if(!isCompatibleWithHead(newAssetId)){
+    toast(ruleHintText() || "素材不匹配");
     return false;
   }
   return true;
@@ -855,17 +862,30 @@ q("#randomBtn").addEventListener("click", ()=>{
   let picked = false;
   for(let tries=0; tries<25 && !picked; tries++){
     const h = randPick(hAll);
-    const target = effectiveRarityById(h.assetId);
+    const headBase = Number(byId.get(h.assetId)?.rarity || 1);
+    const headStars = clampStars(invStars(h.assetId));
+    const headMax = Math.min(5, headBase + (headStars - 1));
     const hGender = genderTag(h.assetId);
 
     const bCandidates = bAll.filter(it=>{
-      if(effectiveRarityById(it.assetId) !== target) return false;
-      if(!hGender) return true;
-      const bg = genderTag(it.assetId);
-      return !bg || bg === hGender;
+      if(hGender){
+        const bg = genderTag(it.assetId);
+        if(bg && bg !== hGender) return false;
+      }
+      const base = Number(byId.get(it.assetId)?.rarity || 1);
+      const maxEff = effectiveRarityById(it.assetId);
+      if(base >= headBase && base <= headMax) return true;
+      if(base < headBase && maxEff >= headBase) return true;
+      return false;
     });
 
-    const gCandidates = gAll.filter(it=> effectiveRarityById(it.assetId) === target);
+    const gCandidates = gAll.filter(it=>{
+      const base = Number(byId.get(it.assetId)?.rarity || 1);
+      const maxEff = effectiveRarityById(it.assetId);
+      if(base >= headBase && base <= headMax) return true;
+      if(base < headBase && maxEff >= headBase) return true;
+      return false;
+    });
 
     if(bCandidates.length === 0 || gCandidates.length === 0) continue;
 
@@ -875,8 +895,15 @@ q("#randomBtn").addEventListener("click", ()=>{
 
     // accessories: optional, must match target if selected
     const aAll = ownedOptions("accessory");
-    const p1 = aAll.filter(a=> (a.imageUrl||"").split("/").pop().startsWith("addon1_") && effectiveRarityById(a.assetId) === target);
-    const p2 = aAll.filter(a=> (a.imageUrl||"").split("/").pop().startsWith("addon2_") && effectiveRarityById(a.assetId) === target);
+    const isOk = (id)=>{
+      const base = Number(byId.get(id)?.rarity || 1);
+      const maxEff = effectiveRarityById(id);
+      if(base >= headBase && base <= headMax) return true;
+      if(base < headBase && maxEff >= headBase) return true;
+      return false;
+    };
+    const p1 = aAll.filter(a=> (a.imageUrl||"").split("/").pop().startsWith("addon1_") && isOk(a.assetId));
+    const p2 = aAll.filter(a=> (a.imageUrl||"").split("/").pop().startsWith("addon2_") && isOk(a.assetId));
     SEL.addon1Id = (p1.length ? randPick([ {assetId:""}, ...p1 ]).assetId : "");
     SEL.addon2Id = (p2.length ? randPick([ {assetId:""}, ...p2 ]).assetId : "");
 
@@ -895,9 +922,8 @@ q("#submitBtn").addEventListener("click", async ()=>{
   const payload = { headId: SEL.headId, bodyId: SEL.bodyId, bgId: SEL.bgId, addon1Id: SEL.addon1Id || "", addon2Id: SEL.addon2Id || "" };
   if(!payload.headId || !payload.bodyId || !payload.bgId) return toast("素材不足");
   if(!isGenderCompatible(payload.headId, payload.bodyId)) return toast("性別不匹配");
-  const target = getTargetRarity();
   const others = [payload.bodyId, payload.bgId, payload.addon1Id, payload.addon2Id].filter(Boolean);
-  if(target && others.some(id => effectiveRarityById(id) !== target)) return toast("稀有度不匹配");
+  if(others.some(id => !isCompatibleWithHead(id))) return toast(ruleHintText() || "素材不匹配");
   toast("保存中");
   let data = await saveOnline(payload) || await saveOffline(payload);
   if(data && data.ok){
