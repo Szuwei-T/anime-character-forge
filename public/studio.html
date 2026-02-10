@@ -470,20 +470,39 @@ window.showLevelUpFx = function showLevelUpFx(){
 };
 
 
-function normalizeAccessoryIds(payload){
-  const ids = [payload.addon1Id || "", payload.addon2Id || ""].filter(Boolean);
+
+function normId(v){
+  if(v === null || v === undefined) return "";
+  return String(v).trim();
+}
+
+function normAddonPair(a1, a2){
+  const ids = [normId(a1), normId(a2)].filter(Boolean);
   ids.sort();
   return ids;
 }
 
-function recipeMatchesPayload(recipe, payload){
-  if(!recipe) return false;
-  if(recipe.headId !== payload.headId) return false;
-  if(recipe.bodyId !== payload.bodyId) return false;
-  if(recipe.bgId !== payload.bgId) return false;
+async function ensureRecipesLoaded(){
+  if(db.recipes && db.recipes.length) return true;
+  try{
+    const res = await api("/api/recipes");
+    if(res && Array.isArray(res.recipes)){
+      db.recipes = res.recipes;
+      return true;
+    }
+  }catch(e){}
+  return !!(db.recipes && db.recipes.length);
+}
 
-  const ra = (recipe.accessoryIds || []).filter(Boolean).slice().sort();
-  const pa = normalizeAccessoryIds(payload);
+function recipeMatchesPayloadRow(recipe, payload){
+  if(!recipe) return false;
+  if(normId(recipe.headId) !== normId(payload.headId)) return false;
+  if(normId(recipe.bodyId) !== normId(payload.bodyId)) return false;
+  if(normId(recipe.bgId) !== normId(payload.bgId)) return false;
+
+  const ra = normAddonPair(recipe.addon1Id, recipe.addon2Id);
+  const pa = normAddonPair(payload.addon1Id, payload.addon2Id);
+
   if(ra.length !== pa.length) return false;
   for(let i=0;i<ra.length;i++){
     if(ra[i] !== pa[i]) return false;
@@ -491,24 +510,14 @@ function recipeMatchesPayload(recipe, payload){
   return true;
 }
 
-function findMatchingRecipeIds(payload){
+function findMatchingRecipeIdsFromRows(payload){
   const rs = (db.recipes || []);
   const ids = [];
   for(const r of rs){
-    if(recipeMatchesPayload(r, payload)) ids.push(r.recipeId);
+    if(recipeMatchesPayloadRow(r, payload)) ids.push(r.recipeId);
   }
   return ids;
 }
-
-window.showCollectionFx = function showCollectionFx(recipeIds){
-  const fx = q("#collectionFx");
-  if(!fx) return;
-  const sub = q("#collectionFxSub");
-  if(sub) sub.textContent = (recipeIds && recipeIds.length) ? (`Recipe: ${recipeIds.join("  ")}`) : "";
-  fx.classList.add("active");
-  clearTimeout(fx._t);
-  fx._t = setTimeout(()=>{ fx.classList.remove("active"); }, 1200);
-};
 
 async function unlockRecipeOnline(recipeId){
   try{
@@ -1152,7 +1161,11 @@ q("#submitBtn").addEventListener("click", async ()=>{
     toast("已保存");
 
     // check recipes -> unlock collection
-    const matchIds = findMatchingRecipeIds(payload);
+    const okRecipes = await ensureRecipesLoaded();
+    if(!okRecipes){
+      // no recipe list available, skip unlock
+    }
+    const matchIds = okRecipes ? findMatchingRecipeIdsFromRows(payload) : [];
     const newlyUnlocked = [];
     for(const rid of matchIds){
       const key = `${APP.uid}:${rid}`;
