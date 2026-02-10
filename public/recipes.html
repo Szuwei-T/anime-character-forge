@@ -6,257 +6,305 @@
   <title>成品庫</title>
   <link rel="stylesheet" href="style.css" />
   <style>
-    .recipeGrid{
+    .wrap{max-width:1100px;margin:0 auto;padding:16px;}
+    .topRow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;}
+    .topLeft{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+    .pill{
+      display:inline-flex;align-items:center;gap:6px;
+      padding:6px 10px;border-radius:999px;
+      background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);
+      font-size:12px;opacity:0.95
+    }
+    .grid{
       display:grid;
-      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      grid-template-columns:repeat(auto-fill, minmax(160px, 1fr));
       gap:12px;
     }
-    .recipeCard{
-      position:relative;
-      border-radius:12px;
-      overflow:hidden;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.12);
+    .card{
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,0.10);
+      background: rgba(0,0,0,0.12);
+      padding:10px;
       cursor:pointer;
-      user-select:none;
+      transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
     }
-    .recipeCard img{
+    .card:hover{
+      transform: translateY(-1px);
+      border-color: rgba(255,255,255,0.20);
+      background: rgba(255,255,255,0.04);
+    }
+    .thumbBox{
+      position:relative;
       width:100%;
-      height:180px;
-      object-fit:cover;
-      display:block;
-      transform: translateZ(0);
-    }
-    .recipeMeta{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:8px;
-      padding:8px 10px;
-    }
-    .recipeId{
-      font-size:12px;
-      opacity:0.85;
-      white-space:nowrap;
+      aspect-ratio: 1365 / 2048;
+      border-radius:14px;
       overflow:hidden;
-      text-overflow:ellipsis;
-      max-width: 70%;
+      background: rgba(0,0,0,0.20);
+      border:1px solid rgba(255,255,255,0.10);
     }
-    .lockMask{
-      position:absolute;
-      inset:0;
-      backdrop-filter: blur(6px);
-      background: rgba(0,0,0,0.55);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:28px;
+    .layer{
+      position:absolute;left:0;top:0;width:100%;height:100%;
+      object-fit: contain;
+      image-rendering: auto;
     }
-    .locked img{
-      filter: blur(10px) brightness(0.7);
-      transform: scale(1.03);
+    .meta{margin-top:8px;display:flex;justify-content:space-between;align-items:center;gap:8px;}
+    .ts{font-size:11px;opacity:0.7;}
+    .parts{font-size:11px;opacity:0.65;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .empty{
+      padding:24px;
+      border-radius:16px;
+      border:1px dashed rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.03);
+      opacity:0.85;
     }
 
-    /* modal */
-    .modalBg{
-      position:fixed;
-      inset:0;
-      background: rgba(0,0,0,0.75);
+    /* Modal */
+    .modal{
+      position:fixed;left:0;top:0;width:100%;height:100%;
+      background: rgba(0,0,0,0.70);
       display:none;
       align-items:center;
       justify-content:center;
-      padding:16px;
-      z-index:9999;
+      padding:18px;
+      z-index: 9999;
     }
-    .modal{
-      width:min(900px, 96vw);
+    .modal.show{display:flex;}
+    .modalPanel{
+      width:min(520px, 95vw);
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,0.14);
+      background: rgba(10,10,10,0.92);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.55);
+      overflow:hidden;
+    }
+    .modalHead{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      padding:12px 14px;border-bottom:1px solid rgba(255,255,255,0.10);
+    }
+    .modalHead .title{font-weight:800;}
+    .modalClose{
+      cursor:pointer;
+      background: rgba(255,255,255,0.06);
+      border:1px solid rgba(255,255,255,0.14);
+      color:#fff;
+      border-radius:10px;
+      padding:6px 10px;
+      font-size:12px;
+    }
+    .modalBody{padding:14px;}
+    .bigBox{
+      position:relative;
+      width:100%;
+      aspect-ratio: 1365 / 2048;
       border-radius:16px;
       overflow:hidden;
-      background: rgba(20,20,24,0.98);
-      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(0,0,0,0.20);
+      border:1px solid rgba(255,255,255,0.10);
     }
-    .modalTop{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      padding:10px 12px;
-      border-bottom:1px solid rgba(255,255,255,0.10);
-    }
-    .modalTitle{
-      font-weight:700;
-      font-size:14px;
-      opacity:0.95;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      white-space:nowrap;
-    }
-    .closeBtn{
-      cursor:pointer;
-      padding:6px 10px;
-      border-radius:10px;
-      border:1px solid rgba(255,255,255,0.12);
-      background: rgba(255,255,255,0.06);
-    }
-    .modalBody{
-      padding:12px;
-    }
-    .modalBody img{
-      width:100%;
-      height:auto;
-      display:block;
-      border-radius:12px;
-      background: rgba(255,255,255,0.04);
-    }
+    .hint{margin-top:10px;font-size:12px;opacity:0.7;line-height:1.35;}
+    .err{color: rgba(239,68,68,0.95);}
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="topbar">
-      <a class="brand" href="index.html">
-        <div class="logo"></div>
-        <h1>Anime Character Forge</h1>
-      </a>
-      <div class="right">
-        <div class="badge" id="netBadge">Connecting</div>
-        <a class="badge" href="profile.html">My</a>
+  <div class="wrap">
+    <div class="topRow">
+      <div class="topLeft">
+        <div style="font-size:18px;font-weight:900;letter-spacing:0.5px">成品庫</div>
+        <div class="pill">帳號 <span id="uidText" style="font-weight:900"></span></div>
+        <div class="pill">狀態 <span id="netBadge" style="font-weight:900"></span></div>
+      </div>
+      <div class="topRight" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+        <a class="btn gray small" href="studio.html">回工作室</a>
+        <a class="btn gray small" href="gacha.html">去抽卡</a>
+        <a class="btn gray small" href="index.html">首頁</a>
       </div>
     </div>
 
-    <div class="card">
-      <div class="cardHeader">
-        <h2>成品庫</h2>
-        <a class="badge" href="hub.html">返回</a>
-      </div>
-      <div class="cardBody">
-        <div class="notice">
-          每個成品都是 1 張圖片 位置在 <b>/assets/[recipeId].png</b><br/>
-          解鎖條件：當你在工作室搭配出完全一致的組合，後端會寫入 <b>user_unlocks</b>
-        </div>
-        <div class="hr"></div>
-        <div id="recipeGrid" class="recipeGrid"></div>
-      </div>
-    </div>
+    <div id="status" class="empty" style="display:none"></div>
+    <div id="grid" class="grid"></div>
   </div>
 
-  <div class="modalBg" id="modalBg">
-    <div class="modal">
-      <div class="modalTop">
-        <div class="modalTitle" id="modalTitle">Preview</div>
-        <div class="closeBtn" id="closeBtn">Close</div>
+  <div class="modal" id="modal">
+    <div class="modalPanel">
+      <div class="modalHead">
+        <div class="title" id="modalTitle">預覽</div>
+        <button class="modalClose" id="btnClose">關閉</button>
       </div>
       <div class="modalBody">
-        <img id="modalImg" alt="recipe" />
+        <div class="bigBox" id="bigBox"></div>
+        <div class="hint" id="modalHint"></div>
       </div>
     </div>
   </div>
 
   <script src="app.js"></script>
   <script>
-    function getUid(){
-      // Prefer APP.uid (from initSession), fallback to query param, then localStorage, then anon
-      try{
-        const url = new URL(location.href);
-        const q = (url.searchParams.get("uid")||"").trim();
-        if(q) return q;
-      }catch{}
-      try{
-        const v = localStorage.getItem("uid");
-        if(v && v.trim()) return v.trim();
-      }catch{}
-      return "anon";
+    const TRANSPARENT_GIF = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
+
+    function toOriginalUrl(url){
+      if(!url) return "";
+      return String(url).replace("_thumb.", ".");
     }
 
-    async function fetchJson(url, opt){
-      opt = opt || {};
-      opt.cache = "no-store";
-      opt.headers = { ...(opt.headers||{}), "Cache-Control":"no-cache" };
-      const res = await fetch(url, opt);
-      const txt = await res.text();
-      let data = null;
-      try{ data = JSON.parse(txt); }catch{ data = { ok:false, error:"bad_json", raw: txt }; }
-      if(!res.ok || !data?.ok) {
-        const msg = data?.error || ("http_" + res.status);
-        throw new Error(msg);
+    function toThumbUrl(url){
+      if(!url) return "";
+      if(String(url).includes("_thumb.")) return String(url);
+      const m = String(url).match(/^(.*)\.(png|webp|jpg|jpeg)(\?.*)?$/i);
+      if(!m) return String(url);
+      return m[1] + "_thumb." + m[2] + (m[3] || "");
+    }
+
+    function isHeadOrBody(assetId){
+      const id = String(assetId||"");
+      return id.startsWith("head_") || id.startsWith("body_");
+    }
+
+    function layerUrl(assetId, url, mode){
+      // mode: "thumb" | "full"
+      const u = String(url || "");
+      if(!u) return "";
+      if(mode === "thumb"){
+        if(isHeadOrBody(assetId)) return toThumbUrl(u);
+        return u;
       }
-      return data;
+      return toOriginalUrl(u);
     }
 
-    function openModal(title, imgUrl){
-      const bg = document.getElementById("modalBg");
-      document.getElementById("modalTitle").textContent = title;
-      const im = document.getElementById("modalImg");
-      im.src = imgUrl;
-      bg.style.display = "flex";
+    function makeLayerImg(src){
+      const img = document.createElement("img");
+      img.className = "layer";
+      img.alt = "";
+      img.src = src || TRANSPARENT_GIF;
+      img.onerror = () => {
+        const cur = img.getAttribute("src") || "";
+        if(cur.includes("_thumb.")){
+          img.src = cur.replace("_thumb.", ".");
+          return;
+        }
+        img.onerror = null;
+        img.src = TRANSPARENT_GIF;
+      };
+      return img;
     }
+
+    function buildComposite(boxEl, row, mode){
+      boxEl.innerHTML = "";
+      const bg = layerUrl(row.bgId, row.bgUrl, mode);
+      const body = layerUrl(row.bodyId, row.bodyUrl, mode);
+      const head = layerUrl(row.headId, row.headUrl, mode);
+      const a1 = layerUrl(row.addon1Id, row.addon1Url, mode);
+      const a2 = layerUrl(row.addon2Id, row.addon2Url, mode);
+
+      // order: bg -> body -> head -> addons
+      boxEl.appendChild(makeLayerImg(bg));
+      boxEl.appendChild(makeLayerImg(body));
+      boxEl.appendChild(makeLayerImg(head));
+      if(a1) boxEl.appendChild(makeLayerImg(a1));
+      if(a2) boxEl.appendChild(makeLayerImg(a2));
+    }
+
+    function fmtTime(ts){
+      const n = Number(ts || 0);
+      if(!n) return "";
+      const d = new Date(n);
+      return d.toLocaleString();
+    }
+
+    function showStatus(html, isErr){
+      const el = document.getElementById("status");
+      if(!el) return;
+      el.style.display = "block";
+      el.innerHTML = isErr ? `<div class="err">${html}</div>` : html;
+    }
+    function hideStatus(){
+      const el = document.getElementById("status");
+      if(!el) return;
+      el.style.display = "none";
+      el.innerHTML = "";
+    }
+
+    function openModal(row){
+      const modal = document.getElementById("modal");
+      const bigBox = document.getElementById("bigBox");
+      const title = document.getElementById("modalTitle");
+      const hint = document.getElementById("modalHint");
+
+      title.textContent = "成品預覽";
+      buildComposite(bigBox, row, "full");
+      hint.textContent = `${fmtTime(row.savedOn)}  |  ${row.headId}  +  ${row.bodyId}  +  ${row.bgId}${row.addon1Id ? "  +  " + row.addon1Id : ""}${row.addon2Id ? "  +  " + row.addon2Id : ""}`;
+
+      modal.classList.add("show");
+    }
+
     function closeModal(){
-      document.getElementById("modalBg").style.display = "none";
+      const modal = document.getElementById("modal");
+      modal.classList.remove("show");
     }
+
+    document.getElementById("btnClose").addEventListener("click", closeModal);
+    document.getElementById("modal").addEventListener("click", (e) => {
+      if(e.target && e.target.id === "modal") closeModal();
+    });
 
     (async function(){
       await initSession();
+      document.getElementById("uidText").textContent = APP.uid || "";
+      document.getElementById("netBadge").textContent = APP.offline ? "Offline" : "Online";
 
-      const uid = (window.APP && APP.uid) ? APP.uid : getUid();
-      try{ localStorage.setItem("uid", uid); }catch{}
-
-      const grid = document.getElementById("recipeGrid");
-      grid.innerHTML = "";
+      hideStatus();
+      showStatus("讀取中");
 
       try{
-        const [r1, r2] = await Promise.all([
-          fetchJson(`/api/recipes?uid=${encodeURIComponent(uid)}`),
-          fetchJson(`/api/unlocks?uid=${encodeURIComponent(uid)}`)
-        ]);
+        // Use backend table user_saves (online only)
+        const data = await api("/api/me/saves");
+        if(!data || !data.ok) throw new Error(String(data?.error || "load_failed"));
 
-        const unlockSet = new Set(r2.unlocks || []);
-        document.getElementById("netBadge").textContent = "Online";
+        const items = data.items || data.rows || data.results || [];
+        const grid = document.getElementById("grid");
+        grid.innerHTML = "";
 
-        for(const r of (r1.recipes || [])){
-          const unlocked = unlockSet.has(r.recipeId);
+        if(!Array.isArray(items) || items.length === 0){
+          showStatus("你目前還沒有存入任何成品，先回工作室存一套吧");
+          return;
+        }
+
+        hideStatus();
+
+        items.forEach(row => {
           const card = document.createElement("div");
-          card.className = "recipeCard " + (unlocked ? "unlocked" : "locked");
+          card.className = "card";
 
-          const img = document.createElement("img");
-          img.loading = "lazy";
-          img.src = r.imageUrl;
+          const box = document.createElement("div");
+          box.className = "thumbBox";
+          buildComposite(box, row, "thumb");
 
           const meta = document.createElement("div");
-          meta.className = "recipeMeta";
-          meta.innerHTML = `
-            <div class="recipeId">${r.recipeId}</div>
-            <div>${(window.rarityPill ? rarityPill(r.rarity || 1) : (r.rarity || 1))}</div>
-          `;
+          meta.className = "meta";
 
-          card.appendChild(img);
+          const ts = document.createElement("div");
+          ts.className = "ts";
+          ts.textContent = fmtTime(row.savedOn);
+
+          const parts = document.createElement("div");
+          parts.className = "parts";
+          parts.title = `${row.headId} + ${row.bodyId} + ${row.bgId}${row.addon1Id ? " + " + row.addon1Id : ""}${row.addon2Id ? " + " + row.addon2Id : ""}`;
+          parts.textContent = parts.title;
+
+          meta.appendChild(ts);
+
+          card.appendChild(box);
           card.appendChild(meta);
+          card.appendChild(parts);
 
-          if(!unlocked){
-            const mask = document.createElement("div");
-            mask.className = "lockMask";
-            mask.textContent = "🔒";
-            card.appendChild(mask);
-          } else {
-            card.addEventListener("click", () => openModal(r.recipeId, r.imageUrl));
-          }
-
+          card.addEventListener("click", () => openModal(row));
           grid.appendChild(card);
-        }
+        });
 
-        if(!(r1.recipes||[]).length){
-          grid.innerHTML = '<div class="notice">recipes table 是空的，先 seed 或先插入資料</div>';
-        }
       }catch(e){
-        document.getElementById("netBadge").textContent = "Error";
-        grid.innerHTML = `<div class="notice">連線失敗：${String(e?.message||e)}</div>`;
+        const msg = String(e?.message || e);
+        showStatus("讀取失敗，請確認後端已更新，並且有資料庫表 user_saves", true);
+        console.error(e);
       }
-
-      document.getElementById("closeBtn").addEventListener("click", closeModal);
-      document.getElementById("modalBg").addEventListener("click", (ev)=>{
-        if(ev.target && ev.target.id === "modalBg") closeModal();
-      });
-      window.addEventListener("keydown", (ev)=>{
-        if(ev.key === "Escape") closeModal();
-      });
     })();
   </script>
 </body>
