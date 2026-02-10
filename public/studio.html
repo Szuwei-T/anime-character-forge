@@ -472,6 +472,21 @@ window.showLevelUpFx = function showLevelUpFx(){
 };
 
 
+window.showCollectionFx = function showCollectionFx(recipeIds){
+  const fx = q("#collectionFx");
+  if(!fx) return;
+  const sub = q("#collectionFxSub");
+  const ids = Array.isArray(recipeIds) ? recipeIds.filter(Boolean) : [];
+  if(sub){
+    sub.textContent = ids.length ? ("Unlocked: " + ids.join("  ")) : "";
+  }
+  fx.classList.add("active");
+  clearTimeout(fx._t);
+  fx._t = setTimeout(()=>{ fx.classList.remove("active"); }, 1150);
+};
+
+
+
 
 
 function normId(v){
@@ -1161,7 +1176,11 @@ q("#submitBtn").addEventListener("click", async ()=>{
   toast("保存中");
   let data = await saveOnline(payload) || await saveOffline(payload);
   if(data && data.ok){
-    toast("已保存");
+    if(data.duplicate){
+      toast("該圖片已經保存在你的成品庫中了");
+    }else{
+      toast("已保存");
+    }
 
 
     // server may return unlocked recipeIds (write-through to local + offline db and play FX)
