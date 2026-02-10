@@ -130,7 +130,7 @@
       </div>
       <div class="cardBody">
         <div class="notice">
-          每個成品都是 1 張圖片 位置在 <b>/assets/[recipeId].PNG</b><br/>
+          每個成品都是 1 張圖片 位置在 <b>/assets/[recipeId].png</b><br/>
           解鎖條件：當你在工作室搭配出完全一致的組合，後端會寫入 <b>user_unlocks</b>
         </div>
         <div class="hr"></div>
@@ -201,8 +201,8 @@
 
       try{
         const [r1, r2] = await Promise.all([
-          fetchJson(`/api/recipes`),
-          fetchJson(`/api/unlocks?uid=${encodeURIComponent(uid)}`)
+          fetchJson(`/api/recipes?uid=${encodeURIComponent(uid)}`),
+          fetchJson(`/api/me/unlocks?uid=${encodeURIComponent(uid)}`)
         ]);
 
         const unlockSet = new Set(r2.unlocks || []);
