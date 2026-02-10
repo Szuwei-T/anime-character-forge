@@ -418,7 +418,8 @@
   <script src="app.js"></script>
 
 <script>
-  (async function(){
+  function q(sel){ return document.querySelector(sel); }
+(async function(){
     await initSession();
     q("#netBadge").textContent = APP.offline ? "Offline" : "Online";
 
@@ -461,7 +462,6 @@ function bestThumb(url){
 
 const TRANSPARENT_GIF = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
 
-const q = (sel)=>document.querySelector(sel);
 
 window.showLevelUpFx = function showLevelUpFx(){
   const fx = q("#levelUpFx");
