@@ -466,6 +466,7 @@ const TRANSPARENT_GIF = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACA
 window.showLevelUpFx = function showLevelUpFx(){
   const fx = q("#levelUpFx");
   if(!fx) return;
+  fx.style.display = "flex";
   fx.classList.add("active");
   clearTimeout(fx._t);
   fx._t = setTimeout(()=>{ fx.classList.remove("active"); }, 1050);
@@ -480,9 +481,10 @@ window.showCollectionFx = function showCollectionFx(recipeIds){
   if(sub){
     sub.textContent = ids.length ? ("Unlocked: " + ids.join("  ")) : "";
   }
+  fx.style.display = "flex";
   fx.classList.add("active");
   clearTimeout(fx._t);
-  fx._t = setTimeout(()=>{ fx.classList.remove("active"); }, 1150);
+  fx._t = setTimeout(()=>{ fx.classList.remove("active"); fx.style.display = "none"; }, 1150);
 };
 
 
@@ -1183,25 +1185,21 @@ q("#submitBtn").addEventListener("click", async ()=>{
     }
 
 
-    // server may return unlocked recipeIds (write-through to local + offline db and play FX)
+    // server may return newly-unlocked recipeIds (only the ones inserted this time)
     const unlocked = Array.isArray(data.unlocked) ? data.unlocked : [];
     if(unlocked.length){
       db.unlocks = db.unlocks || {};
       const db2 = offlineDb();
       db2.unlocks = db2.unlocks || {};
-      const newlyUnlocked = [];
+      const ts = Date.now();
       for(const rid of unlocked){
         const key = `${APP.uid}:${rid}`;
-        if(db.unlocks[key] || db2.unlocks[key]) continue;
-        const ts = Date.now();
         db.unlocks[key] = ts;
         db2.unlocks[key] = ts;
-        newlyUnlocked.push(rid);
       }
       saveOfflineDb(db2);
-      if(newlyUnlocked.length){
-        if(window.showCollectionFx) window.showCollectionFx(newlyUnlocked);
-      }
+      // Always play FX when server says these are newly unlocked
+      showCollectionFx(unlocked);
     }
 }else{
     toast("保存失敗");
