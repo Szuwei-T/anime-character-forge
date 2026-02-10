@@ -1184,7 +1184,11 @@ q("#submitBtn").addEventListener("click", async ()=>{
   toast("保存中");
   let data = await saveOnline(payload) || await saveOffline(payload);
   if(data && data.ok){
-    toast("已保存");
+    if(data.alreadySaved){
+      toast("該圖片已經保存在你的成品庫中了");
+    }else{
+      toast("已保存");
+    }
 
 
     // server may return unlocked recipeIds (write-through to local + offline db and play FX)
