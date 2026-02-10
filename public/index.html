@@ -1,151 +1,486 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="UTF-8" />
+  <title>Anime Character Forge 登入</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <base href="/"/>
-  <title>Anime Character Forge</title>
-  <link rel="stylesheet" href="/style.css" />
+  <style>
+    :root {
+      --bg1: rgba(3, 7, 18, 0.88);
+      --bg2: rgba(15, 23, 42, 0.97);
+      --card: rgba(17, 24, 39, 0.72);
+      --line: rgba(148, 163, 184, 0.22);
+      --text: #e5e7eb;
+      --muted: rgba(226, 232, 240, 0.7);
+      --accent: #60a5fa;
+      --ok: #34d399;
+      --err: #f87171;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        linear-gradient(var(--bg1), var(--bg2)),
+        url("bg.jpg") center center / cover no-repeat fixed;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      box-sizing: border-box;
+    }
+
+    .card {
+      width: 420px;
+      max-width: 96vw;
+      background: radial-gradient(circle at top left, rgba(96,165,250,0.18), transparent 45%),
+                  radial-gradient(circle at bottom right, rgba(52,211,153,0.10), transparent 45%),
+                  var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.55);
+    }
+
+    .head {
+      padding: 18px 18px 12px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(96,165,250,0.9), rgba(167,139,250,0.9));
+      box-shadow: 0 10px 30px rgba(96,165,250,0.25);
+      flex: 0 0 auto;
+    }
+
+    .title {
+      line-height: 1.2;
+    }
+    .title h1 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: 0.2px;
+    }
+    .title p {
+      margin: 4px 0 0;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .body {
+      padding: 16px 18px 18px;
+    }
+
+    .row {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: rgba(2, 6, 23, 0.55);
+      color: var(--text);
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: transform 0.08s ease, background 0.2s ease, border-color 0.2s ease;
+      user-select: none;
+    }
+    .btn:hover {
+      transform: translateY(-1px);
+      border-color: rgba(96,165,250,0.45);
+      background: rgba(2, 6, 23, 0.70);
+    }
+    .btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn.primary {
+      background: linear-gradient(135deg, rgba(96,165,250,0.95), rgba(167,139,250,0.95));
+      border-color: rgba(255,255,255,0.12);
+    }
+    .btn.primary:hover {
+      border-color: rgba(255,255,255,0.22);
+      background: linear-gradient(135deg, rgba(96,165,250,1), rgba(167,139,250,1));
+    }
+
+    .split {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 14px 0 6px;
+      color: rgba(226,232,240,0.55);
+      font-size: 12px;
+    }
+    .split::before, .split::after {
+      content: "";
+      height: 1px;
+      background: var(--line);
+      flex: 1;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+    label {
+      font-size: 12px;
+      color: rgba(226,232,240,0.75);
+    }
+    input {
+      width: 100%;
+      box-sizing: border-box;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: rgba(2, 6, 23, 0.55);
+      color: var(--text);
+      padding: 12px 12px;
+      outline: none;
+    }
+    input:focus {
+      border-color: rgba(96,165,250,0.55);
+    }
+
+    .mini {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .note {
+      margin-top: 10px;
+      font-size: 12px;
+      color: rgba(226,232,240,0.7);
+      line-height: 1.5;
+    }
+
+    .status {
+      margin-top: 10px;
+      font-size: 12px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: rgba(2, 6, 23, 0.55);
+      display: none;
+      white-space: pre-wrap;
+    }
+    .status.ok {
+      display: block;
+      border-color: rgba(52,211,153,0.35);
+    }
+    .status.err {
+      display: block;
+      border-color: rgba(248,113,113,0.35);
+    }
+
+    .userbar {
+      margin-top: 10px;
+      display: none;
+      font-size: 12px;
+      color: rgba(226,232,240,0.75);
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+      border: 1px solid var(--line);
+      background: rgba(2, 6, 23, 0.40);
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+    .userbar b {
+      color: var(--text);
+    }
+    .link {
+      color: rgba(147,197,253,0.95);
+      cursor: pointer;
+      text-decoration: underline;
+      font-weight: 700;
+    }
+    .small {
+      font-size: 11px;
+      color: rgba(226,232,240,0.60);
+      margin-top: 10px;
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <div class="topbar">
-      <a class="brand" href="index.html">
-        <div class="logo"></div>
+  <div class="card">
+    <div class="head">
+      <div class="logo"></div>
+      <div class="title">
         <h1>Anime Character Forge</h1>
-      </a>
-      <div class="right">
-        <div class="badge" id="netBadge">Connecting</div>
-        <a class="badge" href="profile.html">My</a>
+        <p>先登入，再設定你的遊戲名稱，馬上開始組角色</p>
       </div>
     </div>
 
-    <div class="card">
-      <div class="cardHeader">
-        <h2>用抽卡素材打造你的動漫角色</h2>
-        <div class="pills">
-          <span class="pill">頭部</span>
-          <span class="pill">身體</span>
-          <span class="pill">附件</span>
-          <span class="pill">背景</span>
+    <div class="body">
+      <div class="userbar" id="userbar">
+        <div>
+          目前登入 <b id="userEmail">未登入</b>
+          <div class="small">uid <span id="userUid"></span></div>
         </div>
+        <span class="link" id="btnLogout">登出</span>
       </div>
-      <div class="cardBody">
-        <div class="grid">
-          <div class="col6">
-            <div class="notice">
-              這個版本可直接本地跑起來
-              如果你還沒部署 Cloudflare 後端 會自動切到離線模式 用 localStorage 模擬資料庫
-            </div>
 
-            <div class="hr"></div>
+      <div id="stepLogin">
+        <div class="row">
+          <button class="btn primary" id="btnGoogle">使用 Google 登入</button>
+          <button class="btn" id="btnMicrosoft">使用 Microsoft 登入</button>
+          <button class="btn" id="btnApple">使用 Apple 登入</button>
+        </div>
 
-            <label class="help">顯示名稱</label>
-            <input class="input" id="nameInput" placeholder="例如 Chloe" />
+        <div class="split">或</div>
 
-            <div style="height:12px"></div>
-
-            <div class="row">
-              <button class="btn btnPrimary" id="startBtn">開始遊戲</button>
-            </div>
-
-            <div style="height:10px"></div>
-
-            <div class="grid">
-              <div class="col6"><a class="btn" href="studio.html">工作室</a></div>
-              <div class="col6"><a class="btn" href="gacha.html">抽卡</a></div>
-              <div class="col6"><a class="btn" href="recipes.html">成品庫</a></div>
-              <div class="col6"><a class="btn" href="gallery.html">展示牆</a></div>
-            </div>
-
-            <div class="hr"></div>
-
-            <div class="kv">
-              <div>玩家 uid</div><div id="uidText"></div>
-              <div>模式</div><div id="modeText"></div>
-              <div>本期</div><div id="seasonText">S1</div>
-            </div>
+        <div class="row">
+          <div class="field">
+            <label>Email</label>
+            <input id="email" type="email" placeholder="you@example.com" autocomplete="username" />
           </div>
-
-          <div class="col6">
-            <div class="stage" aria-label="preview">
-              <img class="layer" id="bgLayer" alt="background" />
-<img class="layer" id="addon2Layer" alt="add on 2" />
-<img class="layer" id="headLayer" alt="head" />
-<img class="layer" id="bodyLayer" alt="body" />
-<img class="layer" id="addon1Layer" alt="add on 1" />
-
-              <div class="stageOverlay">
-                <button class="smallBtn" id="randomBtn">隨機示範</button>
-                <button class="smallBtn" id="goStudioBtn">去工作室</button>
-              </div>
-            </div>
-            <div style="height:10px"></div>
-            <div class="help">
-              預覽是疊圖渲染
-              之後換成你的正式素材 PNG 就會像角色換裝一樣
-              所有素材固定 853x1280
-            </div>
+          <div class="field">
+            <label>Password</label>
+            <input id="password" type="password" placeholder="password" autocomplete="current-password" />
+          </div>
+          <div class="mini">
+            <button class="btn" id="btnEmailLogin">Email 登入</button>
+            <button class="btn" id="btnEmailSignup">Email 註冊</button>
           </div>
         </div>
+
+        <div class="note">
+          如果你用 Microsoft 或 Apple 登入，需要先在 Firebase Auth 裡啟用對應的 Provider，否則會顯示錯誤。
+        </div>
       </div>
+
+      <div id="stepProfile" style="display:none;">
+        <div class="row">
+          <div class="field">
+            <label>遊戲名稱</label>
+            <input id="gameName" type="text" maxlength="20" placeholder="例如：星河行者" />
+          </div>
+          <div class="field">
+            <label>地區 (可空白)</label>
+            <input id="region" type="text" maxlength="20" placeholder="例如：CA 或 Toronto" />
+          </div>
+          <button class="btn primary" id="btnSaveProfile">開始遊戲</button>
+          <button class="btn" id="btnSkip">先不填，直接進入</button>
+        </div>
+
+        <div class="note">
+          會寫入 D1 的 <b>user_accounts</b>：userId、userName、userGold、userGem、userVote、userRegion。
+        </div>
+      </div>
+
+      <div class="status" id="status"></div>
     </div>
   </div>
 
-  <script src="/app.js"></script>
-  <script>
-  (async function(){
-    await initSession();
-    q("#nameInput").value = getName();
-    q("#uidText").textContent = APP.uid;
-    q("#netBadge").textContent = APP.offline ? "Offline" : "Online";
-    q("#modeText").textContent = APP.offline ? "離線 localStorage" : "Cloudflare API";
+  <!-- Firebase (modular CDN) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getAuth,
+      onAuthStateChanged,
+      signInWithPopup,
+      GoogleAuthProvider,
+      OAuthProvider,
+      signInWithEmailAndPassword,
+      createUserWithEmailAndPassword,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-    function setPreview(headId, bodyId, bgId, addon1Id, addon2Id){
-  const db = offlineDb();
-  const assets = db.assets;
-  const byId = new Map(assets.map(a=>[a.assetId,a]));
-  const head = byId.get(headId);
-  const body = byId.get(bodyId);
-  const bg = byId.get(bgId);
-  const addon1 = byId.get(addon1Id);
-  const addon2 = byId.get(addon2Id);
+    const firebaseConfig = {
+    apiKey: "AIzaSyDMcp3UZwmscbneDwnuaPpCDe2n6_7kKpI",
+    authDomain: "dream-league-baseball.firebaseapp.com",
+    projectId: "dream-league-baseball",
+    storageBucket: "dream-league-baseball.appspot.com",
+    messagingSenderId: "355433474466",
+    appId: "1:355433474466:web:b710e031c858c725e32afb",
+    measurementId: "G-CKBZSSK06B"
+  };
 
-  q("#bgLayer").src = bg?.imageUrl || "";
-  q("#addon2Layer").src = addon2?.imageUrl || "";
-  q("#headLayer").src = head?.imageUrl || "";
-  q("#bodyLayer").src = body?.imageUrl || "";
-  q("#addon1Layer").src = addon1?.imageUrl || "";
-}
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
 
-    function randomDemo(){
-  const db = offlineDb();
-  const a = db.assets;
-  const heads = a.filter(x=>x.type==="head");
-  const bodies = a.filter(x=>x.type==="body");
-  const bgs = a.filter(x=>x.type==="background");
-  const accs = a.filter(x=>x.type==="accessory");
-  const head = randPick(heads);
-  const body = randPick(bodies);
-  const bg = randPick(bgs);
-  const addon1 = randPick(accs);
-  const addon2 = randPick(accs);
-  setPreview(head.assetId, body.assetId, bg.assetId, addon1.assetId, addon2.assetId);
-}
+    const $ = (id) => document.getElementById(id);
 
-    q("#randomBtn").addEventListener("click", ()=>{ randomDemo(); toast("已隨機示範"); });
-    q("#goStudioBtn").addEventListener("click", ()=>{ location.href="studio.html"; });
+    const statusEl = $("status");
+    function setStatus(msg, kind = "") {
+      statusEl.className = "status " + (kind || "");
+      statusEl.textContent = msg || "";
+      statusEl.style.display = msg ? "block" : "none";
+    }
 
-    q("#startBtn").addEventListener("click", async ()=>{
-      const n = q("#nameInput").value.trim() || "Player";
-      setName(n);
-      await initSession();
-      toast("已更新名稱");
-      location.href="hub.html";
+    function getUid() {
+      return auth.currentUser?.uid || "";
+    }
+
+    function setBusy(busy) {
+      for (const id of ["btnGoogle","btnMicrosoft","btnApple","btnEmailLogin","btnEmailSignup","btnSaveProfile","btnSkip","btnLogout"]) {
+        const el = $(id);
+        if (el) el.disabled = !!busy;
+      }
+    }
+
+    async function api(path, opts = {}) {
+      const uid = getUid();
+      const headers = Object.assign({
+        "content-type": "application/json",
+        "x-user-id": uid || "anon"
+      }, opts.headers || {});
+      const res = await fetch(path, { ...opts, headers });
+      const data = await res.json().catch(() => ({ ok:false, error:"bad_json" }));
+      if (!res.ok || data?.ok === false) {
+        const err = data?.error || ("http_" + res.status);
+        throw new Error(err);
+      }
+      return data;
+    }
+
+    function showStep(loggedIn) {
+      $("stepLogin").style.display = loggedIn ? "none" : "block";
+      $("stepProfile").style.display = loggedIn ? "block" : "none";
+      $("userbar").style.display = loggedIn ? "flex" : "none";
+    }
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        $("userEmail").textContent = user.email || user.providerData?.[0]?.email || "已登入";
+        $("userUid").textContent = user.uid;
+        showStep(true);
+        setStatus("", "");
+      } else {
+        $("userEmail").textContent = "未登入";
+        $("userUid").textContent = "";
+        showStep(false);
+      }
     });
 
-    randomDemo();
-  })();
+    // Providers
+    const googleProvider = new GoogleAuthProvider();
+    const msProvider = new OAuthProvider("microsoft.com");
+    const appleProvider = new OAuthProvider("apple.com");
+
+    $("btnGoogle").onclick = async () => {
+      setStatus("", "");
+      setBusy(true);
+      try {
+        await signInWithPopup(auth, googleProvider);
+      } catch (e) {
+        setStatus("登入失敗\n" + (e?.message || e), "err");
+      } finally {
+        setBusy(false);
+      }
+    };
+
+    $("btnMicrosoft").onclick = async () => {
+      setStatus("", "");
+      setBusy(true);
+      try {
+        await signInWithPopup(auth, msProvider);
+      } catch (e) {
+        setStatus("登入失敗\n" + (e?.message || e), "err");
+      } finally {
+        setBusy(false);
+      }
+    };
+
+    $("btnApple").onclick = async () => {
+      setStatus("", "");
+      setBusy(true);
+      try {
+        await signInWithPopup(auth, appleProvider);
+      } catch (e) {
+        setStatus("登入失敗\n" + (e?.message || e), "err");
+      } finally {
+        setBusy(false);
+      }
+    };
+
+    $("btnEmailLogin").onclick = async () => {
+      setStatus("", "");
+      setBusy(true);
+      try {
+        const email = $("email").value.trim();
+        const pwd = $("password").value;
+        if (!email || !pwd) throw new Error("missing_email_or_password");
+        await signInWithEmailAndPassword(auth, email, pwd);
+      } catch (e) {
+        setStatus("Email 登入失敗\n" + (e?.message || e), "err");
+      } finally {
+        setBusy(false);
+      }
+    };
+
+    $("btnEmailSignup").onclick = async () => {
+      setStatus("", "");
+      setBusy(true);
+      try {
+        const email = $("email").value.trim();
+        const pwd = $("password").value;
+        if (!email || !pwd) throw new Error("missing_email_or_password");
+        if (pwd.length < 6) throw new Error("password_min_6");
+        await createUserWithEmailAndPassword(auth, email, pwd);
+      } catch (e) {
+        setStatus("Email 註冊失敗\n" + (e?.message || e), "err");
+      } finally {
+        setBusy(false);
+      }
+    };
+
+    $("btnLogout").onclick = async () => {
+      setBusy(true);
+      try {
+        await signOut(auth);
+      } finally {
+        setBusy(false);
+      }
+    };
+
+    // Save profile to D1
+    $("btnSaveProfile").onclick = async () => {
+      setStatus("", "");
+      setBusy(true);
+      try {
+        const userName = $("gameName").value.trim();
+        const userRegion = $("region").value.trim();
+        if (!userName) throw new Error("missing_userName");
+        const payload = {
+          userName,
+          userRegion: userRegion || ""
+        };
+        await api("/api/me/account", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+        setStatus("完成！已建立玩家資料，正在進入遊戲…", "ok");
+        setTimeout(() => (window.location.href = "hub.html"), 400);
+      } catch (e) {
+        setStatus("寫入資料失敗\n" + (e?.message || e), "err");
+      } finally {
+        setBusy(false);
+      }
+    };
+
+    $("btnSkip").onclick = () => {
+      window.location.href = "hub.html";
+    };
   </script>
 </body>
 </html>
