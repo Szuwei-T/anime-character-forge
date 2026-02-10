@@ -168,10 +168,26 @@
     }
 
     async function fetchJson(url, opt){
-      const res = await fetch(url, opt);
-      const txt = await res.text();
+      // Disable caching to avoid 304 responses with empty bodies (which causes JSON parse to fail)
+      const baseOpt = Object.assign({ cache: "no-store" }, opt || {});
+      let res = await fetch(url, baseOpt);
+
+      // Some environments may still return 304; retry once with a cache-buster
+      if(res.status === 304){
+        const bust = url + (url.includes("?") ? "&" : "?") + "_ts=" + Date.now();
+        res = await fetch(bust, baseOpt);
+      }
+
+      const ct = (res.headers.get("content-type") || "").toLowerCase();
       let data = null;
-      try{ data = JSON.parse(txt); }catch{ data = { ok:false, error:"bad_json", raw: txt }; }
+
+      if(ct.includes("application/json")){
+        try{ data = await res.json(); }catch{ data = null; }
+      }else{
+        const txt = await res.text();
+        try{ data = JSON.parse(txt); }catch{ data = { ok:false, error:"bad_json", raw: txt }; }
+      }
+
       if(!res.ok || !data?.ok) {
         const msg = data?.error || ("http_" + res.status);
         throw new Error(msg);
