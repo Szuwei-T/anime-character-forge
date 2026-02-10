@@ -629,6 +629,20 @@
   </div>
 
   <script>
+    const WORKER_BASE =
+      window.WORKER_BASE ||
+      localStorage.getItem("WORKER_BASE") ||
+      new URLSearchParams(location.search).get("worker") ||
+      "";
+
+    function apiUrl(path){
+      const base = String(WORKER_BASE || "").trim().replace(/\/+$/, "");
+      if(!base){
+        throw new Error("WORKER_BASE 未設定，請在網址加上 ?worker= 或在 localStorage 設定 WORKER_BASE");
+      }
+      return base + path;
+    }
+
     const state = {
       debug: false,
       assetsLoaded: false,
@@ -667,8 +681,6 @@
       box.textContent = "";
     }
 
-    const API_BASE = "https://acf-api-dream-league-baseball.workers.dev";
-
     async function api(path, opts = {}){
       const init = {
         method: opts.method || "GET",
@@ -678,7 +690,7 @@
 
       let res;
       try{
-        res = await fetch(API_BASE + path, init);
+        res = await fetch(apiUrl(path), init);
       }catch(e){
         return { __net_error: true, message: String(e && e.message ? e.message : e) };
       }
@@ -696,7 +708,6 @@
 
       return data;
     }
-
 
     function normalizeType(t){
       if(!t) return "";
