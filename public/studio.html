@@ -84,6 +84,64 @@
     pointer-events: none;
   }
 
+  /* upgrade-ready / not-ready styling for count badge */
+  .badge-count.ready{
+    background: rgba(250,204,21,0.90);
+    color: #111827;
+    border-color: rgba(250,204,21,0.95);
+    box-shadow: 0 0 0 1px rgba(250,204,21,0.55), 0 10px 20px rgba(0,0,0,0.35);
+  }
+  .badge-count.notready{
+    background: rgba(0,0,0,0.75);
+    color: rgba(239,68,68,0.95);
+    border-color: rgba(239,68,68,0.45);
+  }
+  .badge-count.gray{
+    background: rgba(0,0,0,0.75);
+    color: rgba(148,163,184,0.95);
+    border-color: rgba(148,163,184,0.35);
+  }
+
+  /* upgrade overlay */
+  .upgrade-overlay{
+    position:absolute;
+    left:0;
+    top:0;
+    width:100%;
+    height:100%;
+    border-radius:12px;
+    background: rgba(0,0,0,0.45);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index: 4;
+    cursor: pointer;
+  }
+  .upgrade-overlay span{
+    font-size: 12px;
+    font-weight: 800;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(250,204,21,0.92);
+    color: #111827;
+    border: 1px solid rgba(250,204,21,0.95);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.45);
+  }
+
+  /* upgrade animation */
+  .asset-item.upgrading .asset-thumb{
+    animation: upgradePulse 650ms ease-in-out 1;
+  }
+  .asset-item.upgrading{
+    filter: drop-shadow(0 0 10px rgba(250,204,21,0.55));
+  }
+  @keyframes upgradePulse{
+    0%{ transform: scale(1); }
+    35%{ transform: scale(1.06); }
+    70%{ transform: scale(0.99); }
+    100%{ transform: scale(1); }
+  }
+
   /* Rarity Badge (Top Left) */
   .badge-rarity{
     position:absolute;
@@ -392,6 +450,25 @@ if(!APP.offline){
 
     const byId = new Map(db.assets.map(a=>[a.assetId,a]));
 
+    // refresh counts/stars from DB after upgrade
+    window.reloadInventory = async function reloadInventory(){
+      if(APP.offline) return;
+      const invRes = await fetch(WORKER_BASE + "/api/me/assets?uid=" + encodeURIComponent(APP.uid)).then(r=>r.json());
+      const items = invRes.items || invRes.assets || invRes.rows || invRes.results || [];
+      const storeCount = {};
+      const storeStars = {};
+      for(const it of (items || [])){
+        const aid = it.assetId || it.asset_id || it.id;
+        if(!aid) continue;
+        storeCount[`${APP.uid}:${aid}`] = Number(it.count || it.qty || 0);
+        const s = it.stars;
+        if(s !== undefined && s !== null && s !== "") storeStars[`${APP.uid}:${aid}`] = Number(s);
+      }
+      db.userAssets = storeCount;
+      db.userStars = storeStars;
+      Object.values(grids).forEach(g=>g && g.rerender && g.rerender());
+    };
+
     async function saveOnline(payload){
       try{
         const res = await api("/api/save", {
@@ -550,6 +627,7 @@ function makeVirtualGrid(container, items0, getSelectedId, onSelect, options){
         const it = items[idx];
         const wrap = document.createElement("div");
         wrap.className = "asset-item " + `r${it.rarity || 1}`;
+        if(it.assetId) wrap.setAttribute("data-asset-id", String(it.assetId));
         wrap.style.left = (c * (opt.thumbW + opt.gap)) + "px";
         wrap.style.top = (r * rowH) + "px";
 
@@ -589,11 +667,16 @@ img.addEventListener("error", ()=>{
         if(it.assetId) {
           const count = invCount(it.assetId);
           const stats = getAssetStats(it.assetId, count, invStars(it.assetId));
+          const neededNum = (stats.stars >= 5) ? null : (stats.stars * 10);
+          const canUpgrade = !!neededNum && stats.totalCount >= neededNum;
           
           // Count Badge (Top Right)
           const cBadge = document.createElement("div");
           cBadge.className = "badge-count";
           cBadge.textContent = `${stats.totalCount}/${stats.neededForNext}`;
+          if(stats.stars >= 5) cBadge.classList.add("gray");
+          else if(canUpgrade) cBadge.classList.add("ready");
+          else cBadge.classList.add("notready");
           wrap.appendChild(cBadge);
 
           // Rarity Badge (Top Left) show only when not using thumb image
@@ -612,6 +695,22 @@ img.addEventListener("error", ()=>{
           sBadge.className = "badge-stars";
           sBadge.textContent = "★".repeat(stats.stars);
           wrap.appendChild(sBadge);
+
+          // Upgrade overlay
+          if(canUpgrade){
+            const ov = document.createElement("div");
+            ov.className = "upgrade-overlay";
+            const label = document.createElement("span");
+            label.textContent = "可升級";
+            ov.appendChild(label);
+            ov.addEventListener("click", async (e)=>{
+              e.preventDefault();
+              e.stopPropagation();
+              await doUpgrade(it.assetId);
+              rerender();
+            });
+            wrap.appendChild(ov);
+          }
         }
 
         if(unlockedAssetIds.has(it.assetId)){
