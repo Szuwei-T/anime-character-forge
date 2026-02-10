@@ -786,9 +786,12 @@ function ruleHintText(){
 function setLayers(){
   const bgUrl = byId.get(SEL.bgId)?.imageUrl || "";
   const a2Url = byId.get(SEL.addon2Id)?.imageUrl || "";
-  const hUrl = byId.get(SEL.headId)?.imageUrl || "";
+  const headRawUrl = byId.get(SEL.headId)?.imageUrl || "";
   const bUrl = byId.get(SEL.bodyId)?.imageUrl || "";
   const a1Url = byId.get(SEL.addon1Id)?.imageUrl || "";
+
+  // If only head is selected (no body yet), show head thumb preview (faster + looks better)
+  const hUrl = (SEL.headId && !SEL.bodyId) ? bestThumb(headRawUrl) : headRawUrl;
 
   // Stage layers: if empty or failed to load, use transparent and hide the layer so no broken icon shows
   const bgEl = q("#bgLayer");
@@ -820,10 +823,11 @@ function setLayers(){
   setStage(bEl,  bUrl,  "");
   setStage(a1El, a1Url, "");
 
-  // body missing mask: hide parts that should be covered by body
+  // body missing mask:
+  // When only head is selected (no body yet), do NOT show the semi-transparent cover.
   const maskEl = q("#bodyMissingMask");
   if(maskEl){
-    maskEl.style.display = SEL.bodyId ? "none" : "block";
+    maskEl.style.display = (!SEL.bodyId && !SEL.headId) ? "block" : "none";
   }
 }
 
