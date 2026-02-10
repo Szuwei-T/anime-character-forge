@@ -1165,34 +1165,28 @@ q("#submitBtn").addEventListener("click", async ()=>{
   if(data && data.ok){
     toast("已保存");
 
-    // check recipes -> unlock collection
-    const okRecipes = await ensureRecipesLoaded();
-    if(!okRecipes){
-      // no recipe list available, skip unlock
-    }
-    const matchIds = okRecipes ? findMatchingRecipeIdsFromRows(payload) : [];
-    const newlyUnlocked = [];
-    for(const rid of matchIds){
-      const key = `${APP.uid}:${rid}`;
-      const already = !!(db.unlocks && db.unlocks[key]);
-      if(already) continue;
 
-      // write unlock (online first, fallback offline)
-      const u = await unlockRecipeOnline(rid);
-      if(!(u && u.ok)){
-        unlockRecipeOffline(rid);
-      }else{
-        // also mirror locally so UI updates immediately
-        db.unlocks = db.unlocks || {};
-        db.unlocks[key] = Date.now();
+    // server may return unlocked recipeIds (write-through to local + offline db and play FX)
+    const unlocked = Array.isArray(data.unlocked) ? data.unlocked : [];
+    if(unlocked.length){
+      db.unlocks = db.unlocks || {};
+      const db2 = offlineDb();
+      db2.unlocks = db2.unlocks || {};
+      const newlyUnlocked = [];
+      for(const rid of unlocked){
+        const key = `${APP.uid}:${rid}`;
+        if(db.unlocks[key] || db2.unlocks[key]) continue;
+        const ts = Date.now();
+        db.unlocks[key] = ts;
+        db2.unlocks[key] = ts;
+        newlyUnlocked.push(rid);
       }
-      newlyUnlocked.push(rid);
+      saveOfflineDb(db2);
+      if(newlyUnlocked.length){
+        if(window.showCollectionFx) window.showCollectionFx(newlyUnlocked);
+      }
     }
-
-    if(newlyUnlocked.length){
-      if(window.showCollectionFx) window.showCollectionFx(newlyUnlocked);
-    }
-  }else{
+}else{
     toast("保存失敗");
     console.log("save_failed", data);
   }
