@@ -34,8 +34,34 @@
 
     /* Locked recipe cards */
     .locked .thumb{filter:blur(12px) brightness(.5) saturate(.2) contrast(.75);transform:scale(1.08)}
-    .lockmask{position:absolute;inset:0;background:rgba(0,0,0,.40);display:flex;align-items:center;justify-content:center;gap:10px;flex-direction:column}
-    .lockmask .lock{font-size:28px;line-height:1}
+    /* Locked overlay: keep 🔒 always on top, never affected by blur/filter */
+    .lockmask{
+      position:absolute;
+      inset:0;
+      z-index:999; /* always above any layers */
+      background:rgba(0,0,0,.40);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      flex-direction:column;
+
+      /* ensure it never inherits blur/filter/backdrop */
+      filter:none !important;
+      backdrop-filter:none !important;
+
+      /* prevent any weird stacking interactions */
+      isolation:isolate;
+
+      /* allow clicks to fall through if you want the card to handle click */
+      pointer-events:none;
+    }
+    .lockmask .lock{
+      font-size:28px;
+      line-height:1;
+      position:relative;
+      z-index:1000;
+    }
     .lockmask .txt{font-size:13px;opacity:.95}
 
     .modal{position:fixed;inset:0;background:rgba(0,0,0,.60);display:none;align-items:center;justify-content:center;padding:18px;z-index:9999}

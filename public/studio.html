@@ -466,7 +466,12 @@ window.showLevelUpFx = function showLevelUpFx(){
   if(!fx) return;
   fx.classList.add("active");
   clearTimeout(fx._t);
-  fx._t = setTimeout(()=>{ fx.classList.remove("active"); }, 1050);
+  fx._t = setTimeout(()=>{
+// Worker base fallback (if app.js did not define it)
+if(typeof WORKER_BASE === "undefined" || !WORKER_BASE){
+  window.WORKER_BASE = "https://acf-api.dream-league-baseball.workers.dev";
+}
+ fx.classList.remove("active"); }, 1050);
 };
 
 
@@ -1158,28 +1163,9 @@ q("#submitBtn").addEventListener("click", async ()=>{
   toast("保存中");
   let data = await saveOnline(payload) || await saveOffline(payload);
   if(data && data.ok){
-    
-toast("已保存");
+    toast("已保存");
 
-// If server returned unlocked recipeIds, use them directly
-const unlockedFromServer = Array.isArray(data.unlocked) ? data.unlocked : [];
-if(unlockedFromServer.length){
-  const newlyUnlocked = [];
-  for(const rid of unlockedFromServer){
-    const key = `${APP.uid}:${rid}`;
-    const already = !!(db.unlocks && db.unlocks[key]);
-    if(already) continue;
-    db.unlocks = db.unlocks || {};
-    db.unlocks[key] = Date.now();
-    newlyUnlocked.push(rid);
-  }
-  if(newlyUnlocked.length){
-    if(window.showCollectionFx) window.showCollectionFx(newlyUnlocked);
-  }
-  return;
-}
-
-// check recipes -> unlock collection
+    // check recipes -> unlock collection
     const okRecipes = await ensureRecipesLoaded();
     if(!okRecipes){
       // no recipe list available, skip unlock
