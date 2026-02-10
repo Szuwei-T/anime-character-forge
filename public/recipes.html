@@ -32,6 +32,21 @@
     .meta .time{font-size:12px;opacity:.85;margin-bottom:4px}
     .meta .parts{font-size:12px;opacity:.65;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
+    .meta .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .showBtn{
+      cursor:pointer;
+      user-select:none;
+      padding:8px 12px;
+      border-radius:999px;
+      background:rgba(255,255,255,.07);
+      border:1px solid rgba(255,255,255,.14);
+      font-size:12px;
+      opacity:.95;
+      white-space:nowrap;
+    }
+    .showBtn:hover{background:rgba(255,255,255,.12)}
+    .showBtn:active{transform:translateY(1px)}
+
     /* Locked recipe cards */
     .locked .thumb{filter:blur(12px) brightness(.5) saturate(.2) contrast(.75);transform:scale(1.08)}
     /* Locked overlay: keep 🔒 always on top, never affected by blur/filter */
@@ -180,6 +195,27 @@
     });
   }
 
+  function apiReq(method, path, body){
+    return fetch(WORKER_BASE + path, {
+      method: method,
+      headers: {
+        "content-type": "application/json",
+        "x-user-id": uid || ""
+      },
+      body: body ? JSON.stringify(body) : undefined
+    }).then(async (r) => {
+      const t = await r.text();
+      let j = {};
+      try { j = t ? JSON.parse(t) : {}; } catch { j = { ok:false, error:"bad_json", raw:t }; }
+      if (!r.ok || j.ok === false) {
+        const e = (j && (j.error || j.message)) ? (j.error || j.message) : ("HTTP " + r.status);
+        throw new Error(e + (j && j.detail ? (" - " + j.detail) : ""));
+      }
+      return j;
+    });
+  }
+
+
   function fmtTime(ts){
     if (!ts) return "";
     try{
@@ -305,15 +341,65 @@
         const meta = document.createElement("div");
         meta.className = "meta";
 
+        const row = document.createElement("div");
+        row.className = "row";
+
         const time = document.createElement("div");
         time.className = "time";
         time.textContent = fmtTime(s.savedOn);
+
+        const btnShow = document.createElement("div");
+        btnShow.className = "showBtn";
+        btnShow.textContent = "展示";
+
+        btnShow.onclick = async (ev) => {
+          ev.stopPropagation();
+          clearError();
+
+          if (!uid){
+            showError("請先登入後再使用展示功能");
+            return;
+          }
+
+          const payload = {
+            saveId: s.saveId || s.id || null,
+            headId: s.headId || null,
+            bodyId: s.bodyId || null,
+            bgId: s.bgId || null,
+            addon1Id: s.addon1Id || null,
+            addon2Id: s.addon2Id || null,
+            headUrl: s.headUrl || null,
+            bodyUrl: s.bodyUrl || null,
+            bgUrl: s.bgUrl || null,
+            addon1Url: s.addon1Url || null,
+            addon2Url: s.addon2Url || null,
+            savedOn: s.savedOn || null
+          };
+
+          try{
+            const cur = await api("/api/me/showcase?seasonId=S1");
+            const curItem = cur.showcase || cur.item || cur.current || null;
+if (curItem){
+              const ok = window.confirm("本期已經有作品正在展示中。上傳新作品後，原有的票數將歸零並重新計票。是否確認？");
+              if (!ok) return;
+            }
+
+            await apiReq("POST", "/api/me/showcase", { ...payload, seasonId:"S1", overwrite: !!curItem });
+            showError("已提交展示");
+          } catch(e){
+            showError("展示失敗：" + (e && e.message ? e.message : String(e)));
+            console.error(e);
+          }
+        };
+
+        row.appendChild(time);
+        row.appendChild(btnShow);
 
         const parts = document.createElement("div");
         parts.className = "parts";
         parts.textContent = [s.headId, s.bodyId, s.bgId].filter(Boolean).join(" / ");
 
-        meta.appendChild(time);
+        meta.appendChild(row);
         meta.appendChild(parts);
 
         card.appendChild(th);
