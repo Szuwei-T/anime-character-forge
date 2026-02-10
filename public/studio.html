@@ -2,113 +2,214 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Studio Unlock V4</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Studio Unlock V5</title>
 <style>
-body { margin:0; font-family:Arial,Helvetica,sans-serif; }
+  body { margin:0; font-family: Arial, Helvetica, sans-serif; }
 
-#unlock-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 999999;
-  background: radial-gradient(circle at center, rgba(0,0,0,0.75), rgba(0,0,0,0.95));
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  padding: 40px 20px 60px;
-}
+  /* Unlock overlay */
+  #unlock-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 999999;
+    background: radial-gradient(circle at center, rgba(0,0,0,0.75), rgba(0,0,0,0.95));
+    display: none; /* IMPORTANT: default hidden */
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 40px 20px 60px;
+  }
+  #unlock-overlay.is-open { display: flex; }
 
-.hidden { display:none; }
+  .unlock-title {
+    font-size: 56px;
+    font-weight: 900;
+    letter-spacing: 4px;
+    text-align: center;
+    background: linear-gradient(90deg,#ffdf00,#ff6a00,#ff00ff,#00e5ff,#00ff9c);
+    background-size: 400% 400%;
+    -webkit-background-clip: text;
+    color: transparent;
+    text-shadow:
+      0 0 20px rgba(255,255,255,0.8),
+      0 0 70px rgba(255,215,0,0.75);
+    animation: gradientMove 2s linear infinite, pulse 0.9s ease-in-out infinite;
+  }
 
-.unlock-title {
-  font-size: 56px;
-  font-weight: 900;
-  letter-spacing: 4px;
-  background: linear-gradient(90deg,#ffdf00,#ff6a00,#ff00ff,#00e5ff,#00ff9c);
-  background-size: 400% 400%;
-  -webkit-background-clip: text;
-  color: transparent;
-  text-shadow:
-    0 0 20px rgba(255,255,255,0.8),
-    0 0 60px rgba(255,215,0,0.8);
-  animation: gradientMove 2s linear infinite, pulse 0.9s ease-in-out infinite;
-}
+  @keyframes gradientMove {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 100% 50%; }
+  }
+  @keyframes pulse {
+    0% { transform: scale(0.95); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(0.95); }
+  }
 
-@keyframes gradientMove {
-  0% { background-position:0% 50%; }
-  100% { background-position:100% 50%; }
-}
-@keyframes pulse {
-  0% { transform:scale(0.95); }
-  50% { transform:scale(1.05); }
-  100% { transform:scale(0.95); }
-}
+  /* Flash burst layer */
+  #unlock-flash {
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.9);
+    opacity: 0;
+    pointer-events: none;
+  }
+  #unlock-overlay.is-open #unlock-flash {
+    animation: flashBurst 0.45s ease-out 1;
+  }
+  @keyframes flashBurst {
+    0% { opacity: 0; }
+    15% { opacity: 1; }
+    100% { opacity: 0; }
+  }
 
-.unlock-image-wrap {
-  flex:1;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
+  /* Particle grid burst */
+  #unlock-particles {
+    position: absolute;
+    inset: -50%;
+    opacity: 0;
+    pointer-events: none;
+    background-image:
+      radial-gradient(circle, rgba(255,255,255,0.8) 2px, transparent 2px),
+      radial-gradient(circle, rgba(255,215,0,0.75) 2px, transparent 2px),
+      radial-gradient(circle, rgba(0,229,255,0.7) 2px, transparent 2px);
+    background-size: 80px 80px;
+  }
+  #unlock-overlay.is-open #unlock-particles {
+    animation: particleBurst 1.1s ease-out 1;
+  }
+  @keyframes particleBurst {
+    0% { transform: scale(0.2); opacity: 1; }
+    100% { transform: scale(1.45); opacity: 0; }
+  }
 
-.unlock-image {
-  max-height: 70%;
-  max-width: 70%;
-  border-radius: 16px;
-  box-shadow:
-    0 0 30px rgba(255,255,255,0.6),
-    0 0 120px rgba(255,215,0,0.8);
-  animation: popIn 0.6s ease-out forwards;
-}
+  .unlock-image-wrap {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .unlock-image {
+    max-height: 70vh;
+    max-width: min(70vw, 900px);
+    border-radius: 16px;
+    box-shadow:
+      0 0 30px rgba(255,255,255,0.55),
+      0 0 140px rgba(255,215,0,0.7);
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  #unlock-overlay.is-open .unlock-image {
+    animation: popIn 0.6s ease-out forwards;
+  }
+  @keyframes popIn {
+    0% { transform: scale(0.6); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
 
-@keyframes popIn {
-  0% { transform:scale(0.6); opacity:0; }
-  100% { transform:scale(1); opacity:1; }
-}
+  .unlock-confirm {
+    padding: 14px 52px;
+    font-size: 22px;
+    font-weight: 900;
+    border: none;
+    border-radius: 32px;
+    cursor: pointer;
+    background: linear-gradient(90deg,#ffdf00,#ff6a00);
+    color: #000;
+    box-shadow:
+      0 0 20px rgba(255,215,0,0.8),
+      0 0 60px rgba(255,106,0,0.75);
+    transition: transform 0.12s ease;
+  }
+  .unlock-confirm:hover { transform: scale(1.05); }
+  .unlock-confirm:active { transform: scale(0.98); }
 
-.unlock-confirm {
-  padding: 14px 48px;
-  font-size: 22px;
-  font-weight: bold;
-  border: none;
-  border-radius: 30px;
-  cursor: pointer;
-  background: linear-gradient(90deg,#ffdf00,#ff6a00);
-  color: #000;
-  box-shadow:
-    0 0 20px rgba(255,215,0,0.8),
-    0 0 60px rgba(255,106,0,0.8);
-}
-
-.unlock-confirm:hover {
-  transform: scale(1.05);
-}
+  /* Screen shake */
+  body.unlock-shake { animation: shake 0.55s linear; }
+  @keyframes shake {
+    0% { transform: translate(0,0); }
+    20% { transform: translate(-6px,3px); }
+    40% { transform: translate(6px,-3px); }
+    60% { transform: translate(-4px,2px); }
+    80% { transform: translate(4px,-2px); }
+    100% { transform: translate(0,0); }
+  }
 </style>
 </head>
 <body>
 
-<div id="unlock-overlay" class="hidden">
+<!-- Your existing studio page content should be above this line -->
+
+<div id="unlock-overlay" aria-hidden="true">
+  <div id="unlock-flash"></div>
+  <div id="unlock-particles"></div>
+
   <div class="unlock-title">NEW COLLECTION UNLOCKED!</div>
+
   <div class="unlock-image-wrap">
-    <img id="unlock-img" class="unlock-image" src="" />
+    <img id="unlock-img" class="unlock-image" alt="Unlocked Collection" />
   </div>
-  <button class="unlock-confirm" onclick="closeUnlock()">CONFIRM</button>
+
+  <button id="unlock-confirm" class="unlock-confirm" type="button">CONFIRM</button>
 </div>
 
 <script>
-function showCollectionFx(recipeId) {
-  const overlay = document.getElementById('unlock-overlay');
-  const img = document.getElementById('unlock-img');
-  img.src = '/assets/' + recipeId + '.png';
-  overlay.classList.remove('hidden');
+  // Force-hide overlay on load, no matter what
+  document.addEventListener('DOMContentLoaded', () => {
+    const overlay = document.getElementById('unlock-overlay');
+    overlay.classList.remove('is-open');
+    overlay.style.display = 'none';
+    overlay.setAttribute('aria-hidden', 'true');
 
-  document.body.style.animation = 'shake 0.6s linear';
-  setTimeout(()=>{ document.body.style.animation=''; },600);
-}
+    // Wire confirm button
+    document.getElementById('unlock-confirm').addEventListener('click', closeUnlock);
 
-function closeUnlock() {
-  document.getElementById('unlock-overlay').classList.add('hidden');
-}
+    // ESC to close (extra safety)
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeUnlock();
+    });
+
+    // Click outside image to close (extra safety)
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) closeUnlock();
+    });
+  });
+
+  function showCollectionFx(recipeId) {
+    // Guard: if recipeId is missing, do NOT open overlay
+    if (!recipeId || typeof recipeId !== 'string') {
+      console.warn('[unlock] missing recipeId, skip overlay');
+      return;
+    }
+
+    const overlay = document.getElementById('unlock-overlay');
+    const img = document.getElementById('unlock-img');
+
+    img.src = '/assets/' + recipeId + '.png';
+    img.onerror = () => {
+      console.warn('[unlock] image not found:', img.src);
+      // Still allow user to close, but show overlay anyway with broken image icon
+    };
+
+    overlay.style.display = 'flex';
+    overlay.classList.add('is-open');
+    overlay.setAttribute('aria-hidden', 'false');
+
+    document.body.classList.add('unlock-shake');
+    setTimeout(() => document.body.classList.remove('unlock-shake'), 550);
+  }
+
+  function closeUnlock() {
+    const overlay = document.getElementById('unlock-overlay');
+    overlay.classList.remove('is-open');
+    overlay.style.display = 'none';
+    overlay.setAttribute('aria-hidden', 'true');
+  }
+
+  // Expose globally (in case your code calls it from other scopes)
+  window.showCollectionFx = showCollectionFx;
+  window.closeUnlock = closeUnlock;
 </script>
 
 </body>
