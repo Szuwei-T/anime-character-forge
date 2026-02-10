@@ -321,12 +321,18 @@
       const res = await api("/api/me/saves");
       setNet(true);
 
-    let currentShowcaseId = null;
+    const comboKey = (headId, bodyId, bgId, addon1Id, addon2Id) => {
+      const a = [String(addon1Id || ""), String(addon2Id || "")].sort();
+      return [String(headId || ""), String(bodyId || ""), String(bgId || ""), a[0], a[1]].join("|");
+    };
+
+    let showcaseComboSet = new Set();
     try{
-      const cur = await api("/api/me/showcase?seasonId=S1");
-      if (cur && cur.showcase && cur.showcase.showcaseId){
-        currentShowcaseId = String(cur.showcase.showcaseId);
-      }
+      const all = await api("/api/me/showcases?seasonId=S1");
+      const list = all.showcases || [];
+      list.forEach((x) => {
+        showcaseComboSet.add(comboKey(x.headId, x.bodyId, x.bgId, x.addon1Id, x.addon2Id));
+      });
     }catch(e){ /* ignore */ }
 
       const saves = res.saves || [];
@@ -368,10 +374,7 @@
         const btnShow = document.createElement("div");
         btnShow.className = "showBtn";
         
-        let isShowing = false;
-        if (currentShowcaseId && s.showcaseId && String(s.showcaseId) === currentShowcaseId){
-          isShowing = true;
-        }
+        let isShowing = showcaseComboSet.has(comboKey(s.headId, s.bodyId, s.bgId, s.addon1Id, s.addon2Id));
         btnShow.textContent = isShowing ? "展示中" : "展示";
         if (isShowing){
           btnShow.classList.add("disabled");
