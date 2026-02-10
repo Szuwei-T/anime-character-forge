@@ -234,6 +234,85 @@
       position:relative;
       overflow:hidden;
     }
+
+    .gacha-stage.single{ height: 190px; }
+
+    .ten-stage{
+      margin-top: 16px;
+      display:flex;
+      flex-direction:column;
+      gap: 10px;
+    }
+    .reelRow{
+      display:grid;
+      grid-template-columns: 64px 1fr;
+      gap: 10px;
+      align-items:center;
+    }
+    .reelLabel{
+      font-weight: 950;
+      letter-spacing:0.3px;
+      opacity:0.85;
+      text-align:right;
+      font-size: 13px;
+    }
+    .reelViewport{
+      position:relative;
+      height: 142px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+      overflow:hidden;
+    }
+    .slotWrap{
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      pointer-events:none;
+    }
+    .slots{
+      display:flex;
+      gap:12px;
+      align-items:center;
+      justify-content:center;
+    }
+    .slots.three{
+      width: calc(124px * 3 + 12px * 2);
+      height: 124px;
+    }
+    .slots.one{
+      width: 124px;
+      height: 124px;
+    }
+    .slot{
+      width:124px;
+      height:124px;
+      border-radius:14px;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.10);
+      background: rgba(0,0,0,0.08);
+    }
+    .slot.gold{
+      box-shadow:
+        0 0 0 2px rgba(255,214,102,0.95),
+        0 0 40px 10px rgba(255,214,102,0.30),
+        inset 0 0 0 1px rgba(255,255,255,0.10);
+      background:
+        radial-gradient(circle at 30% 25%, rgba(255,255,255,0.16), transparent 45%),
+        radial-gradient(circle at 70% 80%, rgba(255,214,102,0.16), transparent 55%);
+    }
+    .slot.rainbow{
+      box-shadow:
+        0 0 0 2px rgba(180,120,255,0.95),
+        0 0 40px 10px rgba(255,120,180,0.25),
+        inset 0 0 0 1px rgba(255,255,255,0.12);
+      background:
+        radial-gradient(circle at 30% 25%, rgba(255,255,255,0.18), transparent 45%),
+        radial-gradient(circle at 70% 80%, rgba(255,120,180,0.18), transparent 55%),
+        radial-gradient(circle at 50% 50%, rgba(120,220,255,0.16), transparent 60%);
+    }
+
     .belt{
       position:absolute;
       top:50%;
@@ -414,9 +493,65 @@
   <div class="overlay" id="overlay">
     <div class="panel">
       <h3>抽卡中 <span class="sub" id="rollSub">連線中</span></h3>
-      <div class="gacha-stage">
+      <div class="gacha-stage single" id="singleStage">
         <div class="belt" id="belt"></div>
         <div class="marker"></div>
+      </div>
+
+      <div class="ten-stage" id="tenStage">
+        <div class="reelRow">
+          <div class="reelLabel">保底</div>
+          <div class="reelViewport one" data-reel="G">
+            <div class="belt" id="beltG"></div>
+            <div class="slotWrap one">
+              <div class="slots one">
+                <div class="slot rainbow"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="reelRow">
+          <div class="reelLabel">抽卡</div>
+          <div class="reelViewport three" data-reel="A">
+            <div class="belt" id="beltA"></div>
+            <div class="slotWrap three">
+              <div class="slots three">
+                <div class="slot gold"></div>
+                <div class="slot gold"></div>
+                <div class="slot gold"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="reelRow">
+          <div class="reelLabel">抽卡</div>
+          <div class="reelViewport three" data-reel="B">
+            <div class="belt" id="beltB"></div>
+            <div class="slotWrap three">
+              <div class="slots three">
+                <div class="slot gold"></div>
+                <div class="slot gold"></div>
+                <div class="slot gold"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="reelRow">
+          <div class="reelLabel">抽卡</div>
+          <div class="reelViewport three" data-reel="C">
+            <div class="belt" id="beltC"></div>
+            <div class="slotWrap three">
+              <div class="slots three">
+                <div class="slot gold"></div>
+                <div class="slot gold"></div>
+                <div class="slot gold"></div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="footer">
         <button class="confirm" id="confirmBtn">確認</button>
@@ -450,6 +585,14 @@
     let animating = false;
     let cachedAssets = null;
 
+    const singleStage = document.getElementById("singleStage");
+    const tenStage = document.getElementById("tenStage");
+
+    const beltG = document.getElementById("beltG");
+    const beltA = document.getElementById("beltA");
+    const beltB = document.getElementById("beltB");
+    const beltC = document.getElementById("beltC");
+
     function showOverlay(){ overlay.classList.add("show"); }
     function hideOverlay(){ overlay.classList.remove("show"); }
 
@@ -480,75 +623,40 @@
       return asset.imageUrl;
     }
 
-    async function ensureAssetsLoaded(){
-      if(cachedAssets) return cachedAssets;
-      try{
-        const data = await api("/api/assets");
-        if(data && data.ok && Array.isArray(data.assets)){
-          cachedAssets = data.assets;
-          const db = offlineDb();
-          db.assets = data.assets;
-          saveOfflineDb(db);
-          return cachedAssets;
-        }
-      }catch(e){}
-      const db = offlineDb();
-      cachedAssets = db.assets || [];
-      return cachedAssets;
+    function randPick(arr){
+      if(!Array.isArray(arr) || arr.length === 0) return null;
+      return arr[Math.floor(Math.random() * arr.length)];
     }
 
-    function offlinePickOne(opts={}){
-      const db = offlineDb();
-      const assets = db.assets || [];
+    function pickFiller(opts={}){
+      const assets = cachedAssets || [];
       if(assets.length === 0) return null;
 
-      const r = Math.random();
-      let rarity = 1;
-      if(opts.premium){
-        if(r < 0.02) rarity = 5;
-        else if(r < 0.10) rarity = 4;
-        else if(r < 0.30) rarity = 3;
-        else if(r < 0.60) rarity = 2;
-        else rarity = 1;
-      }else{
-        if(r < 0.01) rarity = 5;
-        else if(r < 0.07) rarity = 4;
-        else if(r < 0.25) rarity = 3;
-        else if(r < 0.55) rarity = 2;
-        else rarity = 1;
-      }
+      let pool = assets;
 
-      let pool = assets.filter(a => Number(a.rarity||1) === rarity);
-
-      // 注意: offline 也支援強制 type
       if(opts.type){
-        pool = pool.filter(a => String(a.type||"") === String(opts.type));
-      }
-      if(pool.length === 0){
-        // 如果指定了 type 但該稀有度沒有素材，改成只放寬 rarity 仍然限制在同一個 type
-        if(opts.type){
-          const tp = String(opts.type);
-          pool = assets.filter(a => String(a.type||"") === tp);
-        }
-        // 最後才退回全素材，避免轉盤出現其他類型造成誤解
+        const t = String(opts.type);
+        pool = pool.filter(a => String(a.type||"") === t);
         if(pool.length === 0) pool = assets;
       }
 
-      const a = pool[Math.floor(Math.random()*pool.length)];
-      return {
+      // 盡量讓 filler 的稀有度看起來合理，但不需要完全一致
+      return randPick(pool);
+    }
+
+    async function ensureAssetsLoaded(){
+      if(cachedAssets) return cachedAssets;
+      const data = await api("/api/assets");
+      if(!data || !data.ok || !Array.isArray(data.assets) || data.assets.length === 0){
+        throw new Error("assets_fetch_failed");
+      }
+      cachedAssets = data.assets.map(a => ({
         assetId: a.assetId,
         type: normalizeType(a.type),
         rarity: Number(a.rarity||1),
         imageUrl: a.imageUrl || ""
-      };
-    }
-
-    function commitOfflineWin(win){
-      const db = offlineDb();
-      db.userAssets = db.userAssets || {};
-      const k = `${APP.uid}:${win.assetId}`;
-      db.userAssets[k] = Number(db.userAssets[k] || 0) + 1;
-      saveOfflineDb(db);
+      }));
+      return cachedAssets;
     }
 
     async function onlineGacha(opts={}){
@@ -558,56 +666,148 @@
         type: (opts.type ? requestType(opts.type) : "")
       };
       const data = await api("/api/gacha", { method:"POST", body: JSON.stringify(payload) });
-      if(!data || !data.ok) return null;
+      if(!data || !data.ok) throw new Error(String(data?.error || "gacha_failed"));
 
-      const list = data.results || data.pulled || [];
-      if(!Array.isArray(list) || list.length === 0) return null;
+      const list = data.pulled || data.results || [];
+      if(!Array.isArray(list) || list.length === 0) throw new Error("empty_result");
 
       return list.map(r => ({
         assetId: r.assetId,
         type: normalizeType(r.type),
         rarity: Number(r.rarity || 1),
-        imageUrl: r.imageUrl || ""
+        imageUrl: r.imageUrl || "",
+        guarantee: !!r._guarantee
       }));
+    }
+
+    function createCardEl(item){
+      const div = document.createElement("div");
+      div.className = "card";
+      const src = toThumbIfNeeded(item);
+
+      const img = document.createElement("img");
+      img.src = src;
+      img.alt = "";
+
+      const dbg = document.createElement("div");
+      dbg.className = "broken-debug";
+      dbg.style.display = "none";
+      dbg.textContent = `broken | ${item.type} | ${item.assetId} | ⭐${item.rarity} | ${src}`;
+
+      img.addEventListener("error", () => {
+        const cur = img.getAttribute("src") || "";
+        if(cur.includes("_thumb.")){
+          img.src = cur.replace("_thumb.", ".");
+          return;
+        }
+        div.classList.add("broken");
+        dbg.style.display = "block";
+      });
+
+      div.appendChild(img);
+      div.appendChild(dbg);
+      return div;
+    }
+
+    function animateReel(beltEl, viewportEl, winItems, opts={}){
+      beltEl.innerHTML = "";
+
+      const isThree = !!opts.three;
+      const beltCount = isThree ? 36 : 26;
+      const winnerStartIndex = isThree ? Math.floor(beltCount / 2) : Math.floor(beltCount / 2);
+
+      const fills = [];
+      for(let i = 0; i < beltCount; i++){
+        if(isThree && i >= winnerStartIndex && i < winnerStartIndex + 3){
+          fills.push(winItems[i - winnerStartIndex]);
+        }else if(!isThree && i === winnerStartIndex){
+          fills.push(winItems[0]);
+        }else{
+          const f = pickFiller({ premium: !!opts.premium, type: opts.typeDb || "" });
+          fills.push(f || winItems[0]);
+        }
+      }
+
+      fills.forEach(it => {
+        if(!it) return;
+        beltEl.appendChild(createCardEl(it));
+      });
+
+      const cards = Array.from(beltEl.children);
+      const cardW = cards[0].getBoundingClientRect().width;
+      const gap = 12;
+      const step = cardW + gap;
+      const beltPaddingLeft = 24;
+
+      const viewportWidth = viewportEl.getBoundingClientRect().width;
+      const visibleWidth = isThree ? (cardW * 3 + gap * 2) : cardW;
+
+      const firstSlotCenter = (viewportWidth / 2) - (visibleWidth / 2) + (cardW / 2);
+      const winnerCenterX = beltPaddingLeft + winnerStartIndex * step + cardW / 2;
+
+      const targetX = firstSlotCenter - winnerCenterX;
+      const startX = targetX - (step * 10);
+
+      const duration = 2400;
+      const t0 = performance.now();
+
+      function easeOutCubic(p){ return 1 - Math.pow(1 - p, 3); }
+
+      return new Promise(resolve => {
+        function frame(t){
+          const p = Math.min((t - t0) / duration, 1);
+          const e = easeOutCubic(p);
+          const x = startX + (targetX - startX) * e;
+          beltEl.style.transform = `translate(${x}px, -50%)`;
+
+          if(p < 1){
+            requestAnimationFrame(frame);
+          }else{
+            if(isThree){
+              for(let k = 0; k < 3; k++){
+                const idx = winnerStartIndex + k;
+                if(cards[idx]) cards[idx].classList.add("win");
+              }
+            }else{
+              if(cards[winnerStartIndex]) cards[winnerStartIndex].classList.add("win");
+            }
+            resolve();
+          }
+        }
+        requestAnimationFrame(frame);
+      });
     }
 
     async function startGacha(opts={}){
       if(animating) return;
       animating = true;
-      opts = Object.assign({}, opts);
-      if(opts.type) opts.pick = true;
 
-      await ensureAssetsLoaded();
+      try{
+        await ensureAssetsLoaded();
+      }catch(e){
+        toast("讀取素材失敗 請確認後端可連線");
+        animating = false;
+        return;
+      }
+
       showOverlay();
       confirmBtn.classList.remove("show");
       rollSub.textContent = "連線中";
 
-      let source = "online";
-      let pulled = null;
+      // Stage switch
+      const isTen = Number(opts.count || 1) === 10;
+      singleStage.style.display = isTen ? "none" : "block";
+      tenStage.style.display = isTen ? "block" : "none";
 
+      let pulled = null;
       try{
         pulled = await onlineGacha(opts);
-        if(!pulled){
-          source = "offline";
-          rollSub.textContent = "連線失敗 改用離線抽卡";
-          pulled = [];
-          const n = Number(opts.count || 1);
-          for(let i = 0; i < n; i++){
-            const x = offlinePickOne(opts);
-            if(x) pulled.push(x);
-          }
-          if(pulled[0]) commitOfflineWin(pulled[0]);
-        }
       }catch(e){
-        source = "offline";
-        rollSub.textContent = "連線失敗 改用離線抽卡";
-        pulled = [];
-        const n = Number(opts.count || 1);
-        for(let i = 0; i < n; i++){
-          const x = offlinePickOne(opts);
-          if(x) pulled.push(x);
-        }
-        if(pulled[0]) commitOfflineWin(pulled[0]);
+        rollSub.textContent = "連線失敗";
+        toast("連線失敗 請稍後再試");
+        hideOverlay();
+        animating = false;
+        return;
       }
 
       if(!pulled || pulled.length === 0){
@@ -617,92 +817,104 @@
         return;
       }
 
-      const win = pulled[0];
-
-      belt.innerHTML = "";
-      const beltCount = 20;
-      const winnerIndex = Math.floor(beltCount / 2);
-
-      const fillers = [];
-      for(let i = 0; i < beltCount; i++){
-        if(i === winnerIndex){
-          fillers.push(win);
-        }else{
-          const f = offlinePickOne({ premium: !!opts.premium, type: (opts.type ? requestType(opts.type) : "") });
-          fillers.push(f || win);
-        }
-      }
-
-      fillers.forEach(p => {
-        const item = p || win;
-        if(!item) return;
-
-        const div = document.createElement("div");
-        div.className = "card";
-        const src = toThumbIfNeeded(item);
-
-        const img = document.createElement("img");
-        img.src = src;
-        img.alt = "";
-
-        const dbg = document.createElement("div");
-        dbg.className = "broken-debug";
-        dbg.style.display = "none";
-        dbg.textContent = `broken | ${item.type} | ${item.assetId} | ⭐${item.rarity} | ${src}`;
-
-        img.addEventListener("error", () => {
-          const cur = img.getAttribute("src") || "";
-          // fallback: head/body thumbs might not exist
-          if(cur.includes("_thumb.")){
-            img.src = cur.replace("_thumb.", ".");
-            return;
-          }
-          div.classList.add("broken");
-          dbg.style.display = "block";
-        });
-
-        div.appendChild(img);
-        div.appendChild(dbg);
-        belt.appendChild(div);
-      });
-
       const tag = opts.premium ? "高級" : "普通";
       const typeTag = opts.type ? ` 類型 ${opts.type}` : "";
-      rollSub.textContent = (source === "online" ? "跑馬燈高速啟動" : "離線模式跑馬燈") + ` ${tag}${typeTag} 抽到 ${win.assetId} ⭐ ${win.rarity}`;
 
-      const stage = document.querySelector(".gacha-stage");
-      const stageWidth = stage.getBoundingClientRect().width;
+      if(!isTen){
+        // 1 pull: keep classic single reel
+        const win = pulled[0];
+        belt.innerHTML = "";
 
-      const cards = Array.from(belt.children);
-      const cardW = cards[0].getBoundingClientRect().width;
-      const gap = 12;
-      const step = cardW + gap;
+        const beltCount = 20;
+        const winnerIndex = Math.floor(beltCount / 2);
 
-      const beltPaddingLeft = 24;
-      const winnerCenterX = beltPaddingLeft + winnerIndex * step + cardW / 2;
-      const targetX = (stageWidth / 2) - winnerCenterX;
-      const startX = targetX - (step * 10);
-
-      const duration = 2400;
-      const t0 = performance.now();
-
-      function easeOutCubic(p){ return 1 - Math.pow(1 - p, 3); }
-
-      function frame(t){
-        const p = Math.min((t - t0) / duration, 1);
-        const e = easeOutCubic(p);
-        const x = startX + (targetX - startX) * e;
-        belt.style.transform = `translate(${x}px, -50%)`;
-
-        if(p < 1){
-          requestAnimationFrame(frame);
-        }else{
-          cards[winnerIndex].classList.add("win");
-          confirmBtn.classList.add("show");
-          animating = false;
+        const fillers = [];
+        for(let i = 0; i < beltCount; i++){
+          if(i === winnerIndex){
+            fillers.push(win);
+          }else{
+            const f = pickFiller({ premium: !!opts.premium, type: (opts.type ? String(opts.type) : "") });
+            fillers.push(f || win);
+          }
         }
+
+        fillers.forEach(p => {
+          if(!p) return;
+          belt.appendChild(createCardEl(p));
+        });
+
+        rollSub.textContent = `跑馬燈高速啟動 ${tag}${typeTag} 抽到 ${win.assetId} ⭐ ${win.rarity}`;
+
+        const stage = document.querySelector(".gacha-stage.single");
+        const stageWidth = stage.getBoundingClientRect().width;
+
+        const cards = Array.from(belt.children);
+        const cardW = cards[0].getBoundingClientRect().width;
+        const gap = 12;
+        const step = cardW + gap;
+
+        const beltPaddingLeft = 24;
+        const winnerCenterX = beltPaddingLeft + winnerIndex * step + cardW / 2;
+        const targetX = (stageWidth / 2) - winnerCenterX;
+        const startX = targetX - (step * 10);
+
+        const duration = 2400;
+        const t0 = performance.now();
+
+        function easeOutCubic(p){ return 1 - Math.pow(1 - p, 3); }
+
+        function frame(t){
+          const p = Math.min((t - t0) / duration, 1);
+          const e = easeOutCubic(p);
+          const x = startX + (targetX - startX) * e;
+          belt.style.transform = `translate(${x}px, -50%)`;
+
+          if(p < 1){
+            requestAnimationFrame(frame);
+          }else{
+            cards[winnerIndex].classList.add("win");
+            confirmBtn.classList.add("show");
+            animating = false;
+          }
+        }
+        requestAnimationFrame(frame);
+        return;
       }
-      requestAnimationFrame(frame);
+
+      // 10 pull: 9 normal + 1 guarantee
+      const guarantee = pulled.find(x => x.guarantee) || pulled[pulled.length - 1];
+      const normal = pulled.filter(x => x !== guarantee).slice(0, 9);
+
+      if(normal.length < 9){
+        // fallback if backend doesn't mark guarantee
+        const tmp = pulled.slice(0, 9);
+        normal.splice(0, normal.length, ...tmp);
+      }
+
+      const rowA = normal.slice(0, 3);
+      const rowB = normal.slice(3, 6);
+      const rowC = normal.slice(6, 9);
+
+      // Prime belts transform reset
+      for(const b of [beltG, beltA, beltB, beltC]) b.style.transform = `translate(0, -50%)`;
+
+      rollSub.textContent = `10連抽 ${tag}${typeTag} 9張普通 + 1張保底`;
+
+      const vpG = tenStage.querySelector('.reelViewport[data-reel="G"]');
+      const vpA = tenStage.querySelector('.reelViewport[data-reel="A"]');
+      const vpB = tenStage.querySelector('.reelViewport[data-reel="B"]');
+      const vpC = tenStage.querySelector('.reelViewport[data-reel="C"]');
+
+      // Animate 4 rows together
+      await Promise.all([
+        animateReel(beltG, vpG, [guarantee], { premium: !!opts.premium, three: false }),
+        animateReel(beltA, vpA, rowA, { premium: !!opts.premium, three: true }),
+        animateReel(beltB, vpB, rowB, { premium: !!opts.premium, three: true }),
+        animateReel(beltC, vpC, rowC, { premium: !!opts.premium, three: true }),
+      ]);
+
+      confirmBtn.classList.add("show");
+      animating = false;
     }
 
     // 底下 2 個大區塊
