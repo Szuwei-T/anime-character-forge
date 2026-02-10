@@ -886,16 +886,19 @@ function setLayers(){
 
   setStage(bgEl, bgUrl, "");
   setStage(a2El, a2Url, "");
-  setStage(hEl,  hUrl,  "");
+
+  // If only head is selected (no body yet), show head thumb (no dim mask).
+  const headDisplayUrl = SEL.bodyId ? hUrl : bestThumb(hUrl);
+  setStage(hEl, headDisplayUrl, "");
+
   setStage(bEl,  bUrl,  "");
   setStage(a1El, a1Url, "");
 
-  // body missing mask: hide parts that should be covered by body
+  // Remove the semi-transparent body-missing mask when only head is selected.
   const maskEl = q("#bodyMissingMask");
   if(maskEl){
-    maskEl.style.display = SEL.bodyId ? "none" : "block";
-  }
-}
+    maskEl.style.display = "none";
+  }}
 
 
 function refreshPreview(){ setLayers(); }
