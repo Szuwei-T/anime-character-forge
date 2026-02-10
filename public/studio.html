@@ -466,6 +466,7 @@ if(!APP.offline){
       }
       db.userAssets = storeCount;
       db.userStars = storeStars;
+      enforceRarityAfterHeadChange();
       Object.values(grids).forEach(g=>g && g.rerender && g.rerender());
     };
 
@@ -535,6 +536,34 @@ function invStars(assetId){
   return Number(db.userStars?.[`${APP.uid}:${assetId}`] ?? 0);
 }
 
+const RARITY_LABEL = {1:"C",2:"R",3:"SR",4:"SSR",5:"UR"};
+
+function clampStars(n){
+  let s = Number(n || 0);
+  if(!Number.isFinite(s) || s < 1) s = 1;
+  if(s > 5) s = 5;
+  return s;
+}
+
+// Effective rarity = base rarity + (stars - 1), capped at 5
+function effectiveRarityById(assetId){
+  if(!assetId) return 0;
+  const base = Number(byId.get(assetId)?.rarity || 1);
+  const stars = clampStars(invStars(assetId));
+  return Math.min(5, base + (stars - 1));
+}
+
+function getTargetRarity(){
+  if(!SEL.headId) return 0;
+  return effectiveRarityById(SEL.headId);
+}
+
+function isSameRarityOrEmpty(assetId){
+  if(!assetId) return true;
+  const target = getTargetRarity();
+  if(!target) return true;
+  return effectiveRarityById(assetId) === target;
+}
 
 function setLayers(){
   const bgUrl = byId.get(SEL.bgId)?.imageUrl || "";
@@ -626,7 +655,8 @@ function makeVirtualGrid(container, items0, getSelectedId, onSelect, options){
         if(idx >= items.length) break;
         const it = items[idx];
         const wrap = document.createElement("div");
-        wrap.className = "asset-item " + `r${it.rarity || 1}`;
+        const effR = it.assetId ? effectiveRarityById(it.assetId) : Number(it.rarity || 1);
+        wrap.className = "asset-item " + `r${effR || 1}`;
         if(it.assetId) wrap.setAttribute("data-asset-id", String(it.assetId));
         wrap.style.left = (c * (opt.thumbW + opt.gap)) + "px";
         wrap.style.top = (r * rowH) + "px";
@@ -685,7 +715,7 @@ img.addEventListener("error", ()=>{
             const rBadge = document.createElement("div");
             rBadge.className = "badge-rarity";
             const rMap = {1:"C",2:"R",3:"SR",4:"SSR",5:"UR"};
-            const r = Number(it.rarity || 1);
+            const r = it.assetId ? effectiveRarityById(it.assetId) : Number(it.rarity || 1);
             rBadge.textContent = rMap[r] || "C";
             wrap.appendChild(rBadge);
           }
@@ -730,27 +760,93 @@ img.addEventListener("error", ()=>{
 }
 
 const grids = {};
-const headItems = ownedOptions("head");
+const headItemsAll = ownedOptions("head");
+let headItems = headItemsAll;
 const bodyItemsAll = ownedOptions("body");
 let bodyItems = bodyItemsAll;
-const bgItems = ownedOptions("background");
+const bgItemsAll = ownedOptions("background");
+let bgItems = bgItemsAll;
 
 SEL.headId = headItems[0]?.assetId || "";
-SEL.bodyId = bodyItems[0]?.assetId || "";
-SEL.bgId = bgItems[0]?.assetId || "";
-
-function applyBodyGenderRule(){
+SEL.bodyId = bodyItfunction applyBodyGenderRule(){
   const headGender = genderTag(SEL.headId);
+  const target = getTargetRarity();
   let filtered = bodyItemsAll;
+
   if(headGender){
-    filtered = bodyItemsAll.filter(it => {
+    filtered = filtered.filter(it => {
       const bodyGender = genderTag(it.assetId);
       return !bodyGender || bodyGender === headGender;
     });
   }
-  bodyItems = filtered.length > 0 ? filtered : bodyItemsAll;
+
+  if(target){
+    filtered = filtered.filter(it => effectiveRarityById(it.assetId) === target);
+  }
+
+  bodyItems = filtered.length > 0 ? filtered : (target ? [] : bodyItemsAll);
+
+  // keep selection valid
   if(SEL.bodyId && !bodyItems.some(it=>it.assetId === SEL.bodyId)){
     SEL.bodyId = bodyItems[0]?.assetId || "";
+  }
+  if(grids.body) grids.body.setItems(bodyItems);
+}
+
+function applyBgRarityRule(){
+  const target = getTargetRarity();
+  const filtered = target ? bgItemsAll.filter(it => effectiveRarityById(it.assetId) === target) : bgItemsAll;
+  bgItems = filtered;
+  if(SEL.bgId && !bgItems.some(it=>it.assetId === SEL.bgId)){
+    SEL.bgId = bgItems[0]?.assetId || "";
+  }
+  if(grids.bg) grids.bg.setItems(bgItems);
+}
+
+function applyAddonRarityRule(){
+  const target = getTargetRarity();
+  const filterOne = (pool) => {
+    if(!target) return pool;
+    return pool.filter(it => !it.assetId || effectiveRarityById(it.assetId) === target);
+  };
+
+  addon1Pool = filterOne(addon1PoolAll);
+  addon2Pool = filterOne(addon2PoolAll);
+
+  if(SEL.addon1Id && !addon1Pool.some(it=>it.assetId === SEL.addon1Id)) SEL.addon1Id = "";
+  if(SEL.addon2Id && !addon2Pool.some(it=>it.assetId === SEL.addon2Id)) SEL.addon2Id = "";
+
+  if(grids.addon1) grids.addon1.setItems([noneItem, ...addon1Pool]);
+  if(grids.addon2) grids.addon2.setItems([noneItem, ...addon2Pool]);
+}
+
+function enforceRarityAfterHeadChange(){
+  const target = getTargetRarity();
+  if(!target) return;
+
+  // reset incompatible selections
+  if(SEL.bodyId && effectiveRarityById(SEL.bodyId) !== target) SEL.bodyId = "";
+  if(SEL.bgId && effectiveRarityById(SEL.bgId) !== target) SEL.bgId = "";
+  if(SEL.addon1Id && effectiveRarityById(SEL.addon1Id) !== target) SEL.addon1Id = "";
+  if(SEL.addon2Id && effectiveRarityById(SEL.addon2Id) !== target) SEL.addon2Id = "";
+
+  applyBodyGenderRule();
+  applyBgRarityRule();
+  applyAddonRarityRule();
+}
+
+function canSelectSameRarity(newAssetId){
+  if(!newAssetId) return true;
+  const target = getTargetRarity();
+  if(!target) return true;
+  const eff = effectiveRarityById(newAssetId);
+  if(eff !== target){
+    toast(`需搭配 ${RARITY_LABEL[target] || "C"} 等級素材`);
+    return false;
+  }
+  return true;
+}
+ || "";
   }
   if(grids.body) grids.body.setItems(bodyItems);
 }
@@ -764,34 +860,63 @@ let addon2Pool = byPrefix("addon2_");
 if(addon1Pool.length === 0 && addon2Pool.length === 0){ addon1Pool = addonAll; addon2Pool = addonAll; }
 else { if(addon1Pool.length === 0) addon1Pool = addonAll; if(addon2Pool.length === 0) addon2Pool = addonAll; }
 
+const addon1PoolAll = addon1Pool.slice();
+const addon2PoolAll = addon2Pool.slice();
+
 const noneItem = { assetId:"", imageUrl:"", rarity:1 };
 
-grids.head = makeVirtualGrid(q("#headGrid"), headItems, ()=>SEL.headId, (id)=>{ SEL.headId=id; applyBodyGenderRule(); refreshPreview(); });
-grids.body = makeVirtualGrid(q("#bodyGrid"), bodyItems, ()=>SEL.bodyId, (id)=>{ SEL.bodyId=id; refreshPreview(); });
-grids.bg = makeVirtualGrid(q("#bgGrid"), bgItems, ()=>SEL.bgId, (id)=>{ SEL.bgId=id; refreshPreview(); });
-grids.addon1 = makeVirtualGrid(q("#addon1Grid"), [noneItem, ...addon1Pool], ()=>SEL.addon1Id, (id)=>{ SEL.addon1Id=id; refreshPreview(); });
-grids.addon2 = makeVirtualGrid(q("#addon2Grid"), [noneItem, ...addon2Pool], ()=>SEL.addon2Id, (id)=>{ SEL.addon2Id=id; refreshPreview(); });
+grids.head = makeVirtualGrid(q("#headGrid"), headItemsAll, ()=>SEL.headId, (id)=>{ SEL.headId=id; enforceRarityAfterHeadChange(); refreshPreview(); Object.values(grids).forEach(g=>g && g.rerender && g.rerender()); });
+grids.body = makeVirtualGrid(q("#bodyGrid"), bodyItems, ()=>SEL.bodyId, (id)=>{ if(!canSelectSameRarity(id)) return; SEL.bodyId=id; refreshPreview(); });
+grids.bg = makeVirtualGrid(q("#bgGrid"), bgItems, ()=>SEL.bgId, (id)=>{ if(!canSelectSameRarity(id)) return; SEL.bgId=id; refreshPreview(); });
+grids.addon1 = makeVirtualGrid(q("#addon1Grid"), [noneItem, ...addon1Pool], ()=>SEL.addon1Id, (id)=>{ if(id && !canSelectSameRarity(id)) return; SEL.addon1Id=id; refreshPreview(); });
+grids.addon2 = makeVirtualGrid(q("#addon2Grid"), [noneItem, ...addon2Pool], ()=>SEL.addon2Id, (id)=>{ if(id && !canSelectSameRarity(id)) return; SEL.addon2Id=id; refreshPreview(); });
 
+enforceRarityAfterHeadChange();
 refreshPreview();
 
 q("#randomBtn").addEventListener("click", ()=>{
-  const hItems = ownedOptions("head");
-  const bItemsAll = ownedOptions("body");
-  const gItems = ownedOptions("background");
-  if(hItems.length === 0 || bItemsAll.length === 0 || gItems.length === 0) return toast("素材不足");
-  SEL.headId = randPick(hItems).assetId;
-  const hGender = genderTag(SEL.headId);
-  let cBodies = hGender ? bItemsAll.filter(it => !genderTag(it.assetId) || genderTag(it.assetId) === hGender) : bItemsAll;
-  SEL.bodyId = randPick(cBodies.length ? cBodies : bItemsAll).assetId;
-  SEL.bgId = randPick(gItems).assetId;
-  applyBodyGenderRule();
-  const aAll = ownedOptions("accessory");
-  const p1 = aAll.filter(a=> (a.imageUrl||"").split("/").pop().startsWith("addon1_"));
-  const p2 = aAll.filter(a=> (a.imageUrl||"").split("/").pop().startsWith("addon2_"));
-  SEL.addon1Id = (p1.length ? randPick([ {assetId:""}, ...p1 ]).assetId : "");
-  SEL.addon2Id = (p2.length ? randPick([ {assetId:""}, ...p2 ]).assetId : "");
+  const hAll = ownedOptions("head");
+  const bAll = ownedOptions("body");
+  const gAll = ownedOptions("background");
+  if(hAll.length === 0 || bAll.length === 0 || gAll.length === 0) return toast("素材不足");
+
+  // try a few times to find a compatible full set
+  let picked = false;
+  for(let tries=0; tries<25 && !picked; tries++){
+    const h = randPick(hAll);
+    const target = effectiveRarityById(h.assetId);
+    const hGender = genderTag(h.assetId);
+
+    const bCandidates = bAll.filter(it=>{
+      if(effectiveRarityById(it.assetId) !== target) return false;
+      if(!hGender) return true;
+      const bg = genderTag(it.assetId);
+      return !bg || bg === hGender;
+    });
+
+    const gCandidates = gAll.filter(it=> effectiveRarityById(it.assetId) === target);
+
+    if(bCandidates.length === 0 || gCandidates.length === 0) continue;
+
+    SEL.headId = h.assetId;
+    SEL.bodyId = randPick(bCandidates).assetId;
+    SEL.bgId = randPick(gCandidates).assetId;
+
+    // accessories: optional, must match target if selected
+    const aAll = ownedOptions("accessory");
+    const p1 = aAll.filter(a=> (a.imageUrl||"").split("/").pop().startsWith("addon1_") && effectiveRarityById(a.assetId) === target);
+    const p2 = aAll.filter(a=> (a.imageUrl||"").split("/").pop().startsWith("addon2_") && effectiveRarityById(a.assetId) === target);
+    SEL.addon1Id = (p1.length ? randPick([ {assetId:""}, ...p1 ]).assetId : "");
+    SEL.addon2Id = (p2.length ? randPick([ {assetId:""}, ...p2 ]).assetId : "");
+
+    picked = true;
+  }
+
+  if(!picked) return toast("找不到可搭配的同稀有度組合");
+
+  enforceRarityAfterHeadChange();
   refreshPreview();
-  Object.values(grids).forEach(g => g.rerender());
+  Object.values(grids).forEach(g => g && g.rerender && g.rerender());
   toast("已隨機搭配");
 });
 
@@ -799,6 +924,9 @@ q("#submitBtn").addEventListener("click", async ()=>{
   const payload = { headId: SEL.headId, bodyId: SEL.bodyId, bgId: SEL.bgId, addon1Id: SEL.addon1Id || "", addon2Id: SEL.addon2Id || "" };
   if(!payload.headId || !payload.bodyId || !payload.bgId) return toast("素材不足");
   if(!isGenderCompatible(payload.headId, payload.bodyId)) return toast("性別不匹配");
+  const target = getTargetRarity();
+  const others = [payload.bodyId, payload.bgId, payload.addon1Id, payload.addon2Id].filter(Boolean);
+  if(target && others.some(id => effectiveRarityById(id) !== target)) return toast("稀有度不匹配");
   toast("保存中");
   let data = await saveOnline(payload) || await saveOffline(payload);
   if(data && data.ok){
