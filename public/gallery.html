@@ -3,202 +3,355 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <base href="/"/>
-  <title>展示牆</title>
-  <link rel="stylesheet" href="/style.css" />
-</head>
-<body>
-  <div class="container">
-    <div class="topbar">
-      <a class="brand" href="index.html">
-        <div class="logo"></div>
-        <h1>Anime Character Forge</h1>
-      </a>
-      <div class="right">
-        <div class="badge" id="netBadge">Connecting</div>
-        <a class="badge" href="profile.html">My</a>
-      </div>
-    </div>
+  <title>作品展示</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .page-wrap{max-width:1180px;margin:0 auto;padding:22px 18px 44px;}
+    .topbar{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:16px;}
+    .title{display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+    .title h1{font-size:22px;margin:0;letter-spacing:1px;}
+    .badge{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);font-size:12px;opacity:.95}
+    .actions{display:flex;gap:10px;flex-wrap:wrap}
+    .btn{cursor:pointer;user-select:none;padding:10px 14px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);font-size:13px;transition:.15s}
+    .btn:hover{background:rgba(255,255,255,.10)}
+    .statusline{margin:10px 0 12px;opacity:.9}
+    .errorbox{margin:10px 0 12px;padding:10px 12px;border-radius:12px;background:rgba(255,0,0,.10);border:1px solid rgba(255,0,0,.25);color:#ffb3b3}
 
-    
-<div class="card">
-  <div class="cardHeader">
-    <h2>展示牆</h2>
-    <div class="right">
-      <a class="badge" href="hub.html">返回</a>
-    </div>
-  </div>
-  <div class="cardBody">
-    <div class="grid">
-      <div class="col5">
-        <div class="notice">
-          每個玩家對同一作品只能評分 1 次
-          你可以先離線玩 部署後就會變成全站共用排行榜
-        </div>
-        <div class="hr"></div>
-        <button class="btn" id="refreshBtn">刷新</button>
-      </div>
-      <div class="col7">
-        <div class="stage" style="aspect-ratio: 16 / 9;">
-          <img class="layer" id="previewImg" alt="preview" />
-        </div>
-        <div style="height:10px"></div>
-        <table class="table" id="buildTable">
-          <thead>
-            <tr>
-              <th>標題</th>
-              <th>作者</th>
-              <th>分數</th>
-              <th>評分</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-</div>
-
-  </div>
-
-  <script src="/app.js"></script>
-  
-<script>
-(async function(){
-  await initSession();
-  q("#netBadge").textContent = APP.offline ? "Offline" : "Online";
-  const db = offlineDb();
-  const byId = new Map(db.assets.map(a=>[a.assetId,a]));
-
-  function buildPreviewUrl(b){
-    // Use recipe preview style placeholder by composing
-    // For MVP we just show background
-    const bg = byId.get(b.bgId);
-    return bg?.imageUrl || "";
-  }
-
-  async function listOffline(){
-    return { ok:true, builds: db.builds.slice(0,40) };
-  }
-
-  async function listOnline(){
-    const data = await apiFetch("/api/gallery?seasonId=S1&sort=top");
-    if(!data) return null;
-    return data;
-  }
-
-  async function rateOffline(buildId, score){
-    const key = `${APP.uid}:${buildId}`;
-    if(db.ratings[key]) return { ok:false, error:"already" };
-    db.ratings[key] = score;
-
-    const b = db.builds.find(x=>x.buildId===buildId);
-    if(b){
-      b.scoreSum += score;
-      b.scoreCount += 1;
+    .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0 14px;align-items:center}
+    .chip{
+      cursor:pointer;
+      user-select:none;
+      padding:10px 14px;
+      border-radius:999px;
+      background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.12);
+      font-size:13px;
+      opacity:.9
     }
-    saveOfflineDb(db);
-    return { ok:true };
+    .chip.active{background:rgba(255,255,255,.14);opacity:1}
+    .select{
+      padding:10px 12px;
+      border-radius:999px;
+      background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.12);
+      color:inherit;
+      outline:none;
+    }
+
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+    .card{border-radius:18px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10);overflow:hidden;cursor:pointer;transition:.15s;position:relative}
+    .card:hover{background:rgba(255,255,255,.07)}
+    .thumb{aspect-ratio:3/4;background:rgba(0,0,0,.15);position:relative}
+    .thumb .layer{position:absolute;inset:0}
+    .thumb .layer img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block}
+
+    .meta{padding:10px 12px}
+    .meta .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .meta .t{font-size:12px;opacity:.85;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .meta .s{font-size:12px;opacity:.70;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .pill{
+      padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.07);
+      border:1px solid rgba(255,255,255,.14);font-size:12px;white-space:nowrap
+    }
+
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.60);display:none;align-items:center;justify-content:center;padding:18px;z-index:9999}
+    .modal.show{display:flex}
+    .modalbox{width:min(920px,100%);max-height:92vh;border-radius:18px;background:rgba(20,22,30,.96);border:1px solid rgba(255,255,255,.12);overflow:hidden;display:flex;flex-direction:column}
+    .modalhead{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.10)}
+    .modalhead .h{font-size:14px;opacity:.9}
+    .modalhead .x{cursor:pointer;padding:8px 10px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.10);font-size:12px}
+    .modalbody{padding:14px;overflow:auto;max-height:calc(92vh - 54px)}
+    .bigwrap{width:100%;aspect-ratio:1365/2048;background:rgba(0,0,0,.20);border-radius:14px;overflow:hidden;position:relative}
+    .bigwrap .layer{position:absolute;inset:0}
+    .bigwrap .layer img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block}
+    .footnote{margin-top:10px;font-size:12px;opacity:.75}
+    .empty{opacity:.75;padding:14px 0}
+  </style>
+</head>
+
+<body>
+  <div class="page-wrap">
+    <div class="topbar">
+      <div class="title">
+        <h1>作品展示</h1>
+        <div class="badge">帳號 <span id="uidBadge">未登入</span></div>
+        <div class="badge">狀態 <span id="netBadge">檢查中</span></div>
+      </div>
+      <div class="actions">
+        <div class="btn" id="btnStudio">回工作室</div>
+        <div class="btn" id="btnRecipes">成品庫</div>
+        <div class="btn" id="btnHome">首頁</div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="chip active" id="chipNewest">最新</div>
+      <div class="chip" id="chipTop">最高分</div>
+      <select class="select" id="seasonSel" title="Season">
+        <option value="">全部 Season</option>
+        <option value="S1">S1</option>
+      </select>
+      <div class="btn" id="btnReload">重新整理</div>
+    </div>
+
+    <div class="statusline" id="statusLine">讀取中</div>
+    <div id="errorBox" class="errorbox" style="display:none;"></div>
+
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <div class="modal" id="modal">
+    <div class="modalbox">
+      <div class="modalhead">
+        <div class="h" id="modalTitle">預覽</div>
+        <div class="x" id="modalClose">關閉</div>
+      </div>
+      <div class="modalbody">
+        <div class="bigwrap" id="bigwrap"></div>
+        <div class="footnote" id="modalMeta"></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const DEFAULT_WORKER = "https://acf-api.dream-league-baseball.workers.dev";
+  const WORKER_BASE = window.WORKER_BASE || localStorage.getItem("acf_worker_base") || DEFAULT_WORKER;
+
+  const uid = localStorage.getItem("acf_uid") || "";
+  const uidBadge = document.getElementById("uidBadge");
+  const netBadge = document.getElementById("netBadge");
+  const statusLine = document.getElementById("statusLine");
+  const errorBox = document.getElementById("errorBox");
+  const grid = document.getElementById("grid");
+
+  const chipNewest = document.getElementById("chipNewest");
+  const chipTop = document.getElementById("chipTop");
+  const seasonSel = document.getElementById("seasonSel");
+
+  const modal = document.getElementById("modal");
+  const modalClose = document.getElementById("modalClose");
+  const modalTitle = document.getElementById("modalTitle");
+  const modalMeta = document.getElementById("modalMeta");
+  const bigwrap = document.getElementById("bigwrap");
+
+  uidBadge.textContent = uid ? uid : "未登入";
+
+  document.getElementById("btnStudio").onclick = () => location.href = "/studio";
+  document.getElementById("btnRecipes").onclick = () => location.href = "/recipes";
+  document.getElementById("btnHome").onclick = () => location.href = "/";
+  document.getElementById("btnReload").onclick = () => load();
+
+  function setNet(ok){
+    netBadge.textContent = ok ? "Online" : "Offline";
+    netBadge.style.opacity = ok ? "1" : ".75";
+  }
+  function showError(msg){
+    errorBox.style.display = "block";
+    errorBox.textContent = msg;
+  }
+  function clearError(){
+    errorBox.style.display = "none";
+    errorBox.textContent = "";
   }
 
-  async function rateOnline(buildId, score){
-    const data = await apiFetch("/api/ratings", {
-      method:"POST",
-      body: JSON.stringify({ buildId, raterUid: APP.uid, score })
+  function api(path){
+    return fetch(WORKER_BASE + path, {
+      method: "GET",
+      headers: {
+        "content-type": "application/json",
+        "x-user-id": uid || ""
+      }
+    }).then(async (r) => {
+      const t = await r.text();
+      let j = {};
+      try { j = t ? JSON.parse(t) : {}; } catch { j = { ok:false, error:"bad_json", raw:t }; }
+      if (!r.ok || j.ok === false) {
+        const e = (j && (j.error || j.message)) ? (j.error || j.message) : ("HTTP " + r.status);
+        throw new Error(e + (j && j.detail ? (" - " + j.detail) : ""));
+      }
+      return j;
     });
-    if(!data) return null;
-    return data;
   }
 
-  function scoreText(b){
-    if(!b.scoreCount) return "0.0  0";
-    const avg = (b.scoreSum / b.scoreCount);
-    return `${avg.toFixed(1)}  ${b.scoreCount}`;
+  function fmtTime(ts){
+    if (!ts) return "";
+    try{
+      const d = new Date(ts);
+      if (!isFinite(d.getTime())) return String(ts);
+      return d.toLocaleString();
+    } catch { return String(ts); }
   }
 
-  function render(builds){
-    const tbody = q("#buildTable tbody");
-    tbody.innerHTML = "";
-    if(!builds || builds.length===0){
-      const tr = document.createElement("tr");
-      tr.innerHTML = `<td colspan="4">還沒有作品 先去工作室提交</td>`;
-      tbody.appendChild(tr);
-      q("#previewImg").src = "";
+  function makeStackThumb(container, layers){
+    container.innerHTML = "";
+    layers.forEach((l) => {
+      if (!l.url) return;
+      const div = document.createElement("div");
+      div.className = "layer";
+      div.style.zIndex = String(l.z || 0);
+      const img = document.createElement("img");
+      img.loading = "lazy";
+      img.src = l.url;
+      div.appendChild(img);
+      container.appendChild(div);
+    });
+  }
+
+  function openModalLayers(title, metaText, layers){
+    modalTitle.textContent = title || "預覽";
+    modalMeta.textContent = metaText || "";
+    bigwrap.innerHTML = "";
+
+    layers.forEach((l) => {
+      if (!l.url) return;
+      const div = document.createElement("div");
+      div.className = "layer";
+      div.style.zIndex = String(l.z || 0);
+      const img = document.createElement("img");
+      img.loading = "lazy";
+      img.src = l.url;
+      div.appendChild(img);
+      bigwrap.appendChild(div);
+    });
+
+    modal.classList.add("show");
+  }
+
+  modalClose.onclick = () => modal.classList.remove("show");
+  modal.onclick = (e) => { if (e.target === modal) modal.classList.remove("show"); };
+  window.addEventListener("keydown", (e) => { if (e.key === "Escape") modal.classList.remove("show"); });
+
+  function setSort(which){
+    if(which === "top"){
+      chipTop.classList.add("active");
+      chipNewest.classList.remove("active");
+    }else{
+      chipNewest.classList.add("active");
+      chipTop.classList.remove("active");
+    }
+    load();
+  }
+
+  chipNewest.onclick = () => setSort("new");
+  chipTop.onclick = () => setSort("top");
+  seasonSel.onchange = () => load();
+
+  function render(items){
+    grid.innerHTML = "";
+
+    if(!items || items.length === 0){
+      grid.innerHTML = '<div class="empty">目前沒有任何展示作品</div>';
       return;
     }
 
-    q("#previewImg").src = buildPreviewUrl(builds[0]);
+    items.forEach((s) => {
+      const card = document.createElement("div");
+      card.className = "card";
 
-    builds.forEach((b, idx)=>{
-      const tr = document.createElement("tr");
-      const author = b.uid ? b.uid.slice(0,6) : "anon";
-      const title = b.title || `作品 ${idx+1}`;
-      tr.innerHTML = `
-        <td><a href="#" data-b="${b.buildId}" class="pick">${title}</a></td>
-        <td>${author}</td>
-        <td>${scoreText(b)}</td>
-        <td>
-          <select data-s="${b.buildId}" class="input" style="padding:8px;border-radius:12px">
-            <option value="">給分</option>
-            <option value="5">5</option>
-            <option value="4">4</option>
-            <option value="3">3</option>
-            <option value="2">2</option>
-            <option value="1">1</option>
-          </select>
-        </td>
-      `;
-      tbody.appendChild(tr);
-    });
+      const th = document.createElement("div");
+      th.className = "thumb";
 
-    qa("a.pick").forEach(a=>{
-      a.addEventListener("click", (e)=>{
-        e.preventDefault();
-        const id = a.getAttribute("data-b");
-        const b = builds.find(x=>x.buildId===id);
-        if(b) q("#previewImg").src = buildPreviewUrl(b);
-      });
-    });
+      // Layer order (top->bottom):
+      // addon1 top, body 2, head 3, addon2 4, bg bottom
+      const layersThumb = [
+        { url: s.bgUrl, z: 10 },
+        { url: s.addon2Url, z: 20 },
+        { url: s.headUrl, z: 30 },
+        { url: s.bodyUrl, z: 40 },
+        { url: s.addon1Url, z: 50 },
+      ];
+      makeStackThumb(th, layersThumb);
 
-    qa("select[data-s]").forEach(s=>{
-      s.addEventListener("change", async ()=>{
-        const buildId = s.getAttribute("data-s");
-        const val = Number(s.value||0);
-        if(!val) return;
-        toast("送出評分");
-        let r = await rateOnline(buildId, val);
-        if(!r) r = await rateOffline(buildId, val);
-        q("#netBadge").textContent = APP.offline ? "Offline" : "Online";
-        if(r.ok){
-          toast("已評分");
-          await load();
-        }else{
-          toast("你已評過這個作品");
-        }
-        s.value = "";
-      });
+      const meta = document.createElement("div");
+      meta.className = "meta";
+
+      const row = document.createElement("div");
+      row.className = "row";
+
+      const t = document.createElement("div");
+      t.className = "t";
+      const title = (s.title && String(s.title).trim()) ? String(s.title).trim() : "未命名作品";
+      t.textContent = title;
+
+      const pill = document.createElement("div");
+      pill.className = "pill";
+      const avg = Number(s.avgScore || 0);
+      const votes = Number(s.votes || 0);
+      pill.textContent = "★ " + avg.toFixed(2) + " · " + votes;
+
+      row.appendChild(t);
+      row.appendChild(pill);
+
+      const sline = document.createElement("div");
+      sline.className = "s";
+      sline.textContent = "@" + String(s.userId || "") + " · " + fmtTime(s.createdAt) + (s.seasonId ? (" · " + s.seasonId) : "");
+
+      meta.appendChild(row);
+      meta.appendChild(sline);
+
+      card.appendChild(th);
+      card.appendChild(meta);
+
+      card.onclick = () => {
+        clearError();
+        const layersBig = [
+          { url: s.bgUrl, z: 10 },
+          { url: s.addon2Url, z: 20 },
+          { url: s.headUrl, z: 30 },
+          { url: s.bodyUrl, z: 40 },
+          { url: s.addon1Url, z: 50 },
+        ];
+        openModalLayers(title, "★ " + avg.toFixed(2) + " · votes " + votes + " · " + fmtTime(s.createdAt), layersBig);
+      };
+
+      grid.appendChild(card);
     });
   }
 
   async function load(){
-    let data = await listOnline();
-    if(!data) data = await listOffline();
-    q("#netBadge").textContent = APP.offline ? "Offline" : "Online";
-    // sort top
-    const builds = (data.builds || []).slice().sort((a,b)=>{
-      const aa = a.scoreCount ? a.scoreSum/a.scoreCount : 0;
-      const bb = b.scoreCount ? b.scoreSum/b.scoreCount : 0;
-      if(bb !== aa) return bb-aa;
-      return (b.createdAt||0)-(a.createdAt||0);
-    });
-    render(builds);
+    grid.innerHTML = "";
+    clearError();
+    statusLine.textContent = "讀取中";
+
+    try{
+      const res = await api("/api/gallery");
+      setNet(true);
+
+      const season = String(seasonSel.value || "").trim();
+      let items = (res.items || []).slice();
+
+      if(season){
+        items = items.filter(x => String(x.seasonId || "") === season);
+      }
+
+      if(chipTop.classList.contains("active")){
+        items.sort((a,b)=>{
+          const av = Number(a.avgScore || 0);
+          const bv = Number(b.avgScore || 0);
+          if(bv !== av) return bv - av;
+          const ac = Number(a.votes || 0);
+          const bc = Number(b.votes || 0);
+          if(bc !== ac) return bc - ac;
+          return Number(b.createdAt || 0) - Number(a.createdAt || 0);
+        });
+      }else{
+        items.sort((a,b)=> Number(b.createdAt || 0) - Number(a.createdAt || 0));
+      }
+
+      statusLine.textContent = "共 " + items.length + " 個作品";
+      render(items);
+
+    }catch(e){
+      setNet(false);
+      statusLine.textContent = "讀取失敗";
+      showError("讀取失敗，請確認後端已有 /api/gallery，且資料庫存在 showcases / votes / assets");
+      console.error(e);
+    }
   }
 
-  q("#refreshBtn").addEventListener("click", load);
-
-  await load();
+  load();
 })();
 </script>
-
 </body>
 </html>
