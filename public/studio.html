@@ -60,7 +60,7 @@
     background: rgba(0,0,0,0.20);
     display:block;
   }
-  .asset-thumb.active{outline:2px solid rgba(74,222,128,0.9); outline-offset:2px;}
+  .asset-thumb.active{outline:2px solid rgba(239,68,68,0.95); outline-offset:2px;}
 
   /* rarity borders */
   .r1 .asset-thumb{border-color: rgba(148,163,184,0.75);}
@@ -84,14 +84,40 @@
     pointer-events: none;
   }
 
-  /* Star Badge (Bottom Left) */
+  /* Rarity Badge (Top Left) */
+  .badge-rarity{
+    position:absolute;
+    left:-4px;
+    top:-4px;
+    background: rgba(0,0,0,0.75);
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.12);
+    z-index: 2;
+    pointer-events:none;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .r1 .badge-rarity{ color: rgba(148,163,184,0.95); border-color: rgba(148,163,184,0.6); }
+  .r2 .badge-rarity{ color: rgba(34,197,94,0.95); border-color: rgba(34,197,94,0.6); }
+  .r3 .badge-rarity{ color: rgba(59,130,246,0.95); border-color: rgba(59,130,246,0.6); }
+  .r4 .badge-rarity{ color: rgba(168,85,247,0.95); border-color: rgba(168,85,247,0.6); }
+  .r5 .badge-rarity{ color: rgba(245,158,11,0.98); border-color: rgba(245,158,11,0.7); }
+
+  /* Star Badge (Bottom Right) */
   .badge-stars {
     position: absolute;
-    left: 4px;
+    right: 4px;
     bottom: 4px;
     color: #fbbf24;
-    font-size: 10px;
-    text-shadow: 0 0 4px rgba(0,0,0,0.8);
+    font-size: 13px;
+    font-weight: 700;
+    background: rgba(0,0,0,0.65);
+    border: 1px solid rgba(255,255,255,0.18);
+    padding: 2px 6px;
+    border-radius: 8px;
+    text-shadow: 0 0 4px rgba(0,0,0,0.9);
     z-index: 2;
     pointer-events: none;
   }
@@ -321,27 +347,13 @@ function isGenderCompatible(headId, bodyId){
 }
 
 // --- Star & Count Logic ---
-function getAssetStats(assetId, count) {
-  let stars = 1;
-  let currentCount = count;
-  let neededForNext = 10;
-  
-  // 1->2: 10, 2->3: 20, 3->4: 30, 4->5: 40
-  while (stars < 5) {
-    let cost = stars * 10;
-    if (currentCount >= cost) {
-      currentCount -= cost;
-      stars++;
-      neededForNext = stars * 10;
-    } else {
-      neededForNext = stars * 10;
-      break;
-    }
-  }
-  
-  if (stars === 5) neededForNext = "MAX";
-  
-  return { stars, currentCount, neededForNext, totalCount: count };
+function getAssetStats(assetId, count, starsFromDb) {
+  let stars = Number(starsFromDb || 0);
+  if(!Number.isFinite(stars) || stars < 1) stars = 1;
+  if(stars > 5) stars = 5;
+
+  const neededForNext = (stars >= 5) ? "MAX" : (stars * 10);
+  return { stars, neededForNext, totalCount: Number(count || 0) };
 }
 
 
@@ -362,14 +374,17 @@ if(!APP.offline){
 
     const invRes = await fetch(WORKER_BASE + "/api/me/assets?uid=" + encodeURIComponent(APP.uid)).then(r=>r.json());
     const items = invRes.items || invRes.assets || invRes.rows || invRes.results || [];
-    const store = {};
+    const storeCount = {};
+    const storeStars = {};
     for(const it of (items || [])){
       const aid = it.assetId || it.asset_id || it.id;
       if(!aid) continue;
-      store[`${APP.uid}:${aid}`] = Number(it.count || it.qty || 1);
+      storeCount[`${APP.uid}:${aid}`] = Number(it.count || it.qty || 1);
+      const s = it.stars;
+      if(s !== undefined && s !== null && s !== "") storeStars[`${APP.uid}:${aid}`] = Number(s);
     }
 
-    db = { assets, userAssets: store, unlocks: {} };
+    db = { assets, userAssets: storeCount, userStars: storeStars, unlocks: {} };
   }catch(e){
     db = offlineDb();
   }
@@ -438,6 +453,11 @@ for(const key of Object.keys(db.unlocks || {})){
   if(!r) continue;
   [r.headId, r.bodyId, r.bgId, ...(r.accessoryIds||[])].filter(Boolean).forEach(id => unlockedAssetIds.add(id));
 }
+
+function invStars(assetId){
+  return Number(db.userStars?.[`${APP.uid}:${assetId}`] ?? 0);
+}
+
 
 function setLayers(){
   const bgUrl = byId.get(SEL.bgId)?.imageUrl || "";
@@ -568,13 +588,24 @@ img.addEventListener("error", ()=>{
         // --- Stats Badges ---
         if(it.assetId) {
           const count = invCount(it.assetId);
-          const stats = getAssetStats(it.assetId, count);
+          const stats = getAssetStats(it.assetId, count, invStars(it.assetId));
           
           // Count Badge (Top Right)
           const cBadge = document.createElement("div");
           cBadge.className = "badge-count";
           cBadge.textContent = `${stats.totalCount}/${stats.neededForNext}`;
           wrap.appendChild(cBadge);
+
+          // Rarity Badge (Top Left) show only when not using thumb image
+          const imgSrc = String(it.imageUrl || "");
+          if(imgSrc && !imgSrc.includes("_thumb")){
+            const rBadge = document.createElement("div");
+            rBadge.className = "badge-rarity";
+            const rMap = {1:"C",2:"R",3:"SR",4:"SSR",5:"UR"};
+            const r = Number(it.rarity || 1);
+            rBadge.textContent = rMap[r] || "C";
+            wrap.appendChild(rBadge);
+          }
           
           // Star Badge (Bottom Left)
           const sBadge = document.createElement("div");
