@@ -333,7 +333,11 @@
       list.forEach((x) => {
         showcaseComboSet.add(comboKey(x.headId, x.bodyId, x.bgId, x.addon1Id, x.addon2Id));
       });
-    }catch(e){ /* ignore */ }
+    }catch(e){
+      // If this fails, we should NOT silently ignore it, otherwise users can't tell why "展示中" never appears.
+      console.warn("load showcases failed", e);
+      showError("讀取展示資料失敗，請確認已更新 Worker 並且 WORKER_BASE 指向同一個資料庫");
+    }
 
       const saves = res.saves || [];
       statusLine.textContent = "共 " + saves.length + " 個成品";
@@ -415,6 +419,11 @@ if (curItem){
             }
 
             await apiReq("POST", "/api/me/showcase", { ...payload, seasonId:"S1", overwrite: !!curItem });
+
+            // Immediately reflect UI state
+            showcaseComboSet.add(comboKey(payload.headId, payload.bodyId, payload.bgId, payload.addon1Id, payload.addon2Id));
+            btnShow.textContent = "展示中";
+            btnShow.classList.add("disabled");
             showError("已提交展示");
           } catch(e){
             showError("展示失敗：" + (e && e.message ? e.message : String(e)));
