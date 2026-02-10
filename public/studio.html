@@ -522,7 +522,7 @@ function clampStars(n){
 // Effective rarity = base rarity + (stars - 1), capped at 5
 function effectiveRarityById(assetId){
   if(!assetId) return 0;
-  const base = Number(byId.get(assetId)?.rarity || 1);
+  const base = (typeof getBaseRarityById === 'function' ? (getBaseRarityById(assetId) || 1) : Number(byId.get(assetId)?.rarity || 1));
   const stars = clampStars(invStars(assetId));
   return Math.min(5, base + (stars - 1));
 }
@@ -564,7 +564,7 @@ function isCompatibleWithHead(candidateId){
 function ruleHintText(){
   const r = getHeadRule();
   if(!r.base) return "";
-  return `可搭配 ${RARITY_LABEL[r.base] || "C"} 至 ${RARITY_LABEL[r.max] || "C"}，較低等級需升星補足`;
+  return `可搭配 ${RARITY_LABEL[r.base] || "C"} 至 ${RARITY_LABEL[r.max] || "C"}（較低等級需升星補足到 ${RARITY_LABEL[r.base] || "C"}）`;
 }
 
 function setLayers(){
@@ -657,8 +657,8 @@ function makeVirtualGrid(container, items0, getSelectedId, onSelect, options){
         if(idx >= items.length) break;
         const it = items[idx];
         const wrap = document.createElement("div");
-        const effR = it.assetId ? effectiveRarityById(it.assetId) : Number(it.rarity || 1);
-        wrap.className = "asset-item " + `r${effR || 1}`;
+        const baseR = it.assetId ? (typeof getBaseRarityById === 'function' ? (getBaseRarityById(it.assetId) || 1) : Number(byId.get(it.assetId)?.rarity || 1)) : Number(it.rarity || 1);
+        wrap.className = "asset-item " + `r${baseR || 1}`;
         if(it.assetId) wrap.setAttribute("data-asset-id", String(it.assetId));
         wrap.style.left = (c * (opt.thumbW + opt.gap)) + "px";
         wrap.style.top = (r * rowH) + "px";
@@ -717,7 +717,7 @@ img.addEventListener("error", ()=>{
             const rBadge = document.createElement("div");
             rBadge.className = "badge-rarity";
             const rMap = {1:"C",2:"R",3:"SR",4:"SSR",5:"UR"};
-            const r = it.assetId ? effectiveRarityById(it.assetId) : Number(it.rarity || 1);
+            const r = it.assetId ? (typeof getBaseRarityById === 'function' ? (getBaseRarityById(it.assetId) || 1) : Number(byId.get(it.assetId)?.rarity || 1)) : Number(it.rarity || 1);
             rBadge.textContent = rMap[r] || "C";
             wrap.appendChild(rBadge);
           }
