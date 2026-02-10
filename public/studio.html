@@ -293,35 +293,9 @@
     </div>
   </div>
 
-  <script src="app.js">
-function upgradeCost(stars){
-  if(stars >= 5) return null;
-  return stars * 10;
-}
+  <script src="app.js"></script>
 
-async function doUpgrade(assetId){
-  const uid = localStorage.getItem("acf_uid");
-  const card = document.querySelector(`[data-asset-id='${assetId}']`);
-  if(card) card.classList.add("upgrading");
-
-  const res = await fetch(WORKER_BASE + "/api/upgrade", {
-    method:"POST",
-    headers:{ "content-type":"application/json", "x-user-id": uid },
-    body: JSON.stringify({ uid, assetId })
-  }).then(r=>r.json());
-
-  if(res.ok){
-    await reloadInventory();
-  }else{
-    alert(res.error || "upgrade failed");
-  }
-
-  if(card) card.classList.remove("upgrading");
-}
-</script>
-
-
-  <script>
+<script>
   (async function(){
     await initSession();
     q("#netBadge").textContent = APP.offline ? "Offline" : "Online";
@@ -768,7 +742,9 @@ const bgItemsAll = ownedOptions("background");
 let bgItems = bgItemsAll;
 
 SEL.headId = headItems[0]?.assetId || "";
-SEL.bodyId = bodyItfunction applyBodyGenderRule(){
+SEL.bodyId = bodyItems[0]?.assetId || "";
+
+function applyBodyGenderRule(){
   const headGender = genderTag(SEL.headId);
   const target = getTargetRarity();
   let filtered = bodyItemsAll;
