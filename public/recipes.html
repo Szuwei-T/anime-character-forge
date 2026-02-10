@@ -7,69 +7,77 @@
   <link rel="stylesheet" href="style.css" />
   <style>
     .page-wrap{max-width:1180px;margin:0 auto;padding:22px 18px 44px;}
-    .topbar{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:14px;}
-    .title-row{display:flex;gap:14px;align-items:center;flex-wrap:wrap;}
-    .badge{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:6px 10px;background:rgba(0,0,0,.25);backdrop-filter: blur(6px);}
-    .badge .label{opacity:.85;font-size:12px}
-    .badge .value{font-weight:700;font-size:12px}
-    .pillbtn{cursor:pointer;user-select:none;display:inline-flex;align-items:center;justify-content:center;padding:10px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.22);color:#fff;min-width:120px}
-    .pillbtn:hover{background:rgba(0,0,0,.32)}
-    .navcol{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-    .statusline{margin:10px 0 16px;opacity:.9;font-size:13px}
-    .errorbox{margin-top:10px;border:1px solid rgba(255,70,70,.55);background:rgba(90,0,0,.25);padding:12px 14px;border-radius:14px;color:#ffb3b3;font-size:13px}
-    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px;margin-top:14px}
-    .card{border:1px solid rgba(255,255,255,.16);background:rgba(0,0,0,.22);border-radius:16px;overflow:hidden;cursor:pointer;transition:transform .12s ease, border-color .12s ease}
-    .card:hover{transform:translateY(-1px);border-color:rgba(255,255,255,.26)}
-    .thumb{position:relative;width:100%;aspect-ratio:3/4;background:rgba(255,255,255,.04)}
-    .layer{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;image-rendering:auto}
-    .layer-bg{z-index:1}
-    .layer-addon2{z-index:2}
-    .layer-head{z-index:3}
-    .layer-body{z-index:4}
-    .layer-addon1{z-index:5}
-    .meta{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px 10px 12px}
-    .meta .time{font-size:12px;opacity:.85;white-space:nowrap}
-    .meta .parts{font-size:12px;opacity:.75;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .topbar{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:16px;}
+    .title{display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+    .title h1{font-size:22px;margin:0;letter-spacing:1px;}
+    .badge{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);font-size:12px;opacity:.95}
+    .actions{display:flex;gap:10px;flex-wrap:wrap}
+    .btn{cursor:pointer;user-select:none;padding:10px 14px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);font-size:13px;transition:.15s}
+    .btn:hover{background:rgba(255,255,255,.10)}
+    .statusline{margin:10px 0 12px;opacity:.9}
+    .errorbox{margin:10px 0 12px;padding:10px 12px;border-radius:12px;background:rgba(255,0,0,.10);border:1px solid rgba(255,0,0,.25);color:#ffb3b3}
 
-    .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.72);z-index:9999;padding:18px}
+    .tabs{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0 14px}
+    .tabbtn{cursor:pointer;user-select:none;padding:10px 14px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);font-size:13px;opacity:.9}
+    .tabbtn.active{background:rgba(255,255,255,.14);opacity:1}
+
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+    .card{border-radius:18px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10);overflow:hidden;cursor:pointer;transition:.15s;position:relative}
+    .card:hover{background:rgba(255,255,255,.07)}
+    .thumb{aspect-ratio:3/4;background:rgba(0,0,0,.15);position:relative}
+    .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+    .thumb .layer{position:absolute;inset:0}
+    .thumb .layer img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block}
+    .meta{padding:10px 12px}
+    .meta .time{font-size:12px;opacity:.85;margin-bottom:4px}
+    .meta .parts{font-size:12px;opacity:.65;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+    /* Locked recipe cards */
+    .locked .thumb{filter:blur(4px) brightness(.55);transform:scale(1.02)}
+    .lockmask{position:absolute;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;gap:10px;flex-direction:column}
+    .lockmask .lock{font-size:28px;line-height:1}
+    .lockmask .txt{font-size:13px;opacity:.95}
+
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.60);display:none;align-items:center;justify-content:center;padding:18px;z-index:9999}
     .modal.show{display:flex}
-    .modalbox{width:min(860px,100%);border-radius:18px;border:1px solid rgba(255,255,255,.18);background:rgba(10,10,10,.75);backdrop-filter: blur(8px);overflow:hidden}
-    .modalhead{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.12)}
-    .modalhead .h{font-weight:800}
-    .modalhead .x{cursor:pointer;border-radius:12px;padding:8px 10px;border:1px solid rgba(255,255,255,.16);background:rgba(0,0,0,.25)}
-    .modalbody{padding:14px;max-height:calc(100vh - 140px);overflow:auto;-webkit-overflow-scrolling:touch}
-    .bigwrap{position:relative;width:100%;aspect-ratio:1365/2048;background:rgba(255,255,255,.04);border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,.10)}
-    .bigwrap img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
-    .footnote{margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;opacity:.9;font-size:12px}
-    .muted{opacity:.75}
+    .modalbox{width:min(920px,100%);max-height:92vh;border-radius:18px;background:rgba(20,22,30,.96);border:1px solid rgba(255,255,255,.12);overflow:hidden;display:flex;flex-direction:column}
+    .modalhead{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.10)}
+    .modalhead .h{font-size:14px;opacity:.9}
+    .modalhead .x{cursor:pointer;padding:8px 10px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.10);font-size:12px}
+    .modalbody{padding:14px;overflow:auto;max-height:calc(92vh - 54px)}
+    .bigwrap{width:100%;aspect-ratio:1365/2048;background:rgba(0,0,0,.20);border-radius:14px;overflow:hidden;position:relative}
+    .bigwrap .layer{position:absolute;inset:0}
+    .bigwrap .layer img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block}
+    .bigwrap img.single{width:100%;height:auto;display:block}
+    .footnote{margin-top:10px;font-size:12px;opacity:.75}
+    .empty{opacity:.75;padding:14px 0}
   </style>
 </head>
 <body>
   <div class="page-wrap">
     <div class="topbar">
-      <div class="title-row">
-        <div style="font-size:22px;font-weight:900;">成品庫</div>
-        <div class="badge" title="目前帳號">
-          <span class="label">帳號</span>
-          <span class="value" id="uidBadge">未登入</span>
-        </div>
-        <div class="badge" title="連線狀態">
-          <span class="label">狀態</span>
-          <span class="value" id="netBadge">檢查中</span>
-        </div>
+      <div class="title">
+        <h1>成品庫</h1>
+        <div class="badge">帳號 <span id="uidBadge">未登入</span></div>
+        <div class="badge">狀態 <span id="netBadge">檢查中</span></div>
       </div>
+      <div class="actions">
+        <div class="btn" id="btnStudio">回工作室</div>
+        <div class="btn" id="btnGacha">去抽卡</div>
+        <div class="btn" id="btnHome">首頁</div>
+      </div>
+    </div>
 
-      <div class="navcol">
-        <button class="pillbtn" id="btnStudio">回工作室</button>
-        <button class="pillbtn" id="btnGacha">去抽卡</button>
-        <button class="pillbtn" id="btnHome">首頁</button>
-      </div>
+    <div class="tabs">
+      <div class="tabbtn active" id="tabSaves">我的成品</div>
+      <div class="tabbtn" id="tabRecipes">Recipes</div>
     </div>
 
     <div class="statusline" id="statusLine">讀取中</div>
     <div id="errorBox" class="errorbox" style="display:none;"></div>
 
-    <div class="grid" id="grid"></div>
+    <div class="grid" id="gridSaves"></div>
+    <div class="grid" id="gridRecipes" style="display:none;"></div>
   </div>
 
   <div class="modal" id="modal">
@@ -87,7 +95,6 @@
 
 <script>
 (function(){
-  // Prefer global WORKER_BASE from app.js, fallback to saved config, then default.
   const DEFAULT_WORKER = "https://acf-api.dream-league-baseball.workers.dev";
   const WORKER_BASE = window.WORKER_BASE || localStorage.getItem("acf_worker_base") || DEFAULT_WORKER;
 
@@ -96,7 +103,18 @@
   const netBadge = document.getElementById("netBadge");
   const statusLine = document.getElementById("statusLine");
   const errorBox = document.getElementById("errorBox");
-  const grid = document.getElementById("grid");
+
+  const gridSaves = document.getElementById("gridSaves");
+  const gridRecipes = document.getElementById("gridRecipes");
+
+  const tabSaves = document.getElementById("tabSaves");
+  const tabRecipes = document.getElementById("tabRecipes");
+
+  const modal = document.getElementById("modal");
+  const modalClose = document.getElementById("modalClose");
+  const modalTitle = document.getElementById("modalTitle");
+  const modalMeta = document.getElementById("modalMeta");
+  const bigwrap = document.getElementById("bigwrap");
 
   uidBadge.textContent = uid ? uid : "未登入";
 
@@ -104,180 +122,287 @@
   document.getElementById("btnGacha").onclick = () => location.href = "/gacha";
   document.getElementById("btnHome").onclick = () => location.href = "/";
 
+  function setNet(ok){
+    netBadge.textContent = ok ? "Online" : "Offline";
+    netBadge.style.opacity = ok ? "1" : ".75";
+  }
   function showError(msg){
     errorBox.style.display = "block";
     errorBox.textContent = msg;
   }
-  function hideError(){ errorBox.style.display = "none"; errorBox.textContent = ""; }
-
-  async function ping(){
-    try{
-      const r = await fetch(WORKER_BASE + "/api/ping", { headers: { "x-user-id": uid || "anon" } });
-      if(!r.ok) throw new Error("ping_not_ok");
-      const j = await r.json();
-      if(j && j.ok) { netBadge.textContent = "Online"; return true; }
-      throw new Error("ping_bad");
-    }catch(e){
-      netBadge.textContent = "Offline";
-      return false;
-    }
+  function clearError(){
+    errorBox.style.display = "none";
+    errorBox.textContent = "";
   }
 
-  async function api(path){
-    const r = await fetch(WORKER_BASE + path, {
+  function api(path){
+    return fetch(WORKER_BASE + path, {
       method: "GET",
-      headers: { "content-type":"application/json", "x-user-id": uid || "anon" }
+      headers: {
+        "content-type": "application/json",
+        "x-user-id": uid || ""
+      }
+    }).then(async (r) => {
+      const t = await r.text();
+      let j = {};
+      try { j = t ? JSON.parse(t) : {}; } catch { j = { ok:false, error:"bad_json", raw:t }; }
+      if (!r.ok || j.ok === false) {
+        const e = (j && (j.error || j.message)) ? (j.error || j.message) : ("HTTP " + r.status);
+        throw new Error(e + (j && j.detail ? (" - " + j.detail) : ""));
+      }
+      return j;
     });
-    const text = await r.text();
-    let j = null;
-    try{ j = JSON.parse(text); }catch(_e){ j = { ok:false, error:"bad_json", detail:text }; }
-    if(!r.ok) throw j;
-    return j;
   }
 
   function fmtTime(ts){
-    if(!ts) return "";
+    if (!ts) return "";
     try{
-      const d = new Date(Number(ts));
+      const d = new Date(ts);
+      if (!isFinite(d.getTime())) return String(ts);
       return d.toLocaleString();
-    }catch(e){
-      return String(ts);
-    }
+    } catch { return String(ts); }
   }
 
-  // thumb fallback: try *_thumb.png first for head/body/bg/addons
-  function toThumb(url){
-    if(!url) return "";
-    if(url.endsWith(".png")) return url.replace(".png", "_thumb.png");
-    return url;
-  }
+  function openModalLayers(title, metaText, layers){
+    modalTitle.textContent = title || "預覽";
+    modalMeta.textContent = metaText || "";
+    bigwrap.innerHTML = "";
 
-  function makeLayerImg(url, preferThumb, role){
-    const img = document.createElement("img");
-    img.className = "layer " + (role || "");
-    const raw = url || "";
-    const thumb = preferThumb ? toThumb(raw) : raw;
-
-    // try thumb -> fallback raw
-    img.src = thumb || raw;
-    img.onerror = () => {
-      if(img.src !== raw && raw) img.src = raw;
-      else img.onerror = null;
-    };
-    return img;
-  }
-
-  function buildThumbStack(save){
-    const wrap = document.createElement("div");
-    wrap.className = "thumb";
-    // z-order required:
-    // addon1 top, body 2nd, head 3rd, addon2 4th, bg bottom
-    wrap.appendChild(makeLayerImg(save.bgUrl, true, "layer-bg"));
-    if(save.addon2Url) wrap.appendChild(makeLayerImg(save.addon2Url, true, "layer-addon2"));
-    wrap.appendChild(makeLayerImg(save.headUrl, true, "layer-head"));
-    wrap.appendChild(makeLayerImg(save.bodyUrl, true, "layer-body"));
-    if(save.addon1Url) wrap.appendChild(makeLayerImg(save.addon1Url, true, "layer-addon1"));
-    return wrap;
-  }
-
-  function buildBigStack(save){
-    const wrap = document.getElementById("bigwrap");
-    wrap.innerHTML = "";
-    wrap.appendChild(makeLayerImg(save.bgUrl, false, "layer-bg"));
-    if(save.addon2Url) wrap.appendChild(makeLayerImg(save.addon2Url, false, "layer-addon2"));
-    wrap.appendChild(makeLayerImg(save.headUrl, false, "layer-head"));
-    wrap.appendChild(makeLayerImg(save.bodyUrl, false, "layer-body"));
-    if(save.addon1Url) wrap.appendChild(makeLayerImg(save.addon1Url, false, "layer-addon1"));
-  }
-
-  function openModal(save){
-    const modal = document.getElementById("modal");
-    const modalTitle = document.getElementById("modalTitle");
-    const modalMeta = document.getElementById("modalMeta");
-
-    modalTitle.textContent = "成品預覽";
-    buildBigStack(save);
-
-    modalMeta.innerHTML = "";
-    const t = document.createElement("div");
-    t.innerHTML = "<span class='muted'>保存時間</span> " + fmtTime(save.savedOn);
-
-    const p = document.createElement("div");
-    const parts = [save.headId, save.bodyId, save.bgId, save.addon1Id, save.addon2Id].filter(Boolean).join(" / ");
-    p.innerHTML = "<span class='muted'>素材</span> " + (parts || "-");
-
-    modalMeta.appendChild(t);
-    modalMeta.appendChild(p);
+    // layers: [{url, z}]
+    layers.forEach((l) => {
+      if (!l.url) return;
+      const div = document.createElement("div");
+      div.className = "layer";
+      div.style.zIndex = String(l.z || 0);
+      const img = document.createElement("img");
+      img.loading = "lazy";
+      img.src = l.url;
+      div.appendChild(img);
+      bigwrap.appendChild(div);
+    });
 
     modal.classList.add("show");
   }
 
-  function closeModal(){
-    document.getElementById("modal").classList.remove("show");
+  function openModalSingle(title, metaText, imageUrl){
+    modalTitle.textContent = title || "預覽";
+    modalMeta.textContent = metaText || "";
+    bigwrap.innerHTML = "";
+    // For single image, keep aspect-ratio container but allow scroll in modalbody to see full if needed
+    const img = document.createElement("img");
+    img.className = "single";
+    img.loading = "lazy";
+    img.src = imageUrl;
+    bigwrap.appendChild(img);
+    modal.classList.add("show");
   }
-  document.getElementById("modalClose").onclick = closeModal;
-  document.getElementById("modal").onclick = (e)=>{ if(e.target.id==="modal") closeModal(); };
-  window.addEventListener("keydown", (e)=>{ if(e.key==="Escape") closeModal(); });
 
-  async function main(){
-    hideError();
-    statusLine.textContent = "讀取中...";
-    const ok = await ping();
+  modalClose.onclick = () => modal.classList.remove("show");
+  modal.onclick = (e) => { if (e.target === modal) modal.classList.remove("show"); };
+  window.addEventListener("keydown", (e) => { if (e.key === "Escape") modal.classList.remove("show"); });
 
-    if(!ok){
-      showError("連線失敗：後端無回應，請確認 Worker 已部署且可連線");
-      statusLine.textContent = "讀取失敗";
-      return;
-    }
+  function thumbUrl(assetUrl){
+    // Prefer _thumb for head/body if exists, fallback to original
+    if (!assetUrl) return "";
+    // Only add _thumb before .png if it's a .png
+    if (assetUrl.endsWith(".png")) return assetUrl.replace(/\.png$/i, "_thumb.png");
+    return assetUrl;
+  }
 
-    let data = null;
-    try{
-      data = await api("/api/me/saves");
-    }catch(e){
-      const detail = (e && (e.detail || e.error)) ? (" " + (e.detail || e.error)) : "";
-      showError("讀取失敗，請確認後端已更新，並且有資料庫表 user_saves。" + detail);
-      statusLine.textContent = "讀取失敗";
-      return;
-    }
-
-    const saves = (data && (data.saves || data.items)) ? (data.saves || data.items) : [];
-    if(!saves.length){
-      statusLine.textContent = "目前沒有任何已保存成品";
-      return;
-    }
-
-    statusLine.textContent = "共 " + saves.length + " 個成品";
-    grid.innerHTML = "";
-
-    saves.forEach((s) => {
-      const card = document.createElement("div");
-      card.className = "card";
-
-      const thumb = buildThumbStack(s);
-      card.appendChild(thumb);
-
-      const meta = document.createElement("div");
-      meta.className = "meta";
-
-      const time = document.createElement("div");
-      time.className = "time";
-      time.textContent = fmtTime(s.savedOn);
-
-      const parts = document.createElement("div");
-      parts.className = "parts";
-      parts.textContent = [s.headId, s.bodyId, s.bgId].filter(Boolean).join(" / ");
-
-      meta.appendChild(time);
-      meta.appendChild(parts);
-
-      card.appendChild(meta);
-
-      card.onclick = () => openModal(s);
-      grid.appendChild(card);
+  function makeStackThumb(container, layers){
+    // layers: [{url, z, preferThumb}]
+    container.innerHTML = "";
+    layers.forEach((l) => {
+      if (!l.url) return;
+      const div = document.createElement("div");
+      div.className = "layer";
+      div.style.zIndex = String(l.z || 0);
+      const img = document.createElement("img");
+      img.loading = "lazy";
+      const primary = l.preferThumb ? thumbUrl(l.url) : l.url;
+      img.src = primary;
+      if (l.preferThumb){
+        img.onerror = () => { img.onerror = null; img.src = l.url; };
+      }
+      div.appendChild(img);
+      container.appendChild(div);
     });
   }
 
-  main();
+  function setTab(which){
+    if (which === "recipes"){
+      tabRecipes.classList.add("active");
+      tabSaves.classList.remove("active");
+      gridRecipes.style.display = "grid";
+      gridSaves.style.display = "none";
+      statusLine.textContent = "讀取中";
+      clearError();
+      loadRecipes();
+    } else {
+      tabSaves.classList.add("active");
+      tabRecipes.classList.remove("active");
+      gridSaves.style.display = "grid";
+      gridRecipes.style.display = "none";
+      statusLine.textContent = "讀取中";
+      clearError();
+      loadSaves();
+    }
+  }
+
+  tabSaves.onclick = () => setTab("saves");
+  tabRecipes.onclick = () => setTab("recipes");
+
+  async function loadSaves(){
+    gridSaves.innerHTML = "";
+    try{
+      const res = await api("/api/me/saves");
+      setNet(true);
+      const saves = res.saves || [];
+      statusLine.textContent = "共 " + saves.length + " 個成品";
+
+      if (saves.length === 0){
+        gridSaves.innerHTML = '<div class="empty">尚未儲存任何成品</div>';
+        return;
+      }
+
+      saves.forEach((s) => {
+        const card = document.createElement("div");
+        card.className = "card";
+
+        const th = document.createElement("div");
+        th.className = "thumb";
+
+        // Layer order (top->bottom):
+        // addon1 top, body 2, head 3, addon2 4, bg bottom
+        const layersThumb = [
+          { url: s.bgUrl, z: 10, preferThumb:false },
+          { url: s.addon2Url, z: 20, preferThumb:false },
+          { url: s.headUrl, z: 30, preferThumb:true },
+          { url: s.bodyUrl, z: 40, preferThumb:true },
+          { url: s.addon1Url, z: 50, preferThumb:false },
+        ];
+        makeStackThumb(th, layersThumb);
+
+        const meta = document.createElement("div");
+        meta.className = "meta";
+
+        const time = document.createElement("div");
+        time.className = "time";
+        time.textContent = fmtTime(s.savedOn);
+
+        const parts = document.createElement("div");
+        parts.className = "parts";
+        parts.textContent = [s.headId, s.bodyId, s.bgId].filter(Boolean).join(" / ");
+
+        meta.appendChild(time);
+        meta.appendChild(parts);
+
+        card.appendChild(th);
+        card.appendChild(meta);
+
+        card.onclick = () => {
+          const layersBig = [
+            { url: s.bgUrl, z: 10 },
+            { url: s.addon2Url, z: 20 },
+            { url: s.headUrl, z: 30 },
+            { url: s.bodyUrl, z: 40 },
+            { url: s.addon1Url, z: 50 },
+          ];
+          openModalLayers("我的成品", fmtTime(s.savedOn), layersBig);
+        };
+
+        gridSaves.appendChild(card);
+      });
+
+    } catch(e){
+      setNet(false);
+      statusLine.textContent = "讀取失敗";
+      showError("讀取失敗，請確認後端已更新，並且有資料庫表 user_saves");
+      console.error(e);
+    }
+  }
+
+  function renderRecipes(recipes, unlockSet){
+    gridRecipes.innerHTML = "";
+    statusLine.textContent = "共 " + recipes.length + " 張 Recipes";
+
+    if (recipes.length === 0){
+      gridRecipes.innerHTML = '<div class="empty">recipes table 目前沒有資料</div>';
+      return;
+    }
+
+    recipes.forEach((r) => {
+      const unlocked = unlockSet.has(String(r.recipeId));
+
+      const card = document.createElement("div");
+      card.className = "card" + (unlocked ? "" : " locked");
+
+      const th = document.createElement("div");
+      th.className = "thumb";
+      const img = document.createElement("img");
+      img.loading = "lazy";
+      img.src = r.imageUrl;
+      th.appendChild(img);
+
+      if (!unlocked){
+        const mask = document.createElement("div");
+        mask.className = "lockmask";
+        mask.innerHTML = '<div class="lock">🔒</div><div class="txt">未解鎖</div>';
+        card.appendChild(mask);
+      }
+
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      const time = document.createElement("div");
+      time.className = "time";
+      time.textContent = "Recipe #" + r.recipeId;
+      const parts = document.createElement("div");
+      parts.className = "parts";
+      parts.textContent = unlocked ? "已解鎖，可查看原圖" : "未解鎖";
+      meta.appendChild(time);
+      meta.appendChild(parts);
+
+      card.appendChild(th);
+      card.appendChild(meta);
+
+      card.onclick = () => {
+        if (!unlocked){
+          showError("此成品尚未解鎖");
+          return;
+        }
+        clearError();
+        openModalSingle("Recipe #" + r.recipeId, "已解鎖", r.imageUrl);
+      };
+
+      gridRecipes.appendChild(card);
+    });
+  }
+
+  async function loadRecipes(){
+    gridRecipes.innerHTML = "";
+    try{
+      const [r1, r2] = await Promise.all([
+        api("/api/recipes"),
+        api("/api/me/unlocks"),
+      ]);
+      setNet(true);
+
+      const recipes = r1.recipes || [];
+      const unlocks = r2.unlocks || [];
+      const unlockSet = new Set(unlocks.map((x) => String(x)));
+
+      renderRecipes(recipes, unlockSet);
+
+    } catch(e){
+      setNet(false);
+      statusLine.textContent = "讀取失敗";
+      showError("讀取失敗，請確認後端已有 /api/recipes 與 /api/me/unlocks，並且資料庫存在 recipes / user_unlocks");
+      console.error(e);
+    }
+  }
+
+  // initial
+  setTab("saves");
 })();
 </script>
 </body>
