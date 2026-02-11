@@ -80,7 +80,7 @@
       50%{ transform: translateY(-10px) scale(1.01); }
       100%{ transform: translateY(0) scale(1); }
     }
-    .featureStage img{
+    .featureStage img, .featureStage video{
       width: 96%;
       height: 96%;
       object-fit: contain;
@@ -416,7 +416,7 @@
             <span style="opacity:0.8">feature</span>
           </div>
           <div class="featureStage">
-            <img src="assets/feature_character.png" alt="">
+            <video id="featuredVideo" class="featuredVideo" autoplay loop muted playsinline></video>
           </div>
         </div>
 
@@ -585,6 +585,8 @@
     let animating = false;
     let cachedAssets = null;
 
+    const SEASON_ID = "S1";
+
     const singleStage = document.getElementById("singleStage");
     const tenStage = document.getElementById("tenStage");
 
@@ -597,6 +599,8 @@
     function hideOverlay(){ overlay.classList.remove("show"); }
 
     confirmBtn.addEventListener("click", () => hideOverlay());
+
+    loadFeatured();
 
     function normalizeType(t){
       const x = String(t||"");
@@ -612,6 +616,25 @@
       if(x === "background") return "bg";
       return x;
     }
+
+
+async function loadFeatured(){
+  try{
+    const data = await api(`/api/featured?seasonId=${encodeURIComponent(SEASON_ID)}`);
+    const list = data && data.ok && Array.isArray(data.featured) ? data.featured : [];
+    if(list.length === 0) return;
+    const fid = String(list[0].featuredId || list[0].assetId || list[0].id || "").trim();
+    if(!fid) return;
+
+    const v = document.getElementById("featuredVideo");
+    if(!v) return;
+    v.src = `/assets/${fid}.mp4`;
+    v.load();
+    v.play().catch(() => {});
+  }catch(e){
+    // keep default
+  }
+}
 
     function toThumbIfNeeded(asset){
       if(!asset || !asset.imageUrl) return "";
@@ -664,6 +687,8 @@
         rolls: Number(opts.count || 1),
         premium: !!opts.premium,
         type: (opts.type ? requestType(opts.type) : "")
+              ,
+        seasonId: SEASON_ID
       };
       const data = await api("/api/gacha", { method:"POST", body: JSON.stringify(payload) });
       if(!data || !data.ok) throw new Error(String(data?.error || "gacha_failed"));
