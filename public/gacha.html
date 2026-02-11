@@ -994,10 +994,12 @@ error=${String(e?.message || e)}`;
 
     btnAddon21.addEventListener("click", () => startGacha({ count: 1, premium: false, type: "addon2" }));
     btnAddon210.addEventListener("click", () => startGacha({ count: 10, premium: false, type: "addon2" }));
-  </script>
-</body>
-</html>
-
+  
+// 跑馬燈方向設定：第1,3條 左→右；第2,4條 右→左
 function laneDirection(index) {
   return (index === 0 || index === 2) ? 1 : -1;
 }
+
+</script>
+</body>
+</html>
