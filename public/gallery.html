@@ -66,6 +66,13 @@
     .bigwrap .layer img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block}
     .footnote{margin-top:10px;font-size:12px;opacity:.75}
     .empty{opacity:.75;padding:14px 0}
+  
+    .voteBar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px}
+    .voteBtn{cursor:pointer;user-select:none;padding:9px 12px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);font-size:13px;transition:.15s;font-weight:800}
+    .voteBtn:hover{background:rgba(255,255,255,.10)}
+    .voteBtn:disabled{opacity:.45;cursor:not-allowed}
+    .voteCount{font-size:12px;opacity:.86;font-weight:800}
+
   </style>
 </head>
 
@@ -76,6 +83,7 @@
         <h1>作品展示</h1>
         <div class="badge">帳號 <span id="uidBadge">未登入</span></div>
         <div class="badge">狀態 <span id="netBadge">檢查中</span></div>
+        <div class="badge">票券 <span id="voteBadge">0</span></div>
       </div>
       <div class="actions">
         <div class="btn" id="btnStudio">回工作室</div>
@@ -121,6 +129,7 @@
   const uid = localStorage.getItem("acf_uid") || "";
   const uidBadge = document.getElementById("uidBadge");
   const netBadge = document.getElementById("netBadge");
+  const voteBadge = document.getElementById("voteBadge");
   const statusLine = document.getElementById("statusLine");
   const errorBox = document.getElementById("errorBox");
   const grid = document.getElementById("grid");
@@ -136,6 +145,15 @@
   const bigwrap = document.getElementById("bigwrap");
 
   uidBadge.textContent = uid ? uid : "未登入";
+
+  let userVote = 0;
+
+  function setVoteBadge(n){
+    const v = Number(n || 0);
+    userVote = v;
+    if(voteBadge) voteBadge.textContent = String(v);
+  }
+
 
   document.getElementById("btnStudio").onclick = () => location.href = "/studio";
   document.getElementById("btnRecipes").onclick = () => location.href = "/recipes";
@@ -155,14 +173,16 @@
     errorBox.textContent = "";
   }
 
-  function api(path){
-    return fetch(WORKER_BASE + path, {
-      method: "GET",
-      headers: {
-        "content-type": "application/json",
-        "x-user-id": uid || ""
-      }
-    }).then(async (r) => {
+  function api(path, opts={}){
+    const method = (opts.method || "GET").toUpperCase();
+    const headers = {
+      "content-type": "application/json",
+      "x-user-id": uid || ""
+    };
+    const fetchOpts = { method, headers };
+    if(opts.body !== undefined) fetchOpts.body = JSON.stringify(opts.body);
+
+    return fetch(WORKER_BASE + path, fetchOpts).then(async (r) => {
       const t = await r.text();
       let j = {};
       try { j = t ? JSON.parse(t) : {}; } catch { j = { ok:false, error:"bad_json", raw:t }; }
@@ -172,6 +192,91 @@
       }
       return j;
     });
+  }
+
+
+  async function loadMyAccount(){
+    if(!uid){
+      setVoteBadge(0);
+      return;
+    }
+    const endpoints = ["/api/me", "/api/account", "/api/user"];
+    for(const ep of endpoints){
+      try{
+        const r = await api(ep);
+        const uv =
+          (r && (r.userVote ?? r.user_vote)) ??
+          (r && r.user && (r.user.userVote ?? r.user.user_vote)) ??
+          (r && r.account && (r.account.userVote ?? r.account.user_vote));
+        if(uv !== undefined){
+          setVoteBadge(Number(uv || 0));
+          return;
+        }
+      }catch(_){}
+    }
+    setVoteBadge(userVote || 0);
+  }
+
+  function getVoteCount(s){
+    const v =
+      s.voteCount ?? s.vote_count ??
+      s.voteTotal ?? s.vote_total ??
+      s.upvotes ?? s.upVotes ??
+      s.ticketVotes ?? s.ticket_votes;
+    return Number(v || 0);
+  }
+
+  async function voteFor(showcaseId, btnEl, countEl){
+    clearError();
+    if(!uid){
+      showError("尚未登入，無法投票");
+      return;
+    }
+    if(Number(userVote || 0) <= 0){
+      showError("你沒有票券，無法投票");
+      return;
+    }
+    if(!showcaseId){
+      showError("作品 id 不存在，無法投票");
+      return;
+    }
+
+    if(btnEl) btnEl.disabled = true;
+
+    try{
+      const r = await api("/api/vote", { method:"POST", body:{ showcaseId } });
+
+      const remain =
+        (r && (r.userVote ?? r.user_vote ?? r.remainingVote ?? r.remaining_vote)) ??
+        (r && r.account && (r.account.userVote ?? r.account.user_vote));
+      if(remain !== undefined) setVoteBadge(Number(remain || 0));
+      else setVoteBadge(Math.max(0, Number(userVote || 0) - 1));
+
+      const newCount =
+        (r && (r.voteCount ?? r.vote_count ?? r.count ?? r.total)) ??
+        (r && r.item && (r.item.voteCount ?? r.item.vote_count)) ??
+        undefined;
+
+      if(newCount !== undefined){
+        if(countEl) countEl.textContent = "票數 " + String(Number(newCount || 0));
+      }else{
+        // fallback optimistic update
+        if(countEl){
+          const cur = Number(String(countEl.textContent || "").replace(/[^0-9]/g, "") || 0);
+          countEl.textContent = "票數 " + String(cur + 1);
+        }
+      }
+    }catch(e){
+      const msg = String(e && e.message ? e.message : e);
+      if(msg.includes("no_vote") || msg.includes("no_votes") || msg.includes("insufficient")){
+        showError("你沒有票券，無法投票");
+      }else{
+        showError("投票失敗，請稍後再試");
+      }
+      console.error(e);
+    }finally{
+      if(btnEl) btnEl.disabled = Number(userVote || 0) <= 0;
+    }
   }
 
   function fmtTime(ts){
@@ -290,6 +395,29 @@
       meta.appendChild(row);
       meta.appendChild(sline);
 
+      const voteBar = document.createElement("div");
+      voteBar.className = "voteBar";
+
+      const voteBtn = document.createElement("button");
+      voteBtn.className = "voteBtn";
+      voteBtn.type = "button";
+      voteBtn.textContent = "投票";
+      voteBtn.disabled = (!uid) || Number(userVote || 0) <= 0;
+
+      const voteCount = document.createElement("div");
+      voteCount.className = "voteCount";
+      voteCount.textContent = "票數 " + String(getVoteCount(s));
+
+      voteBtn.onclick = (ev) => {
+        ev.stopPropagation();
+        const sid = s.showcaseId || s.id || s.showcase_id || s.showcaseID || "";
+        voteFor(String(sid), voteBtn, voteCount);
+      };
+
+      voteBar.appendChild(voteBtn);
+      voteBar.appendChild(voteCount);
+      meta.appendChild(voteBar);
+
       card.appendChild(th);
       card.appendChild(meta);
 
@@ -317,6 +445,7 @@
     try{
       const res = await api("/api/gallery");
       setNet(true);
+      await loadMyAccount();
 
       const season = String(seasonSel.value || "").trim();
       let items = (res.items || []).slice();
