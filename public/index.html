@@ -291,52 +291,47 @@
     </div>
   </div>
 
+  <script src="app.js"></script>
+
   <!-- Firebase (modular CDN) -->
   <script type="module">
     
 
-// --- API helper (same-origin) ---
-// Requires Cloudflare Worker Route: <your-pages-domain>/api/* -> your Worker
 async function api(path, options = {}) {
   const headers = new Headers(options.headers || {});
   if (!headers.has("content-type") && options.body) headers.set("content-type", "application/json");
 
-  const uid = localStorage.getItem("acf_uid");
+  // Keep header name consistent with other pages
+  const uid = localStorage.getItem("acf_uid") || "";
   if (uid) headers.set("x-user-id", uid);
 
-  const res = await fetch(path, { ...options, headers });
-  const ct = res.headers.get("content-type") || "";
+  const url = path.startsWith("http") ? path : (WORKER_BASE + path);
+  const res = await fetch(url, { ...options, headers });
 
-  // Try to parse body (even on non-2xx) for better error messages
-  let bodyText = "";
-  let bodyJson = null;
-  if (ct.includes("application/json")) {
-    bodyJson = await res.json().catch(() => null);
-  } else {
-    bodyText = await res.text().catch(() => "");
-  }
+  const ct = res.headers.get("content-type") || "";
+  const text = await res.text().catch(() => "");
 
   if (!res.ok) {
-    const detail = bodyJson ? JSON.stringify(bodyJson).slice(0, 200) : bodyText.slice(0, 200);
-    throw new Error(`api_error ${res.status} ${detail}`);
+    throw new Error(`api_error ${res.status} ${text.slice(0,200)}`);
   }
 
-  // Treat { ok:false } as error as well (Worker sometimes returns JSON with ok flag)
-  if (bodyJson && bodyJson.ok === false) {
-    const err = bodyJson.error || "unknown_error";
-    throw new Error(String(err));
+  if (ct.includes("application/json")) {
+    try { return JSON.parse(text || "{}"); } catch { return { ok:false, error:"bad_json", raw:text }; }
   }
-
-  return bodyJson ?? bodyText;
+  return text;
 }
 
 function explainRouteHint(err) {
   const msg = String((err && err.message) || err || "");
   if (msg.includes("api_error 405")) {
-    return "後端路由還沒綁定：到 Cloudflare Worker 設定 Routes，加上  anime-character-forge.pages.dev/api/*  指向你的 Worker";
+    return "後端不接受這個方法: 你現在打的是 /api/me/account (POST). 請確認 Worker 已更新並包含 /api/me/account 的 POST handler。";
+  }
+  if (msg.includes("api_error 0") || msg.includes("Failed to fetch")) {
+    return "打不到後端: 請把 index.html 裡的 WORKER_BASE 改成你實際的 workers.dev 網址 (或存在 localStorage acf_worker_base)。";
   }
   return msg || "unknown_error";
 }
+
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import {
@@ -384,9 +379,20 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
       }
     }
 
-    
-
-
+    async function api(path, opts = {}) {
+      const uid = getUid();
+      const headers = Object.assign({
+        "content-type": "application/json",
+        "x-user-id": uid || "anon"
+      }, opts.headers || {});
+      const res = await fetch(path, { ...opts, headers });
+      const data = await res.json().catch(() => ({ ok:false, error:"bad_json" }));
+      if (!res.ok || data?.ok === false) {
+        const err = data?.error || ("http_" + res.status);
+        throw new Error(err);
+      }
+      return data;
+    }
 
     function showStep(loggedIn) {
       $("stepLogin").style.display = loggedIn ? "none" : "block";
@@ -398,13 +404,11 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
       if (user) {
         $("userEmail").textContent = user.email || user.providerData?.[0]?.email || "已登入";
         $("userUid").textContent = user.uid;
-        try { localStorage.setItem("acf_uid", user.uid); } catch(e) {}
         showStep(true);
         setStatus("", "");
       } else {
         $("userEmail").textContent = "未登入";
         $("userUid").textContent = "";
-        try { localStorage.removeItem("acf_uid"); } catch(e) {}
         showStep(false);
       }
     });
