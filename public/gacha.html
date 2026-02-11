@@ -995,3 +995,7 @@ error=${String(e?.message || e)}`;
   </script>
 </body>
 </html>
+
+function laneDirection(index) {
+  return (index === 0 || index === 2) ? 1 : -1;
+}
