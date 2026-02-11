@@ -66,12 +66,7 @@
     .bigwrap .layer img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block}
     .footnote{margin-top:10px;font-size:12px;opacity:.75}
     .empty{opacity:.75;padding:14px 0}
-  
-    .footer{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;}
-    .votesLine{font-size:12px;opacity:.8}
-    .voteBtn{appearance:none;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:#fff;padding:8px 10px;border-radius:10px;cursor:pointer;font-size:12px}
-    .voteBtn:disabled{opacity:.4;cursor:not-allowed}
-</style>
+  </style>
 </head>
 
 <body>
@@ -81,7 +76,6 @@
         <h1>作品展示</h1>
         <div class="badge">帳號 <span id="uidBadge">未登入</span></div>
         <div class="badge">狀態 <span id="netBadge">檢查中</span></div>
-        <div class="badge">票券 <span id="voteBadge">0</span></div>
       </div>
       <div class="actions">
         <div class="btn" id="btnStudio">回工作室</div>
@@ -98,6 +92,15 @@
         <option value="S1">S1</option>
       </select>
       <div class="btn" id="btnReload">重新整理</div>
+    </div>
+
+
+    <div class="podium-wrap" id="podiumWrap" style="display:none;">
+      <div class="podium-head">
+        <div class="podium-title">本期頒獎台</div>
+        <div class="podium-sub" id="podiumSub">票數最高 3 個作品</div>
+      </div>
+      <div class="podium" id="podium"></div>
     </div>
 
     <div class="statusline" id="statusLine">讀取中</div>
@@ -122,7 +125,13 @@
 <script>
 (function(){
   const DEFAULT_WORKER = "https://acf-api.dream-league-baseball.workers.dev";
-  const WORKER_BASE = window.WORKER_BASE || localStorage.getItem("acf_worker_base") || DEFAULT_WORKER;
+  const qs = new URLSearchParams(location.search);
+  const WORKER_BASE =
+    (qs.get("api") || "").trim() ||
+    (window.WORKER_BASE || "").trim() ||
+    (localStorage.getItem("acf_worker_base") || "").trim() ||
+    (localStorage.getItem("worker_base") || "").trim() ||
+    DEFAULT_WORKER;
 
   const uid = localStorage.getItem("acf_uid") || "";
   const uidBadge = document.getElementById("uidBadge");
@@ -136,6 +145,10 @@
   const chipTop = document.getElementById("chipTop");
   const seasonSel = document.getElementById("seasonSel");
 
+  const podiumWrap = document.getElementById("podiumWrap");
+  const podiumEl = document.getElementById("podium");
+  const podiumSub = document.getElementById("podiumSub");
+
   const modal = document.getElementById("modal");
   const modalClose = document.getElementById("modalClose");
   const modalTitle = document.getElementById("modalTitle");
@@ -143,6 +156,7 @@
   const bigwrap = document.getElementById("bigwrap");
 
   uidBadge.textContent = uid ? uid : "未登入";
+  voteBadge.textContent = "票券 0";
 
   document.getElementById("btnStudio").onclick = () => location.href = "/studio";
   document.getElementById("btnRecipes").onclick = () => location.href = "/recipes";
@@ -162,7 +176,7 @@
     errorBox.textContent = "";
   }
 
-  function api(path){
+  function apiGet(path){
     return fetch(WORKER_BASE + path, {
       method: "GET",
       headers: {
@@ -175,7 +189,27 @@
       try { j = t ? JSON.parse(t) : {}; } catch { j = { ok:false, error:"bad_json", raw:t }; }
       if (!r.ok || j.ok === false) {
         const e = (j && (j.error || j.message)) ? (j.error || j.message) : ("HTTP " + r.status);
-        throw new Error(e + (j && j.detail ? (" - " + j.detail) : ""));
+        throw new Error(e);
+      }
+      return j;
+    });
+  }
+
+  function apiPost(path, body){
+    return fetch(WORKER_BASE + path, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-user-id": uid || ""
+      },
+      body: JSON.stringify(body || {})
+    }).then(async (r) => {
+      const t = await r.text();
+      let j = {};
+      try { j = t ? JSON.parse(t) : {}; } catch { j = { ok:false, error:"bad_json", raw:t }; }
+      if (!r.ok || j.ok === false) {
+        const e = (j && (j.error || j.message)) ? (j.error || j.message) : ("HTTP " + r.status);
+        throw new Error(e);
       }
       return j;
     });
@@ -187,10 +221,10 @@
       const d = new Date(ts);
       if (!isFinite(d.getTime())) return String(ts);
       return d.toLocaleString();
-    } catch { return String(ts); }
+    }catch { return String(ts); }
   }
 
-  function makeStackThumb(container, layers){
+  function makeStack(container, layers){
     container.innerHTML = "";
     layers.forEach((l) => {
       if (!l.url) return;
@@ -209,7 +243,6 @@
     modalTitle.textContent = title || "預覽";
     modalMeta.textContent = metaText || "";
     bigwrap.innerHTML = "";
-
     layers.forEach((l) => {
       if (!l.url) return;
       const div = document.createElement("div");
@@ -221,7 +254,6 @@
       div.appendChild(img);
       bigwrap.appendChild(div);
     });
-
     modal.classList.add("show");
   }
 
@@ -244,7 +276,76 @@
   chipTop.onclick = () => setSort("top");
   seasonSel.onchange = () => load();
 
-  function render(items){
+  function getVoteCount(s){
+    const v = (s && (s.voteCount ?? s.votes ?? s.vote ?? 0));
+    return Number(v || 0);
+  }
+
+  function renderPodium(items, season){
+    const top = (items || []).slice().sort((a,b)=> getVoteCount(b) - getVoteCount(a)).slice(0,3);
+    if(top.length === 0){
+      podiumWrap.style.display = "none";
+      podiumEl.innerHTML = "";
+      return;
+    }
+    podiumWrap.style.display = "block";
+    podiumSub.textContent = (season ? (season + " · ") : "") + "票數最高 3 個作品";
+    podiumEl.innerHTML = "";
+
+    // order visual: 2,1,3 like podium
+    const order = [];
+    if(top[1]) order.push({rank:2, item:top[1]});
+    if(top[0]) order.push({rank:1, item:top[0]});
+    if(top[2]) order.push({rank:3, item:top[2]});
+
+    order.forEach(({rank, item})=>{
+      const card = document.createElement("div");
+      card.className = "podium-card";
+
+      const head = document.createElement("div");
+      head.className = "podium-rank";
+
+      const badge = document.createElement("div");
+      badge.className = "rank-badge";
+      badge.textContent = "第 " + rank + " 名";
+
+      const votes = document.createElement("div");
+      votes.className = "rank-votes";
+      votes.textContent = "票數 " + getVoteCount(item);
+
+      head.appendChild(badge);
+      head.appendChild(votes);
+
+      const th = document.createElement("div");
+      th.className = "podium-thumb";
+
+      const layers = [
+        { url: item.bgUrl, z: 10 },
+        { url: item.addon2Url, z: 20 },
+        { url: item.headUrl, z: 30 },
+        { url: item.bodyUrl, z: 40 },
+        { url: item.addon1Url, z: 50 },
+      ];
+      makeStack(th, layers);
+
+      const name = document.createElement("div");
+      name.className = "podium-name";
+      name.textContent = (item.title && String(item.title).trim()) ? String(item.title).trim() : "未命名作品";
+
+      card.appendChild(head);
+      card.appendChild(th);
+      card.appendChild(name);
+
+      card.onclick = () => {
+        const title = name.textContent;
+        openModalLayers(title, "票數 " + getVoteCount(item) + " · " + fmtTime(item.createdAt), layers);
+      };
+
+      podiumEl.appendChild(card);
+    });
+  }
+
+  function render(items, myVotes){
     grid.innerHTML = "";
 
     if(!items || items.length === 0){
@@ -259,16 +360,14 @@
       const th = document.createElement("div");
       th.className = "thumb";
 
-      // Layer order (top->bottom):
-      // addon1 top, body 2, head 3, addon2 4, bg bottom
-      const layersThumb = [
+      const layers = [
         { url: s.bgUrl, z: 10 },
         { url: s.addon2Url, z: 20 },
         { url: s.headUrl, z: 30 },
         { url: s.bodyUrl, z: 40 },
         { url: s.addon1Url, z: 50 },
       ];
-      makeStackThumb(th, layersThumb);
+      makeStack(th, layers);
 
       const meta = document.createElement("div");
       meta.className = "meta";
@@ -283,9 +382,7 @@
 
       const pill = document.createElement("div");
       pill.className = "pill";
-      const avg = Number(s.avgScore || 0);
-      const votes = Number(s.votes || 0);
-      pill.textContent = "票數 " + votes;
+      pill.textContent = "票數 " + getVoteCount(s);
 
       row.appendChild(t);
       row.appendChild(pill);
@@ -294,92 +391,103 @@
       sline.className = "s";
       sline.textContent = "@" + String(s.userId || "") + " · " + fmtTime(s.createdAt) + (s.seasonId ? (" · " + s.seasonId) : "");
 
-      meta.appendChild(row);
-      meta.appendChild(sline);
-
-      const footer = document.createElement("div");
-      footer.className = "footer";
-
-      const votesLine = document.createElement("div");
-      votesLine.className = "votesLine";
-      votesLine.textContent = "票數 " + votes;
+      const voteRow = document.createElement("div");
+      voteRow.className = "vote-row";
 
       const btnVote = document.createElement("button");
-      btnVote.className = "voteBtn";
+      btnVote.className = "vote-btn";
       btnVote.textContent = "投票";
-      btnVote.disabled = Number(voteBadge.textContent || "0") <= 0;
-      btnVote.onclick = async (ev) => {
-        ev.stopPropagation();
+      btnVote.disabled = !uid || Number(myVotes || 0) <= 0;
+
+      const vc = document.createElement("div");
+      vc.className = "vote-count";
+      vc.textContent = "票數 " + getVoteCount(s);
+
+      btnVote.onclick = async (e) => {
+        e.stopPropagation();
         clearError();
+        if(!uid){
+          showError("請先登入再投票");
+          return;
+        }
+        if(Number(window.__myVotes || 0) <= 0){
+          showError("你沒有票券了");
+          return;
+        }
         btnVote.disabled = true;
         try{
-          const r = await api("/api/vote", { method: "POST", body: JSON.stringify({ showcaseId: s.showcaseId }) });
-          if(!r.ok){
-            if(r.error === "no_votes"){
-              showError("沒有票券，無法投票");
-            }else{
-              showError("投票失敗: " + (r.error || "unknown"));
-            }
+          const res = await apiPost("/api/vote", { showcaseId: s.showcaseId });
+          setNet(true);
+          // update in-memory
+          const newVotes = Number(res.voteCount ?? (getVoteCount(s) + 1));
+          s.voteCount = newVotes;
+          vc.textContent = "票數 " + newVotes;
+          pill.textContent = "票數 " + newVotes;
+
+          if(typeof res.userVote === "number"){
+            window.__myVotes = res.userVote;
+            voteBadge.textContent = "票券 " + res.userVote;
           }else{
-            // update local values
-            const newVotes = Number(r.voteCount ?? (votes + 1));
-            s.votes = newVotes;
-            votesLine.textContent = "票數 " + newVotes;
-            pill.textContent = "票數 " + newVotes;
-            const newUserVote = Number(r.userVote ?? 0);
-            voteBadge.textContent = String(newUserVote);
+            window.__myVotes = Math.max(0, Number(window.__myVotes || 0) - 1);
+            voteBadge.textContent = "票券 " + window.__myVotes;
           }
-        }catch(e){
-          console.error(e);
-          showError("投票失敗，請稍後再試");
+
+          // update podium live
+          renderPodium(window.__allItems || [], String(seasonSel.value || "").trim());
+
+        }catch(err){
+          setNet(false);
+          const msg = String(err && err.message ? err.message : err);
+          if(msg.includes("no_votes")){
+            window.__myVotes = 0;
+            voteBadge.textContent = "票券 0";
+            showError("你沒有票券了");
+          }else{
+            showError("投票失敗，請稍後再試");
+          }
+          console.error(err);
         }finally{
-          // enable only if still has vote credits
-          const remain = Number(voteBadge.textContent || "0");
-          btnVote.disabled = remain <= 0;
+          btnVote.disabled = (!uid) || Number(window.__myVotes || 0) <= 0;
         }
       };
 
-      footer.appendChild(votesLine);
-      footer.appendChild(btnVote);
-      meta.appendChild(footer);
+      voteRow.appendChild(btnVote);
+      voteRow.appendChild(vc);
 
+      meta.appendChild(row);
+      meta.appendChild(sline);
+      meta.appendChild(voteRow);
 
       card.appendChild(th);
       card.appendChild(meta);
 
       card.onclick = () => {
         clearError();
-        const layersBig = [
-          { url: s.bgUrl, z: 10 },
-          { url: s.addon2Url, z: 20 },
-          { url: s.headUrl, z: 30 },
-          { url: s.bodyUrl, z: 40 },
-          { url: s.addon1Url, z: 50 },
-        ];
-        openModalLayers(title, "票數 " + votes + " · " + fmtTime(s.createdAt), layersBig);
+        openModalLayers(title, "票數 " + getVoteCount(s) + " · " + fmtTime(s.createdAt), layers);
       };
 
       grid.appendChild(card);
     });
   }
 
-
-  async function loadUserVote(){
+  async function loadAccount(){
+    if(!uid){
+      window.__myVotes = 0;
+      voteBadge.textContent = "票券 0";
+      return;
+    }
     try{
-      const endpoints = ["/api/me", "/api/account", "/api/user", "/api/me/account"];
-      for(const ep of endpoints){
-        try{
-          const r = await api(ep);
-          const v = Number(r.userVote ?? r.user_vote ?? r.account?.userVote ?? r.account?.user_vote ?? 0);
-          if(!Number.isNaN(v)){
-            voteBadge.textContent = String(v);
-            return v;
-          }
-        }catch(e){}
-      }
-    }catch(e){}
-    voteBadge.textContent = "0";
-    return 0;
+      const res = await apiGet("/api/me");
+      setNet(true);
+      const v = Number(res?.account?.userVote ?? 0);
+      window.__myVotes = v;
+      voteBadge.textContent = "票券 " + v;
+    }catch(e){
+      // keep going
+      window.__myVotes = 0;
+      voteBadge.textContent = "票券 0";
+      console.error(e);
+    }
   }
 
   async function load(){
@@ -387,40 +495,45 @@
     clearError();
     statusLine.textContent = "讀取中";
 
-    await loadUserVote();
-
     try{
-      const res = await api("/api/gallery");
-      setNet(true);
+      await loadAccount();
 
       const season = String(seasonSel.value || "").trim();
+      const url = season ? ("/api/gallery?seasonId=" + encodeURIComponent(season)) : "/api/gallery";
+      const res = await apiGet(url);
+      setNet(true);
+
       let items = (res.items || []).slice();
 
-      if(season){
-        items = items.filter(x => String(x.seasonId || "") === season);
-      }
-
+      // sort
       if(chipTop.classList.contains("active")){
         items.sort((a,b)=>{
-          const av = Number(a.avgScore || 0);
-          const bv = Number(b.avgScore || 0);
+          const av = getVoteCount(a);
+          const bv = getVoteCount(b);
           if(bv !== av) return bv - av;
-          const ac = Number(a.votes || 0);
-          const bc = Number(b.votes || 0);
-          if(bc !== ac) return bc - ac;
           return Number(b.createdAt || 0) - Number(a.createdAt || 0);
         });
       }else{
         items.sort((a,b)=> Number(b.createdAt || 0) - Number(a.createdAt || 0));
       }
 
+      window.__allItems = items;
+
+      // podium: try backend first, fallback local
+      try{
+        const podRes = await apiGet("/api/podium?seasonId=" + encodeURIComponent(season || "S1"));
+        renderPodium(podRes.items || items, season || "S1");
+      }catch{
+        renderPodium(items, season);
+      }
+
       statusLine.textContent = "共 " + items.length + " 個作品";
-      render(items);
+      render(items, window.__myVotes);
 
     }catch(e){
       setNet(false);
       statusLine.textContent = "讀取失敗";
-      showError("讀取失敗，請確認後端已有 /api/gallery，且資料庫存在 showcases / votes / assets");
+      showError("讀取失敗。現在 WORKER_BASE 是: " + WORKER_BASE + "（請確認已部署最新 worker.js，且後端有 /api/gallery /api/me /api/vote）");
       console.error(e);
     }
   }
