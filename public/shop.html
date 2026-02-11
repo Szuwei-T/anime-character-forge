@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>DLB 商城</title>
+  <style>
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans TC", sans-serif; margin: 0; background: #0b1020; color: #e7e9ee; }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 24px; }
+    h1 { margin: 0 0 8px 0; font-size: 22px; }
+    .sub { opacity: 0.85; margin-bottom: 18px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+    .card { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; padding: 16px; }
+    .title { font-size: 20px; font-weight: 700; margin-bottom: 10px; }
+    .line { margin: 6px 0; }
+    .promo { margin-top: 10px; padding: 10px; border-radius: 10px; background: rgba(255, 215, 0, 0.10); border: 1px solid rgba(255, 215, 0, 0.25); }
+    .promo.off { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.10); }
+    .buy { margin-top: 12px; width: 100%; padding: 12px; border-radius: 12px; border: 0; cursor: pointer; font-weight: 700; }
+    .row { display:flex; gap: 10px; align-items:center; flex-wrap: wrap; margin: 12px 0 18px 0; }
+    input { padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.18); background: rgba(0,0,0,0.25); color: #e7e9ee; width: min(720px, 100%); }
+    .hint { opacity: 0.8; font-size: 13px; }
+    .err { color: #ffb3b3; margin-top: 12px; white-space: pre-wrap; }
+    .ok { color: #b7ffb7; margin-top: 12px; white-space: pre-wrap; }
+    .topbar { display:flex; align-items:center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+    .small { font-size: 13px; opacity: 0.85; }
+    a { color: #9fd3ff; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <h1>DREAM LEAGUE BASEBALL 商城</h1>
+      <div class="small">
+        <a href="./shop-success.html">Success</a>
+        <span> </span>
+        <a href="./shop-cancel.html">Cancel</a>
+      </div>
+    </div>
+
+    <div class="sub">付款完成後會立刻入帳到你的帳號 後端收到 Stripe webhook 才入帳 防止作弊</div>
+
+    <div class="row">
+      <label>Worker API Base</label>
+      <input id="apiBase" placeholder="https://dlb-start-game.dream-league-baseball.workers.dev" />
+      <div class="hint">https://dlb-start-game.dream-league-baseball.workers.dev</div>
+    </div>
+
+    <div class="row">
+  <label>登入狀態</label>
+  <input id="loginStatus" placeholder="未登入" disabled />
+  <div class="hint">同網域已登入會自動取得 Firebase ID token 不需要手動貼</div>
+</div>
+    </div>
+
+    <div class="grid" id="grid"></div>
+    <div id="ok" class="ok"></div>
+    <div id="err" class="err"></div>
+  </div>
+    <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
+
+    const firebaseConfig = {
+  apiKey: "AIzaSyDMcp3UZwmscbneDwnuaPpCDe2n6_7kKpI",
+  authDomain: "dream-league-baseball.firebaseapp.com",
+  projectId: "dream-league-baseball",
+  storageBucket: "dream-league-baseball.appspot.com",
+  messagingSenderId: "355433474466",
+  appId: "1:355433474466:web:b710e031c858c725e32afb",
+  measurementId: "G-CKBZSSK06B"
+};
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    try {
+      await setPersistence(auth, browserLocalPersistence);
+    } catch (e) {
+      console.warn("setPersistence failed", e);
+    }
+
+    window.__DLB_AUTH__ = auth;
+    window.__DLB_ON_AUTH__ = (cb) => onAuthStateChanged(auth, cb);
+  </script>
+
+  
+
+  <script>
+    const PACKS = [
+      { id: "pack_199", priceUsd: "1.99", coins: 1000000, diamonds: 300, promoBonusDiamonds: 200 },
+      { id: "pack_499", priceUsd: "4.99", coins: 3000000, diamonds: 900, promoBonusDiamonds: 600 },
+      { id: "pack_999", priceUsd: "9.99", coins: 6000000, diamonds: 1800, promoBonusDiamonds: 1200 },
+      { id: "pack_1999", priceUsd: "19.99", coins: 12000000, diamonds: 3600, promoBonusDiamonds: 2400 },
+      { id: "pack_4999", priceUsd: "49.99", coins: 30000000, diamonds: 9000, promoBonusDiamonds: 6000 }
+    ];
+
+    const grid = document.getElementById("grid");
+    const errBox = document.getElementById("err");
+    const okBox = document.getElementById("ok");
+    const apiBaseInput = document.getElementById("apiBase");
+    const loginStatusInput = document.getElementById("loginStatus");
+    let currentIdToken = "";
+
+    function loadSaved() {
+      const apiBase = localStorage.getItem("dlb_api_base") || "";
+            apiBaseInput.value = apiBase;    }
+
+    function saveInputs() {
+      localStorage.setItem("dlb_api_base", (apiBaseInput.value || "").trim());
+      localStorage.setItem("dlb_id_token", (currentIdToken || "").trim());
+    }
+
+    apiBaseInput.addEventListener("change", saveInputs);
+    
+
+    function cardHtml(p) {
+      return `
+        <div class="card">
+          <div class="title">$${p.priceUsd}</div>
+          <div class="line">金幣 <b>${p.coins}</b></div>
+          <div class="line">鑽石 <b>${p.diamonds}</b></div>
+          <div class="promo">活動加送 <b>${p.promoBonusDiamonds}</b> 鑽石</div>
+          <button class="buy" data-pack="${p.id}">立即購買</button>
+        </div>
+      `;
+    }
+
+    function render() {
+      grid.innerHTML = PACKS.map(cardHtml).join("");
+      document.querySelectorAll("button.buy").forEach(btn => {
+        btn.addEventListener("click", () => startCheckout(btn));
+      });
+    }
+
+    async function startCheckout(btn) {
+      errBox.textContent = "";
+      okBox.textContent = "";
+      saveInputs();
+
+      const apiBase = (apiBaseInput.value || "").trim().replace(/\/+$/g, "");
+      const idToken = (currentIdToken || "").trim();
+      const packId = btn.getAttribute("data-pack");
+
+      if (!apiBase) {
+        errBox.textContent = "請先填 Worker API Base";
+        return;
+      }
+      if (!idToken) {
+        errBox.textContent = "尚未登入或無法取得 Firebase ID token";
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "建立付款中";
+
+      try {
+        const r = await fetch(apiBase + "/api/store/create-checkout-session", {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            "authorization": "Bearer " + idToken
+          },
+          body: JSON.stringify({ packId })
+        });
+
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(data && data.error ? data.error : "create session failed");
+        if (!data.url) throw new Error("missing checkout url");
+
+        okBox.textContent = "已建立 Stripe Checkout 轉跳中";
+        location.href = data.url;
+      } catch (e) {
+        errBox.textContent = String(e && e.message ? e.message : e);
+        btn.disabled = false;
+        btn.textContent = "立即購買";
+      }
+    }
+
+    
+function setLoginStatus(text) {
+  if (loginStatusInput) loginStatusInput.value = text;
+}
+
+async function refreshToken(user) {
+  try {
+    if (!user) {
+      currentIdToken = "";
+      setLoginStatus("未登入");
+      return;
+    }
+    const token = await user.getIdToken(true);
+    currentIdToken = token || "";
+    if (currentIdToken) localStorage.setItem("dlb_id_token", currentIdToken);
+    setLoginStatus("已登入 已取得 token");
+  } catch (e) {
+    currentIdToken = "";
+    setLoginStatus("登入中 但取得 token 失敗");
+    console.warn(e);
+  }
+}
+
+function initAuthAutoToken() {
+  // 先用 localStorage 快速帶入
+  const saved = (localStorage.getItem("dlb_id_token") || "").trim();
+  if (saved) {
+    currentIdToken = saved;
+    setLoginStatus("已取得 token");
+  } else {
+    setLoginStatus("未登入");
+  }
+
+  // 再監聽 Firebase Auth 狀態 (同網域已登入會自動補上)
+  if (window.__DLB_ON_AUTH__) {
+    window.__DLB_ON_AUTH__((user) => { refreshToken(user); });
+  } else {
+    console.warn("Firebase auth not initialized");
+  }
+}
+
+    loadSaved();
+    render();
+    initAuthAutoToken();
+  </script>
+</body>
+</html>
