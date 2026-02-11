@@ -711,16 +711,14 @@ async function loadFeaturedVideo(){
       if(statusSub) statusSub.textContent = sub || "";
     }
     function setConfirmVisible(visible, isTen){
-      if(!confirmBtn) return;
-      if(visible){
-        setConfirmVisible(True, isTen);
-        setStatus(isTen ? "10連抽完成" : "抽卡完成", "");
-      }else{
-        setConfirmVisible(False);
-        // default during roll
-        if(statusMain && (!statusMain.textContent || statusMain.textContent.includes("完成"))) setStatus("抽卡中", "");
-      }
-    }
+  if(!confirmBtn) return;
+  confirmBtn.style.display = visible ? "inline-flex" : "none";
+  if(visible){
+    setStatus(isTen ? "10連抽完成" : "抽卡完成", "");
+  }else{
+    setStatus("抽卡中", "");
+  }
+}
 
 
     function showLoad(msg){
@@ -1112,7 +1110,7 @@ function renderGridDecoys(list){
       animating = true;
 
       try{
-        setConfirmVisible(False);
+        setConfirmVisible(false);
         showOverlay();
         setStatus("抽卡中", "連線中");
         // Cover previous 30 cards until the new 30 cards are fully loaded
