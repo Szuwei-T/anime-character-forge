@@ -711,17 +711,61 @@ async function loadFeaturedVideo(){
       }
       throw new Error("assets_load_failed");
     }
-async function onlineGacha(opts={}){
-      const body = {
-        count: Number(opts.count || 1),
-        premium: !!opts.premium,
-        type: opts.type ? requestType(opts.type) : undefined,
-        seasonId: String(opts.seasonId || "S1")
-      };
-      const data = await api("/api/gacha", { method:"POST", body });
-      if(!data || !data.ok || !Array.isArray(data.pulled)) throw new Error("gacha_failed");
-      return data.pulled;
+async function onlineGacha(opts = {}) {
+  // IMPORTANT:
+  // The Worker reads JSON only when Content-Type includes application/json.
+  // Some window.api() wrappers do not set this header for POST, causing body.type to be ignored
+  // (which makes "指定抽 addon1" still return head/body/bg randomly).
+  // So for /api/gacha we always POST JSON explicitly via fetch.
+
+  const payload = {
+    count: Number(opts.count || 1),
+    premium: !!opts.premium,
+    type: opts.type ? requestType(opts.type) : undefined,
+    seasonId: String(opts.seasonId || "S1"),
+  };
+
+  const pickUid = () => {
+    const candidates = [
+      window.USER_ID,
+      window.userId,
+      window.uid,
+      (typeof window.getUserId === "function" ? window.getUserId() : ""),
+      (typeof window.getUid === "function" ? window.getUid() : ""),
+      localStorage.getItem("uid"),
+      localStorage.getItem("userId"),
+      localStorage.getItem("USER_ID"),
+    ];
+    for (const v of candidates) {
+      const s = String(v || "").trim();
+      if (s && s !== "null" && s !== "undefined") return s;
     }
+    return "";
+  };
+
+  const headers = { "content-type": "application/json" };
+  const uid = pickUid();
+  if (uid) headers["x-user-id"] = uid;
+
+  const res = await fetch("/api/gacha", {
+    method: "POST",
+    headers,
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) throw new Error(`gacha_http_${res.status}`);
+  const data = await res.json();
+
+  if (!data || !data.ok || !Array.isArray(data.pulled)) throw new Error("gacha_failed");
+
+  // Safety net: if user requested a specific type, enforce it on the client too.
+  if (opts.type) {
+    const want = String(requestType(opts.type)).toLowerCase(); // "bg" or "addon1"...
+    data.pulled = data.pulled.filter((a) => String(a?.type || "").toLowerCase() === want);
+  }
+
+  return data.pulled;
+}
 
     function assetThumb(a){
       if(!a) return "/assets/placeholder.png";
