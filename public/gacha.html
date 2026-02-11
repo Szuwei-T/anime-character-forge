@@ -800,7 +800,8 @@ error=${String(e?.message || e)}`;
       const winnerCenterX = beltPaddingLeft + winnerStartIndex * step + cardW / 2;
 
       const targetX = firstSlotCenter - winnerCenterX;
-      const startX = targetX - (step * 10);
+      const dir = laneDirection(opts.laneIndex ?? 0);
+      const startX = targetX - (step * 10 * dir);
 
       const duration = 2400;
       const t0 = performance.now();
@@ -910,7 +911,8 @@ error=${String(e?.message || e)}`;
         const beltPaddingLeft = 24;
         const winnerCenterX = beltPaddingLeft + winnerIndex * step + cardW / 2;
         const targetX = (stageWidth / 2) - winnerCenterX;
-        const startX = targetX - (step * 10);
+        const dir = laneDirection(opts.laneIndex ?? 0);
+      const startX = targetX - (step * 10 * dir);
 
         const duration = 2400;
         const t0 = performance.now();
@@ -961,10 +963,10 @@ error=${String(e?.message || e)}`;
 
       // Animate 4 rows together
       await Promise.all([
-        animateReel(beltG, vpG, [guarantee], { premium: !!opts.premium, three: false }),
-        animateReel(beltA, vpA, rowA, { premium: !!opts.premium, three: true }),
-        animateReel(beltB, vpB, rowB, { premium: !!opts.premium, three: true }),
-        animateReel(beltC, vpC, rowC, { premium: !!opts.premium, three: true }),
+        animateReel(beltG, vpG, [guarantee], { premium: !!opts.premium, three: false, laneIndex: 0 }),
+        animateReel(beltA, vpA, rowA, { premium: !!opts.premium, three: true, laneIndex: 1 }),
+        animateReel(beltB, vpB, rowB, { premium: !!opts.premium, three: true, laneIndex: 2 }),
+        animateReel(beltC, vpC, rowC, { premium: !!opts.premium, three: true, laneIndex: 3 }),
       ]);
 
       confirmBtn.classList.add("show");
