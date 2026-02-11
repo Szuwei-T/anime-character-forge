@@ -236,6 +236,34 @@
       box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
       max-height: 70vh;
     }
+
+    .loadCover{
+      position:absolute;
+      inset:0;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+      gap: 14px;
+      background: rgba(10,12,18,0.72);
+      backdrop-filter: blur(6px);
+      z-index: 5;
+    }
+    .loadCover.show{ display:flex; }
+    .loadCover .txt{
+      font-weight: 900;
+      letter-spacing: 0.8px;
+      opacity: 0.9;
+    }
+    .spinner{
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 4px solid rgba(255,255,255,0.18);
+      border-top-color: rgba(255,255,255,0.85);
+      animation: spin 0.9s linear infinite;
+    }
+    @keyframes spin{ to { transform: rotate(360deg); } }
     /* 32 格固定尺寸，保持卡片比例不變 */
     :root{
       --cardH: 140px;
@@ -552,6 +580,7 @@
       <div class="gacha-stage">
         <div class="grid32" id="grid32"></div>
         <div class="framesLayer" id="framesLayer"></div>
+        <div class="loadCover" id="loadCover"><div class="spinner"></div><div class="txt" id="loadTxt">載入中</div></div>
       </div>
       <div class="footer">
         <button class="confirm" id="confirmBtn">確認</button>
@@ -645,8 +674,35 @@ async function loadFeaturedVideo(){
     const overlay = document.getElementById("overlay");
     const grid32El = document.getElementById("grid32");
     const framesLayer = document.getElementById("framesLayer");
+    const loadCover = document.getElementById("loadCover");
+    const loadTxt = document.getElementById("loadTxt");
     const rollSub = document.getElementById("rollSub");
     const confirmBtn = document.getElementById("confirmBtn");
+
+    function showLoad(msg){
+      if(loadTxt) loadTxt.textContent = msg || "載入中";
+      if(loadCover) loadCover.classList.add("show");
+    }
+    function hideLoad(){
+      if(loadCover) loadCover.classList.remove("show");
+    }
+    function preloadImages(urls, timeoutMs=8000){
+      const uniq = Array.from(new Set((urls||[]).filter(Boolean)));
+      if(uniq.length === 0) return Promise.resolve();
+      return new Promise((resolve)=>{
+        let done = 0;
+        const total = uniq.length;
+        const finish = ()=>{ done++; if(done>=total) resolve(); };
+        setTimeout(()=>resolve(), timeoutMs);
+        uniq.forEach(u=>{
+          const img = new Image();
+          img.onload = finish;
+          img.onerror = finish;
+          img.src = u;
+        });
+      });
+    }
+
 
     const btnNormal1 = document.getElementById("btnNormal1");
     const btnNormal10 = document.getElementById("btnNormal10");
@@ -981,7 +1037,14 @@ function renderGridDecoys(list){
         grid[i] = decoys[di++] || {id:"unknown", rarity:1, thumb:"/assets/placeholder.png"};
       }
 
+      // Preload thumbs before showing new 30 cards so previous pack never flashes
+      try{
+        const urls = grid.map(a=>assetThumb(a));
+        await preloadImages(urls, 8000);
+      }catch(_){}
+
       renderGridDecoys(grid);
+      hideLoad();
 
       // Clear any dim/frames state before animation
       const cells = Array.from(grid32El.querySelectorAll(".cell"));
@@ -1007,6 +1070,8 @@ function renderGridDecoys(list){
       try{
         confirmBtn.classList.remove("show");
         showOverlay();
+        // Cover previous 30 cards until the new 30 cards are fully loaded
+        showLoad("載入中");
 
         // 1) Get the real awarded cards first (backend decides)
         rollSub.textContent = "抽卡中";
@@ -1028,6 +1093,7 @@ function renderGridDecoys(list){
         animating = false;
       }catch(e){
         console.error(e);
+        hideLoad();
         rollSub.textContent = "抽卡失敗";
         toast("抽卡失敗");
         confirmBtn.classList.add("show");
