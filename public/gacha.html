@@ -900,15 +900,32 @@ function renderGridDecoys(list){
       frames.forEach(f=>f.classList.remove("fade"));
     }
 
-    async function prepareGridStage(){
+    async function prepareGridStage(opts={}){
       const assets = await ensureAssetsLoaded();
+      const wantType = opts && opts.type ? normalizeType(opts.type) : null;
+
+      // 抽指定素材時：30 張格子全部只用同一種類的素材
+      let pool = Array.isArray(assets) ? assets.slice() : [];
+      if(wantType){
+        pool = pool.filter(a => normalizeType(a && a.type) === wantType);
+      }
+
       const decoys = [];
-      if(Array.isArray(assets) && assets.length > 0){
-        const ids = pickUniqueIndices(assets.length, GRID_COUNT);
-        for(const idx of ids) decoys.push(assets[idx]);
+      if(pool.length > 0){
+        if(pool.length >= GRID_COUNT){
+          const ids = pickUniqueIndices(pool.length, GRID_COUNT);
+          for(const idx of ids) decoys.push(pool[idx]);
+        }else{
+          // pool 不足 30：允許重複抽滿 30，但仍然只會出現同一種類
+          for(let i=0;i<GRID_COUNT;i++){
+            const idx = Math.floor(Math.random()*pool.length);
+            decoys.push(pool[idx]);
+          }
+        }
       }else{
         for(let i=0;i<GRID_COUNT;i++) decoys.push({id:"unknown", rarity:1, thumb:"/assets/placeholder.png"});
       }
+
       renderGridDecoys(decoys);
       // let browser paint
       overlay.offsetHeight;
@@ -923,7 +940,7 @@ function renderGridDecoys(list){
         confirmBtn.classList.remove("show");
         showOverlay();
         rollSub.textContent = "準備動畫";
-        await prepareGridStage();
+        await prepareGridStage(opts);
 
         rollSub.textContent = "抽卡中";
         const pulled = await onlineGacha(opts);
