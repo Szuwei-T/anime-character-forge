@@ -324,6 +324,15 @@
       transform: translateZ(0);
       transition: transform 90ms linear, left 90ms linear, top 90ms linear, width 90ms linear, height 90ms linear;
     }
+
+    .jump-frame.jump{
+      animation: framePop 120ms ease-out;
+    }
+    @keyframes framePop{
+      0%{ transform: scale(0.98); }
+      60%{ transform: scale(1.02); }
+      100%{ transform: scale(1); }
+    }
     .jump-frame.gold{
       border:3px solid rgba(255, 215, 0, 0.95);
       box-shadow: 0 0 16px rgba(255,215,0,0.35);
@@ -448,8 +457,9 @@
             <span style="opacity:0.8">feature</span>
           </div>
           <div class="featureStage">
-            <img src="assets/feature_character.png" alt="">
-          </div>
+  <video id="featuredVideo" muted autoplay loop playsinline></video>
+  <img id="featuredFallback" src="assets/feature_character.png" alt="" style="display:none;">
+</div>
         </div>
 
         <div class="bottomGrid">
@@ -537,6 +547,36 @@
 
   <script src="app.js"></script>
   <script>
+
+    // featured video: load from DB season featured table
+    async function loadFeaturedVideo(){
+      const v = document.getElementById("featuredVideo");
+      const img = document.getElementById("featuredFallback");
+      if(!v) return;
+      try{
+        const seasonId = "S1";
+        const res = await fetch(`/api/featured?seasonId=${encodeURIComponent(seasonId)}`, { cache: "no-store" });
+        if(!res.ok) throw new Error(`featured ${res.status}`);
+        const data = await res.json();
+        const list = (data && (data.featured || data.items || data)) || [];
+        const first = Array.isArray(list) ? list[0] : null;
+        const fid = first && (first.featuredId || first.id || first.assetId || first.featured_id);
+        if(!fid) throw new Error("no featuredId");
+        const src = `/assets/${fid}.mp4`;
+        v.src = src;
+        v.style.display = "";
+        if(img) img.style.display = "none";
+        // try play (may be blocked if not user-initiated; muted autoplay should pass)
+        v.play().catch(()=>{});
+      }catch(e){
+        console.warn("featured video load failed", e);
+        const v = document.getElementById("featuredVideo");
+        const img = document.getElementById("featuredFallback");
+        if(v){ v.removeAttribute("src"); v.load(); v.style.display = "none"; }
+        if(img) img.style.display = "";
+      }
+    }
+
     const overlay = document.getElementById("overlay");
     const grid32El = document.getElementById("grid32");
     const framesLayer = document.getElementById("framesLayer");
@@ -691,7 +731,7 @@ async function onlineGacha(opts={}){
     }
 
     async function animateJumpGrid(pulled, isTen){
-      const rects = getGridCellRects();
+      let rects = getGridCellRects();
       const framesCount = isTen ? 10 : 1;
 
       // decide reward mapping: 10 pull last is red, prefer guarantee flag
@@ -716,7 +756,13 @@ async function onlineGacha(opts={}){
 
       // start positions
       let slots = pickUniqueIndices(32, framesCount);
-      for(let i=0;i<framesCount;i++) placeFrame(frames[i], rects[slots[i]]);
+      for(let i=0;i<framesCount;i++){
+        placeFrame(frames[i], rects[slots[i]]);
+        frames[i].classList.add("jump");
+      }
+        frames[i].classList.remove("jump");
+        void frames[i].offsetWidth;
+        frames[i].classList.add("jump");
 
       const steps = isTen ? 46 : 34;
       let interval = 40;
@@ -724,15 +770,26 @@ async function onlineGacha(opts={}){
       for(let s=0;s<steps;s++){
         await sleep(interval);
 
+        rects = getGridCellRects();
         slots = pickUniqueIndices(32, framesCount);
-        for(let i=0;i<framesCount;i++) placeFrame(frames[i], rects[slots[i]]);
+        for(let i=0;i<framesCount;i++){
+        placeFrame(frames[i], rects[slots[i]]);
+        frames[i].classList.add("jump");
+      }
+        frames[i].classList.remove("jump");
+        void frames[i].offsetWidth;
+        frames[i].classList.add("jump");
 
         if(s > steps*0.55) interval = Math.min(260, Math.round(interval*1.10 + 3));
       }
 
       await sleep(220);
+      rects = getGridCellRects();
       const finalSlots = pickUniqueIndices(32, framesCount);
       for(let i=0;i<framesCount;i++) placeFrame(frames[i], rects[finalSlots[i]]);
+        frames[i].classList.remove("jump");
+        void frames[i].offsetWidth;
+        frames[i].classList.add("jump");
 
       const cells = Array.from(grid32El.querySelectorAll(".cell"));
       cells.forEach(c=>c.classList.remove("win","win2","red"));
@@ -797,7 +854,9 @@ async function onlineGacha(opts={}){
         animating = false;
       }
     }
-btnNormal1.addEventListener("click", () => startGacha({ count: 1, premium: false }));
+    loadFeaturedVideo();
+
+    btnNormal1.addEventListener("click", () => startGacha({ count: 1, premium: false }));
     btnNormal10.addEventListener("click", () => startGacha({ count: 10, premium: false }));
     btnPremium1.addEventListener("click", () => startGacha({ count: 1, premium: true }));
     btnPremium10.addEventListener("click", () => startGacha({ count: 10, premium: true }));
