@@ -245,8 +245,8 @@
       justify-content:center;
       flex-direction:column;
       gap: 14px;
-      background: rgba(10,12,18,0.72);
-      backdrop-filter: blur(6px);
+      background: rgba(0,0,0,0.88);
+      backdrop-filter: blur(18px) saturate(0.6);
       z-index: 5;
     }
     .loadCover.show{ display:flex; }
@@ -389,12 +389,12 @@
       content:"";
       position:absolute;
       inset:0;
-      background: rgba(0,0,0,0.35);
+      background: rgba(0,0,0,0.62);
       pointer-events:none;
       z-index: 2;
     }
     .cell.dim img{
-      filter: saturate(0.70) contrast(1.00) brightness(0.70);
+      filter: blur(8px) saturate(0.20) contrast(0.85) brightness(0.42);
     }
 .belt{
       position:absolute;
@@ -450,6 +450,31 @@
         inset 0 0 0 1px rgba(255,255,255,0.10);
       border-color: rgba(255,214,102,0.55);
     }
+
+    .statusRow{
+      width:100%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      margin-top: 14px;
+      margin-bottom: 6px;
+      min-height: 26px;
+      text-align:center;
+      opacity: 0.92;
+      letter-spacing: 0.4px;
+      user-select:none;
+    }
+    .statusMain{
+      font-weight: 900;
+      font-size: 18px;
+    }
+    .statusSub{
+      font-weight: 800;
+      font-size: 14px;
+      opacity: 0.75;
+    }
+
     .footer{
       display:flex;
       justify-content:center;
@@ -576,12 +601,13 @@
 
   <div class="overlay" id="overlay">
     <div class="panel">
-      <h3>抽卡中 <span class="sub" id="rollSub">連線中</span></h3>
+      <!-- status moved below cards -->
       <div class="gacha-stage">
         <div class="grid32" id="grid32"></div>
         <div class="framesLayer" id="framesLayer"></div>
         <div class="loadCover" id="loadCover"><div class="spinner"></div><div class="txt" id="loadTxt">載入中</div></div>
       </div>
+      <div class="statusRow" id="statusRow"><div class="statusMain" id="statusMain">抽卡中</div><div class="statusSub" id="statusSub">連線中</div></div>
       <div class="footer">
         <button class="confirm" id="confirmBtn">確認</button>
       </div>
@@ -676,8 +702,26 @@ async function loadFeaturedVideo(){
     const framesLayer = document.getElementById("framesLayer");
     const loadCover = document.getElementById("loadCover");
     const loadTxt = document.getElementById("loadTxt");
-    const rollSub = document.getElementById("rollSub");
+    const statusMain = document.getElementById("statusMain");
+    const statusSub = document.getElementById("statusSub");
     const confirmBtn = document.getElementById("confirmBtn");
+
+    function setStatus(main, sub){
+      if(statusMain) statusMain.textContent = main || "";
+      if(statusSub) statusSub.textContent = sub || "";
+    }
+    function setConfirmVisible(visible, isTen){
+      if(!confirmBtn) return;
+      if(visible){
+        setConfirmVisible(True, isTen);
+        setStatus(isTen ? "10連抽完成" : "抽卡完成", "");
+      }else{
+        setConfirmVisible(False);
+        // default during roll
+        if(statusMain && (!statusMain.textContent || statusMain.textContent.includes("完成"))) setStatus("抽卡中", "");
+      }
+    }
+
 
     function showLoad(msg){
       if(loadTxt) loadTxt.textContent = msg || "載入中";
@@ -1068,33 +1112,35 @@ function renderGridDecoys(list){
       animating = true;
 
       try{
-        confirmBtn.classList.remove("show");
+        setConfirmVisible(False);
         showOverlay();
+        setStatus("抽卡中", "連線中");
         // Cover previous 30 cards until the new 30 cards are fully loaded
         showLoad("載入中");
 
         // 1) Get the real awarded cards first (backend decides)
-        rollSub.textContent = "抽卡中";
+        setStatus("抽卡中", "");
         const pulled = await onlineGacha(opts);
         if(!pulled || pulled.length === 0) throw new Error("empty");
 
         // 2) Build the 30-card grid BEFORE animation:
         //    30 cards include the 1/10 real rewards, plus decoys (from /api/assets) for visuals only
-        rollSub.textContent = "準備動畫";
+        setStatus("抽卡中", "準備動畫");
         const isTen = Number(opts.count||1) === 10;
         const pack = await buildGridWithPulled(pulled, opts);
 
         // 3) Run animation but DO NOT change grid content; only land frames onto the pre-decided winners
-        rollSub.textContent = "抽卡中";
+        setStatus("抽卡中", "");
         await animateJumpGridToSlots(pack.winnerSlots, pack.winners, isTen);
 
-        rollSub.textContent = isTen ? "10連抽完成" : "抽卡完成";
+        setStatus(isTen ? "10連抽完成" : "抽卡完成", "");
         confirmBtn.classList.add("show");
+        setStatus("抽卡失敗", "");
         animating = false;
       }catch(e){
         console.error(e);
         hideLoad();
-        rollSub.textContent = "抽卡失敗";
+        setStatus("抽卡失敗", "");
         toast("抽卡失敗");
         confirmBtn.classList.add("show");
         animating = false;
