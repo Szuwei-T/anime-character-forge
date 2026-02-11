@@ -1,57 +1,100 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>付款成功</title>
-  <link rel="stylesheet" href="style.css" />
-  <style>
-    .wrap{max-width:860px;margin:28px auto;padding:0 14px}
-    .card{border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.22);border-radius:16px;padding:16px}
-    .muted{opacity:.8}
-    .row{margin:10px 0}
-    button,a.btn{display:inline-block;padding:10px 14px;border-radius:12px;border:0;cursor:pointer;font-weight:800;background:#fff;color:#000;text-decoration:none}
-    pre{white-space:pre-wrap;opacity:.9}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>購買成功</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.card {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+  padding: 40px;
+  max-width: 520px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+
+.icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+}
+
+h1 {
+  margin: 0 0 15px;
+  font-size: 28px;
+  color: #4ade80;
+}
+
+p {
+  font-size: 16px;
+  line-height: 1.6;
+  opacity: 0.9;
+}
+
+.btn {
+  margin-top: 30px;
+  padding: 14px 28px;
+  border-radius: 999px;
+  border: none;
+  font-size: 15px;
+  cursor: pointer;
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+  color: white;
+  transition: 0.2s ease;
+}
+
+.btn:hover {
+  opacity: 0.85;
+}
+
+.sub {
+  margin-top: 20px;
+  font-size: 13px;
+  opacity: 0.6;
+}
+</style>
 </head>
+
 <body>
-  <div class="wrap">
-    <h1>付款成功</h1>
-    <p class="muted">入帳需要等後端收到 Stripe webhook。通常幾秒到幾十秒。</p>
 
-    <div class="card">
-      <div class="row"><b>session_id</b></div>
-      <pre id="sid"></pre>
-      <div class="row"><b>目前帳戶（D1）</b></div>
-      <pre id="acct">讀取中…</pre>
-      <div class="row">
-        <a class="btn" href="./shop">回商城</a>
-        <button id="refresh">重新整理帳戶</button>
-      </div>
-    </div>
+<div class="card">
+  <div class="icon">🎉</div>
+  <h1>遊戲中購買成功！</h1>
+
+  <p>
+    你的付款已成功完成。<br>
+    金幣與鑽石已經安全加入你的帳號。
+  </p>
+
+  <p>
+    請返回遊戲查看最新餘額。
+  </p>
+
+  <button class="btn" onclick="goBack()">返回遊戲</button>
+
+  <div class="sub">
+    若餘額未立即更新，請稍後重新整理遊戲畫面。
   </div>
+</div>
 
-  <script src="app.js"></script>
-  <script>
-    window.WORKER_BASE = window.WORKER_BASE || ((location.hostname === "127.0.0.1" || location.hostname === "localhost") ? "" : "https://acf-api.dream-league-baseball.workers.dev");
+<script>
+function goBack() {
+  window.location.href = "/";
+}
+</script>
 
-    const sid = new URL(location.href).searchParams.get("session_id") || "";
-    document.getElementById("sid").textContent = sid || "(none)";
-
-    async function load(){
-      const out = document.getElementById("acct");
-      try{
-        if(window.initSession) await window.initSession();
-        const r = await fetch(window.WORKER_BASE + "/api/me/account", { headers: { "x-user-id": localStorage.getItem("acf_uid") || "" } });
-        const data = await r.json();
-        out.textContent = JSON.stringify(data, null, 2);
-      }catch(e){
-        out.textContent = String(e && e.message ? e.message : e);
-      }
-    }
-
-    document.getElementById("refresh").addEventListener("click", load);
-    load();
-  </script>
 </body>
 </html>

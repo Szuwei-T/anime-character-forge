@@ -248,7 +248,7 @@
     .grid32{
       position:relative;
       display:grid;
-      grid-template-columns: repeat(8, var(--cardW));
+      grid-template-columns: repeat(10, var(--cardW));
       grid-auto-rows: var(--cardH);
       gap: var(--gridGap);
       justify-content:center;
@@ -270,6 +270,10 @@
       box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
       overflow:hidden;
       transform: translateZ(0);
+    }
+    .thumbWrap{
+      position:absolute;
+      inset:0;
     }
     .cell img{
       width:100%;
@@ -591,6 +595,7 @@
         if(img) img.style.display = "";
       }
     }
+  
 
     const overlay = document.getElementById("overlay");
     const grid32El = document.getElementById("grid32");
@@ -618,7 +623,12 @@
     let cachedAssets = null;
 
     function showOverlay(){ overlay.classList.add("show"); }
-    function hideOverlay(){ overlay.classList.remove("show"); }
+    function hideOverlay(){
+      overlay.classList.remove("show");
+      // reset overlay state
+      framesLayer.innerHTML = "";
+      grid32El.querySelectorAll(".cell").forEach(c=>c.classList.remove("dim","win","win2","red"));
+    }
 
     confirmBtn.addEventListener("click", () => hideOverlay());
 
@@ -701,13 +711,20 @@ async function onlineGacha(opts={}){
       return out;
     }
 
-    function renderGridDecoys(list){
+    
+    const GRID_ROWS = 3;
+    const GRID_COLS = 10;
+    const GRID_COUNT = GRID_ROWS * GRID_COLS; // 30
+
+function renderGridDecoys(list){
       grid32El.innerHTML = "";
       const frag = document.createDocumentFragment();
-      for(let i=0;i<32;i++){
+      for(let i=0;i<GRID_COUNT;i++){
         const a = list[i] || {id:"unknown", rarity:1, thumb:"/assets/placeholder.png"};
         const cell = document.createElement("div");
         cell.className = "cell";
+        const wrap = document.createElement("div");
+        wrap.className = "thumbWrap";
         const img = document.createElement("img");
         img.loading = "eager";
         img.decoding = "async";
@@ -715,7 +732,8 @@ async function onlineGacha(opts={}){
         const lab = document.createElement("div");
         lab.className = "label";
         lab.textContent = assetLabel(a);
-        cell.appendChild(img);
+        wrap.appendChild(img);
+        cell.appendChild(wrap);
         cell.appendChild(lab);
         frag.appendChild(cell);
       }
@@ -741,7 +759,8 @@ async function onlineGacha(opts={}){
         };
       });
     };
- 
+
+    
     function placeFrame(frame, rect){
       frame.style.left = rect.left + "px";
       frame.style.top = rect.top + "px";
@@ -774,7 +793,7 @@ async function onlineGacha(opts={}){
       }
 
       // start positions
-      let slots = pickUniqueIndices(32, framesCount);
+      let slots = pickUniqueIndices(GRID_COUNT, framesCount);
       for(let i=0;i<framesCount;i++){
         placeFrame(frames[i], rects[slots[i]]);
         // retrigger small pop
@@ -790,7 +809,7 @@ async function onlineGacha(opts={}){
         await sleep(interval);
 
         rects = getGridCellRects();
-        slots = pickUniqueIndices(32, framesCount);
+        slots = pickUniqueIndices(GRID_COUNT, framesCount);
         for(let i=0;i<framesCount;i++){
         placeFrame(frames[i], rects[slots[i]]);
         // retrigger small pop
@@ -804,7 +823,7 @@ async function onlineGacha(opts={}){
 
       await sleep(220);
       rects = getGridCellRects();
-      const finalSlots = pickUniqueIndices(32, framesCount);
+      const finalSlots = pickUniqueIndices(GRID_COUNT, framesCount);
       for(let i=0;i<framesCount;i++){
         placeFrame(frames[i], rects[finalSlots[i]]);
         frames[i].classList.remove("jump");
@@ -827,20 +846,25 @@ async function onlineGacha(opts={}){
         setTimeout(()=>cell.classList.add("win2"), 30);
       });
 
-      await sleep(420);
-      frames.forEach(f=>f.classList.add("fade"));
-      await sleep(220);
-      framesLayer.innerHTML = "";
+      // Dim non-winning cards, keep winning frames visible on the winning cards
+      const winSet = new Set(finalSlots);
+      cells.forEach((c, idx)=>{
+        if(winSet.has(idx)) c.classList.remove("dim");
+        else c.classList.add("dim");
+      });
+
+      // Keep frames (gold/red) on winners
+      frames.forEach(f=>f.classList.remove("fade"));
     }
 
     async function prepareGridStage(){
       const assets = await ensureAssetsLoaded();
       const decoys = [];
       if(Array.isArray(assets) && assets.length > 0){
-        const ids = pickUniqueIndices(assets.length, 32);
+        const ids = pickUniqueIndices(assets.length, GRID_COUNT);
         for(const idx of ids) decoys.push(assets[idx]);
       }else{
-        for(let i=0;i<32;i++) decoys.push({id:"unknown", rarity:1, thumb:"/assets/placeholder.png"});
+        for(let i=0;i<GRID_COUNT;i++) decoys.push({id:"unknown", rarity:1, thumb:"/assets/placeholder.png"});
       }
       renderGridDecoys(decoys);
       // let browser paint
