@@ -225,16 +225,94 @@
       font-size:14px;
       font-weight:800;
     }
+    
     .gacha-stage{
-      margin-top: 16px;
-      height: 190px;
-      border-radius: 22px;
-      border: 1px solid rgba(255,255,255,0.08);
-      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
       position:relative;
+      height:360px;
+      border-radius:18px;
+      background: rgba(255,255,255,0.05);
       overflow:hidden;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
     }
-    .belt{
+    .grid32{
+      position:absolute;
+      left:18px;
+      right:18px;
+      top:18px;
+      bottom:18px;
+      display:grid;
+      grid-template-columns: repeat(8, 1fr);
+      grid-template-rows: repeat(4, 1fr);
+      gap:10px;
+    }
+    .cell{
+      position:relative;
+      border-radius:14px;
+      background: rgba(0,0,0,0.20);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
+      overflow:hidden;
+      transform: translateZ(0);
+    }
+    .cell img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+      filter: saturate(0.9) contrast(1.05);
+      opacity:0.95;
+    }
+    .cell .label{
+      position:absolute;
+      left:8px;
+      bottom:7px;
+      font-size:11px;
+      font-weight:800;
+      letter-spacing:0.2px;
+      padding:3px 7px;
+      border-radius:999px;
+      background: rgba(0,0,0,0.45);
+      color: rgba(255,255,255,0.86);
+      max-width: calc(100% - 16px);
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    .framesLayer{
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+    }
+    .jump-frame{
+      position:absolute;
+      border-radius:14px;
+      box-sizing:border-box;
+      width:50px;
+      height:50px;
+      transform: translateZ(0);
+      transition: transform 90ms linear, left 90ms linear, top 90ms linear, width 90ms linear, height 90ms linear;
+    }
+    .jump-frame.gold{
+      border:3px solid rgba(255, 215, 0, 0.95);
+      box-shadow: 0 0 16px rgba(255,215,0,0.35);
+    }
+    .jump-frame.red{
+      border:3px solid rgba(255, 70, 90, 0.98);
+      box-shadow: 0 0 20px rgba(255,70,90,0.55);
+      filter: brightness(1.15);
+    }
+    .jump-frame.fade{
+      opacity:0;
+      transition: opacity 180ms ease;
+    }
+    .cell.win{
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.10), 0 0 22px rgba(255,255,255,0.12);
+    }
+    .cell.win2{
+      transform: scale(1.06);
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.14), 0 0 26px rgba(255,255,255,0.16);
+      transition: transform 180ms ease, box-shadow 180ms ease;
+    }
+.belt{
       position:absolute;
       top:50%;
       left:0;
@@ -323,55 +401,6 @@
       padding:6px 8px;
       border-radius:10px;
       word-break: break-all;
-    }
-
-    /* === 32格抽卡動畫 === */
-    .gacha-stage{ position: relative; width: min(1100px, 92vw); margin: 16px auto 8px; }
-    .grid32{ display: grid; grid-template-columns: repeat(8, 1fr); gap: 10px; }
-    .cell{
-      position: relative;
-      border-radius: 14px;
-      overflow: hidden;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.10);
-      aspect-ratio: 3 / 4;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
-    }
-    .cell img{ width: 100%; height: 100%; object-fit: cover; display: block; }
-    .cell .label{
-      position:absolute; left:8px; bottom:8px;
-      font-size: 12px; opacity: 0.8;
-      padding: 2px 6px; border-radius: 999px;
-      background: rgba(0,0,0,0.35);
-      border: 1px solid rgba(255,255,255,0.10);
-      backdrop-filter: blur(6px);
-    }
-    .frames{ position:absolute; inset:0; pointer-events:none; }
-    .jump-frame{
-      position:absolute;
-      border-radius: 16px;
-      box-sizing: border-box;
-      border: 3px solid rgba(255, 205, 64, 0.98);
-      box-shadow: 0 0 18px rgba(255,205,64,0.35), inset 0 0 0 1px rgba(255,255,255,0.18);
-      transform: translateZ(0);
-      will-change: left, top;
-    }
-    .jump-frame.red{
-      border-color: rgba(255, 90, 90, 0.98);
-      box-shadow: 0 0 22px rgba(255,90,90,0.40), inset 0 0 0 1px rgba(255,255,255,0.18);
-    }
-    .cell.win{
-      transform: scale(1.06);
-      box-shadow: 0 0 30px rgba(255,255,255,0.25), inset 0 0 0 1px rgba(255,255,255,0.18);
-      transition: transform 220ms ease, box-shadow 220ms ease;
-    }
-    .cell.win::after{
-      content:"";
-      position:absolute; inset:-2px;
-      border-radius: 16px;
-      border: 2px solid rgba(255,255,255,0.25);
-      box-shadow: 0 0 28px rgba(255,255,255,0.18);
-      pointer-events:none;
     }
 </style>
 </head>
@@ -463,9 +492,9 @@
   <div class="overlay" id="overlay">
     <div class="panel">
       <h3>抽卡中 <span class="sub" id="rollSub">連線中</span></h3>
-      <div class="gacha-stage" id="gachaStage">
+      <div class="gacha-stage">
         <div class="grid32" id="grid32"></div>
-        <div class="frames" id="frames"></div>
+        <div class="framesLayer" id="framesLayer"></div>
       </div>
       <div class="footer">
         <button class="confirm" id="confirmBtn">確認</button>
@@ -477,7 +506,7 @@
   <script>
     const overlay = document.getElementById("overlay");
     const grid32El = document.getElementById("grid32");
-    const framesEl = document.getElementById("frames");
+    const framesLayer = document.getElementById("framesLayer");
     const rollSub = document.getElementById("rollSub");
     const confirmBtn = document.getElementById("confirmBtn");
 
@@ -532,131 +561,197 @@
 
     async function ensureAssetsLoaded(){
       if(cachedAssets) return cachedAssets;
-      try{
-        const data = await api("/api/assets");
-        if(data && data.ok && Array.isArray(data.assets)){
-          cachedAssets = data.assets;
-          const db = offlineDb();
-          db.assets = data.assets;
-          saveOfflineDb(db);
-          return cachedAssets;
-        }
-      }catch(e){}
-      const db = offlineDb();
-      cachedAssets = db.assets || [];
-      return cachedAssets;
-    }
-
-    function offlinePickOne(opts={}){
-      const db = offlineDb();
-      const assets = db.assets || [];
-      if(assets.length === 0) return null;
-
-      const r = Math.random();
-      let rarity = 1;
-      if(opts.premium){
-        if(r < 0.02) rarity = 5;
-        else if(r < 0.10) rarity = 4;
-        else if(r < 0.30) rarity = 3;
-        else if(r < 0.60) rarity = 2;
-        else rarity = 1;
-      }else{
-        if(r < 0.01) rarity = 5;
-        else if(r < 0.07) rarity = 4;
-        else if(r < 0.25) rarity = 3;
-        else if(r < 0.55) rarity = 2;
-        else rarity = 1;
+      const data = await api("/api/assets");
+      if(data && data.ok && Array.isArray(data.assets)){
+        cachedAssets = data.assets;
+        return cachedAssets;
       }
-
-      let pool = assets.filter(a => Number(a.rarity||1) === rarity);
-
-      // 注意: offline 也支援強制 type
-      if(opts.type){
-        pool = pool.filter(a => String(a.type||"") === String(opts.type));
-      }
-      if(pool.length === 0){
-        // 如果指定了 type 但該稀有度沒有素材，改成只放寬 rarity 仍然限制在同一個 type
-        if(opts.type){
-          const tp = String(opts.type);
-          pool = assets.filter(a => String(a.type||"") === tp);
-        }
-        // 最後才退回全素材，避免轉盤出現其他類型造成誤解
-        if(pool.length === 0) pool = assets;
-      }
-
-      const a = pool[Math.floor(Math.random()*pool.length)];
-      return {
-        assetId: a.assetId,
-        type: normalizeType(a.type),
-        rarity: Number(a.rarity||1),
-        imageUrl: a.imageUrl || ""
-      };
+      throw new Error("assets_load_failed");
     }
-
-    function commitOfflineWin(win){
-      const db = offlineDb();
-      db.userAssets = db.userAssets || {};
-      const k = `${APP.uid}:${win.assetId}`;
-      db.userAssets[k] = Number(db.userAssets[k] || 0) + 1;
-      saveOfflineDb(db);
-    }
-
-    async function onlineGacha(opts={}){
-      const payload = {
-        rolls: Number(opts.count || 1),
+async function onlineGacha(opts={}){
+      const body = {
+        count: Number(opts.count || 1),
         premium: !!opts.premium,
-        type: (opts.type ? requestType(opts.type) : "")
+        type: opts.type ? requestType(opts.type) : undefined,
+        seasonId: String(opts.seasonId || "S1")
       };
-      const data = await api("/api/gacha", { method:"POST", body: JSON.stringify(payload) });
-      if(!data || !data.ok) return null;
+      const data = await api("/api/gacha", { method:"POST", body });
+      if(!data || !data.ok || !Array.isArray(data.pulled)) throw new Error("gacha_failed");
+      return data.pulled;
+    }
 
-      const list = data.results || data.pulled || [];
-      if(!Array.isArray(list) || list.length === 0) return null;
+    function assetThumb(a){
+      if(!a) return "/assets/placeholder.png";
+      if(a.thumb) return a.thumb;
+      if(a.imageUrl) return toThumbIfNeeded(a);
+      if(a.id) return `/assets/${a.id}.png`;
+      return "/assets/placeholder.png";
+    }
 
-      return list.map(r => ({
-        assetId: r.assetId,
-        type: normalizeType(r.type),
-        rarity: Number(r.rarity ||async function startGacha(opts={}){
+    function assetLabel(a){
+      if(!a) return "";
+      const id = a.id || a.assetId || "";
+      const r = Number(a.rarity || 1);
+      return `${id}  R${r}`;
+    }
+
+    function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
+
+    function pickUniqueIndices(n, k){
+      const out = [];
+      const used = new Set();
+      while(out.length < k && used.size < n){
+        const x = Math.floor(Math.random()*n);
+        if(used.has(x)) continue;
+        used.add(x);
+        out.push(x);
+      }
+      // fallback deterministic fill
+      for(let i=0; out.length<k && i<n; i++){
+        if(!used.has(i)){ used.add(i); out.push(i); }
+      }
+      return out;
+    }
+
+    function renderGridDecoys(list){
+      grid32El.innerHTML = "";
+      const frag = document.createDocumentFragment();
+      for(let i=0;i<32;i++){
+        const a = list[i] || {id:"unknown", rarity:1, thumb:"/assets/placeholder.png"};
+        const cell = document.createElement("div");
+        cell.className = "cell";
+        const img = document.createElement("img");
+        img.loading = "eager";
+        img.decoding = "async";
+        img.src = assetThumb(a);
+        const lab = document.createElement("div");
+        lab.className = "label";
+        lab.textContent = assetLabel(a);
+        cell.appendChild(img);
+        cell.appendChild(lab);
+        frag.appendChild(cell);
+      }
+      grid32El.appendChild(frag);
+      // clear winner states
+      grid32El.querySelectorAll(".cell").forEach(c=>c.classList.remove("win","win2"));
+    }
+
+    function getGridCellRects(){
+      const cells = Array.from(grid32El.querySelectorAll(".cell"));
+      const stageRect = grid32El.getBoundingClientRect();
+      return cells.map(c=>{
+        const r = c.getBoundingClientRect();
+        return {
+          left: r.left - stageRect.left,
+          top: r.top - stageRect.top,
+          width: r.width,
+          height: r.height
+        };
+      });
+    }
+
+    function placeFrame(frame, rect){
+      frame.style.left = rect.left + "px";
+      frame.style.top = rect.top + "px";
+      frame.style.width = rect.width + "px";
+      frame.style.height = rect.height + "px";
+    }
+
+    async function animateJumpGrid(pulled, isTen){
+      const rects = getGridCellRects();
+      const framesCount = isTen ? 10 : 1;
+
+      // decide reward mapping: 10 pull last is red, prefer guarantee flag
+      let rewards = [];
+      if(isTen){
+        const guarantee = pulled.find(x => x && (x._guarantee || x.guarantee)) || pulled[pulled.length - 1];
+        const normals = pulled.filter(x => x !== guarantee).slice(0, 9);
+        while(normals.length < 9 && pulled[normals.length]) normals.push(pulled[normals.length]);
+        rewards = normals.slice(0,9).concat([guarantee]);
+      }else{
+        rewards = [pulled[0]];
+      }
+
+      framesLayer.innerHTML = "";
+      const frames = [];
+      for(let i=0;i<framesCount;i++){
+        const f = document.createElement("div");
+        f.className = "jump-frame " + (isTen && i === framesCount - 1 ? "red" : "gold");
+        framesLayer.appendChild(f);
+        frames.push(f);
+      }
+
+      // start positions
+      let slots = pickUniqueIndices(32, framesCount);
+      for(let i=0;i<framesCount;i++) placeFrame(frames[i], rects[slots[i]]);
+
+      const steps = isTen ? 46 : 34;
+      let interval = 40;
+
+      for(let s=0;s<steps;s++){
+        await sleep(interval);
+
+        slots = pickUniqueIndices(32, framesCount);
+        for(let i=0;i<framesCount;i++) placeFrame(frames[i], rects[slots[i]]);
+
+        if(s > steps*0.55) interval = Math.min(260, Math.round(interval*1.10 + 3));
+      }
+
+      await sleep(220);
+      const finalSlots = pickUniqueIndices(32, framesCount);
+      for(let i=0;i<framesCount;i++) placeFrame(frames[i], rects[finalSlots[i]]);
+
+      const cells = Array.from(grid32El.querySelectorAll(".cell"));
+      finalSlots.forEach((slot, i)=>{
+        const reward = rewards[i];
+        const cell = cells[slot];
+        if(!reward || !cell) return;
+        const img = cell.querySelector("img");
+        const lab = cell.querySelector(".label");
+        if(img) img.src = assetThumb(reward);
+        if(lab) lab.textContent = assetLabel(reward);
+        cell.classList.add("win");
+        setTimeout(()=>cell.classList.add("win2"), 30);
+      });
+
+      await sleep(420);
+      frames.forEach(f=>f.classList.add("fade"));
+      await sleep(220);
+      framesLayer.innerHTML = "";
+    }
+
+    async function prepareGridStage(){
+      const assets = await ensureAssetsLoaded();
+      const decoys = [];
+      if(Array.isArray(assets) && assets.length > 0){
+        const ids = pickUniqueIndices(assets.length, 32);
+        for(const idx of ids) decoys.push(assets[idx]);
+      }else{
+        for(let i=0;i<32;i++) decoys.push({id:"unknown", rarity:1, thumb:"/assets/placeholder.png"});
+      }
+      renderGridDecoys(decoys);
+      // let browser paint
+      overlay.offsetHeight;
+      await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+    }
+
+    async function startGacha(opts={}){
       if(animating) return;
       animating = true;
 
-      opts = Object.assign({}, opts);
-      const count = Number(opts.count || 1);
-      const isTen = (count === 10);
-
-      // 僅走線上流程，失敗就顯示錯誤
-      showOverlay();
-      confirmBtn.classList.remove("show");
-      rollSub.textContent = "連線中";
-
       try{
-        await ensureAssetsLoaded();
-
-        // 先把 32 張假卡鋪滿，讓畫面立即穩定
-        const assets = await fetchAssets();
-        const decoys = [];
-        if(Array.isArray(assets) && assets.length > 0){
-          const ids = pickUniqueIndices(assets.length, 32);
-          for(const idx of ids) decoys.push(assets[idx]);
-        }else{
-          // 沒有素材也要填滿 32 格
-          for(let i=0;i<32;i++) decoys.push({id:"unknown", rarity:1, thumb:"/assets/placeholder.png"});
-        }
-        renderGridDecoys(decoys);
-
-        // 讓瀏覽器先畫出 overlay 與 32 格
-        overlay.offsetHeight; // force reflow
-        await new Promise(r => requestAnimationFrame(()=>requestAnimationFrame(r)));
+        confirmBtn.classList.remove("show");
+        showOverlay();
+        rollSub.textContent = "準備動畫";
+        await prepareGridStage();
 
         rollSub.textContent = "抽卡中";
-
-        // 拿抽卡結果
         const pulled = await onlineGacha(opts);
         if(!pulled || pulled.length === 0) throw new Error("empty");
 
-        await animateJumpGrid(pulled, isTen);
+        await animateJumpGrid(pulled, Number(opts.count||1) === 10);
 
-        rollSub.textContent = isTen ? "10連抽完成" : "抽卡完成";
+        rollSub.textContent = Number(opts.count||1) === 10 ? "10連抽完成" : "抽卡完成";
         confirmBtn.classList.add("show");
         animating = false;
       }catch(e){
@@ -666,171 +761,8 @@
         confirmBtn.classList.add("show");
         animating = false;
       }
-    }        // slow down
-        interval = Math.min(220, Math.round(interval * 1.10 + 2));
-      }
-
-      // settle to final slots (still unique by construction)
-      await sleep(180);
-      for(let i=0;i<framesCount;i++){
-        placeFrame(frames[i], rects[finalSlots[i]]);
-      }
-
-      // reveal winners: swap the card content in those slots, and glow/scale
-      const cells = Array.from(grid32El.querySelectorAll(".cell"));
-      finalSlots.forEach((slot, i)=>{
-        const reward = frameRewards[i];
-        if(!reward) return;
-        const cell = cells[slot];
-        if(!cell) return;
-
-        const img = cell.querySelector("img");
-        const lab = cell.querySelector(".label");
-        if(img) img.src = assetThumb(reward);
-        if(lab) lab.textContent = assetLabel(reward);
-
-        cell.classList.add("win");
-      });
-
-      return { finalSlots, frameRewards };
     }
-
-async function startGacha(opts={}){
-      if(animating) return;
-      animating = true;
-      opts = Object.assign({}, opts);
-      if(opts.type) opts.pick = true;
-
-      await ensureAssetsLoaded();
-      showOverlay();
-      confirmBtn.classList.remove("show");
-      rollSub.textContent = "連線中";
-
-      let source = "online";
-      let pulled = null;
-
-      try{
-        pulled = await onlineGacha(opts);
-        if(!pulled){
-          source = "offline";
-          rollSub.textContent = "連線失敗 改用離線抽卡";
-          pulled = [];
-          const n = Number(opts.count || 1);
-          for(let i = 0; i < n; i++){
-            const x = offlinePickOne(opts);
-            if(x) pulled.push(x);
-          }
-          if(pulled[0]) commitOfflineWin(pulled[0]);
-        }
-      }catch(e){
-        source = "offline";
-        rollSub.textContent = "連線失敗 改用離線抽卡";
-        pulled = [];
-        const n = Number(opts.count || 1);
-        for(let i = 0; i < n; i++){
-          const x = offlinePickOne(opts);
-          if(x) pulled.push(x);
-        }
-        if(pulled[0]) commitOfflineWin(pulled[0]);
-      }
-
-      if(!pulled || pulled.length === 0){
-        toast("抽卡失敗");
-        hideOverlay();
-        animating = false;
-        return;
-      }
-
-      const win = pulled[0];
-
-      belt.innerHTML = "";
-      const beltCount = 20;
-      const winnerIndex = Math.floor(beltCount / 2);
-
-      const fillers = [];
-      for(let i = 0; i < beltCount; i++){
-        if(i === winnerIndex){
-          fillers.push(win);
-        }else{
-          const f = offlinePickOne({ premium: !!opts.premium, type: (opts.type ? requestType(opts.type) : "") });
-          fillers.push(f || win);
-        }
-      }
-
-      fillers.forEach(p => {
-        const item = p || win;
-        if(!item) return;
-
-        const div = document.createElement("div");
-        div.className = "card";
-        const src = toThumbIfNeeded(item);
-
-        const img = document.createElement("img");
-        img.src = src;
-        img.alt = "";
-
-        const dbg = document.createElement("div");
-        dbg.className = "broken-debug";
-        dbg.style.display = "none";
-        dbg.textContent = `broken | ${item.type} | ${item.assetId} | ⭐${item.rarity} | ${src}`;
-
-        img.addEventListener("error", () => {
-          const cur = img.getAttribute("src") || "";
-          // fallback: head/body thumbs might not exist
-          if(cur.includes("_thumb.")){
-            img.src = cur.replace("_thumb.", ".");
-            return;
-          }
-          div.classList.add("broken");
-          dbg.style.display = "block";
-        });
-
-        div.appendChild(img);
-        div.appendChild(dbg);
-        belt.appendChild(div);
-      });
-
-      const tag = opts.premium ? "高級" : "普通";
-      const typeTag = opts.type ? ` 類型 ${opts.type}` : "";
-      rollSub.textContent = (source === "online" ? "跑馬燈高速啟動" : "離線模式跑馬燈") + ` ${tag}${typeTag} 抽到 ${win.assetId} ⭐ ${win.rarity}`;
-
-      const stage = document.querySelector(".gacha-stage");
-      const stageWidth = stage.getBoundingClientRect().width;
-
-      const cards = Array.from(belt.children);
-      const cardW = cards[0].getBoundingClientRect().width;
-      const gap = 12;
-      const step = cardW + gap;
-
-      const beltPaddingLeft = 24;
-      const winnerCenterX = beltPaddingLeft + winnerIndex * step + cardW / 2;
-      const targetX = (stageWidth / 2) - winnerCenterX;
-      const startX = targetX - (step * 10);
-
-      const duration = 2400;
-      const t0 = performance.now();
-
-      function easeOutCubic(p){ return 1 - Math.pow(1 - p, 3); }
-
-      function frame(t){
-        const p = Math.min((t - t0) / duration, 1);
-        const e = easeOutCubic(p);
-        const x = startX + (targetX - startX) * e;
-        belt.style.transform = `translate(${x}px, -50%)`;
-
-        if(p < 1){
-          requestAnimationFrame(frame);
-        }else{
-          cards[winnerIndex].classList.add("win");
-          confirmBtn.classList.add("show");
-          animating = false;
-        }
-      }
-      requestAnimationFrame(frame);
-    }
-
-    // 底下 2 個大區塊
-    btnNormal1.addEventListener("click", () => startGacha({ count: 1, premium: false }));
+btnNormal1.addEventListener("click", () => startGacha({ count: 1, premium: false }));
     btnNormal10.addEventListener("click", () => startGacha({ count: 10, premium: false }));
     btnPremium1.addEventListener("click", () => startGacha({ count: 1, premium: true }));
     btnPremium10.addEventListener("click", () => startGacha({ count: 10, premium: true }));
