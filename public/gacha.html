@@ -644,8 +644,7 @@ async function loadFeatured(){
           lines.push(`${id}${type ? "  ["+type+"]" : ""}`);
           if(vurl) lines.push(`  ${vurl}`);
         }
-        dbg.textContent = lines.join("
-");
+        dbg.textContent = lines.join("\n");
       }
     }
     if(list.length === 0) return;
