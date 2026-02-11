@@ -853,16 +853,23 @@ function animateReel(beltEl, viewportEl, winItems, opts={}){
       if(animating) return;
       animating = true;
 
+      // 先顯示 overlay 讓使用者看到 Loading，不要在重工作前卡住畫面
+      showOverlay();
+      confirmBtn.classList.remove("show");
+      rollSub.textContent = "準備中";
+      // 先把 overlay 畫出來
+      await yieldToPaint(2);
+
       try{
         await ensureAssetsLoaded();
       }catch(e){
+        rollSub.textContent = "讀取失敗";
         toast("讀取素材失敗 請確認後端可連線");
+        hideOverlay();
         animating = false;
         return;
       }
 
-      showOverlay();
-      confirmBtn.classList.remove("show");
       rollSub.textContent = "連線中";
 
       // Stage switch
