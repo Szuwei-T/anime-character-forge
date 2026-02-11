@@ -1,514 +1,65 @@
+
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8" />
-  <title>Anime Character Forge 登入</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    :root {
-      --bg1: rgba(3, 7, 18, 0.88);
-      --bg2: rgba(15, 23, 42, 0.97);
-      --card: rgba(17, 24, 39, 0.72);
-      --line: rgba(148, 163, 184, 0.22);
-      --text: #e5e7eb;
-      --muted: rgba(226, 232, 240, 0.7);
-      --accent: #60a5fa;
-      --ok: #34d399;
-      --err: #f87171;
-    }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background:
-        linear-gradient(var(--bg1), var(--bg2)),
-        url("bg.jpg") center center / cover no-repeat fixed;
-      color: var(--text);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-      box-sizing: border-box;
-    }
-
-    .card {
-      width: 420px;
-      max-width: 96vw;
-      background: radial-gradient(circle at top left, rgba(96,165,250,0.18), transparent 45%),
-                  radial-gradient(circle at bottom right, rgba(52,211,153,0.10), transparent 45%),
-                  var(--card);
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      overflow: hidden;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.55);
-    }
-
-    .head {
-      padding: 18px 18px 12px;
-      border-bottom: 1px solid var(--line);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .logo {
-      width: 40px;
-      height: 40px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, rgba(96,165,250,0.9), rgba(167,139,250,0.9));
-      box-shadow: 0 10px 30px rgba(96,165,250,0.25);
-      flex: 0 0 auto;
-    }
-
-    .title {
-      line-height: 1.2;
-    }
-    .title h1 {
-      margin: 0;
-      font-size: 18px;
-      font-weight: 800;
-      letter-spacing: 0.2px;
-    }
-    .title p {
-      margin: 4px 0 0;
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    .body {
-      padding: 16px 18px 18px;
-    }
-
-    .row {
-      display: grid;
-      gap: 10px;
-      margin-top: 12px;
-    }
-
-    .btn {
-      width: 100%;
-      padding: 12px 12px;
-      border-radius: 12px;
-      border: 1px solid var(--line);
-      background: rgba(2, 6, 23, 0.55);
-      color: var(--text);
-      font-weight: 700;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      transition: transform 0.08s ease, background 0.2s ease, border-color 0.2s ease;
-      user-select: none;
-    }
-    .btn:hover {
-      transform: translateY(-1px);
-      border-color: rgba(96,165,250,0.45);
-      background: rgba(2, 6, 23, 0.70);
-    }
-    .btn:disabled {
-      opacity: 0.55;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    .btn.primary {
-      background: linear-gradient(135deg, rgba(96,165,250,0.95), rgba(167,139,250,0.95));
-      border-color: rgba(255,255,255,0.12);
-    }
-    .btn.primary:hover {
-      border-color: rgba(255,255,255,0.22);
-      background: linear-gradient(135deg, rgba(96,165,250,1), rgba(167,139,250,1));
-    }
-
-    .split {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin: 14px 0 6px;
-      color: rgba(226,232,240,0.55);
-      font-size: 12px;
-    }
-    .split::before, .split::after {
-      content: "";
-      height: 1px;
-      background: var(--line);
-      flex: 1;
-    }
-
-    .field {
-      display: grid;
-      gap: 6px;
-    }
-    label {
-      font-size: 12px;
-      color: rgba(226,232,240,0.75);
-    }
-    input {
-      width: 100%;
-      box-sizing: border-box;
-      border-radius: 12px;
-      border: 1px solid var(--line);
-      background: rgba(2, 6, 23, 0.55);
-      color: var(--text);
-      padding: 12px 12px;
-      outline: none;
-    }
-    input:focus {
-      border-color: rgba(96,165,250,0.55);
-    }
-
-    .mini {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    .note {
-      margin-top: 10px;
-      font-size: 12px;
-      color: rgba(226,232,240,0.7);
-      line-height: 1.5;
-    }
-
-    .status {
-      margin-top: 10px;
-      font-size: 12px;
-      padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid var(--line);
-      background: rgba(2, 6, 23, 0.55);
-      display: none;
-      white-space: pre-wrap;
-    }
-    .status.ok {
-      display: block;
-      border-color: rgba(52,211,153,0.35);
-    }
-    .status.err {
-      display: block;
-      border-color: rgba(248,113,113,0.35);
-    }
-
-    .userbar {
-      margin-top: 10px;
-      display: none;
-      font-size: 12px;
-      color: rgba(226,232,240,0.75);
-      gap: 8px;
-      align-items: center;
-      justify-content: space-between;
-      border: 1px solid var(--line);
-      background: rgba(2, 6, 23, 0.40);
-      border-radius: 12px;
-      padding: 10px 12px;
-    }
-    .userbar b {
-      color: var(--text);
-    }
-    .link {
-      color: rgba(147,197,253,0.95);
-      cursor: pointer;
-      text-decoration: underline;
-      font-weight: 700;
-    }
-    .small {
-      font-size: 11px;
-      color: rgba(226,232,240,0.60);
-      margin-top: 10px;
-    }
-  </style>
+<meta charset="UTF-8" />
+<title>Anime Character Forge</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<style>
+body{background:#0b0f1a;color:#fff;font-family:sans-serif}
+</style>
 </head>
 <body>
-  <div class="card">
-    <div class="head">
-      <div class="logo"></div>
-      <div class="title">
-        <h1>Anime Character Forge</h1>
-        <p>先登入，再設定你的遊戲名稱，馬上開始組角色</p>
-      </div>
-    </div>
 
-    <div class="body">
-      <div class="userbar" id="userbar">
-        <div>
-          目前登入 <b id="userEmail">未登入</b>
-          <div class="small">uid <span id="userUid"></span></div>
-        </div>
-        <span class="link" id="btnLogout">登出</span>
-      </div>
+<h2>Login Test</h2>
+<button id="google">Google Login</button>
 
-      <div id="stepLogin">
-        <div class="row">
-          <button class="btn primary" id="btnGoogle">使用 Google 登入</button>
-          <button class="btn" id="btnMicrosoft">使用 Microsoft 登入</button>
-          <button class="btn" id="btnApple">使用 Apple 登入</button>
-        </div>
+<script>
+/* Firebase config */
+const firebaseConfig = {
+  apiKey: "AIzaSyDlLsWifxvzjvQSHgsXrSqyUWLO9i_0QN4",
+  authDomain: "web-games-3ac52.firebaseapp.com",
+  projectId: "web-games-3ac52",
+  storageBucket: "web-games-3ac52.firebasestorage.app",
+  messagingSenderId: "231657073406",
+  appId: "1:231657073406:web:adf54f58dbb7d664d453af"
+};
 
-        <div class="split">或</div>
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
 
-        <div class="row">
-          <div class="field">
-            <label>Email</label>
-            <input id="email" type="email" placeholder="you@example.com" autocomplete="username" />
-          </div>
-          <div class="field">
-            <label>Password</label>
-            <input id="password" type="password" placeholder="password" autocomplete="current-password" />
-          </div>
-          <div class="mini">
-            <button class="btn" id="btnEmailLogin">Email 登入</button>
-            <button class="btn" id="btnEmailSignup">Email 註冊</button>
-          </div>
-        </div>
+/* IMPORTANT:
+   Do NOT redeclare api if studio.html already defines it.
+   Reuse window.api if exists, otherwise create it.
+*/
+const api = window.api || function(path, options = {}){
+  return fetch(path, {
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    ...options
+  });
+};
+window.api = api;
 
-        <div class="note">
-          如果你用 Microsoft 或 Apple 登入，需要先在 Firebase Auth 裡啟用對應的 Provider，否則會顯示錯誤。
-        </div>
-      </div>
+document.getElementById("google").onclick = async () => {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  const result = await auth.signInWithPopup(provider);
+  const user = result.user;
 
-      <div id="stepProfile" style="display:none;">
-        <div class="row">
-          <div class="field">
-            <label>遊戲名稱</label>
-            <input id="gameName" type="text" maxlength="20" placeholder="例如：星河行者" />
-          </div>
-          <div class="field">
-            <label>地區 (可空白)</label>
-            <input id="region" type="text" maxlength="20" placeholder="例如：CA 或 Toronto" />
-          </div>
-          <button class="btn primary" id="btnSaveProfile">開始遊戲</button>
-          <button class="btn" id="btnSkip">先不填，直接進入</button>
-        </div>
+  await api("/api/me/account", {
+    method: "POST",
+    body: JSON.stringify({
+      uid: user.uid,
+      email: user.email,
+      userName: "TestAccount"
+    })
+  });
 
-        <div class="note">
-          會寫入 D1 的 <b>user_accounts</b>：userId、userName、userGold、userGem、userVote、userRegion。
-        </div>
-      </div>
+  alert("Login + save OK");
+};
+</script>
 
-      <div class="status" id="status"></div>
-    </div>
-  </div>
-
-  <!-- Firebase (modular CDN) -->
-  <script type="module">
-    
-
-// --- API helper (same-origin) ---
-// Requires Cloudflare Worker Route: <your-pages-domain>/api/* -> your Worker
-async function api(path, options = {}) {
-  const headers = new Headers(options.headers || {});
-  if (!headers.has("content-type") && options.body) headers.set("content-type", "application/json");
-  const uid = localStorage.getItem("acf_uid");
-  if (uid) headers.set("x-user-id", uid);
-  const res = await fetch(path, { ...options, headers });
-  const ct = res.headers.get("content-type") || "";
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`api_error ${res.status} ${text.slice(0,200)}`);
-  }
-  if (ct.includes("application/json")) return await res.json();
-  return await res.text();
-}
-
-function explainRouteHint(err) {
-  const msg = String((err && err.message) || err || "");
-  if (msg.includes("api_error 405")) {
-    return "後端路由還沒綁定：到 Cloudflare Worker 設定 Routes，加上  anime-character-forge.pages.dev/api/*  指向你的 Worker";
-  }
-  return msg || "unknown_error";
-}
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import {
-      getAuth,
-      onAuthStateChanged,
-      signInWithPopup,
-      GoogleAuthProvider,
-      OAuthProvider,
-      signInWithEmailAndPassword,
-      createUserWithEmailAndPassword,
-      signOut
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-    const firebaseConfig = {
-      apiKey: "AIzaSyDlLsWifxvzjvQSHgsXrSqyUWLO9i_0QN4",
-      authDomain: "web-games-3ac52.firebaseapp.com",
-      projectId: "web-games-3ac52",
-      storageBucket: "web-games-3ac52.firebasestorage.app",
-      messagingSenderId: "231657073406",
-      appId: "1:231657073406:web:adf54f58dbb7d664d453af",
-      measurementId: "G-HWDB4W9GYJ"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-
-    const $ = (id) => document.getElementById(id);
-
-    const statusEl = $("status");
-    function setStatus(msg, kind = "") {
-      statusEl.className = "status " + (kind || "");
-      statusEl.textContent = msg || "";
-      statusEl.style.display = msg ? "block" : "none";
-    }
-
-    function getUid() {
-      return auth.currentUser?.uid || "";
-    }
-
-    function setBusy(busy) {
-      for (const id of ["btnGoogle","btnMicrosoft","btnApple","btnEmailLogin","btnEmailSignup","btnSaveProfile","btnSkip","btnLogout"]) {
-        const el = $(id);
-        if (el) el.disabled = !!busy;
-      }
-    }
-
-    async function api(path, opts = {}) {
-      const uid = getUid();
-      const headers = Object.assign({
-        "content-type": "application/json",
-        "x-user-id": uid || "anon"
-      }, opts.headers || {});
-      const res = await fetch(path, { ...opts, headers });
-      const data = await res.json().catch(() => ({ ok:false, error:"bad_json" }));
-      if (!res.ok || data?.ok === false) {
-        const err = data?.error || ("http_" + res.status);
-        throw new Error(err);
-      }
-      return data;
-    }
-
-    function showStep(loggedIn) {
-      $("stepLogin").style.display = loggedIn ? "none" : "block";
-      $("stepProfile").style.display = loggedIn ? "block" : "none";
-      $("userbar").style.display = loggedIn ? "flex" : "none";
-    }
-
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        $("userEmail").textContent = user.email || user.providerData?.[0]?.email || "已登入";
-        $("userUid").textContent = user.uid;
-        showStep(true);
-        setStatus("", "");
-      } else {
-        $("userEmail").textContent = "未登入";
-        $("userUid").textContent = "";
-        showStep(false);
-      }
-    });
-
-    // Providers
-    const googleProvider = new GoogleAuthProvider();
-    const msProvider = new OAuthProvider("microsoft.com");
-    const appleProvider = new OAuthProvider("apple.com");
-
-    $("btnGoogle").onclick = async () => {
-      setStatus("", "");
-      setBusy(true);
-      try {
-        await signInWithPopup(auth, googleProvider);
-      } catch (e) {
-        setStatus("登入失敗\n" + (e?.message || e), "err");
-      } finally {
-        setBusy(false);
-      }
-    };
-
-    $("btnMicrosoft").onclick = async () => {
-      setStatus("", "");
-      setBusy(true);
-      try {
-        await signInWithPopup(auth, msProvider);
-      } catch (e) {
-        setStatus("登入失敗\n" + (e?.message || e), "err");
-      } finally {
-        setBusy(false);
-      }
-    };
-
-    $("btnApple").onclick = async () => {
-      setStatus("", "");
-      setBusy(true);
-      try {
-        await signInWithPopup(auth, appleProvider);
-      } catch (e) {
-        setStatus("登入失敗\n" + (e?.message || e), "err");
-      } finally {
-        setBusy(false);
-      }
-    };
-
-    $("btnEmailLogin").onclick = async () => {
-      setStatus("", "");
-      setBusy(true);
-      try {
-        const email = $("email").value.trim();
-        const pwd = $("password").value;
-        if (!email || !pwd) throw new Error("missing_email_or_password");
-        await signInWithEmailAndPassword(auth, email, pwd);
-      } catch (e) {
-        setStatus("Email 登入失敗\n" + (e?.message || e), "err");
-      } finally {
-        setBusy(false);
-      }
-    };
-
-    $("btnEmailSignup").onclick = async () => {
-      setStatus("", "");
-      setBusy(true);
-      try {
-        const email = $("email").value.trim();
-        const pwd = $("password").value;
-        if (!email || !pwd) throw new Error("missing_email_or_password");
-        if (pwd.length < 6) throw new Error("password_min_6");
-        await createUserWithEmailAndPassword(auth, email, pwd);
-      } catch (e) {
-        setStatus("Email 註冊失敗\n" + (e?.message || e), "err");
-      } finally {
-        setBusy(false);
-      }
-    };
-
-    $("btnLogout").onclick = async () => {
-      setBusy(true);
-      try {
-        await signOut(auth);
-      } finally {
-        setBusy(false);
-      }
-    };
-
-    // Save profile to D1
-    $("btnSaveProfile").onclick = async () => {
-      setStatus("", "");
-      setBusy(true);
-      try {
-        const userName = $("gameName").value.trim();
-        const userRegion = $("region").value.trim();
-        if (!userName) throw new Error("missing_userName");
-        const payload = {
-          userName,
-          userRegion: userRegion || ""
-        };
-        await api("/api/me/account", {
-          method: "POST",
-          body: JSON.stringify(payload),
-        });
-        setStatus("完成！已建立玩家資料，正在進入遊戲…", "ok");
-        setTimeout(() => (window.location.href = "hub.html"), 400);
-      } catch (e) {
-        setStatus("寫入資料失敗\n" + (e?.message || e), "err");
-      } finally {
-        setBusy(false);
-      }
-    };
-
-    $("btnSkip").onclick = () => {
-      window.location.href = "hub.html";
-    };
-  </script>
 </body>
 </html>
