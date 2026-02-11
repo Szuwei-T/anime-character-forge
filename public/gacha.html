@@ -773,6 +773,27 @@ async function onlineGacha(opts = {}) {
   }
 }
 
+    function cardBackSrc(){
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="420" viewBox="0 0 300 420">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#141820"/>
+      <stop offset="1" stop-color="#0b0f14"/>
+    </linearGradient>
+    <radialGradient id="r" cx="50%" cy="40%" r="70%">
+      <stop offset="0" stop-color="#222a36" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#0b0f14" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect x="0" y="0" width="300" height="420" rx="24" fill="url(#g)"/>
+  <rect x="14" y="14" width="272" height="392" rx="18" fill="none" stroke="#2a3140" stroke-width="2" opacity="0.7"/>
+  <circle cx="150" cy="170" r="140" fill="url(#r)"/>
+  <path d="M70 250c35-55 125-55 160 0" fill="none" stroke="#2a3140" stroke-width="4" opacity="0.7" stroke-linecap="round"/>
+  <path d="M95 300c25-35 85-35 110 0" fill="none" stroke="#2a3140" stroke-width="3" opacity="0.55" stroke-linecap="round"/>
+</svg>`;
+      return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+    }
+
     function assetThumb(a){
       if(!a) return "/assets/placeholder.png";
       if(a.thumb) return a.thumb;
@@ -823,7 +844,7 @@ function renderGridDecoys(list){
         const img = document.createElement("img");
         img.loading = "eager";
         img.decoding = "async";
-        img.src = assetThumb(a);
+        img.src = (a && a.__faceDown) ? cardBackSrc() : assetThumb(a);
         const lab = document.createElement("div");
         lab.className = "label";
         lab.textContent = assetLabel(a);
@@ -976,6 +997,7 @@ function renderGridDecoys(list){
         for(let i=0;i<GRID_COUNT;i++) decoys.push({id:"unknown", rarity:1, thumb:"/assets/placeholder.png"});
       }
 
+      decoys.forEach(d=>{ if(d) d.__faceDown = true; });
       renderGridDecoys(decoys);
       // let browser paint
       overlay.offsetHeight;

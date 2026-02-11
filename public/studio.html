@@ -328,6 +328,16 @@
     pointer-events: none;
 }
 
+  /* ensure upgrade button is never dimmed/covered even when card is disabled */
+  .asset-item.disabled.can-upgrade{
+    opacity: 1 !important;
+    filter: none !important;
+  }
+  .asset-item.disabled.can-upgrade::after{
+    display: none !important; /* hide 不可選 overlay when upgrade available */
+  }
+
+
 
   /* Collection unlock FX */
   #collectionFx{
@@ -915,7 +925,7 @@ img.addEventListener("error", ()=>{
 });
         if(getSelectedId() === it.assetId) img.classList.add("active");
 
-        img.addEventListener("click", ()=>{ onSelect(it.assetId); rerender(); });
+        img.addEventListener("click", ()=>{ if(it._disabled) return; onSelect(it.assetId); rerender(); });
         img.addEventListener("mouseenter", (e)=>{
           const hs = (listImgUrl(it) || (it && it.imageUrl) || "");
           if(!hs) return;
@@ -931,6 +941,7 @@ img.addEventListener("error", ()=>{
           const stats = getAssetStats(it.assetId, count, invStars(it.assetId));
           const neededNum = (stats.stars >= 5) ? null : (stats.stars * 10);
           const canUpgrade = !!neededNum && stats.totalCount >= neededNum;
+          if(canUpgrade) wrap.classList.add('can-upgrade');
           
           // Count Badge (Top Right)
           const cBadge = document.createElement("div");
