@@ -773,27 +773,6 @@ async function onlineGacha(opts = {}) {
   }
 }
 
-    function cardBackSrc(){
-      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="420" viewBox="0 0 300 420">
-  <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#141820"/>
-      <stop offset="1" stop-color="#0b0f14"/>
-    </linearGradient>
-    <radialGradient id="r" cx="50%" cy="40%" r="70%">
-      <stop offset="0" stop-color="#222a36" stop-opacity="0.9"/>
-      <stop offset="1" stop-color="#0b0f14" stop-opacity="0"/>
-    </radialGradient>
-  </defs>
-  <rect x="0" y="0" width="300" height="420" rx="24" fill="url(#g)"/>
-  <rect x="14" y="14" width="272" height="392" rx="18" fill="none" stroke="#2a3140" stroke-width="2" opacity="0.7"/>
-  <circle cx="150" cy="170" r="140" fill="url(#r)"/>
-  <path d="M70 250c35-55 125-55 160 0" fill="none" stroke="#2a3140" stroke-width="4" opacity="0.7" stroke-linecap="round"/>
-  <path d="M95 300c25-35 85-35 110 0" fill="none" stroke="#2a3140" stroke-width="3" opacity="0.55" stroke-linecap="round"/>
-</svg>`;
-      return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
-    }
-
     function assetThumb(a){
       if(!a) return "/assets/placeholder.png";
       if(a.thumb) return a.thumb;
@@ -844,7 +823,7 @@ function renderGridDecoys(list){
         const img = document.createElement("img");
         img.loading = "eager";
         img.decoding = "async";
-        img.src = (a && a.__faceDown) ? cardBackSrc() : assetThumb(a);
+        img.src = assetThumb(a);
         const lab = document.createElement("div");
         lab.className = "label";
         lab.textContent = assetLabel(a);
@@ -882,20 +861,9 @@ function renderGridDecoys(list){
       frame.style.height = rect.height + "px";
     }
 
-    async function animateJumpGrid(pulled, isTen){
+    async function animateJumpGridToSlots(winnerSlots, winners, isTen){
       let rects = getGridCellRects();
       const framesCount = isTen ? 10 : 1;
-
-      // decide reward mapping: 10 pull last is red, prefer guarantee flag
-      let rewards = [];
-      if(isTen){
-        const guarantee = pulled.find(x => x && (x._guarantee || x.guarantee)) || pulled[pulled.length - 1];
-        const normals = pulled.filter(x => x !== guarantee).slice(0, 9);
-        while(normals.length < 9 && pulled[normals.length]) normals.push(pulled[normals.length]);
-        rewards = normals.slice(0,9).concat([guarantee]);
-      }else{
-        rewards = [pulled[0]];
-      }
 
       framesLayer.innerHTML = "";
       const frames = [];
@@ -910,7 +878,6 @@ function renderGridDecoys(list){
       let slots = pickUniqueIndices(GRID_COUNT, framesCount);
       for(let i=0;i<framesCount;i++){
         placeFrame(frames[i], rects[slots[i]]);
-        // retrigger small pop
         frames[i].classList.remove("jump");
         void frames[i].offsetWidth;
         frames[i].classList.add("jump");
@@ -925,19 +892,22 @@ function renderGridDecoys(list){
         rects = getGridCellRects();
         slots = pickUniqueIndices(GRID_COUNT, framesCount);
         for(let i=0;i<framesCount;i++){
-        placeFrame(frames[i], rects[slots[i]]);
-        // retrigger small pop
-        frames[i].classList.remove("jump");
-        void frames[i].offsetWidth;
-        frames[i].classList.add("jump");
-      }
+          placeFrame(frames[i], rects[slots[i]]);
+          frames[i].classList.remove("jump");
+          void frames[i].offsetWidth;
+          frames[i].classList.add("jump");
+        }
 
         if(s > steps*0.55) interval = Math.min(260, Math.round(interval*1.10 + 3));
       }
 
+      // Final: frames land on the already-decided winner slots
       await sleep(220);
       rects = getGridCellRects();
-      const finalSlots = pickUniqueIndices(GRID_COUNT, framesCount);
+
+      const finalSlots = Array.isArray(winnerSlots) ? winnerSlots.slice(0, framesCount) : [];
+      while(finalSlots.length < framesCount) finalSlots.push(0);
+
       for(let i=0;i<framesCount;i++){
         placeFrame(frames[i], rects[finalSlots[i]]);
         frames[i].classList.remove("jump");
@@ -946,62 +916,88 @@ function renderGridDecoys(list){
       }
 
       const cells = Array.from(grid32El.querySelectorAll(".cell"));
-      cells.forEach(c=>c.classList.remove("win","win2","red"));
+      cells.forEach(c=>c.classList.remove("win","win2","red","dim"));
+
+      // Highlight winners, dim others (no image swapping)
+      const winSet = new Set(finalSlots);
       finalSlots.forEach((slot, i)=>{
-        const reward = rewards[i];
         const cell = cells[slot];
-        if(!reward || !cell) return;
-        const img = cell.querySelector("img");
-        const lab = cell.querySelector(".label");
-        if(img) img.src = assetThumb(reward);
-        if(lab) lab.textContent = assetLabel(reward);
+        if(!cell) return;
         cell.classList.add("win");
         if(isTen && i === framesCount - 1) cell.classList.add("red");
         setTimeout(()=>cell.classList.add("win2"), 30);
       });
 
-      // Dim non-winning cards, keep winning frames visible on the winning cards
-      const winSet = new Set(finalSlots);
       cells.forEach((c, idx)=>{
         if(winSet.has(idx)) c.classList.remove("dim");
         else c.classList.add("dim");
       });
 
-      // Keep frames (gold/red) on winners
+      // Keep frames on winners
       frames.forEach(f=>f.classList.remove("fade"));
     }
 
-    async function prepareGridStage(opts={}){
+    async function buildGridWithPulled(pulled, opts={}){
       const assets = await ensureAssetsLoaded();
       const wantType = opts && opts.type ? normalizeType(opts.type) : null;
 
-      // 抽指定素材時：30 張格子全部只用同一種類的素材
+      // Decoy pool (never grants items): use /api/assets list filtered by type if requested
       let pool = Array.isArray(assets) ? assets.slice() : [];
       if(wantType){
         pool = pool.filter(a => normalizeType(a && a.type) === wantType);
       }
 
+      // Winners: what the backend actually granted (1 or 10)
+      const winners = Array.isArray(pulled) ? pulled.slice() : [];
+      const winnersCount = (Number(opts.count||1) === 10) ? 10 : 1;
+
+      // Normalize winners length
+      const finalWinners = winners.slice(0, winnersCount);
+      while(finalWinners.length < winnersCount && winners[finalWinners.length]) finalWinners.push(winners[finalWinners.length]);
+
+      // Build 20/29 decoys
+      const decoyCount = GRID_COUNT - winnersCount;
       const decoys = [];
       if(pool.length > 0){
-        if(pool.length >= GRID_COUNT){
-          const ids = pickUniqueIndices(pool.length, GRID_COUNT);
-          for(const idx of ids) decoys.push(pool[idx]);
-        }else{
-          // pool 不足 30：允許重複抽滿 30，但仍然只會出現同一種類
-          for(let i=0;i<GRID_COUNT;i++){
-            const idx = Math.floor(Math.random()*pool.length);
-            decoys.push(pool[idx]);
-          }
+        for(let i=0;i<decoyCount;i++){
+          decoys.push(pool[Math.floor(Math.random()*pool.length)]);
         }
       }else{
-        for(let i=0;i<GRID_COUNT;i++) decoys.push({id:"unknown", rarity:1, thumb:"/assets/placeholder.png"});
+        for(let i=0;i<decoyCount;i++) decoys.push({id:"unknown", rarity:1, thumb:"/assets/placeholder.png"});
       }
 
-      decoys.forEach(d=>{ if(d) d.__faceDown = true; });
-      renderGridDecoys(decoys);
+      // Place winners into random slots within the 30-grid
+      const winnerSlots = pickUniqueIndices(GRID_COUNT, winnersCount);
+      const grid = new Array(GRID_COUNT).fill(null);
+
+      // fill winners
+      for(let i=0;i<winnersCount;i++){
+        grid[winnerSlots[i]] = finalWinners[i] || {id:"unknown", rarity:1, thumb:"/assets/placeholder.png"};
+      }
+      // fill remaining with decoys
+      let di=0;
+      for(let i=0;i<GRID_COUNT;i++){
+        if(grid[i]) continue;
+        grid[i] = decoys[di++] || {id:"unknown", rarity:1, thumb:"/assets/placeholder.png"};
+      }
+
+      renderGridDecoys(grid);
+
+      // Clear any dim/frames state before animation
+      const cells = Array.from(grid32El.querySelectorAll(".cell"));
+      cells.forEach(c=>c.classList.remove("win","win2","red","dim"));
+
       // let browser paint
       overlay.offsetHeight;
       await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+
+      return { winnerSlots, winners: finalWinners };
+    }
+
+    async function prepareGridStage(opts={}){
+      // Backward-compatible wrapper (not used by the new flow)
+      const pulled = await onlineGacha(opts);
+      return buildGridWithPulled(pulled, opts);
     }
 
     async function startGacha(opts={}){
@@ -1011,16 +1007,23 @@ function renderGridDecoys(list){
       try{
         confirmBtn.classList.remove("show");
         showOverlay();
-        rollSub.textContent = "準備動畫";
-        await prepareGridStage(opts);
 
+        // 1) Get the real awarded cards first (backend decides)
         rollSub.textContent = "抽卡中";
         const pulled = await onlineGacha(opts);
         if(!pulled || pulled.length === 0) throw new Error("empty");
 
-        await animateJumpGrid(pulled, Number(opts.count||1) === 10);
+        // 2) Build the 30-card grid BEFORE animation:
+        //    30 cards include the 1/10 real rewards, plus decoys (from /api/assets) for visuals only
+        rollSub.textContent = "準備動畫";
+        const isTen = Number(opts.count||1) === 10;
+        const pack = await buildGridWithPulled(pulled, opts);
 
-        rollSub.textContent = Number(opts.count||1) === 10 ? "10連抽完成" : "抽卡完成";
+        // 3) Run animation but DO NOT change grid content; only land frames onto the pre-decided winners
+        rollSub.textContent = "抽卡中";
+        await animateJumpGridToSlots(pack.winnerSlots, pack.winners, isTen);
+
+        rollSub.textContent = isTen ? "10連抽完成" : "抽卡完成";
         confirmBtn.classList.add("show");
         animating = false;
       }catch(e){
