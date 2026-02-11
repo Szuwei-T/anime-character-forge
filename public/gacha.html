@@ -236,6 +236,34 @@
       box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
       max-height: 70vh;
     }
+
+    .loadCover{
+      position:absolute;
+      inset:0;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+      gap: 14px;
+      background: rgba(10,12,18,0.72);
+      backdrop-filter: blur(6px);
+      z-index: 5;
+    }
+    .loadCover.show{ display:flex; }
+    .loadCover .txt{
+      font-weight: 900;
+      letter-spacing: 0.8px;
+      opacity: 0.9;
+    }
+    .spinner{
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 4px solid rgba(255,255,255,0.18);
+      border-top-color: rgba(255,255,255,0.85);
+      animation: spin 0.9s linear infinite;
+    }
+    @keyframes spin{ to { transform: rotate(360deg); } }
     /* 32 格固定尺寸，保持卡片比例不變 */
     :root{
       --cardH: 140px;
@@ -458,47 +486,6 @@
       border-radius:10px;
       word-break: break-all;
     }
-
-  /* --- Gacha overlay status line --- */
-  .statusLine{
-    margin-top: 14px;
-    text-align:center;
-    font-weight: 800;
-    font-size: 28px;
-    letter-spacing: 2px;
-  }
-  .statusLine .sub{
-    display:inline-block;
-    margin-left: 14px;
-    font-size: 18px;
-    opacity: .75;
-    font-weight: 700;
-  }
-  /* deeper cover while loading next batch */
-  .overlay.loading::before{
-    content:"";
-    position:absolute;
-    inset:0;
-    background: rgba(0,0,0,.78);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    z-index: 0;
-  }
-  .overlay.loading .panel{ position: relative; z-index: 1; }
-  /* Non-winning cells: darker and very blurred */
-  .grid32 .cell.dim img{
-    filter: blur(16px) brightness(.35) saturate(.4) !important;
-    transform: scale(1.02);
-  }
-  .grid32 .cell.dim::after{
-    content:"";
-    position:absolute;
-    inset:0;
-    background: rgba(0,0,0,.55);
-    pointer-events:none;
-    border-radius: 14px;
-  }
-
 </style>
 </head>
 <body>
@@ -589,9 +576,11 @@
 
   <div class="overlay" id="overlay">
     <div class="panel">
+      <h3>抽卡中 <span class="sub" id="rollSub">連線中</span></h3>
       <div class="gacha-stage">
         <div class="grid32" id="grid32"></div>
         <div class="framesLayer" id="framesLayer"></div>
+        <div class="loadCover" id="loadCover"><div class="spinner"></div><div class="txt" id="loadTxt">載入中</div></div>
       </div>
       <div class="footer">
         <button class="confirm" id="confirmBtn">確認</button>
@@ -685,8 +674,35 @@ async function loadFeaturedVideo(){
     const overlay = document.getElementById("overlay");
     const grid32El = document.getElementById("grid32");
     const framesLayer = document.getElementById("framesLayer");
+    const loadCover = document.getElementById("loadCover");
+    const loadTxt = document.getElementById("loadTxt");
     const rollSub = document.getElementById("rollSub");
     const confirmBtn = document.getElementById("confirmBtn");
+
+    function showLoad(msg){
+      if(loadTxt) loadTxt.textContent = msg || "載入中";
+      if(loadCover) loadCover.classList.add("show");
+    }
+    function hideLoad(){
+      if(loadCover) loadCover.classList.remove("show");
+    }
+    function preloadImages(urls, timeoutMs=8000){
+      const uniq = Array.from(new Set((urls||[]).filter(Boolean)));
+      if(uniq.length === 0) return Promise.resolve();
+      return new Promise((resolve)=>{
+        let done = 0;
+        const total = uniq.length;
+        const finish = ()=>{ done++; if(done>=total) resolve(); };
+        setTimeout(()=>resolve(), timeoutMs);
+        uniq.forEach(u=>{
+          const img = new Image();
+          img.onload = finish;
+          img.onerror = finish;
+          img.src = u;
+        });
+      });
+    }
+
 
     const btnNormal1 = document.getElementById("btnNormal1");
     const btnNormal10 = document.getElementById("btnNormal10");
@@ -742,117 +758,6 @@ async function loadFeaturedVideo(){
       return asset.imageUrl;
     }
 
-    
-    // --- Robust API helper (works with window.api or direct fetch) ---
-    async function api(path, opts={}){
-      const method = (opts.method || "GET").toUpperCase();
-      const headers = Object.assign({}, opts.headers || {});
-      let body = opts.body;
-
-      // auto add x-user-id if we can detect (keeps inventory consistent)
-      try{
-        const uid = (localStorage.getItem("uid") || localStorage.getItem("userId") || window.USER_ID || "").toString().trim();
-        if(uid && !headers["x-user-id"]) headers["x-user-id"] = uid;
-      }catch(_){}
-
-      if(body !== undefined && body !== null && method !== "GET"){
-        headers["content-type"] = headers["content-type"] || "application/json";
-        body = (typeof body === "string") ? body : JSON.stringify(body);
-      }else{
-        body = undefined;
-      }
-
-      const parse = async (r)=>{
-        if(r && typeof r.json === "function") return await r.json();
-        // window.api may already return JSON
-        if(r && typeof r === "object") return r;
-        return null;
-      };
-
-      // 1) Prefer window.api if provided (often routes to Worker correctly)
-      if(typeof window.api === "function"){
-        try{
-          const r = await window.api(path, { method, headers, body });
-          const data = await parse(r);
-          if(data) return data;
-        }catch(_){}
-      }
-
-      // 2) Try same-origin fetch
-      try{
-        const res = await fetch(path, { method, headers, body, cache:"no-store" });
-        const data = await res.json().catch(()=>null);
-        if(res.ok) return data;
-        throw new Error(`http_${res.status}`);
-      }catch(e){
-        // 3) Try pages -> workers inference
-        try{
-          const host = location.host;
-          let workerHost = "";
-          if(host.endsWith(".pages.dev")) workerHost = host.replace(".pages.dev", ".workers.dev");
-          if(workerHost){
-            const url = `https://${workerHost}${path}`;
-            const res2 = await fetch(url, { method, headers, body, cache:"no-store" });
-            const data2 = await res2.json().catch(()=>null);
-            if(res2.ok) return data2;
-          }
-        }catch(_){}
-        throw e;
-      }
-    }
-
-    // --- Build a single 30-card run where winners are already placed in the grid ---
-    function normalizeType(t){
-      t = String(t||"").trim().toLowerCase();
-      if(t === "background") t = "bg";
-      return t;
-    }
-    function requestType(t){
-      // UI sends background, backend accepts background->bg and also addon aliases
-      t = String(t||"").trim().toLowerCase();
-      if(t === "background") return "background";
-      return t;
-    }
-
-    async function preloadImages(urls){
-      const unique = Array.from(new Set(urls.filter(Boolean)));
-      await Promise.all(unique.map(u=>new Promise(res=>{
-        const img = new Image();
-        img.onload = ()=>res();
-        img.onerror = ()=>res();
-        img.src = u;
-      })));
-    }
-
-    function buildRunGrid(allAssets, rewards, wantType){
-      const isTen = rewards.length === 10;
-      const framesCount = isTen ? 10 : 1;
-
-      let pool = Array.isArray(allAssets) ? allAssets.slice() : [];
-      if(wantType){
-        pool = pool.filter(a => normalizeType(a && a.type) === wantType);
-      }
-
-      const winnerSlots = pickUniqueIndices(GRID_COUNT, framesCount);
-      const gridCards = new Array(GRID_COUNT);
-
-      // Fill with pool (allow repeats) then overwrite winners
-      for(let i=0;i<GRID_COUNT;i++){
-        if(pool.length){
-          gridCards[i] = pool[Math.floor(Math.random()*pool.length)];
-        }else{
-          gridCards[i] = {id:"unknown", rarity:1, thumb:"/assets/placeholder.png"};
-        }
-      }
-      // Place rewards
-      for(let i=0;i<framesCount;i++){
-        gridCards[winnerSlots[i]] = rewards[i];
-      }
-
-      return { gridCards, winnerSlots, isTen };
-    }
-
-
     async function ensureAssetsLoaded(){
       if(cachedAssets) return cachedAssets;
       const data = await api("/api/assets");
@@ -862,17 +767,67 @@ async function loadFeaturedVideo(){
       }
       throw new Error("assets_load_failed");
     }
-async function onlineGacha(opts={}){
-      const body = {
-        count: Number(opts.count || 1),
-        premium: !!opts.premium,
-        type: opts.type ? requestType(opts.type) : undefined,
-        seasonId: String(opts.seasonId || "S1")
-      };
-      const data = await api("/api/gacha", { method:"POST", body });
-      if(!data || !data.ok || !Array.isArray(data.pulled)) throw new Error("gacha_failed");
-      return data.pulled;
+async function onlineGacha(opts = {}) {
+  // Use the same routing as the rest of the project:
+  // - If app.js provides window.api(), it likely routes to the Worker origin.
+  // - Otherwise fall back to same-origin fetch.
+  const apiFetch = (url, fetchOpts) => {
+    if (typeof window.api === "function") return window.api(url, fetchOpts);
+    return fetch(url, fetchOpts);
+  };
+
+  const payload = {
+    count: Number(opts.count || 1),
+    premium: !!opts.premium,
+    type: opts.type ? requestType(opts.type) : undefined,
+    seasonId: String(opts.seasonId || "S1"),
+  };
+
+  const headers = { "content-type": "application/json" };
+
+  // Try to attach uid if we can find it (keeps behavior consistent with other pages)
+  const uidCandidates = [
+    window.USER_ID,
+    window.userId,
+    window.uid,
+    (typeof window.getUserId === "function" ? window.getUserId() : ""),
+    (typeof window.getUid === "function" ? window.getUid() : ""),
+    localStorage.getItem("uid"),
+    localStorage.getItem("userId"),
+    localStorage.getItem("USER_ID"),
+  ];
+  for (const v of uidCandidates) {
+    const s = String(v || "").trim();
+    if (s && s !== "null" && s !== "undefined") { headers["x-user-id"] = s; break; }
+  }
+
+  const resp = await apiFetch("/api/gacha", {
+    method: "POST",
+    headers,
+    body: JSON.stringify(payload),
+  });
+
+  // Some wrappers may return JSON directly instead of a Response.
+  const isResponseLike = resp && typeof resp === "object" && ("ok" in resp) && typeof resp.json === "function";
+  if (isResponseLike) {
+    if (!resp.ok) throw new Error(`gacha_http_${resp.status}`);
+    const data = await resp.json();
+    if (!data || !data.ok || !Array.isArray(data.pulled)) throw new Error("gacha_failed");
+    if (opts.type) {
+      const want = String(requestType(opts.type)).toLowerCase();
+      data.pulled = data.pulled.filter((a) => String(a?.type || "").toLowerCase() === want);
     }
+    return data.pulled;
+  } else {
+    const data = resp; // already JSON
+    if (!data || !data.ok || !Array.isArray(data.pulled)) throw new Error("gacha_failed");
+    if (opts.type) {
+      const want = String(requestType(opts.type)).toLowerCase();
+      data.pulled = data.pulled.filter((a) => String(a?.type || "").toLowerCase() === want);
+    }
+    return data.pulled;
+  }
+}
 
     function assetThumb(a){
       if(!a) return "/assets/placeholder.png";
@@ -962,11 +917,9 @@ function renderGridDecoys(list){
       frame.style.height = rect.height + "px";
     }
 
-    
-    async function animateJumpGrid(run){
-      const isTen = !!run.isTen;
-      const framesCount = isTen ? 10 : 1;
+    async function animateJumpGridToSlots(winnerSlots, winners, isTen){
       let rects = getGridCellRects();
+      const framesCount = isTen ? 10 : 1;
 
       framesLayer.innerHTML = "";
       const frames = [];
@@ -991,6 +944,7 @@ function renderGridDecoys(list){
 
       for(let s=0;s<steps;s++){
         await sleep(interval);
+
         rects = getGridCellRects();
         slots = pickUniqueIndices(GRID_COUNT, framesCount);
         for(let i=0;i<framesCount;i++){
@@ -999,14 +953,17 @@ function renderGridDecoys(list){
           void frames[i].offsetWidth;
           frames[i].classList.add("jump");
         }
+
         if(s > steps*0.55) interval = Math.min(260, Math.round(interval*1.10 + 3));
       }
 
+      // Final: frames land on the already-decided winner slots
       await sleep(220);
       rects = getGridCellRects();
 
-      // FINAL: land on the predetermined winner slots (no swapping content)
-      const finalSlots = run.winnerSlots.slice(0, framesCount);
+      const finalSlots = Array.isArray(winnerSlots) ? winnerSlots.slice(0, framesCount) : [];
+      while(finalSlots.length < framesCount) finalSlots.push(0);
+
       for(let i=0;i<framesCount;i++){
         placeFrame(frames[i], rects[finalSlots[i]]);
         frames[i].classList.remove("jump");
@@ -1017,12 +974,8 @@ function renderGridDecoys(list){
       const cells = Array.from(grid32El.querySelectorAll(".cell"));
       cells.forEach(c=>c.classList.remove("win","win2","red","dim"));
 
+      // Highlight winners, dim others (no image swapping)
       const winSet = new Set(finalSlots);
-      cells.forEach((c, idx)=>{
-        if(winSet.has(idx)) c.classList.remove("dim");
-        else c.classList.add("dim");
-      });
-
       finalSlots.forEach((slot, i)=>{
         const cell = cells[slot];
         if(!cell) return;
@@ -1031,24 +984,84 @@ function renderGridDecoys(list){
         setTimeout(()=>cell.classList.add("win2"), 30);
       });
 
-      // Keep frames visible on winners
-      frames.forEach((f, i)=>{
-        f.style.display = "block";
+      cells.forEach((c, idx)=>{
+        if(winSet.has(idx)) c.classList.remove("dim");
+        else c.classList.add("dim");
       });
+
+      // Keep frames on winners
+      frames.forEach(f=>f.classList.remove("fade"));
     }
 
+    async function buildGridWithPulled(pulled, opts={}){
+      const assets = await ensureAssetsLoaded();
+      const wantType = opts && opts.type ? normalizeType(opts.type) : null;
 
-    
-    async function prepareGridStage(opts={}){
-      // We now render the full 30-card batch from a single prepared run before animation starts.
-      // This function remains to keep existing flow, but it only ensures the grid container exists.
-      if(!grid32El) return;
-      const blank = Array.from({length: GRID_COUNT}).map(()=>({id:"", rarity:1, thumb:"/assets/placeholder.png"}));
-      renderGridDecoys(blank);
+      // Decoy pool (never grants items): use /api/assets list filtered by type if requested
+      let pool = Array.isArray(assets) ? assets.slice() : [];
+      if(wantType){
+        pool = pool.filter(a => normalizeType(a && a.type) === wantType);
+      }
+
+      // Winners: what the backend actually granted (1 or 10)
+      const winners = Array.isArray(pulled) ? pulled.slice() : [];
+      const winnersCount = (Number(opts.count||1) === 10) ? 10 : 1;
+
+      // Normalize winners length
+      const finalWinners = winners.slice(0, winnersCount);
+      while(finalWinners.length < winnersCount && winners[finalWinners.length]) finalWinners.push(winners[finalWinners.length]);
+
+      // Build 20/29 decoys
+      const decoyCount = GRID_COUNT - winnersCount;
+      const decoys = [];
+      if(pool.length > 0){
+        for(let i=0;i<decoyCount;i++){
+          decoys.push(pool[Math.floor(Math.random()*pool.length)]);
+        }
+      }else{
+        for(let i=0;i<decoyCount;i++) decoys.push({id:"unknown", rarity:1, thumb:"/assets/placeholder.png"});
+      }
+
+      // Place winners into random slots within the 30-grid
+      const winnerSlots = pickUniqueIndices(GRID_COUNT, winnersCount);
+      const grid = new Array(GRID_COUNT).fill(null);
+
+      // fill winners
+      for(let i=0;i<winnersCount;i++){
+        grid[winnerSlots[i]] = finalWinners[i] || {id:"unknown", rarity:1, thumb:"/assets/placeholder.png"};
+      }
+      // fill remaining with decoys
+      let di=0;
+      for(let i=0;i<GRID_COUNT;i++){
+        if(grid[i]) continue;
+        grid[i] = decoys[di++] || {id:"unknown", rarity:1, thumb:"/assets/placeholder.png"};
+      }
+
+      // Preload thumbs before showing new 30 cards so previous pack never flashes
+      try{
+        const urls = grid.map(a=>assetThumb(a));
+        await preloadImages(urls, 8000);
+      }catch(_){}
+
+      renderGridDecoys(grid);
+      hideLoad();
+
+      // Clear any dim/frames state before animation
+      const cells = Array.from(grid32El.querySelectorAll(".cell"));
+      cells.forEach(c=>c.classList.remove("win","win2","red","dim"));
+
+      // let browser paint
       overlay.offsetHeight;
       await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+
+      return { winnerSlots, winners: finalWinners };
     }
 
+    async function prepareGridStage(opts={}){
+      // Backward-compatible wrapper (not used by the new flow)
+      const pulled = await onlineGacha(opts);
+      return buildGridWithPulled(pulled, opts);
+    }
 
     async function startGacha(opts={}){
       if(animating) return;
@@ -1057,20 +1070,30 @@ function renderGridDecoys(list){
       try{
         confirmBtn.classList.remove("show");
         showOverlay();
-        rollSub.textContent = "準備動畫";
-        await prepareGridStage(opts);
+        // Cover previous 30 cards until the new 30 cards are fully loaded
+        showLoad("載入中");
 
+        // 1) Get the real awarded cards first (backend decides)
         rollSub.textContent = "抽卡中";
         const pulled = await onlineGacha(opts);
         if(!pulled || pulled.length === 0) throw new Error("empty");
 
-        await animateJumpGrid(pulled, Number(opts.count||1) === 10);
+        // 2) Build the 30-card grid BEFORE animation:
+        //    30 cards include the 1/10 real rewards, plus decoys (from /api/assets) for visuals only
+        rollSub.textContent = "準備動畫";
+        const isTen = Number(opts.count||1) === 10;
+        const pack = await buildGridWithPulled(pulled, opts);
 
-        rollSub.textContent = Number(opts.count||1) === 10 ? "10連抽完成" : "抽卡完成";
+        // 3) Run animation but DO NOT change grid content; only land frames onto the pre-decided winners
+        rollSub.textContent = "抽卡中";
+        await animateJumpGridToSlots(pack.winnerSlots, pack.winners, isTen);
+
+        rollSub.textContent = isTen ? "10連抽完成" : "抽卡完成";
         confirmBtn.classList.add("show");
         animating = false;
       }catch(e){
         console.error(e);
+        hideLoad();
         rollSub.textContent = "抽卡失敗";
         toast("抽卡失敗");
         confirmBtn.classList.add("show");
