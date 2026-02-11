@@ -80,7 +80,7 @@
       50%{ transform: translateY(-10px) scale(1.01); }
       100%{ transform: translateY(0) scale(1); }
     }
-    .featureStage img{
+    .featureStage img, .featureStage video{
       width: 96%;
       height: 96%;
       object-fit: contain;
@@ -225,140 +225,95 @@
       font-size:14px;
       font-weight:800;
     }
-    
-    
     .gacha-stage{
+      margin-top: 16px;
+      height: 190px;
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
       position:relative;
-      padding:18px;
-      border-radius:18px;
-      background: rgba(255,255,255,0.05);
       overflow:hidden;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
-      max-height: 70vh;
     }
-    /* 32 格固定尺寸，保持卡片比例不變 */
-    :root{
-      --cardH: 140px;
-      --cardW: 93px; /* 約 2:3 */
-      --gridGap: 10px;
+
+    .gacha-stage.single{ height: 190px; }
+
+    .ten-stage{
+      margin-top: 16px;
+      display:flex;
+      flex-direction:column;
+      gap: 10px;
     }
-    @media (max-width: 940px){
-      :root{ --cardH: 120px; --cardW: 80px; }
-    }
-    .grid32{
-      position:relative;
+    .reelRow{
       display:grid;
-      grid-template-columns: repeat(10, var(--cardW));
-      grid-auto-rows: var(--cardH);
-      gap: var(--gridGap);
-      justify-content:center;
-      align-content:center;
-      width: 100%;
+      grid-template-columns: 64px 1fr;
+      gap: 10px;
+      align-items:center;
     }
-    .framesLayer{
-      position:absolute;
-      left:18px;
-      right:18px;
-      top:18px;
-      bottom:18px;
-      pointer-events:none;
+    .reelLabel{
+      font-weight: 950;
+      letter-spacing:0.3px;
+      opacity:0.85;
+      text-align:right;
+      font-size: 13px;
     }
-    .cell{
+    .reelViewport{
       position:relative;
-      border-radius:14px;
-      background: rgba(0,0,0,0.20);
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
+      height: 142px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
       overflow:hidden;
-      transform: translateZ(0);
     }
-    .thumbWrap{
+    .slotWrap{
       position:absolute;
       inset:0;
-    }
-    .cell img{
-      width:100%;
-      height:100%;
-      object-fit:contain;
-      display:block;
-      background: rgba(0,0,0,0.30);
-      filter: saturate(0.95) contrast(1.05);
-      opacity:0.98;
-      transform: scale(1);
-      transition: transform 220ms ease, filter 220ms ease;
-    }
-    .cell.win img{
-      transform: scale(1.10);
-      filter: saturate(1.15) contrast(1.12) brightness(1.06);
-    }
-    .cell.win::after{
-      content:"";
-      position:absolute;
-      inset:0;
-      border-radius:14px;
-      box-shadow: 0 0 0 2px rgba(255,215,0,0.95), 0 0 18px rgba(255,215,0,0.35);
+      display:flex;
+      align-items:center;
+      justify-content:center;
       pointer-events:none;
     }
-    .cell.win.red::after{
-      box-shadow: 0 0 0 2px rgba(255,80,80,0.98), 0 0 20px rgba(255,80,80,0.45);
+    .slots{
+      display:flex;
+      gap:12px;
+      align-items:center;
+      justify-content:center;
     }
-
-    .cell .label{
-      position:absolute;
-      left:8px;
-      bottom:7px;
-      font-size:11px;
-      font-weight:800;
-      letter-spacing:0.2px;
-      padding:3px 7px;
-      border-radius:999px;
-      background: rgba(0,0,0,0.45);
-      color: rgba(255,255,255,0.86);
-      max-width: calc(100% - 16px);
-      overflow:hidden;
-      text-overflow:ellipsis;
-      white-space:nowrap;
+    .slots.three{
+      width: calc(124px * 3 + 12px * 2);
+      height: 124px;
     }
-    .framesLayer{position:absolute;left:18px;right:18px;top:18px;bottom:18px;pointer-events:none;}
-    .jump-frame{
-      position:absolute;
+    .slots.one{
+      width: 124px;
+      height: 124px;
+    }
+    .slot{
+      width:124px;
+      height:124px;
       border-radius:14px;
-      box-sizing:border-box;
-      width:50px;
-      height:50px;
-      transform: translateZ(0);
-      transition: none;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.10);
+      background: rgba(0,0,0,0.08);
+    }
+    .slot.gold{
+      box-shadow:
+        0 0 0 2px rgba(255,214,102,0.95),
+        0 0 40px 10px rgba(255,214,102,0.30),
+        inset 0 0 0 1px rgba(255,255,255,0.10);
+      background:
+        radial-gradient(circle at 30% 25%, rgba(255,255,255,0.16), transparent 45%),
+        radial-gradient(circle at 70% 80%, rgba(255,214,102,0.16), transparent 55%);
+    }
+    .slot.rainbow{
+      box-shadow:
+        0 0 0 2px rgba(180,120,255,0.95),
+        0 0 40px 10px rgba(255,120,180,0.25),
+        inset 0 0 0 1px rgba(255,255,255,0.12);
+      background:
+        radial-gradient(circle at 30% 25%, rgba(255,255,255,0.18), transparent 45%),
+        radial-gradient(circle at 70% 80%, rgba(255,120,180,0.18), transparent 55%),
+        radial-gradient(circle at 50% 50%, rgba(120,220,255,0.16), transparent 60%);
     }
 
-    .jump-frame.jump{
-      animation: framePop 120ms ease-out;
-    }
-    @keyframes framePop{
-      0%{ transform: scale(0.98); }
-      60%{ transform: scale(1.02); }
-      100%{ transform: scale(1); }
-    }
-    .jump-frame.gold{
-      border:3px solid rgba(255, 215, 0, 0.95);
-      box-shadow: 0 0 16px rgba(255,215,0,0.35);
-    }
-    .jump-frame.red{
-      border:3px solid rgba(255, 70, 90, 0.98);
-      box-shadow: 0 0 20px rgba(255,70,90,0.55);
-      filter: brightness(1.15);
-    }
-    .jump-frame.fade{
-      opacity:0;
-      transition: opacity 180ms ease;
-    }
-    .cell.win{
-      box-shadow: 0 0 0 2px rgba(255,255,255,0.10), 0 0 22px rgba(255,255,255,0.12);
-    }
-    .cell.win2{
-      transform: scale(1.06);
-      box-shadow: 0 0 0 2px rgba(255,255,255,0.14), 0 0 26px rgba(255,255,255,0.16);
-      transition: transform 180ms ease, box-shadow 180ms ease;
-    }
-.belt{
+    .belt{
       position:absolute;
       top:50%;
       left:0;
@@ -461,9 +416,8 @@
             <span style="opacity:0.8">feature</span>
           </div>
           <div class="featureStage">
-  <video id="featuredVideo" muted autoplay loop playsinline></video>
-  <img id="featuredFallback" src="assets/feature_character.png" alt="" style="display:none;">
-</div>
+            <video id="featuredVideo" class="featuredVideo" autoplay loop muted playsinline></video>
+          </div>
         </div>
 
         <div class="bottomGrid">
@@ -529,6 +483,11 @@
           <div class="title"><span>抽特效2</span><span style="opacity:0.7;font-weight:800">addon2</span></div>
           <div class="miniRow">
             <button class="btn gray small" id="btnAddon21">1次</button>
+
+        <div class="sideCard">
+          <div class="title"><span>Debug</span><span style="opacity:0.7;font-weight:800">featured</span></div>
+          <div class="debugBox" id="featuredDebug">loading...</div>
+        </div>
             <button class="btn gray small" id="btnAddon210">10次</button>
           </div>
         </div>
@@ -539,9 +498,65 @@
   <div class="overlay" id="overlay">
     <div class="panel">
       <h3>抽卡中 <span class="sub" id="rollSub">連線中</span></h3>
-      <div class="gacha-stage">
-        <div class="grid32" id="grid32"></div>
-        <div class="framesLayer" id="framesLayer"></div>
+      <div class="gacha-stage single" id="singleStage">
+        <div class="belt" id="belt"></div>
+        <div class="marker"></div>
+      </div>
+
+      <div class="ten-stage" id="tenStage">
+        <div class="reelRow">
+          <div class="reelLabel">保底</div>
+          <div class="reelViewport one" data-reel="G">
+            <div class="belt" id="beltG"></div>
+            <div class="slotWrap one">
+              <div class="slots one">
+                <div class="slot rainbow"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="reelRow">
+          <div class="reelLabel">抽卡</div>
+          <div class="reelViewport three" data-reel="A">
+            <div class="belt" id="beltA"></div>
+            <div class="slotWrap three">
+              <div class="slots three">
+                <div class="slot gold"></div>
+                <div class="slot gold"></div>
+                <div class="slot gold"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="reelRow">
+          <div class="reelLabel">抽卡</div>
+          <div class="reelViewport three" data-reel="B">
+            <div class="belt" id="beltB"></div>
+            <div class="slotWrap three">
+              <div class="slots three">
+                <div class="slot gold"></div>
+                <div class="slot gold"></div>
+                <div class="slot gold"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="reelRow">
+          <div class="reelLabel">抽卡</div>
+          <div class="reelViewport three" data-reel="C">
+            <div class="belt" id="beltC"></div>
+            <div class="slotWrap three">
+              <div class="slots three">
+                <div class="slot gold"></div>
+                <div class="slot gold"></div>
+                <div class="slot gold"></div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="footer">
         <button class="confirm" id="confirmBtn">確認</button>
@@ -551,55 +566,8 @@
 
   <script src="app.js"></script>
   <script>
-
-    // featured video: load from DB season featured table
-    async function loadFeaturedVideo(){
-      const v = document.getElementById("featuredVideo");
-      const img = document.getElementById("featuredFallback");
-      if(!v) return;
-
-      // if video fails to load, fallback to image
-      v.onerror = ()=>{
-        v.style.display = "none";
-        if(img) img.style.display = "";
-      };
-
-      try{
-        const seasonId = (window.SEASON_ID || "S1");
-        const res = await fetch(`/api/featured?seasonId=${encodeURIComponent(seasonId)}`, { cache: "no-store" });
-        if(!res.ok) throw new Error(`featured ${res.status}`);
-
-        const ct = (res.headers.get("content-type") || "").toLowerCase();
-        if(!(ct.includes("application/json") || ct.includes("+json"))){
-          // many hosts return an HTML 404 page; don't try to JSON.parse it
-          const t = await res.text();
-          throw new Error(`featured not json: ${t.slice(0, 60)}`);
-        }
-
-        const data = await res.json();
-        const list = (data && (data.featured || data.items || data.data || data)) || [];
-        const first = Array.isArray(list) ? list[0] : null;
-        const fid = first && (first.featuredId || first.id || first.assetId || first.featured_id);
-        if(!fid) throw new Error("no featuredId");
-
-        const src = `/assets/${fid}.mp4`;
-        v.src = src;
-        v.style.display = "";
-        if(img) img.style.display = "none";
-
-        // autoplay may be blocked, but muted autoplay usually works
-        v.play().catch(()=>{});
-      }catch(e){
-        console.warn("featured video load failed", e);
-        v.style.display = "none";
-        if(img) img.style.display = "";
-      }
-    }
-  
-
     const overlay = document.getElementById("overlay");
-    const grid32El = document.getElementById("grid32");
-    const framesLayer = document.getElementById("framesLayer");
+    const belt = document.getElementById("belt");
     const rollSub = document.getElementById("rollSub");
     const confirmBtn = document.getElementById("confirmBtn");
 
@@ -622,15 +590,22 @@
     let animating = false;
     let cachedAssets = null;
 
+    const SEASON_ID = "S1";
+
+    const singleStage = document.getElementById("singleStage");
+    const tenStage = document.getElementById("tenStage");
+
+    const beltG = document.getElementById("beltG");
+    const beltA = document.getElementById("beltA");
+    const beltB = document.getElementById("beltB");
+    const beltC = document.getElementById("beltC");
+
     function showOverlay(){ overlay.classList.add("show"); }
-    function hideOverlay(){
-      overlay.classList.remove("show");
-      // reset overlay state
-      framesLayer.innerHTML = "";
-      grid32El.querySelectorAll(".cell").forEach(c=>c.classList.remove("dim","win","win2","red"));
-    }
+    function hideOverlay(){ overlay.classList.remove("show"); }
 
     confirmBtn.addEventListener("click", () => hideOverlay());
+
+    loadFeatured();
 
     function normalizeType(t){
       const x = String(t||"");
@@ -647,6 +622,49 @@
       return x;
     }
 
+
+async function loadFeatured(){
+  const dbg = document.getElementById("featuredDebug");
+  try{
+    const data = await api(`/api/featured?seasonId=${encodeURIComponent(SEASON_ID)}`);
+    const list = data && data.ok && Array.isArray(data.featured) ? data.featured : [];
+    if(dbg){
+      if(list.length === 0){
+        dbg.textContent = `seasonId=${SEASON_ID}
+(no featured rows)`;
+      }else{
+        const lines = [];
+        lines.push(`seasonId=${data.seasonId || SEASON_ID}`);
+        lines.push(`count=${list.length}`);
+        lines.push("");
+        for(const it of list){
+          const id = String(it.featuredId || it.assetId || it.id || "").trim();
+          const type = String(it.type || "");
+          const vurl = it.videoUrl ? String(it.videoUrl) : (id ? `/assets/${id}.mp4` : "");
+          lines.push(`${id}${type ? "  ["+type+"]" : ""}`);
+          if(vurl) lines.push(`  ${vurl}`);
+        }
+        dbg.textContent = lines.join("\n");
+      }
+    }
+    if(list.length === 0) return;
+    const fid = String(list[0].featuredId || list[0].assetId || list[0].id || "").trim();
+    if(!fid) return;
+
+    const v = document.getElementById("featuredVideo");
+    if(!v) return;
+    v.src = `/assets/${fid}.mp4`;
+    v.load();
+    v.play().catch(() => {});
+  }catch(e){
+    if(dbg){
+      dbg.textContent = `seasonId=${SEASON_ID}
+error=${String(e?.message || e)}`;
+    }
+  }
+}
+
+
     function toThumbIfNeeded(asset){
       if(!asset || !asset.imageUrl) return "";
       const t = String(asset.type || "");
@@ -657,219 +675,162 @@
       return asset.imageUrl;
     }
 
+    function randPick(arr){
+      if(!Array.isArray(arr) || arr.length === 0) return null;
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function pickFiller(opts={}){
+      const assets = cachedAssets || [];
+      if(assets.length === 0) return null;
+
+      let pool = assets;
+
+      if(opts.type){
+        const t = String(opts.type);
+        pool = pool.filter(a => String(a.type||"") === t);
+        if(pool.length === 0) pool = assets;
+      }
+
+      // 盡量讓 filler 的稀有度看起來合理，但不需要完全一致
+      return randPick(pool);
+    }
+
     async function ensureAssetsLoaded(){
       if(cachedAssets) return cachedAssets;
       const data = await api("/api/assets");
-      if(data && data.ok && Array.isArray(data.assets)){
-        cachedAssets = data.assets;
-        return cachedAssets;
+      if(!data || !data.ok || !Array.isArray(data.assets) || data.assets.length === 0){
+        throw new Error("assets_fetch_failed");
       }
-      throw new Error("assets_load_failed");
+      cachedAssets = data.assets.map(a => ({
+        assetId: a.assetId,
+        type: normalizeType(a.type),
+        rarity: Number(a.rarity||1),
+        imageUrl: a.imageUrl || ""
+      }));
+      return cachedAssets;
     }
-async function onlineGacha(opts={}){
-      const body = {
-        count: Number(opts.count || 1),
+
+    async function onlineGacha(opts={}){
+      const payload = {
+        rolls: Number(opts.count || 1),
         premium: !!opts.premium,
-        type: opts.type ? requestType(opts.type) : undefined,
-        seasonId: String(opts.seasonId || "S1")
+        type: (opts.type ? requestType(opts.type) : "")
+              ,
+        seasonId: SEASON_ID
       };
-      const data = await api("/api/gacha", { method:"POST", body });
-      if(!data || !data.ok || !Array.isArray(data.pulled)) throw new Error("gacha_failed");
-      return data.pulled;
+      const data = await api("/api/gacha", { method:"POST", body: JSON.stringify(payload) });
+      if(!data || !data.ok) throw new Error(String(data?.error || "gacha_failed"));
+
+      const list = data.pulled || data.results || [];
+      if(!Array.isArray(list) || list.length === 0) throw new Error("empty_result");
+
+      return list.map(r => ({
+        assetId: r.assetId,
+        type: normalizeType(r.type),
+        rarity: Number(r.rarity || 1),
+        imageUrl: r.imageUrl || "",
+        guarantee: !!r._guarantee
+      }));
     }
 
-    function assetThumb(a){
-      if(!a) return "/assets/placeholder.png";
-      if(a.thumb) return a.thumb;
-      if(a.imageUrl) return toThumbIfNeeded(a);
-      if(a.id) return `/assets/${a.id}.png`;
-      return "/assets/placeholder.png";
-    }
+    function createCardEl(item){
+      const div = document.createElement("div");
+      div.className = "card";
+      const src = toThumbIfNeeded(item);
 
-    function assetLabel(a){
-      if(!a) return "";
-      const id = a.id || a.assetId || "";
-      const r = Number(a.rarity || 1);
-      return `${id}  R${r}`;
-    }
+      const img = document.createElement("img");
+      img.src = src;
+      img.alt = "";
 
-    function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
+      const dbg = document.createElement("div");
+      dbg.className = "broken-debug";
+      dbg.style.display = "none";
+      dbg.textContent = `broken | ${item.type} | ${item.assetId} | ⭐${item.rarity} | ${src}`;
 
-    function pickUniqueIndices(n, k){
-      const out = [];
-      const used = new Set();
-      while(out.length < k && used.size < n){
-        const x = Math.floor(Math.random()*n);
-        if(used.has(x)) continue;
-        used.add(x);
-        out.push(x);
-      }
-      // fallback deterministic fill
-      for(let i=0; out.length<k && i<n; i++){
-        if(!used.has(i)){ used.add(i); out.push(i); }
-      }
-      return out;
-    }
-
-    
-    const GRID_ROWS = 3;
-    const GRID_COLS = 10;
-    const GRID_COUNT = GRID_ROWS * GRID_COLS; // 30
-
-function renderGridDecoys(list){
-      grid32El.innerHTML = "";
-      const frag = document.createDocumentFragment();
-      for(let i=0;i<GRID_COUNT;i++){
-        const a = list[i] || {id:"unknown", rarity:1, thumb:"/assets/placeholder.png"};
-        const cell = document.createElement("div");
-        cell.className = "cell";
-        const wrap = document.createElement("div");
-        wrap.className = "thumbWrap";
-        const img = document.createElement("img");
-        img.loading = "eager";
-        img.decoding = "async";
-        img.src = assetThumb(a);
-        const lab = document.createElement("div");
-        lab.className = "label";
-        lab.textContent = assetLabel(a);
-        wrap.appendChild(img);
-        cell.appendChild(wrap);
-        cell.appendChild(lab);
-        frag.appendChild(cell);
-      }
-      grid32El.appendChild(frag);
-      // clear winner states
-      grid32El.querySelectorAll(".cell").forEach(c=>c.classList.remove("win","win2"));
-    }
-
-    function getGridCellRects(){
-      const cells = Array.from(grid32El.querySelectorAll(".cell"));
-      // reset winner visuals
-      cells.forEach(c=>c.classList.remove("win","win2","red"));
-      const stageRect = framesLayer.getBoundingClientRect();
-      return cells.map(c=>{
-        // 框只對齊到圖片區域，不包含文字 label
-        const target = c.querySelector(".thumbWrap") || c;
-        const r = target.getBoundingClientRect();
-        return {
-          left: r.left - stageRect.left,
-          top: r.top - stageRect.top,
-          width: r.width,
-          height: r.height
-        };
-      });
-    };
-
-    
-    function placeFrame(frame, rect){
-      frame.style.left = rect.left + "px";
-      frame.style.top = rect.top + "px";
-      frame.style.width = rect.width + "px";
-      frame.style.height = rect.height + "px";
-    }
-
-    async function animateJumpGrid(pulled, isTen){
-      let rects = getGridCellRects();
-      const framesCount = isTen ? 10 : 1;
-
-      // decide reward mapping: 10 pull last is red, prefer guarantee flag
-      let rewards = [];
-      if(isTen){
-        const guarantee = pulled.find(x => x && (x._guarantee || x.guarantee)) || pulled[pulled.length - 1];
-        const normals = pulled.filter(x => x !== guarantee).slice(0, 9);
-        while(normals.length < 9 && pulled[normals.length]) normals.push(pulled[normals.length]);
-        rewards = normals.slice(0,9).concat([guarantee]);
-      }else{
-        rewards = [pulled[0]];
-      }
-
-      framesLayer.innerHTML = "";
-      const frames = [];
-      for(let i=0;i<framesCount;i++){
-        const f = document.createElement("div");
-        f.className = "jump-frame " + (isTen && i === framesCount - 1 ? "red" : "gold");
-        framesLayer.appendChild(f);
-        frames.push(f);
-      }
-
-      // start positions
-      let slots = pickUniqueIndices(GRID_COUNT, framesCount);
-      for(let i=0;i<framesCount;i++){
-        placeFrame(frames[i], rects[slots[i]]);
-        // retrigger small pop
-        frames[i].classList.remove("jump");
-        void frames[i].offsetWidth;
-        frames[i].classList.add("jump");
-      }
-
-      const steps = isTen ? 46 : 34;
-      let interval = 40;
-
-      for(let s=0;s<steps;s++){
-        await sleep(interval);
-
-        rects = getGridCellRects();
-        slots = pickUniqueIndices(GRID_COUNT, framesCount);
-        for(let i=0;i<framesCount;i++){
-        placeFrame(frames[i], rects[slots[i]]);
-        // retrigger small pop
-        frames[i].classList.remove("jump");
-        void frames[i].offsetWidth;
-        frames[i].classList.add("jump");
-      }
-
-        if(s > steps*0.55) interval = Math.min(260, Math.round(interval*1.10 + 3));
-      }
-
-      await sleep(220);
-      rects = getGridCellRects();
-      const finalSlots = pickUniqueIndices(GRID_COUNT, framesCount);
-      for(let i=0;i<framesCount;i++){
-        placeFrame(frames[i], rects[finalSlots[i]]);
-        frames[i].classList.remove("jump");
-        void frames[i].offsetWidth;
-        frames[i].classList.add("jump");
-      }
-
-      const cells = Array.from(grid32El.querySelectorAll(".cell"));
-      cells.forEach(c=>c.classList.remove("win","win2","red"));
-      finalSlots.forEach((slot, i)=>{
-        const reward = rewards[i];
-        const cell = cells[slot];
-        if(!reward || !cell) return;
-        const img = cell.querySelector("img");
-        const lab = cell.querySelector(".label");
-        if(img) img.src = assetThumb(reward);
-        if(lab) lab.textContent = assetLabel(reward);
-        cell.classList.add("win");
-        if(isTen && i === framesCount - 1) cell.classList.add("red");
-        setTimeout(()=>cell.classList.add("win2"), 30);
+      img.addEventListener("error", () => {
+        const cur = img.getAttribute("src") || "";
+        if(cur.includes("_thumb.")){
+          img.src = cur.replace("_thumb.", ".");
+          return;
+        }
+        div.classList.add("broken");
+        dbg.style.display = "block";
       });
 
-      // Dim non-winning cards, keep winning frames visible on the winning cards
-      const winSet = new Set(finalSlots);
-      cells.forEach((c, idx)=>{
-        if(winSet.has(idx)) c.classList.remove("dim");
-        else c.classList.add("dim");
-      });
-
-      // Keep frames (gold/red) on winners
-      frames.forEach(f=>f.classList.remove("fade"));
+      div.appendChild(img);
+      div.appendChild(dbg);
+      return div;
     }
 
-    async function prepareGridStage(){
-      const assets = await ensureAssetsLoaded();
-      const decoys = [];
-      if(Array.isArray(assets) && assets.length > 0){
-        const ids = pickUniqueIndices(assets.length, GRID_COUNT);
-        for(const idx of ids) decoys.push(assets[idx]);
-      }else{
-        for(let i=0;i<GRID_COUNT;i++) decoys.push({id:"unknown", rarity:1, thumb:"/assets/placeholder.png"});
+    function animateReel(beltEl, viewportEl, winItems, opts={}){
+      beltEl.innerHTML = "";
+
+      const isThree = !!opts.three;
+      const beltCount = isThree ? 36 : 26;
+      const winnerStartIndex = isThree ? Math.floor(beltCount / 2) : Math.floor(beltCount / 2);
+
+      const fills = [];
+      for(let i = 0; i < beltCount; i++){
+        if(isThree && i >= winnerStartIndex && i < winnerStartIndex + 3){
+          fills.push(winItems[i - winnerStartIndex]);
+        }else if(!isThree && i === winnerStartIndex){
+          fills.push(winItems[0]);
+        }else{
+          const f = pickFiller({ premium: !!opts.premium, type: opts.typeDb || "" });
+          fills.push(f || winItems[0]);
+        }
       }
-      renderGridDecoys(decoys);
-      // let browser paint
-      overlay.offsetHeight;
-      await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+
+      fills.forEach(it => {
+        if(!it) return;
+        beltEl.appendChild(createCardEl(it));
+      });
+
+      const cards = Array.from(beltEl.children);
+      const cardW = cards[0].getBoundingClientRect().width;
+      const gap = 12;
+      const step = cardW + gap;
+      const beltPaddingLeft = 24;
+
+      const viewportWidth = viewportEl.getBoundingClientRect().width;
+      const visibleWidth = isThree ? (cardW * 3 + gap * 2) : cardW;
+
+      const firstSlotCenter = (viewportWidth / 2) - (visibleWidth / 2) + (cardW / 2);
+      const winnerCenterX = beltPaddingLeft + winnerStartIndex * step + cardW / 2;
+
+      const targetX = firstSlotCenter - winnerCenterX;
+      const dir = laneDirection(opts.laneIndex ?? 0);
+      const startX = targetX - (step * 10 * dir);
+
+      const duration = 2400;
+      const t0 = performance.now();
+
+      function easeOutCubic(p){ return 1 - Math.pow(1 - p, 3); }
+
+      return new Promise(resolve => {
+        function frame(t){
+          const p = Math.min((t - t0) / duration, 1);
+          const e = easeOutCubic(p);
+          const x = startX + (targetX - startX) * e;
+          beltEl.style.transform = `translate(${x}px, -50%)`;
+
+          if(p < 1){
+            requestAnimationFrame(frame);
+          }else{
+            if(isThree){
+              for(let k = 0; k < 3; k++){
+                const idx = winnerStartIndex + k;
+                if(cards[idx]) cards[idx].classList.add("win");
+              }
+            }else{
+              if(cards[winnerStartIndex]) cards[winnerStartIndex].classList.add("win");
+            }
+            resolve();
+          }
+        }
+        requestAnimationFrame(frame);
+      });
     }
 
     async function startGacha(opts={}){
@@ -877,30 +838,142 @@ function renderGridDecoys(list){
       animating = true;
 
       try{
-        confirmBtn.classList.remove("show");
-        showOverlay();
-        rollSub.textContent = "準備動畫";
-        await prepareGridStage();
-
-        rollSub.textContent = "抽卡中";
-        const pulled = await onlineGacha(opts);
-        if(!pulled || pulled.length === 0) throw new Error("empty");
-
-        await animateJumpGrid(pulled, Number(opts.count||1) === 10);
-
-        rollSub.textContent = Number(opts.count||1) === 10 ? "10連抽完成" : "抽卡完成";
-        confirmBtn.classList.add("show");
-        animating = false;
+        await ensureAssetsLoaded();
       }catch(e){
-        console.error(e);
-        rollSub.textContent = "抽卡失敗";
-        toast("抽卡失敗");
-        confirmBtn.classList.add("show");
+        toast("讀取素材失敗 請確認後端可連線");
         animating = false;
+        return;
       }
-    }
-    loadFeaturedVideo();
 
+      showOverlay();
+      confirmBtn.classList.remove("show");
+      rollSub.textContent = "連線中";
+
+      // Stage switch
+      const isTen = Number(opts.count || 1) === 10;
+      singleStage.style.display = isTen ? "none" : "block";
+      tenStage.style.display = isTen ? "block" : "none";
+
+      let pulled = null;
+      try{
+        pulled = await onlineGacha(opts);
+      }catch(e){
+        rollSub.textContent = "連線失敗";
+        toast("連線失敗 請稍後再試");
+        hideOverlay();
+        animating = false;
+        return;
+      }
+
+      if(!pulled || pulled.length === 0){
+        toast("抽卡失敗");
+        hideOverlay();
+        animating = false;
+        return;
+      }
+
+      const tag = opts.premium ? "高級" : "普通";
+      const typeTag = opts.type ? ` 類型 ${opts.type}` : "";
+
+      if(!isTen){
+        // 1 pull: keep classic single reel
+        const win = pulled[0];
+        belt.innerHTML = "";
+
+        const beltCount = 20;
+        const winnerIndex = Math.floor(beltCount / 2);
+
+        const fillers = [];
+        for(let i = 0; i < beltCount; i++){
+          if(i === winnerIndex){
+            fillers.push(win);
+          }else{
+            const f = pickFiller({ premium: !!opts.premium, type: (opts.type ? String(opts.type) : "") });
+            fillers.push(f || win);
+          }
+        }
+
+        fillers.forEach(p => {
+          if(!p) return;
+          belt.appendChild(createCardEl(p));
+        });
+
+        rollSub.textContent = `跑馬燈高速啟動 ${tag}${typeTag} 抽到 ${win.assetId} ⭐ ${win.rarity}`;
+
+        const stage = document.querySelector(".gacha-stage.single");
+        const stageWidth = stage.getBoundingClientRect().width;
+
+        const cards = Array.from(belt.children);
+        const cardW = cards[0].getBoundingClientRect().width;
+        const gap = 12;
+        const step = cardW + gap;
+
+        const beltPaddingLeft = 24;
+        const winnerCenterX = beltPaddingLeft + winnerIndex * step + cardW / 2;
+        const targetX = (stageWidth / 2) - winnerCenterX;
+        const dir = laneDirection(opts.laneIndex ?? 0);
+      const startX = targetX - (step * 10 * dir);
+
+        const duration = 2400;
+        const t0 = performance.now();
+
+        function easeOutCubic(p){ return 1 - Math.pow(1 - p, 3); }
+
+        function frame(t){
+          const p = Math.min((t - t0) / duration, 1);
+          const e = easeOutCubic(p);
+          const x = startX + (targetX - startX) * e;
+          belt.style.transform = `translate(${x}px, -50%)`;
+
+          if(p < 1){
+            requestAnimationFrame(frame);
+          }else{
+            cards[winnerIndex].classList.add("win");
+            confirmBtn.classList.add("show");
+            animating = false;
+          }
+        }
+        requestAnimationFrame(frame);
+        return;
+      }
+
+      // 10 pull: 9 normal + 1 guarantee
+      const guarantee = pulled.find(x => x.guarantee) || pulled[pulled.length - 1];
+      const normal = pulled.filter(x => x !== guarantee).slice(0, 9);
+
+      if(normal.length < 9){
+        // fallback if backend doesn't mark guarantee
+        const tmp = pulled.slice(0, 9);
+        normal.splice(0, normal.length, ...tmp);
+      }
+
+      const rowA = normal.slice(0, 3);
+      const rowB = normal.slice(3, 6);
+      const rowC = normal.slice(6, 9);
+
+      // Prime belts transform reset
+      for(const b of [beltG, beltA, beltB, beltC]) b.style.transform = `translate(0, -50%)`;
+
+      rollSub.textContent = `10連抽 ${tag}${typeTag} 9張普通 + 1張保底`;
+
+      const vpG = tenStage.querySelector('.reelViewport[data-reel="G"]');
+      const vpA = tenStage.querySelector('.reelViewport[data-reel="A"]');
+      const vpB = tenStage.querySelector('.reelViewport[data-reel="B"]');
+      const vpC = tenStage.querySelector('.reelViewport[data-reel="C"]');
+
+      // Animate 4 rows together
+      await Promise.all([
+        animateReel(beltG, vpG, [guarantee], { premium: !!opts.premium, three: false, laneIndex: 0 }),
+        animateReel(beltA, vpA, rowA, { premium: !!opts.premium, three: true, laneIndex: 1 }),
+        animateReel(beltB, vpB, rowB, { premium: !!opts.premium, three: true, laneIndex: 2 }),
+        animateReel(beltC, vpC, rowC, { premium: !!opts.premium, three: true, laneIndex: 3 }),
+      ]);
+
+      confirmBtn.classList.add("show");
+      animating = false;
+    }
+
+    // 底下 2 個大區塊
     btnNormal1.addEventListener("click", () => startGacha({ count: 1, premium: false }));
     btnNormal10.addEventListener("click", () => startGacha({ count: 10, premium: false }));
     btnPremium1.addEventListener("click", () => startGacha({ count: 1, premium: true }));
@@ -921,6 +994,12 @@ function renderGridDecoys(list){
 
     btnAddon21.addEventListener("click", () => startGacha({ count: 1, premium: false, type: "addon2" }));
     btnAddon210.addEventListener("click", () => startGacha({ count: 10, premium: false, type: "addon2" }));
-  </script>
+  
+// 跑馬燈方向設定：第1,3條 左→右；第2,4條 右→左
+function laneDirection(index) {
+  return (index === 0 || index === 2) ? 1 : -1;
+}
+
+</script>
 </body>
 </html>
