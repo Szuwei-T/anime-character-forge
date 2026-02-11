@@ -483,6 +483,11 @@
           <div class="title"><span>抽特效2</span><span style="opacity:0.7;font-weight:800">addon2</span></div>
           <div class="miniRow">
             <button class="btn gray small" id="btnAddon21">1次</button>
+
+        <div class="sideCard">
+          <div class="title"><span>Debug</span><span style="opacity:0.7;font-weight:800">featured</span></div>
+          <div class="debugBox" id="featuredDebug">loading...</div>
+        </div>
             <button class="btn gray small" id="btnAddon210">10次</button>
           </div>
         </div>
@@ -619,9 +624,30 @@
 
 
 async function loadFeatured(){
+  const dbg = document.getElementById("featuredDebug");
   try{
     const data = await api(`/api/featured?seasonId=${encodeURIComponent(SEASON_ID)}`);
     const list = data && data.ok && Array.isArray(data.featured) ? data.featured : [];
+    if(dbg){
+      if(list.length === 0){
+        dbg.textContent = `seasonId=${SEASON_ID}
+(no featured rows)`;
+      }else{
+        const lines = [];
+        lines.push(`seasonId=${data.seasonId || SEASON_ID}`);
+        lines.push(`count=${list.length}`);
+        lines.push("");
+        for(const it of list){
+          const id = String(it.featuredId || it.assetId || it.id || "").trim();
+          const type = String(it.type || "");
+          const vurl = it.videoUrl ? String(it.videoUrl) : (id ? `/assets/${id}.mp4` : "");
+          lines.push(`${id}${type ? "  ["+type+"]" : ""}`);
+          if(vurl) lines.push(`  ${vurl}`);
+        }
+        dbg.textContent = lines.join("
+");
+      }
+    }
     if(list.length === 0) return;
     const fid = String(list[0].featuredId || list[0].assetId || list[0].id || "").trim();
     if(!fid) return;
@@ -632,9 +658,13 @@ async function loadFeatured(){
     v.load();
     v.play().catch(() => {});
   }catch(e){
-    // keep default
+    if(dbg){
+      dbg.textContent = `seasonId=${SEASON_ID}
+error=${String(e?.message || e)}`;
+    }
   }
 }
+
 
     function toThumbIfNeeded(asset){
       if(!asset || !asset.imageUrl) return "";
