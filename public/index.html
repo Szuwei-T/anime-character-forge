@@ -293,18 +293,10 @@
 
   <script src="app.js"></script>
 
+
   <!-- Firebase (modular CDN) -->
   <script type="module">
-    
-
-
-
-// Using shared helpers from app.js (WORKER_BASE, api, initSession, etc.)
-
-
-
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import {
       getAuth,
       onAuthStateChanged,
@@ -316,7 +308,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
       signOut
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
     const firebaseConfig = {
       apiKey: "AIzaSyDlLsWifxvzjvQSHgsXrSqyUWLO9i_0QN4",
       authDomain: "web-games-3ac52.firebaseapp.com",
@@ -339,8 +330,10 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
       statusEl.style.display = msg ? "block" : "none";
     }
 
-    function getUid() {
-      return auth.currentUser?.uid || "";
+    function showStep(loggedIn) {
+      $("stepLogin").style.display = loggedIn ? "none" : "block";
+      $("stepProfile").style.display = loggedIn ? "block" : "none";
+      $("userbar").style.display = loggedIn ? "flex" : "none";
     }
 
     function setBusy(busy) {
@@ -350,19 +343,22 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
       }
     }
 
-      return data;
-    }
-
-    function showStep(loggedIn) {
-      $("stepLogin").style.display = loggedIn ? "none" : "block";
-      $("stepProfile").style.display = loggedIn ? "block" : "none";
-      $("userbar").style.display = loggedIn ? "flex" : "none";
+    function requireAppApi() {
+      if (typeof window.api !== "function") {
+        throw new Error("app_js_api_missing");
+      }
+      return window.api;
     }
 
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        $("userEmail").textContent = user.email || user.providerData?.[0]?.email || "已登入";
+        const email = user.email || user.providerData?.[0]?.email || "已登入";
+        $("userEmail").textContent = email;
         $("userUid").textContent = user.uid;
+
+        // 讓 app.js 的 getOrCreateUid() 用 Firebase uid
+        localStorage.setItem("acf_uid", user.uid);
+
         showStep(true);
         setStatus("", "");
       } else {
@@ -372,7 +368,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
       }
     });
 
-    // Providers
     const googleProvider = new GoogleAuthProvider();
     const msProvider = new OAuthProvider("microsoft.com");
     const appleProvider = new OAuthProvider("apple.com");
@@ -448,42 +443,37 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
       setBusy(true);
       try {
         await signOut(auth);
+        // optional: 保留 acf_uid 也行 但登出時清掉比較直覺
+        localStorage.removeItem("acf_uid");
       } finally {
         setBusy(false);
       }
     };
 
-    // Save profile to D1
     $("btnSaveProfile").onclick = async () => {
-  setStatus("", "");
-  setBusy(true);
-  try {
-    const userName = $("gameName").value.trim();
-    const userRegion = $("region").value.trim();
-    if (!userName) throw new Error("missing_userName");
+      setStatus("", "");
+      setBusy(true);
+      try {
+        const userName = $("gameName").value.trim();
+        const userRegion = $("region").value.trim();
+        if (!userName) throw new Error("missing_userName");
 
-    await window.api("/api/me/account", {
-      method: "POST",
-      body: JSON.stringify({
-        userName,
-        userRegion: userRegion || ""
-      })
-    });
+        const api = requireAppApi();
+        const payload = {
+          userName,
+          userRegion: userRegion || ""
+        };
 
-    setStatus("完成！已建立玩家資料，正在進入遊戲…", "ok");
-    setTimeout(() => (window.location.href = "hub.html"), 400);
-  } catch (e) {
-    setStatus("寫入資料失敗
-" + (e?.message || e), "err");
-  } finally {
-    setBusy(false);
-  }
-};
-        await api("/api/me/account", {
+        const data = await api("/api/me/account", {
           method: "POST",
-          body: JSON.stringify(payload),
+          body: JSON.stringify(payload)
         });
-        setStatus("完成！已建立玩家資料，正在進入遊戲…", "ok");
+
+        if (data?.ok === false) {
+          throw new Error(data?.error || "api_error");
+        }
+
+        setStatus("完成 已建立玩家資料 正在進入遊戲", "ok");
         setTimeout(() => (window.location.href = "hub.html"), 400);
       } catch (e) {
         setStatus("寫入資料失敗\n" + (e?.message || e), "err");
