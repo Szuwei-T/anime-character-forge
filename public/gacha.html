@@ -322,7 +322,7 @@
       width:50px;
       height:50px;
       transform: translateZ(0);
-      transition: transform 90ms linear, left 90ms linear, top 90ms linear, width 90ms linear, height 90ms linear;
+      transition: none;
     }
 
     .jump-frame.jump{
@@ -553,28 +553,44 @@
       const v = document.getElementById("featuredVideo");
       const img = document.getElementById("featuredFallback");
       if(!v) return;
+
+      // if video fails to load, fallback to image
+      v.onerror = ()=>{
+        v.style.display = "none";
+        if(img) img.style.display = "";
+      };
+
       try{
-        const seasonId = "S1";
+        const seasonId = (window.SEASON_ID || "S1");
         const res = await fetch(`/api/featured?seasonId=${encodeURIComponent(seasonId)}`, { cache: "no-store" });
         if(!res.ok) throw new Error(`featured ${res.status}`);
+
+        const ct = (res.headers.get("content-type") || "").toLowerCase();
+        if(!(ct.includes("application/json") || ct.includes("+json"))){
+          // many hosts return an HTML 404 page; don't try to JSON.parse it
+          const t = await res.text();
+          throw new Error(`featured not json: ${t.slice(0, 60)}`);
+        }
+
         const data = await res.json();
-        const list = (data && (data.featured || data.items || data)) || [];
+        const list = (data && (data.featured || data.items || data.data || data)) || [];
         const first = Array.isArray(list) ? list[0] : null;
         const fid = first && (first.featuredId || first.id || first.assetId || first.featured_id);
         if(!fid) throw new Error("no featuredId");
+
         const src = `/assets/${fid}.mp4`;
         v.src = src;
         v.style.display = "";
         if(img) img.style.display = "none";
-        // try play (may be blocked if not user-initiated; muted autoplay should pass)
+
+        // autoplay may be blocked, but muted autoplay usually works
         v.play().catch(()=>{});
       }catch(e){
         console.warn("featured video load failed", e);
-        const v = document.getElementById("featuredVideo");
-        const img = document.getElementById("featuredFallback");
-        if(v){ v.removeAttribute("src"); v.load(); v.style.display = "none"; }
+        v.style.display = "none";
         if(img) img.style.display = "";
       }
+    }
     }
 
     const overlay = document.getElementById("overlay");
@@ -711,16 +727,21 @@ async function onlineGacha(opts={}){
 
     function getGridCellRects(){
       const cells = Array.from(grid32El.querySelectorAll(".cell"));
+      // reset winner visuals
       cells.forEach(c=>c.classList.remove("win","win2","red"));
       const stageRect = framesLayer.getBoundingClientRect();
       return cells.map(c=>{
-        const r = c.getBoundingClientRect();
+        // 框只對齊到圖片區域，不包含文字 label
+        const target = c.querySelector(".thumbWrap") || c;
+        const r = target.getBoundingClientRect();
         return {
           left: r.left - stageRect.left,
           top: r.top - stageRect.top,
           width: r.width,
           height: r.height
         };
+      });
+    };
       });
     }
     function placeFrame(frame, rect){
