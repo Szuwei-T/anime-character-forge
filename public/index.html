@@ -293,7 +293,34 @@
 
   <!-- Firebase (modular CDN) -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    
+
+// --- API helper (same-origin) ---
+// Requires Cloudflare Worker Route: <your-pages-domain>/api/* -> your Worker
+async function api(path, options = {}) {
+  const headers = new Headers(options.headers || {});
+  if (!headers.has("content-type") && options.body) headers.set("content-type", "application/json");
+  const uid = localStorage.getItem("acf_uid");
+  if (uid) headers.set("x-user-id", uid);
+  const res = await fetch(path, { ...options, headers });
+  const ct = res.headers.get("content-type") || "";
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`api_error ${res.status} ${text.slice(0,200)}`);
+  }
+  if (ct.includes("application/json")) return await res.json();
+  return await res.text();
+}
+
+function explainRouteHint(err) {
+  const msg = String((err && err.message) || err || "");
+  if (msg.includes("api_error 405")) {
+    return "後端路由還沒綁定：到 Cloudflare Worker 設定 Routes，加上  anime-character-forge.pages.dev/api/*  指向你的 Worker";
+  }
+  return msg || "unknown_error";
+}
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import {
       getAuth,
       onAuthStateChanged,
@@ -306,36 +333,15 @@
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
     // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-    // Firebase Web App config
-const firebaseConfig = {
-  apiKey: "AIzaSyDlLsWifxvzjvQSHgsXrSqyUWLO9i_0QN4",
-  authDomain: "web-games-3ac52.firebaseapp.com",
-  projectId: "web-games-3ac52",
-  storageBucket: "web-games-3ac52.firebasestorage.app",
-  messagingSenderId: "231657073406",
-  appId: "1:231657073406:web:adf54f58dbb7d664d453af",
-  measurementId: "G-HWDB4W9GYJ"
-};
-
-// ---- API base (Cloudflare Worker) ----
-// 1) Default: set to your Worker URL (or custom domain) once.
-// 2) Optional override without editing code:
-//    - add ?api=https://YOUR_WORKER_DOMAIN to the URL, or
-//    - set localStorage.acf_api_base in DevTools console.
-function getApiBase() {
-  const qp = new URLSearchParams(location.search).get("api");
-  if (qp) {
-    try { localStorage.setItem("acf_api_base", qp); } catch {}
-    return qp.replace(/\/$/, "");
-  }
-  try {
-    const saved = localStorage.getItem("acf_api_base");
-    if (saved) return saved.replace(/\/$/, "");
-  } catch {}
-  // TODO: replace this with your real Worker URL
-  return "https://acf-api.YOUR_SUBDOMAIN.workers.dev";
-}
-const API_BASE = getApiBase();
+    const firebaseConfig = {
+      apiKey: "AIzaSyDlLsWifxvzjvQSHgsXrSqyUWLO9i_0QN4",
+      authDomain: "web-games-3ac52.firebaseapp.com",
+      projectId: "web-games-3ac52",
+      storageBucket: "web-games-3ac52.firebasestorage.app",
+      messagingSenderId: "231657073406",
+      appId: "1:231657073406:web:adf54f58dbb7d664d453af",
+      measurementId: "G-HWDB4W9GYJ"
+    };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
@@ -366,8 +372,7 @@ const API_BASE = getApiBase();
         "content-type": "application/json",
         "x-user-id": uid || "anon"
       }, opts.headers || {});
-      const url = (typeof API_BASE === "string" && path.startsWith("/api/")) ? (API_BASE + path) : path;
-      const res = await fetch(url, { ...opts, headers });
+      const res = await fetch(path, { ...opts, headers });
       const data = await res.json().catch(() => ({ ok:false, error:"bad_json" }));
       if (!res.ok || data?.ok === false) {
         const err = data?.error || ("http_" + res.status);
