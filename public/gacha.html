@@ -553,55 +553,78 @@
   <script>
 
     // featured video: load from DB season featured table
-    async function loadFeaturedVideo(){
-      const v = document.getElementById("featuredVideo");
-      const img = document.getElementById("featuredFallback");
-      if(!v) return;
+    
+async function loadFeaturedVideo(){
+  const v = document.getElementById("featuredVideo");
+  const img = document.getElementById("featuredFallback");
+  if(!v) return;
 
-      // if video fails to load, fallback to image
-      v.onerror = ()=>{
-        v.style.display = "none";
-        if(img) img.style.display = "";
-      };
+  // Ensure autoplay works on mobile
+  v.muted = true;
+  v.autoplay = true;
+  v.loop = true;
+  v.playsInline = true;
+  v.setAttribute("playsinline", "");
+  v.preload = "auto";
 
-      try{
-        const seasonId = (window.SEASON_ID || "S1");
-        const res = await fetch(`/api/featured?seasonId=${encodeURIComponent(seasonId)}`, { cache: "no-store" });
-        if(!res.ok) throw new Error(`featured ${res.status}`);
+  const showFallback = ()=>{
+    try{ v.pause(); }catch(_){}
+    v.removeAttribute("src");
+    try{ v.load(); }catch(_){}
+    v.style.display = "none";
+    if(img) img.style.display = "";
+  };
 
-        const ct = (res.headers.get("content-type") || "").toLowerCase();
-        if(!(ct.includes("application/json") || ct.includes("+json"))){
-          // many hosts return an HTML 404 page; don't try to JSON.parse it
-          const t = await res.text();
-          throw new Error(`featured not json: ${t.slice(0, 60)}`);
-        }
+  v.onerror = showFallback;
 
-        const data = await res.json();
-        const list = (data && (data.featured || data.items || data.data || data)) || [];
-        const first = Array.isArray(list) ? list[0] : null;
-        const fid = first && (first.featuredId || first.id || first.assetId || first.featured_id);
-        if(!fid) throw new Error("no featuredId");
+  // Align with existing backend routing: prefer window.api() if provided by app.js
+  const apiFetch = (url, opts)=>{
+    if(typeof window.api === "function") return window.api(url, opts);
+    return fetch(url, opts);
+  };
 
-        // Prefer explicit videoUrl returned by backend; fallback to /assets/[featuredId].mp4
-        let src = "";
-        const vurl = first && (first.videoUrl || first.video_url || first.mp4Url || first.mp4_url || first.url);
-        if(vurl) src = String(vurl);
-        if(!src) src = `/assets/${fid}.mp4`;
-        if(src.startsWith("assets/")) src = "/" + src;
+  try{
+    const seasonId = (window.SEASON_ID || "S1");
+    const res = await apiFetch(`/api/featured?seasonId=${encodeURIComponent(seasonId)}`, { cache: "no-store" });
+    if(!res.ok) throw new Error(`featured ${res.status}`);
 
-        v.src = src;
-        v.style.display = "";
-        if(img) img.style.display = "none";
-
-        // autoplay may be blocked, but muted autoplay usually works
-// autoplay may be blocked, but muted autoplay usually works
-        v.play().catch(()=>{});
-      }catch(e){
-        console.warn("featured video load failed", e);
-        v.style.display = "none";
-        if(img) img.style.display = "";
-      }
+    const ct = (res.headers.get("content-type") || "").toLowerCase();
+    if(!(ct.includes("application/json") || ct.includes("+json"))){
+      // Some hosts return an HTML error page; don't try to parse it as JSON
+      throw new Error("featured not json");
     }
+
+    const data = await res.json();
+    const list = (data && (data.featured || data.items || data.data || data)) || [];
+    const first = Array.isArray(list) ? list[0] : null;
+    const fid = first && (first.featuredId || first.id || first.assetId || first.featured_id);
+    if(!fid) throw new Error("no featuredId");
+
+    // Prefer explicit videoUrl returned by backend; fallback to /assets/[featuredId].mp4
+    let src = "";
+    const vurl = first && (first.videoUrl || first.video_url || first.mp4Url || first.mp4_url || first.url);
+    if(vurl) src = String(vurl);
+    if(!src) src = `/assets/${fid}.mp4`;
+
+    // If backend returns a relative /assets path, always load it from THIS site's origin (where assets live)
+    if(!/^https?:\/\//i.test(src)){
+      if(src.startsWith("assets/")) src = "/" + src;
+      if(!src.startsWith("/")) src = "/" + src;
+      src = `${location.origin}${src}`;
+    }
+
+    v.src = src;
+    v.style.display = "";
+    if(img) img.style.display = "none";
+
+    // Load then attempt play
+    try{ v.load(); }catch(_){}
+    v.play().catch(()=>{ /* autoplay may still be blocked */ });
+  }catch(e){
+    console.warn("featured video load failed", e);
+    showFallback();
+  }
+}
 
     const overlay = document.getElementById("overlay");
     const grid32El = document.getElementById("grid32");
