@@ -790,7 +790,52 @@ async function loadFeaturedVideo(){
       return x;
     }
 
-    function toThumbIfNeeded(asset){
+    
+    function guessWorkerOrigin(){
+      try{
+        const o = String(location.origin||"");
+        if(o.includes(".pages.dev")) return o.replace(".pages.dev",".workers.dev");
+        return o;
+      }catch(e){ return ""; }
+    }
+
+    async function robustFetch(path, opts){
+      const workerOrigin = guessWorkerOrigin();
+      const tryList = [];
+
+      // 1) window.api if available
+      if(typeof window.api === "function"){
+        tryList.push(async ()=> window.api(path, opts));
+      }
+
+      // 2) same-origin fetch
+      tryList.push(async ()=> fetch(path, opts));
+
+      // 3) guessed worker origin
+      if(workerOrigin){
+        tryList.push(async ()=> fetch(workerOrigin + path, opts));
+      }
+
+      let lastErr = null;
+      for(const fn of tryList){
+        try{
+          const r = await fn();
+          // If it's Response-like, accept unless it's obvious wrong method/path
+          if(r && typeof r === "object" && typeof r.status === "number" && typeof r.ok === "boolean" && typeof r.text === "function"){
+            if(r.status === 404 || r.status === 405) continue;
+            return r;
+          }
+          // If it's already JSON, accept it
+          if(r && typeof r === "object") return r;
+          lastErr = new Error("bad_response");
+        }catch(e){
+          lastErr = e;
+        }
+      }
+      throw lastErr || new Error("fetch_failed");
+    }
+
+function toThumbIfNeeded(asset){
       if(!asset || !asset.imageUrl) return "";
       const t = String(asset.type || "");
       if(t === "head" || t === "body"){
@@ -813,10 +858,7 @@ async function onlineGacha(opts = {}) {
   // Use the same routing as the rest of the project:
   // - If app.js provides window.api(), it likely routes to the Worker origin.
   // - Otherwise fall back to same-origin fetch.
-  const apiFetch = (url, fetchOpts) => {
-    if (typeof window.api === "function") return window.api(url, fetchOpts);
-    return fetch(url, fetchOpts);
-  };
+  const apiFetch = (url, fetchOpts) => robustFetch(url, fetchOpts);
 
   const payload = {
     count: Number(opts.count || 1),
