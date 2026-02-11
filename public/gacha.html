@@ -765,9 +765,13 @@ error=${String(e?.message || e)}`;
 
     
     function yieldToPaint(frames=2){
+      // 確保瀏覽器真的有機會把 overlay 畫出來
       return new Promise(resolve => {
         function step(n){
-          if(n<=0) return resolve();
+          if(n<=0){
+            // 再讓出一個 macrotask，避免主執行緒立刻被重工作塞滿
+            return setTimeout(resolve, 0);
+          }
           requestAnimationFrame(() => step(n-1));
         }
         step(frames);
@@ -857,10 +861,12 @@ function animateReel(beltEl, viewportEl, winItems, opts={}){
       showOverlay();
       confirmBtn.classList.remove("show");
       rollSub.textContent = "準備中";
-      // 先把 overlay 畫出來
+      // 先強制一次樣式計算，確保 .show 生效
+      void overlay.offsetHeight;
+      // 先把 overlay 畫出來（多等一下，並讓出 macrotask）
       await yieldToPaint(2);
-
-      try{
+      await new Promise(r=>setTimeout(r, 80));
+try{
         await ensureAssetsLoaded();
       }catch(e){
         rollSub.textContent = "讀取失敗";
