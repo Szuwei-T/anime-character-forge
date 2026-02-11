@@ -403,7 +403,58 @@
       border-radius:10px;
       word-break: break-all;
     }
-</style>
+
+    .grid-stage{
+      margin-top: 16px;
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+      position:relative;
+      overflow:hidden;
+      padding: 16px;
+    }
+    .grid8x4{
+      display:grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 12px;
+      align-items:center;
+      justify-items:center;
+    }
+    .gridCell{
+      position:relative;
+      width:124px;
+      height:124px;
+    }
+    .card.empty{
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.25);
+    }
+    .jumpFrame{
+      position:absolute;
+      inset:-4px;
+      border-radius: 22px;
+      pointer-events:none;
+      box-shadow: 0 0 0 2px rgba(0,0,0,0.25), 0 0 18px rgba(255,215,0,0.22);
+      animation: pulse 0.8s ease-in-out infinite;
+    }
+    .jumpFrame.gold{
+      border: 3px solid rgba(255, 215, 0, 0.95);
+    }
+    .jumpFrame.red{
+      border: 3px solid rgba(255, 80, 80, 0.98);
+      box-shadow: 0 0 0 2px rgba(0,0,0,0.25), 0 0 22px rgba(255, 80, 80, 0.30);
+    }
+    .gridCell.win{
+      transform: scale(1.06);
+      transition: transform 220ms ease;
+      z-index: 2;
+    }
+    .gridCell.win .card{
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.10), 0 0 28px rgba(255,255,255,0.18);
+    }
+
+  </style>
 </head>
 <body>
   <div class="wrap">
@@ -498,65 +549,9 @@
   <div class="overlay" id="overlay">
     <div class="panel">
       <h3>抽卡中 <span class="sub" id="rollSub">連線中</span></h3>
-      <div class="gacha-stage single" id="singleStage">
-        <div class="belt" id="belt"></div>
-        <div class="marker"></div>
-      </div>
-
-      <div class="ten-stage" id="tenStage">
-        <div class="reelRow">
-          <div class="reelLabel">保底</div>
-          <div class="reelViewport one" data-reel="G">
-            <div class="belt" id="beltG"></div>
-            <div class="slotWrap one">
-              <div class="slots one">
-                <div class="slot rainbow"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="reelRow">
-          <div class="reelLabel">抽卡</div>
-          <div class="reelViewport three" data-reel="A">
-            <div class="belt" id="beltA"></div>
-            <div class="slotWrap three">
-              <div class="slots three">
-                <div class="slot gold"></div>
-                <div class="slot gold"></div>
-                <div class="slot gold"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="reelRow">
-          <div class="reelLabel">抽卡</div>
-          <div class="reelViewport three" data-reel="B">
-            <div class="belt" id="beltB"></div>
-            <div class="slotWrap three">
-              <div class="slots three">
-                <div class="slot gold"></div>
-                <div class="slot gold"></div>
-                <div class="slot gold"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="reelRow">
-          <div class="reelLabel">抽卡</div>
-          <div class="reelViewport three" data-reel="C">
-            <div class="belt" id="beltC"></div>
-            <div class="slotWrap three">
-              <div class="slots three">
-                <div class="slot gold"></div>
-                <div class="slot gold"></div>
-                <div class="slot gold"></div>
-              </div>
-            </div>
-          </div>
-        </div>
+      
+      <div class="grid-stage" id="gridStage">
+        <div class="grid8x4" id="grid8x4"></div>
       </div>
       <div class="footer">
         <button class="confirm" id="confirmBtn">確認</button>
@@ -568,6 +563,9 @@
   <script>
     const overlay = document.getElementById("overlay");
     const belt = document.getElementById("belt");
+    const gridStage = document.getElementById("gridStage");
+    const grid8x4 = document.getElementById("grid8x4");
+
     const rollSub = document.getElementById("rollSub");
     const confirmBtn = document.getElementById("confirmBtn");
 
@@ -778,6 +776,173 @@ error=${String(e?.message || e)}`;
       });
     }
 
+
+    function createEmptyCardEl(){
+      const div = document.createElement("div");
+      div.className = "card empty";
+      return div;
+    }
+
+    function shuffle(arr){
+      for(let i = arr.length - 1; i > 0; i--){
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function uniqueRandomPositions(n, total){
+      const all = Array.from({length: total}, (_, i) => i);
+      shuffle(all);
+      return all.slice(0, n);
+    }
+
+    function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+    async function prepareGridStage(){
+      grid8x4.innerHTML = "";
+      const frag = document.createDocumentFragment();
+      for(let i = 0; i < 32; i++){
+        const cell = document.createElement("div");
+        cell.className = "gridCell";
+        cell.dataset.index = String(i);
+        const card = createEmptyCardEl();
+        cell.appendChild(card);
+        frag.appendChild(cell);
+      }
+      grid8x4.appendChild(frag);
+      // 讓瀏覽器先把 grid 畫出來
+      await yieldToPaint(2);
+    }
+
+    function getGridCells(){
+      return Array.from(grid8x4.querySelectorAll(".gridCell"));
+    }
+
+    function putFrameOnCell(frameEl, cellEl){
+      // 確保同一時間一個 cell 只會有 1 個框
+      // 框本身是獨立元素，append 會自動移動
+      cellEl.appendChild(frameEl);
+    }
+
+    function pickNextPosition(occupiedSet, total, avoidIndex=null){
+      // 從未被佔用的位置挑 1 個；避免卡在同一格可用 avoidIndex
+      const candidates = [];
+      for(let i = 0; i < total; i++){
+        if(occupiedSet.has(i)) continue;
+        if(avoidIndex !== null && i === avoidIndex) continue;
+        candidates.push(i);
+      }
+      if(candidates.length === 0){
+        // 沒得選就允許停在原位
+        return avoidIndex !== null ? avoidIndex : Math.floor(Math.random() * total);
+      }
+      return candidates[Math.floor(Math.random() * candidates.length)];
+    }
+
+    async function animateJumpGrid(results, opts={}){
+      const isTen = !!opts.isTen;
+      const cells = getGridCells();
+
+      // 清掉舊狀態
+      cells.forEach(c => {
+        c.classList.remove("win");
+        const old = c.querySelectorAll(".jumpFrame");
+        old.forEach(x => x.remove());
+        // 把卡片還原成空
+        c.innerHTML = "";
+        c.appendChild(createEmptyCardEl());
+      });
+
+      // 決定框數
+      const frameCount = isTen ? 10 : 1;
+
+      // 結果整理：10 連抽優先把 _guarantee 對應到紅框
+      let guaranteeItem = null;
+      let normalItems = results.slice();
+      if(isTen){
+        const gi = results.findIndex(x => x && x._guarantee);
+        if(gi >= 0){
+          guaranteeItem = results[gi];
+          normalItems = results.filter((_, idx) => idx !== gi);
+        }else{
+          guaranteeItem = results[results.length - 1];
+          normalItems = results.slice(0, results.length - 1);
+        }
+      }
+
+      // 建框
+      const frames = [];
+      for(let i = 0; i < frameCount; i++){
+        const f = document.createElement("div");
+        f.className = "jumpFrame " + (isTen && i === 0 ? "red" : "gold");
+        frames.push(f);
+      }
+
+      // 初始位置：確保不重疊
+      let positions = uniqueRandomPositions(frameCount, 32);
+      positions.forEach((pos, i) => putFrameOnCell(frames[i], cells[pos]));
+
+      // 跳動動畫：延遲漸增（慢慢停下）
+      const steps = isTen ? 26 : 22;
+      let delay = 50;
+
+      for(let step = 0; step < steps; step++){
+        const occupied = new Set();
+        const nextPositions = new Array(frameCount);
+
+        for(let i = 0; i < frameCount; i++){
+          const cur = positions[i];
+          const next = pickNextPosition(occupied, 32, cur);
+          nextPositions[i] = next;
+          occupied.add(next);
+        }
+
+        // 移動框
+        for(let i = 0; i < frameCount; i++){
+          putFrameOnCell(frames[i], cells[nextPositions[i]]);
+        }
+
+        positions = nextPositions;
+
+        // 後面越來越慢
+        delay = Math.min(420, Math.floor(delay * 1.12 + 8));
+        await sleep(delay);
+      }
+
+      // 最終位置固定，開始顯示抽到的卡並亮起
+      // 先決定每個框對應哪張卡
+      const finalAssignments = new Array(frameCount).fill(null);
+
+      if(!isTen){
+        finalAssignments[0] = results[0];
+      }else{
+        // frames[0] 是紅框（保底）
+        finalAssignments[0] = guaranteeItem;
+        // 其餘 9 個金框
+        for(let i = 1; i < frameCount; i++){
+          finalAssignments[i] = normalItems[i-1] || normalItems[0] || guaranteeItem;
+        }
+      }
+
+      // 把卡放到對應格子，並縮放亮起
+      for(let i = 0; i < frameCount; i++){
+        const pos = positions[i];
+        const cell = cells[pos];
+        const item = finalAssignments[i];
+        if(!item) continue;
+
+        cell.innerHTML = "";
+        const cardEl = createCardEl(item);
+        cell.appendChild(cardEl);
+        cell.appendChild(frames[i]); // 框覆蓋在上面
+        // 亮起
+        cell.classList.add("win");
+      }
+
+      // 稍等一下讓使用者看到亮起效果
+      await sleep(260);
+    }
 function animateReel(beltEl, viewportEl, winItems, opts={}){
       beltEl.innerHTML = "";
       beltEl.style.visibility = "hidden";
@@ -878,89 +1043,21 @@ try{
 
       rollSub.textContent = "連線中";
 
-      // Stage switch
+            // 新版：4 排 × 8 張 = 32 張跳框抽卡
       const isTen = Number(opts.count || 1) === 10;
-      singleStage.style.display = isTen ? "none" : "block";
-      tenStage.style.display = isTen ? "block" : "none";
+      // 統一顯示 grid
+      gridStage.style.display = "block";
+      // 保留舊結構但不使用
+      if(typeof singleStage !== "undefined") singleStage.style.display = "none";
+      if(typeof tenStage !== "undefined") tenStage.style.display = "none";
 
-      let pulled = null;
-      try{
-        pulled = await onlineGacha(opts);
-      }catch(e){
-        rollSub.textContent = "連線失敗";
-        toast("連線失敗 請稍後再試");
-        hideOverlay();
-        animating = false;
-        return;
-      }
+      rollSub.textContent = "準備動畫";
+      await prepareGridStage();
+      rollSub.textContent = "抽卡中";
 
-      if(!pulled || pulled.length === 0){
-        toast("抽卡失敗");
-        hideOverlay();
-        animating = false;
-        return;
-      }
+      await animateJumpGrid(pulled, { isTen: isTen });
 
-      const tag = opts.premium ? "高級" : "普通";
-      const typeTag = opts.type ? ` 類型 ${opts.type}` : "";
-
-      if(!isTen){
-        // 1 pull: keep classic single reel
-        const win = pulled[0];
-        belt.innerHTML = "";
-        rollSub.textContent = "準備動畫";
-        await yieldToPaint(2);
-
-        const beltCount = 20;
-        const winnerIndex = Math.floor(beltCount / 2);
-
-        const fillers = [];
-        for(let i = 0; i < beltCount; i++){
-          if(i === winnerIndex){
-            fillers.push(win);
-          }else{
-            const f = pickFiller({ premium: !!opts.premium, type: (opts.type ? String(opts.type) : "") });
-            fillers.push(f || win);
-          }
-        }
-
-        fillers.forEach(p => {
-          if(!p) return;
-          belt.appendChild(createCardEl(p));
-        });
-
-        rollSub.textContent = `跑馬燈高速啟動 ${tag}${typeTag} 抽到 ${win.assetId} ⭐ ${win.rarity}`;
-
-        const stage = document.querySelector(".gacha-stage.single");
-        const stageWidth = stage.getBoundingClientRect().width;
-
-        const cards = Array.from(belt.children);
-        const cardW = cards[0].getBoundingClientRect().width;
-        const gap = 12;
-        const step = cardW + gap;
-
-        const beltPaddingLeft = 24;
-        const winnerCenterX = beltPaddingLeft + winnerIndex * step + cardW / 2;
-        const targetX = (stageWidth / 2) - winnerCenterX;
-        const dir = laneDirection(opts.laneIndex ?? 0);
-      const startX = targetX - (step * 10 * dir);
-
-        const duration = 2400;
-        const t0 = performance.now();
-
-        function easeOutCubic(p){ return 1 - Math.pow(1 - p, 3); }
-
-        function frame(t){
-          const p = Math.min((t - t0) / duration, 1);
-          const e = easeOutCubic(p);
-          const x = startX + (targetX - startX) * e;
-          belt.style.transform = `translate(${x}px, -50%)`;
-
-          if(p < 1){
-            requestAnimationFrame(frame);
-          }else{
-            cards[winnerIndex].classList.add("win");
-            confirmBtn.classList.add("show");
+confirmBtn.classList.add("show");
             animating = false;
           }
         }
