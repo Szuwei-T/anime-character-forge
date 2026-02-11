@@ -284,18 +284,18 @@
       filter: saturate(0.95) contrast(1.05);
       opacity:0.98;
       transform: scale(1);
-      transition: transform 220ms ease, filter 220ms ease;
+      transition: filter 220ms ease;
     }
-    .cell.win img{
-      transform: scale(1.10);
-      filter: saturate(1.15) contrast(1.12) brightness(1.06);
-    }
+
+    /* 讓所有圖永遠同尺寸，不因選中而放大 */
+    .cell.win img{ filter: saturate(1.05) contrast(1.08) brightness(1.04); }
     .cell.win::after{
       content:"";
       position:absolute;
       inset:0;
       border-radius:14px;
       box-shadow: 0 0 0 2px rgba(255,215,0,0.95), 0 0 18px rgba(255,215,0,0.35);
+      z-index: 5;
       pointer-events:none;
     }
     .cell.win.red::after{
@@ -317,6 +317,7 @@
       overflow:hidden;
       text-overflow:ellipsis;
       white-space:nowrap;
+      z-index: 6;
     }
     .framesLayer{position:absolute;left:18px;right:18px;top:18px;bottom:18px;pointer-events:none;}
     .jump-frame{
@@ -353,10 +354,19 @@
     .cell.win{
       box-shadow: 0 0 0 2px rgba(255,255,255,0.10), 0 0 22px rgba(255,255,255,0.12);
     }
-    .cell.win2{
-      transform: scale(1.06);
-      box-shadow: 0 0 0 2px rgba(255,255,255,0.14), 0 0 26px rgba(255,255,255,0.16);
-      transition: transform 180ms ease, box-shadow 180ms ease;
+    .cell.win2{ box-shadow: 0 0 0 2px rgba(255,255,255,0.14), 0 0 26px rgba(255,255,255,0.16); }
+
+    /* 沒有選中的圖加一層半透明遮罩，視覺上暗下去 */
+    .cell.dim::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background: rgba(0,0,0,0.35);
+      pointer-events:none;
+      z-index: 2;
+    }
+    .cell.dim img{
+      filter: saturate(0.70) contrast(1.00) brightness(0.70);
     }
 .belt{
       position:absolute;
@@ -773,8 +783,8 @@ function renderGridDecoys(list){
         frag.appendChild(cell);
       }
       grid32El.appendChild(frag);
-      // clear winner states
-      grid32El.querySelectorAll(".cell").forEach(c=>c.classList.remove("win","win2"));
+      // clear states
+      grid32El.querySelectorAll(".cell").forEach(c=>c.classList.remove("win","win2","red","dim"));
     }
 
     function getGridCellRects(){
