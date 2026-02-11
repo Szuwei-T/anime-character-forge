@@ -591,7 +591,7 @@
         if(img) img.style.display = "";
       }
     }
-    
+    }
 
     const overlay = document.getElementById("overlay");
     const grid32El = document.getElementById("grid32");
@@ -742,8 +742,8 @@ async function onlineGacha(opts={}){
         };
       });
     };
-
-    
+      });
+    }
     function placeFrame(frame, rect){
       frame.style.left = rect.left + "px";
       frame.style.top = rect.top + "px";
@@ -779,11 +779,11 @@ async function onlineGacha(opts={}){
       let slots = pickUniqueIndices(32, framesCount);
       for(let i=0;i<framesCount;i++){
         placeFrame(frames[i], rects[slots[i]]);
-        frames[i].classList.add("jump");
-      }
+        // retrigger small pop
         frames[i].classList.remove("jump");
         void frames[i].offsetWidth;
         frames[i].classList.add("jump");
+      }
 
       const steps = isTen ? 46 : 34;
       let interval = 40;
@@ -795,11 +795,11 @@ async function onlineGacha(opts={}){
         slots = pickUniqueIndices(32, framesCount);
         for(let i=0;i<framesCount;i++){
         placeFrame(frames[i], rects[slots[i]]);
-        frames[i].classList.add("jump");
-      }
+        // retrigger small pop
         frames[i].classList.remove("jump");
         void frames[i].offsetWidth;
         frames[i].classList.add("jump");
+      }
 
         if(s > steps*0.55) interval = Math.min(260, Math.round(interval*1.10 + 3));
       }
@@ -807,10 +807,12 @@ async function onlineGacha(opts={}){
       await sleep(220);
       rects = getGridCellRects();
       const finalSlots = pickUniqueIndices(32, framesCount);
-      for(let i=0;i<framesCount;i++) placeFrame(frames[i], rects[finalSlots[i]]);
+      for(let i=0;i<framesCount;i++){
+        placeFrame(frames[i], rects[finalSlots[i]]);
         frames[i].classList.remove("jump");
         void frames[i].offsetWidth;
         frames[i].classList.add("jump");
+      }
 
       const cells = Array.from(grid32El.querySelectorAll(".cell"));
       cells.forEach(c=>c.classList.remove("win","win2","red"));
