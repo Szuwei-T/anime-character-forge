@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>付款成功</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .wrap{max-width:860px;margin:28px auto;padding:0 14px}
+    .card{border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.22);border-radius:16px;padding:16px}
+    .muted{opacity:.8}
+    .row{margin:10px 0}
+    button,a.btn{display:inline-block;padding:10px 14px;border-radius:12px;border:0;cursor:pointer;font-weight:800;background:#fff;color:#000;text-decoration:none}
+    pre{white-space:pre-wrap;opacity:.9}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>付款成功</h1>
+    <p class="muted">入帳需要等後端收到 Stripe webhook。通常幾秒到幾十秒。</p>
+
+    <div class="card">
+      <div class="row"><b>session_id</b></div>
+      <pre id="sid"></pre>
+      <div class="row"><b>目前帳戶（D1）</b></div>
+      <pre id="acct">讀取中…</pre>
+      <div class="row">
+        <a class="btn" href="./shop">回商城</a>
+        <button id="refresh">重新整理帳戶</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    window.WORKER_BASE = window.WORKER_BASE || ((location.hostname === "127.0.0.1" || location.hostname === "localhost") ? "" : "https://acf-api.dream-league-baseball.workers.dev");
+
+    const sid = new URL(location.href).searchParams.get("session_id") || "";
+    document.getElementById("sid").textContent = sid || "(none)";
+
+    async function load(){
+      const out = document.getElementById("acct");
+      try{
+        if(window.initSession) await window.initSession();
+        const r = await fetch(window.WORKER_BASE + "/api/me/account", { headers: { "x-user-id": localStorage.getItem("acf_uid") || "" } });
+        const data = await r.json();
+        out.textContent = JSON.stringify(data, null, 2);
+      }catch(e){
+        out.textContent = String(e && e.message ? e.message : e);
+      }
+    }
+
+    document.getElementById("refresh").addEventListener("click", load);
+    load();
+  </script>
+</body>
+</html>

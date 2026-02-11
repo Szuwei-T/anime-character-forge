@@ -2,224 +2,191 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>DLB 商城</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DREAM LEAGUE BASEBALL 商城</title>
+  <link rel="stylesheet" href="style.css" />
   <style>
-    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans TC", sans-serif; margin: 0; background: #0b1020; color: #e7e9ee; }
-    .wrap { max-width: 980px; margin: 0 auto; padding: 24px; }
-    h1 { margin: 0 0 8px 0; font-size: 22px; }
-    .sub { opacity: 0.85; margin-bottom: 18px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
-    .card { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; padding: 16px; }
-    .title { font-size: 20px; font-weight: 700; margin-bottom: 10px; }
-    .line { margin: 6px 0; }
-    .promo { margin-top: 10px; padding: 10px; border-radius: 10px; background: rgba(255, 215, 0, 0.10); border: 1px solid rgba(255, 215, 0, 0.25); }
-    .promo.off { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.10); }
-    .buy { margin-top: 12px; width: 100%; padding: 12px; border-radius: 12px; border: 0; cursor: pointer; font-weight: 700; }
-    .row { display:flex; gap: 10px; align-items:center; flex-wrap: wrap; margin: 12px 0 18px 0; }
-    input { padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.18); background: rgba(0,0,0,0.25); color: #e7e9ee; width: min(720px, 100%); }
-    .hint { opacity: 0.8; font-size: 13px; }
-    .err { color: #ffb3b3; margin-top: 12px; white-space: pre-wrap; }
-    .ok { color: #b7ffb7; margin-top: 12px; white-space: pre-wrap; }
-    .topbar { display:flex; align-items:center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
-    .small { font-size: 13px; opacity: 0.85; }
-    a { color: #9fd3ff; }
+    .wrap{max-width:1100px;margin:28px auto;padding:0 14px;}
+    h1{margin:0 0 6px;font-size:26px;}
+    .sub{opacity:.85;margin:0 0 16px;line-height:1.4}
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+    .links a{opacity:.9;margin-left:10px}
+    .row{margin:10px 0}
+    label{display:block;font-size:12px;opacity:.8;margin-bottom:6px}
+    input{width:100%;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.25);color:#fff}
+    input[disabled]{opacity:.8}
+    .hint{font-size:12px;opacity:.7;margin-top:6px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:18px}
+    .card{border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.22);border-radius:16px;padding:14px;box-shadow:0 10px 24px rgba(0,0,0,.25)}
+    .title{font-size:22px;font-weight:800;margin-bottom:10px}
+    .line{margin:6px 0}
+    .promo{display:inline-block;margin-top:8px;padding:8px 10px;border-radius:12px;background:rgba(255,215,0,.10);border:1px solid rgba(255,215,0,.18)}
+    .buy{width:100%;margin-top:12px;padding:12px 12px;border-radius:14px;border:0;cursor:pointer;font-weight:800}
+    .buy[disabled]{opacity:.6;cursor:not-allowed}
+    .ok{margin-top:10px;color:#8dffa4}
+    .err{margin-top:10px;color:#ff9b9b;white-space:pre-wrap}
+    .pill{display:inline-block;font-size:12px;padding:4px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06)}
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="topbar">
-      <h1>DREAM LEAGUE BASEBALL 商城</h1>
-      <div class="small">
+      <div>
+        <h1>DREAM LEAGUE BASEBALL 商城</h1>
+        <div class="sub">付款完成後不會立刻入帳。後端收到 Stripe webhook 才入帳，避免前端作弊。</div>
+      </div>
+      <div class="links">
         <a href="./shop-success.html">Success</a>
         <span> </span>
         <a href="./shop-cancel.html">Cancel</a>
       </div>
     </div>
 
-    <div class="sub">付款完成後會立刻入帳到你的帳號 後端收到 Stripe webhook 才入帳 防止作弊</div>
-
     <div class="row">
       <label>Worker API Base</label>
-      <input id="apiBase" placeholder="https://dlb-start-game.dream-league-baseball.workers.dev" />
-      <div class="hint">https://dlb-start-game.dream-league-baseball.workers.dev</div>
+      <input id="apiBase" disabled />
+      <div class="hint">自動使用與其他頁面相同的 WORKER_BASE（app.js）。</div>
     </div>
 
     <div class="row">
-  <label>登入狀態</label>
-  <input id="loginStatus" placeholder="未登入" disabled />
-  <div class="hint">同網域已登入會自動取得 Firebase ID token 不需要手動貼</div>
-</div>
+      <label>登入狀態</label>
+      <input id="loginStatus" disabled />
+      <div class="hint">本專案登入狀態以 localStorage 的 acf_uid 為準（與 studio、recipes 相同）。</div>
     </div>
 
     <div class="grid" id="grid"></div>
     <div id="ok" class="ok"></div>
     <div id="err" class="err"></div>
   </div>
-    <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
 
-    const firebaseConfig = {
-  apiKey: "AIzaSyDMcp3UZwmscbneDwnuaPpCDe2n6_7kKpI",
-  authDomain: "dream-league-baseball.firebaseapp.com",
-  projectId: "dream-league-baseball",
-  storageBucket: "dream-league-baseball.appspot.com",
-  messagingSenderId: "355433474466",
-  appId: "1:355433474466:web:b710e031c858c725e32afb",
-  measurementId: "G-CKBZSSK06B"
-};
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-
-    try {
-      await setPersistence(auth, browserLocalPersistence);
-    } catch (e) {
-      console.warn("setPersistence failed", e);
-    }
-
-    window.__DLB_AUTH__ = auth;
-    window.__DLB_ON_AUTH__ = (cb) => onAuthStateChanged(auth, cb);
-  </script>
-
-  
-
+  <script src="app.js"></script>
+  <script>window.WORKER_BASE = window.WORKER_BASE || ((location.hostname === "127.0.0.1" || location.hostname === "localhost") ? "" : "https://acf-api.dream-league-baseball.workers.dev");</script>
   <script>
     const PACKS = [
-      { id: "pack_199", priceUsd: "1.99", coins: 1000000, diamonds: 300, promoBonusDiamonds: 200 },
-      { id: "pack_499", priceUsd: "4.99", coins: 3000000, diamonds: 900, promoBonusDiamonds: 600 },
-      { id: "pack_999", priceUsd: "9.99", coins: 6000000, diamonds: 1800, promoBonusDiamonds: 1200 },
-      { id: "pack_1999", priceUsd: "19.99", coins: 12000000, diamonds: 3600, promoBonusDiamonds: 2400 },
-      { id: "pack_4999", priceUsd: "49.99", coins: 30000000, diamonds: 9000, promoBonusDiamonds: 6000 }
+      { id: "pack_199",  priceUsd: "1.99",  coins: 1000000,  gems: 300,  bonusGems: 200 },
+      { id: "pack_499",  priceUsd: "4.99",  coins: 3000000,  gems: 900,  bonusGems: 600 },
+      { id: "pack_999",  priceUsd: "9.99",  coins: 6000000,  gems: 1800, bonusGems: 1200 },
+      { id: "pack_1999", priceUsd: "19.99", coins: 12000000, gems: 3600, bonusGems: 2400 },
+      { id: "pack_4999", priceUsd: "49.99", coins: 30000000, gems: 9000, bonusGems: 6000 }
     ];
 
     const grid = document.getElementById("grid");
-    const errBox = document.getElementById("err");
     const okBox = document.getElementById("ok");
+    const errBox = document.getElementById("err");
     const apiBaseInput = document.getElementById("apiBase");
     const loginStatusInput = document.getElementById("loginStatus");
-    let currentIdToken = "";
 
-    function loadSaved() {
-      const apiBase = localStorage.getItem("dlb_api_base") || "";
-            apiBaseInput.value = apiBase;    }
-
-    function saveInputs() {
-      localStorage.setItem("dlb_api_base", (apiBaseInput.value || "").trim());
-      localStorage.setItem("dlb_id_token", (currentIdToken || "").trim());
+    function safeWorkerBase(){
+      // app.js defines WORKER_BASE in its module scope; it also exposes api() helper on window as window.api (see app.js end)
+      // If not available, fall back to previous localStorage key.
+      return (window.WORKER_BASE || "").trim() || (localStorage.getItem("dlb_api_base") || "").trim();
     }
 
-    apiBaseInput.addEventListener("change", saveInputs);
-    
+    function getUid(){
+      return (localStorage.getItem("acf_uid") || "").trim();
+    }
 
-    function cardHtml(p) {
+    function ensureUid(){
+      let uid = getUid();
+      if(!uid){
+        uid = (crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now());
+        localStorage.setItem("acf_uid", uid);
+      }
+      return uid;
+    }
+
+    function setLoginStatus(text){
+      loginStatusInput.value = text;
+    }
+
+    function cardHtml(p){
       return `
         <div class="card">
           <div class="title">$${p.priceUsd}</div>
           <div class="line">金幣 <b>${p.coins}</b></div>
-          <div class="line">鑽石 <b>${p.diamonds}</b></div>
-          <div class="promo">活動加送 <b>${p.promoBonusDiamonds}</b> 鑽石</div>
+          <div class="line">鑽石 <b>${p.gems}</b></div>
+          <div class="promo">活動加送 <b>${p.bonusGems}</b> 鑽石</div>
           <button class="buy" data-pack="${p.id}">立即購買</button>
         </div>
       `;
     }
 
-    function render() {
+    function render(){
       grid.innerHTML = PACKS.map(cardHtml).join("");
-      document.querySelectorAll("button.buy").forEach(btn => {
-        btn.addEventListener("click", () => startCheckout(btn));
+      document.querySelectorAll("button.buy").forEach(btn=>{
+        btn.addEventListener("click", ()=>startCheckout(btn));
       });
     }
 
-    async function startCheckout(btn) {
+    async function startCheckout(btn){
       errBox.textContent = "";
       okBox.textContent = "";
-      saveInputs();
 
-      const apiBase = (apiBaseInput.value || "").trim().replace(/\/+$/g, "");
-      const idToken = (currentIdToken || "").trim();
+      const apiBase = (apiBaseInput.value || "").trim().replace(/\/+$/g,"");
+      const uid = ensureUid();
       const packId = btn.getAttribute("data-pack");
 
-      if (!apiBase) {
-        errBox.textContent = "請先填 Worker API Base";
-        return;
-      }
-      if (!idToken) {
-        errBox.textContent = "尚未登入或無法取得 Firebase ID token";
+      if(!apiBase){
+        errBox.textContent = "Worker API Base 為空（看起來你在本機離線模式，或 app.js 的 WORKER_BASE 沒設定）。";
         return;
       }
 
       btn.disabled = true;
       btn.textContent = "建立付款中";
 
-      try {
-        const r = await fetch(apiBase + "/api/store/create-checkout-session", {
-          method: "POST",
-          headers: {
-            "content-type": "application/json",
-            "authorization": "Bearer " + idToken
-          },
-          body: JSON.stringify({ packId })
-        });
+      try{
+        // Prefer project helper api() which auto-injects x-user-id
+        let data = null;
 
-        const data = await r.json().catch(() => ({}));
-        if (!r.ok) throw new Error(data && data.error ? data.error : "create session failed");
-        if (!data.url) throw new Error("missing checkout url");
+        if(typeof window.api === "function"){
+          data = await window.api("/api/store/create-checkout-session", {
+            method: "POST",
+            body: JSON.stringify({ packId })
+          });
+        }else{
+          const r = await fetch(apiBase + "/api/store/create-checkout-session", {
+            method:"POST",
+            headers:{
+              "content-type":"application/json",
+              "x-user-id": uid
+            },
+            body: JSON.stringify({ packId })
+          });
+          data = await r.json().catch(()=> ({}));
+          if(!r.ok) throw new Error(data && data.error ? data.error : "create_session_failed");
+        }
 
-        okBox.textContent = "已建立 Stripe Checkout 轉跳中";
+        if(!data || !data.url) throw new Error("missing_checkout_url");
+        okBox.textContent = "已建立 Stripe Checkout，轉跳中";
         location.href = data.url;
-      } catch (e) {
+      }catch(e){
         errBox.textContent = String(e && e.message ? e.message : e);
         btn.disabled = false;
         btn.textContent = "立即購買";
       }
     }
 
-    
-function setLoginStatus(text) {
-  if (loginStatusInput) loginStatusInput.value = text;
-}
+    async function boot(){
+      const apiBase = safeWorkerBase();
+      apiBaseInput.value = apiBase || "";
+      localStorage.setItem("dlb_api_base", apiBaseInput.value);
 
-async function refreshToken(user) {
-  try {
-    if (!user) {
-      currentIdToken = "";
-      setLoginStatus("未登入");
-      return;
+      const uid = ensureUid();
+      const name = localStorage.getItem("acf_name") || "Player";
+      setLoginStatus(`已登入（uid: ${uid}，name: ${name}）`);
+
+      // Make sure the user row exists in D1 (same as other pages)
+      try{
+        if(typeof window.initSession === "function") await window.initSession();
+      }catch(e){
+        // Don't block store UI, but show a hint if needed
+        console.warn(e);
+      }
+
+      render();
     }
-    const token = await user.getIdToken(true);
-    currentIdToken = token || "";
-    if (currentIdToken) localStorage.setItem("dlb_id_token", currentIdToken);
-    setLoginStatus("已登入 已取得 token");
-  } catch (e) {
-    currentIdToken = "";
-    setLoginStatus("登入中 但取得 token 失敗");
-    console.warn(e);
-  }
-}
 
-function initAuthAutoToken() {
-  // 先用 localStorage 快速帶入
-  const saved = (localStorage.getItem("dlb_id_token") || "").trim();
-  if (saved) {
-    currentIdToken = saved;
-    setLoginStatus("已取得 token");
-  } else {
-    setLoginStatus("未登入");
-  }
-
-  // 再監聽 Firebase Auth 狀態 (同網域已登入會自動補上)
-  if (window.__DLB_ON_AUTH__) {
-    window.__DLB_ON_AUTH__((user) => { refreshToken(user); });
-  } else {
-    console.warn("Firebase auth not initialized");
-  }
-}
-
-    loadSaved();
-    render();
-    initAuthAutoToken();
+    boot();
   </script>
 </body>
 </html>
