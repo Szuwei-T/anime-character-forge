@@ -569,36 +569,43 @@ async function loadFeaturedVideo(){
 
   const showFallback = ()=>{
     try{ v.pause(); }catch(_){}
-    v.removeAttribute("src");
+    try{ v.removeAttribute("src"); }catch(_){}
     try{ v.load(); }catch(_){}
     v.style.display = "none";
     if(img) img.style.display = "";
   };
 
-  v.onerror = showFallback;
+  const normalizeFeaturedList = (data)=>{
+    if(!data) return [];
+    if(Array.isArray(data)) return data;
+    if(Array.isArray(data.featured)) return data.featured;
+    if(Array.isArray(data.items)) return data.items;
+    if(Array.isArray(data.data)) return data.data;
+    return [];
+  };
 
-  // Align with existing backend routing: prefer window.api() if provided by app.js
-  const apiFetch = (url, opts)=>{
-    if(typeof window.api === "function") return window.api(url, opts);
-    return fetch(url, opts);
+  // Some builds have window.api() that returns JSON (not a fetch Response).
+  // This wrapper accepts either style.
+  const getJson = async (path)=>{
+    if(typeof window.api === "function"){
+      const r = await window.api(path, { method: "GET" });
+      // If r is already a JSON object, return it.
+      if(r && typeof r === "object" && typeof r.json !== "function") return r;
+      // If r looks like a Response, parse it.
+      if(r && typeof r.json === "function") return await r.json();
+    }
+    const res = await fetch(path, { cache: "no-store" });
+    if(!res.ok) throw new Error(`http_${res.status}`);
+    return await res.json();
   };
 
   try{
     const seasonId = (window.SEASON_ID || "S1");
-    const res = await apiFetch(`/api/featured?seasonId=${encodeURIComponent(seasonId)}`, { cache: "no-store" });
-    if(!res.ok) throw new Error(`featured ${res.status}`);
-
-    const ct = (res.headers.get("content-type") || "").toLowerCase();
-    if(!(ct.includes("application/json") || ct.includes("+json"))){
-      // Some hosts return an HTML error page; don't try to parse it as JSON
-      throw new Error("featured not json");
-    }
-
-    const data = await res.json();
-    const list = (data && (data.featured || data.items || data.data || data)) || [];
-    const first = Array.isArray(list) ? list[0] : null;
+    const data = await getJson(`/api/featured?seasonId=${encodeURIComponent(seasonId)}`);
+    const list = normalizeFeaturedList(data);
+    const first = list[0] || null;
     const fid = first && (first.featuredId || first.id || first.assetId || first.featured_id);
-    if(!fid) throw new Error("no featuredId");
+    if(!fid) throw new Error("no_featuredId");
 
     // Prefer explicit videoUrl returned by backend; fallback to /assets/[featuredId].mp4
     let src = "";
@@ -606,26 +613,25 @@ async function loadFeaturedVideo(){
     if(vurl) src = String(vurl);
     if(!src) src = `/assets/${fid}.mp4`;
 
-    // If backend returns a relative /assets path, always load it from THIS site's origin (where assets live)
+    // Always load assets from this page origin (Pages), not the Worker origin.
     if(!/^https?:\/\//i.test(src)){
       if(src.startsWith("assets/")) src = "/" + src;
       if(!src.startsWith("/")) src = "/" + src;
       src = `${location.origin}${src}`;
     }
 
+    v.onerror = showFallback;
     v.src = src;
     v.style.display = "";
     if(img) img.style.display = "none";
 
-    // Load then attempt play
     try{ v.load(); }catch(_){}
-    v.play().catch(()=>{ /* autoplay may still be blocked */ });
+    v.play().catch(()=>{});
   }catch(e){
     console.warn("featured video load failed", e);
     showFallback();
   }
 }
-
     const overlay = document.getElementById("overlay");
     const grid32El = document.getElementById("grid32");
     const framesLayer = document.getElementById("framesLayer");
