@@ -93,6 +93,9 @@
   const DEFAULT_WORKER = "https://acf-api.dream-league-baseball.workers.dev";
   const WORKER_BASE = window.WORKER_BASE || localStorage.getItem("acf_worker_base") || DEFAULT_WORKER;
 
+  // expose helpers to avoid scope issues in some deployments
+  window.refreshFollowBtn = window.refreshFollowBtn || function(){};
+
   const me = localStorage.getItem("acf_uid") || "";
   const url = new URL(location.href);
   const uid = String(url.searchParams.get("uid") || "").trim();
@@ -210,9 +213,6 @@ if(modalClose) modalClose.onclick = closeModal;
     btnFollow.classList.toggle("on", isFollow);
     btnFollow.disabled = false;
   }
-
-  // Expose for any shared/master UI scripts that may call it.
-  // Keeps compatibility with pages that expect a global function.
   window.refreshFollowBtn = refreshFollowBtn;
 
   async function toggleFollow(){
