@@ -577,11 +577,13 @@
       display:none;
       align-items:center;
       justify-content:center;
-      pointer-events:none; /* never block buttons */
+      pointer-events:auto; /* cinematic handles close */
       padding: 18px;
     }
     .cinematic.show{ display:flex; }
     .cinematic .cine-bg{
+      cursor:pointer;
+
       position:absolute; inset:0;
       background: radial-gradient(circle at center, rgba(0,0,0,0.55), rgba(0,0,0,0.92));
       backdrop-filter: blur(2px);
@@ -623,6 +625,8 @@
     }
 
     .cinematic .cine-core{
+      pointer-events:auto;
+
       position:relative;
       z-index: 2;
       width: min(820px, 92vw);
@@ -740,6 +744,87 @@
     .cinematic.r3 .cine-rarity{ color: #60a5fa; }
     .cinematic.r2 .cine-rarity{ color: #34d399; }
     .cinematic.r1 .cine-rarity{ color: rgba(148,163,184,0.95); }
+
+    
+    .cine-ten{
+      width: 100%;
+      max-width: min(760px, 92vw);
+      display:none;
+      flex-direction:column;
+      gap:10px;
+      margin-top: 2px;
+    }
+    .cine-ten.show{ display:flex; }
+    .cine-ten-title{
+      font-size: 12px;
+      font-weight: 900;
+      opacity: 0.85;
+      letter-spacing: 0.4px;
+      text-align:center;
+    }
+    .cine-ten-grid{
+      display:grid;
+      grid-template-columns: repeat(10, 1fr);
+      gap: 8px;
+      width: 100%;
+      padding: 6px 2px 0;
+    }
+    @media (max-width: 940px){
+      .cine-ten-grid{ grid-template-columns: repeat(5, 1fr); }
+    }
+    .cine-ten-item{
+      position:relative;
+      border-radius: 12px;
+      overflow:hidden;
+      background: rgba(0,0,0,0.22);
+      border: 1px solid rgba(255,255,255,0.10);
+      aspect-ratio: 2 / 3;
+    }
+    .cine-ten-item img{
+      position:absolute; inset:0;
+      width:100%; height:100%;
+      object-fit: contain;
+      display:block;
+      filter: saturate(0.95) contrast(1.05);
+      opacity: 0.96;
+    }
+    .cine-ten-item.best{
+      transform: translateY(-1px);
+      box-shadow: 0 0 0 2px rgba(255,215,0,0.95), 0 0 18px rgba(255,215,0,0.30);
+      border-color: rgba(255,215,0,0.55);
+    }
+    .cine-ten-item .tag{
+      position:absolute;
+      left: 6px;
+      top: 6px;
+      font-size: 10px;
+      font-weight: 950;
+      padding: 3px 7px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.60);
+      border: 1px solid rgba(255,255,255,0.14);
+      letter-spacing: 0.3px;
+      opacity: 0.95;
+    }
+    .cine-ten-item.r3 .tag{ color: #60a5fa; border-color: rgba(96,165,250,0.35); }
+    .cine-ten-item.r4 .tag{ color: #c084fc; border-color: rgba(192,132,252,0.35); }
+    .cine-ten-item.r5 .tag{ color: #fbbf24; border-color: rgba(251,191,36,0.42); }
+
+    .cine-ok{
+      margin-top: 2px;
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 18px;
+      font-size: 15px;
+      font-weight: 1000;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      color: #0a0f18;
+      background: linear-gradient(135deg, rgba(255,198,106,0.98), rgba(255,159,47,0.98));
+      box-shadow: 0 18px 45px rgba(0,0,0,0.45);
+      user-select:none;
+    }
+    .cine-ok:active{ transform: translateY(1px); }
 
     .cine-cta{
       margin-top: 6px;
@@ -1191,64 +1276,116 @@ async function onlineGacha(opts = {}) {
       return "/assets/placeholder.png";
     }
 
-    async function playCinematicForWinner(winner){
+    
+    async function playCinematicForPack(winners, isTen){
       const cinematic = document.getElementById("cinematic");
       const cineRarity = document.getElementById("cineRarity");
       const cineSub = document.getElementById("cineSub");
       const cineImg = document.getElementById("cineImg");
-      if(!cinematic || !cineImg) return;
+      const cineTen = document.getElementById("cineTen");
+      const cineTenGrid = document.getElementById("cineTenGrid");
+      const cineOk = document.getElementById("cineOk");
+      const cineCta = document.getElementById("cineCta");
+      if(!cinematic || !cineImg || !cineOk) return;
 
-      const r = Math.max(1, Math.min(5, Number(winner?.rarity || 1)));
+      const arr = Array.isArray(winners) ? winners.filter(Boolean) : [];
+      if(arr.length === 0) return;
+
+      // pick focus: best rarity, tie -> later item wins (feels like "最後一張更重要")
+      let focus = arr[0];
+      for(const w of arr){
+        const rw = Number(w?.rarity||1);
+        const rf = Number(focus?.rarity||1);
+        if(rw > rf) focus = w;
+        else if(rw === rf) focus = w;
+      }
+
+      const r = Math.max(1, Math.min(5, Number(focus?.rarity || 1)));
       const rName = RARITY_NAME[r] || `R${r}`;
+
       cinematic.className = `cinematic show r${r}`;
       cinematic.setAttribute("aria-hidden","false");
       cinematic.classList.add("black");
       cinematic.classList.remove("flash","shake","float","cta");
 
-      // lock confirm until CTA (always restore in finally)
+      // Hide underlying confirm (we use cinematic confirm)
       if(confirmBtn){
         confirmBtn.style.opacity = "0.0";
         confirmBtn.style.pointerEvents = "none";
       }
 
-      try{
-        const src = assetFullUrl(winner);
-        try{
-          await preloadImages([src], 6000);
-        }catch(_){ /* ignore preload errors */ }
-        cineImg.src = src;
-
-        cineRarity.textContent = rName;
-        const id = String(winner?.assetId || winner?.id || "").trim();
-        cineSub.textContent = id ? `恭喜獲得 ${id}` : "恭喜獲得";
-
-        await sleep(180);
-        cinematic.classList.remove("black");
-        sfxByRarity(r);
-
-        if(r >= 4){
-          await sleep(140);
-          cinematic.classList.add("shake");
-          cinematic.classList.add("flash");
-        }else if(r === 3){
-          await sleep(120);
-          cinematic.classList.add("flash");
+      // Ten-pull thumbnails
+      if(cineTen && cineTenGrid){
+        cineTenGrid.innerHTML = "";
+        if(isTen){
+          cineTen.classList.add("show");
+          for(const w of arr){
+            const rr = Math.max(1, Math.min(5, Number(w?.rarity || 1)));
+            const item = document.createElement("div");
+            item.className = `cine-ten-item r${rr}` + ((w === focus) ? " best" : "");
+            const img = document.createElement("img");
+            img.src = assetThumb(w);
+            img.alt = String(w?.id || w?.assetId || "");
+            const tag = document.createElement("div");
+            tag.className = "tag";
+            tag.textContent = RARITY_NAME[rr] || `R${rr}`;
+            item.appendChild(img);
+            item.appendChild(tag);
+            cineTenGrid.appendChild(item);
+          }
         }else{
-          await sleep(90);
-          cinematic.classList.add("flash");
-        }
-
-        await sleep(520);
-        if(r >= 4) cinematic.classList.add("float");
-
-        await sleep(r >= 5 ? 1200 : 700);
-        cinematic.classList.add("cta");
-      }finally{
-        if(confirmBtn){
-          confirmBtn.style.opacity = "1";
-          confirmBtn.style.pointerEvents = "auto";
+          cineTen.classList.remove("show");
         }
       }
+
+      // Text
+      cineRarity.textContent = rName;
+      const id = String(focus?.assetId || focus?.id || "").trim();
+      cineSub.textContent = isTen ? (id ? `10連抽 最稀有：${id}` : "10連抽 結果") : (id ? `恭喜獲得 ${id}` : "恭喜獲得");
+      if(cineCta) cineCta.textContent = "點擊確認繼續";
+
+      // Image: show thumb immediately, then try full
+      const thumbSrc = assetThumb(focus);
+      cineImg.src = thumbSrc;
+
+      const fullSrc = assetFullUrl(focus);
+      if(fullSrc && fullSrc !== thumbSrc){
+        const test = new Image();
+        test.onload = ()=>{ cineImg.src = fullSrc; };
+        test.onerror = ()=>{};
+        test.src = fullSrc;
+      }
+
+      // Close behavior
+      const close = () => {
+        hideCinematic();
+        try{ hideOverlay(); }catch(_){}
+      };
+      cineOk.onclick = close;
+      const bg = cinematic.querySelector(".cine-bg");
+      if(bg) bg.onclick = close;
+
+      // suspense & FX
+      await sleep(180);
+      cinematic.classList.remove("black");
+      sfxByRarity(r);
+
+      if(r >= 4){
+        await sleep(140);
+        cinematic.classList.add("shake");
+        cinematic.classList.add("flash");
+      }else if(r === 3){
+        await sleep(120);
+        cinematic.classList.add("flash");
+      }else{
+        await sleep(90);
+        cinematic.classList.add("flash");
+      }
+
+      await sleep(520);
+      if(r >= 4) cinematic.classList.add("float");
+
+      // stay on screen until user confirms
     }
 
     function hideCinematic(){
@@ -1258,6 +1395,15 @@ async function onlineGacha(opts = {}) {
       cinematic.setAttribute("aria-hidden","true");
       const cineImg = document.getElementById("cineImg");
       if(cineImg) cineImg.removeAttribute("src");
+      const cineTenGrid = document.getElementById("cineTenGrid");
+      if(cineTenGrid) cineTenGrid.innerHTML = "";
+      const cineTen = document.getElementById("cineTen");
+      if(cineTen) cineTen.classList.remove("show");
+      // restore underlying confirm for non-cinematic paths
+      if(typeof confirmBtn !== "undefined" && confirmBtn){
+        confirmBtn.style.opacity = "1";
+        confirmBtn.style.pointerEvents = "auto";
+      }
     }
 
 
@@ -1517,8 +1663,7 @@ function renderGridDecoys(list){
         // V2: cinematic reveal (focus on last winner in 10-pull, otherwise the only winner)
         try{
           const winners = Array.isArray(pack.winners) ? pack.winners : [];
-          const focus = isTen ? (winners[winners.length - 1] || winners[0]) : (winners[0] || null);
-          if(focus) await playCinematicForWinner(focus);
+          if(winners.length) await playCinematicForPack(winners, isTen);
         }catch(_){ /* ignore cinematic errors */ }
 
         if(rollingText) rollingText.style.display = "none";
@@ -1570,10 +1715,18 @@ function renderGridDecoys(list){
     <div class="cine-flash"></div>
     <div class="cine-shake"></div>
     <div class="cine-glow"></div>
-    <div class="cine-core">
+    <div class="cine-core" role="dialog" aria-modal="true">
       <div class="cine-rarity" id="cineRarity">UR</div>
       <div class="cine-sub" id="cineSub">恭喜獲得</div>
+
       <div class="cine-card"><img id="cineImg" alt="reward" /></div>
+
+      <div class="cine-ten" id="cineTen">
+        <div class="cine-ten-title" id="cineTenTitle">10連抽結果</div>
+        <div class="cine-ten-grid" id="cineTenGrid"></div>
+      </div>
+
+      <button class="cine-ok" id="cineOk" type="button">確認</button>
       <div class="cine-cta" id="cineCta">點擊確認繼續</div>
     </div>
   </div>
