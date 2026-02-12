@@ -203,6 +203,9 @@
     .overlay.show{ display:flex; }
     .panel{
       width:min(1100px, 96vw);
+      display:flex;
+      flex-direction:column;
+      max-height: 92vh;
       border-radius:26px;
       background: rgba(18,22,32,0.92);
       border: 1px solid rgba(255,255,255,0.10);
@@ -232,9 +235,10 @@
       padding:18px;
       border-radius:18px;
       background: rgba(255,255,255,0.05);
-      overflow:hidden;
       box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
-      max-height: 70vh;
+      flex: 1 1 auto;
+      overflow:auto;
+      min-height: 0;
     }
 
 /* loadCover 顯示時，整個 30 張卡區域只剩輪廓 */
@@ -618,21 +622,23 @@
 
   <div class="overlay" id="overlay">
     <div class="panel">
-      <h3>抽卡 <span class="sub">Gacha</span></h3>
-      <div class="gacha-stage">
+            <div class="gacha-stage">
         <div class="grid32" id="grid32"></div>
         <div class="framesLayer" id="framesLayer"></div>
         <div class="loadCover" id="loadCover"><div class="spinner"></div><div class="txt" id="loadTxt">載入中</div></div>
-<div class="statusBar">
-  <div class="statusText">
-    <div id="rollingText">抽卡中</div>
-    <div id="rollSub" class="muted" style="display:none;">10連抽完成</div>
-  </div>
-</div>
+      </div>
+
+      <div class="statusBar">
+        <div class="statusText">
+          <div id="rollingText">抽卡中</div>
+          <div id="rollSub" class="muted" style="display:none;">10連抽完成</div>
+        </div>
+      </div>
+
       <div class="footer">
         <button class="confirm" id="confirmBtn">確認</button>
       </div>
-    </div>
+
   </div>
 
   <script src="app.js"></script>
