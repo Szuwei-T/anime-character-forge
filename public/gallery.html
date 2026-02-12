@@ -237,6 +237,51 @@
   transform: scale(0.6);
 }
 
+
+/* ===== Podium inner border fix v5 ===== */
+
+/* remove outer border for rank2 and rank3 */
+.podium-card.rank2,
+.podium-card.rank3 {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* ensure thumb supports inner border */
+.podium-card .thumb {
+  position: relative;
+}
+
+/* inner border layer */
+.podium-card.rank2 .thumb::before,
+.podium-card.rank3 .thumb::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  pointer-events: none;
+}
+
+/* silver border rank2 */
+.podium-card.rank2 .thumb::before {
+  border: 3px solid #C0C0C0;
+  box-shadow: 0 0 12px rgba(192,192,192,0.7);
+}
+
+/* bronze border rank3 */
+.podium-card.rank3 .thumb::before {
+  border: 3px solid #CD7F32;
+}
+
+/* new scales */
+.podium-card.rank2 {
+  transform: scale(0.9);
+}
+
+.podium-card.rank3 {
+  transform: scale(0.8);
+}
+
 </style>
 </head>
 
