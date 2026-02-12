@@ -411,12 +411,16 @@ function openUser(uid2){
 
     }catch(e){
       const msg = String(e && e.message ? e.message : e);
-      if(msg.includes("no_vote") || msg.includes("no_votes") || msg.includes("insufficient")){
-        showError("你沒有票券，無法投票");
-      }else{
-        showError("投票失敗，請稍後再試");
-      }
-      console.error(e);
+      
+if(msg.includes("max_per_showcase_reached")){
+  const used = Number(e && (e.used ?? e.count ?? 5) ? (e.used ?? e.count ?? 5) : 5);
+  showError("你在本賽季對這個作品已經投滿 5 票，不能再投了");
+}else if(msg.includes("no_vote") || msg.includes("no_votes") || msg.includes("insufficient")){
+  showError("你沒有票券，無法投票");
+}else{
+  showError("投票失敗：" + msg);
+}
+console.error(e);
     }finally{
       if(btnEl) btnEl.disabled = Number(userVote || 0) <= 0;
     }
