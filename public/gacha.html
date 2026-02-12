@@ -780,22 +780,28 @@
       text-align:center;
     }
     .cine-ten-grid{
-      display:grid;
-      grid-template-columns: repeat(10, 1fr);
-      gap: 8px;
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:center;
+      gap: 10px;
       width: 100%;
-      padding: 6px 2px 0;
-    }
-    @media (max-width: 940px){
-      .cine-ten-grid{ grid-template-columns: repeat(5, 1fr); }
+      padding: 8px 2px 0;
     }
     .cine-ten-item{
       position:relative;
       border-radius: 12px;
       overflow:hidden;
       background: rgba(0,0,0,0.22);
-      border: 1px solid rgba(255,255,255,0.10);
+      border: 2px solid rgba(255,255,255,0.10);
       aspect-ratio: 2 / 3;
+      width: 84px;
+      flex: 0 0 84px;
+    }
+    @media (max-width: 940px){
+      .cine-ten-item{ width: 78px; flex-basis: 78px; }
+    }
+    @media (max-width: 520px){
+      .cine-ten-item{ width: 70px; flex-basis: 70px; }
     }
     .cine-ten-item img{
       position:absolute; inset:0;
@@ -826,6 +832,25 @@
     .cine-ten-item.r3 .tag{ color: #60a5fa; border-color: rgba(96,165,250,0.35); }
     .cine-ten-item.r4 .tag{ color: #c084fc; border-color: rgba(192,132,252,0.35); }
     .cine-ten-item.r5 .tag{ color: #fbbf24; border-color: rgba(251,191,36,0.42); }
+
+    /* Ten-pull full-card rarity frame + badge colors (non-head/body) */
+    .cine-ten-item.full{ border-width: 2px; }
+    .cine-ten-item.full.r1{ border-color: rgba(34,197,94,0.95); box-shadow: 0 0 0 2px rgba(34,197,94,0.22), 0 0 18px rgba(34,197,94,0.18); }
+    .cine-ten-item.full.r2{ border-color: rgba(59,130,246,0.95); box-shadow: 0 0 0 2px rgba(59,130,246,0.22), 0 0 18px rgba(59,130,246,0.18); }
+    .cine-ten-item.full.r3{ border-color: rgba(168,85,247,0.95); box-shadow: 0 0 0 2px rgba(168,85,247,0.24), 0 0 22px rgba(168,85,247,0.22); }
+    .cine-ten-item.full.r4{ border-color: rgba(251,146,60,0.98); box-shadow: 0 0 0 2px rgba(251,146,60,0.28), 0 0 28px rgba(251,146,60,0.28), 0 0 64px rgba(251,146,60,0.18); }
+    .cine-ten-item.full.r5{ border-color: rgba(239,68,68,0.98); box-shadow: 0 0 0 2px rgba(239,68,68,0.30), 0 0 34px rgba(239,68,68,0.30), 0 0 90px rgba(239,68,68,0.20); }
+
+    .cine-ten-item.full .tag{
+      background: rgba(0,0,0,0.72);
+      border-width: 2px;
+    }
+    .cine-ten-item.full.r1 .tag{ color: rgba(34,197,94,1); border-color: rgba(34,197,94,0.70); }
+    .cine-ten-item.full.r2 .tag{ color: rgba(59,130,246,1); border-color: rgba(59,130,246,0.70); }
+    .cine-ten-item.full.r3 .tag{ color: rgba(168,85,247,1); border-color: rgba(168,85,247,0.70); }
+    .cine-ten-item.full.r4 .tag{ color: rgba(251,146,60,1); border-color: rgba(251,146,60,0.75); }
+    .cine-ten-item.full.r5 .tag{ color: rgba(239,68,68,1); border-color: rgba(239,68,68,0.80); }
+
 
     .cine-ok{
       margin-top: 2px;
@@ -1527,16 +1552,24 @@ function assetFullUrl(a){
 
           const addItem = (w, container, best=false) => {
             const rr = Math.max(1, Math.min(5, Number(w?.rarity || 1)));
+            const t = String(w?.type || "").toLowerCase();
+            const isHB = (t === "head" || t === "body");
             const item = document.createElement("div");
-            item.className = `cine-ten-item r${rr}` + (best ? " best" : "");
+            item.className = `cine-ten-item r${rr}` + (best ? " best" : "") + (isHB ? " thumb" : " full");
             const img = document.createElement("img");
-            img.src = assetThumb(w);
+            // head/body: thumb only; others: use full card art
+            img.src = isHB ? assetThumb(w) : assetFullUrl(w);
             img.alt = String(w?.id || w?.assetId || "");
-            const tag = document.createElement("div");
-            tag.className = "tag";
-            tag.textContent = RARITY_NAME[rr] || `R${rr}`;
-            item.appendChild(img);
-            item.appendChild(tag);
+            // If not thumb (non head/body), show rarity badge
+            if(!isHB){
+              const tag = document.createElement("div");
+              tag.className = "tag";
+              tag.textContent = RARITY_NAME[rr] || `R${rr}`;
+              item.appendChild(img);
+              item.appendChild(tag);
+            }else{
+              item.appendChild(img);
+            }
             container.appendChild(item);
           };
 

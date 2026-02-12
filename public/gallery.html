@@ -364,6 +364,138 @@
   background-blend-mode: overlay;
 }
 
+
+/* ===== Podium effects v7 (apply to existing podItem / podThumb classes) ===== */
+
+/* ensure podThumb can host pseudo layers */
+.podThumb{
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px;
+}
+
+/* hide outer frame for rank2 and rank3 */
+.podItem.rank2,
+.podItem.rank3{
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* inner frame between image and outer frame */
+.podItem.rank2 .podThumb::before,
+.podItem.rank3 .podThumb::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:14px;
+  pointer-events:none;
+}
+
+/* rank2 silver inner frame + normal glow */
+.podItem.rank2 .podThumb::before{
+  border:3px solid rgba(192,192,192,1);
+  box-shadow: 0 0 12px rgba(192,192,192,.65);
+}
+
+/* rank3 bronze inner frame, no glow */
+.podItem.rank3 .podThumb::before{
+  border:3px solid rgba(205,127,50,1);
+}
+
+/* new preview size */
+.podItem.rank2 .podThumb{
+  transform: scale(0.9);
+  transform-origin: bottom center;
+}
+.podItem.rank3 .podThumb{
+  transform: scale(0.8);
+  transform-origin: bottom center;
+}
+
+/* Rank1 gold particles + sweep */
+.podItem.rank1 .podThumb::after,
+.podItem.rank1 .podThumb::marker{}
+
+/* particles */
+.podItem.rank1 .podThumb::after{
+  content:"";
+  position:absolute;
+  inset:-10%;
+  pointer-events:none;
+  background-image:
+    radial-gradient(circle at 12% 18%, rgba(255,215,0,.85) 0 2px, rgba(255,215,0,0) 3px),
+    radial-gradient(circle at 28% 72%, rgba(255,215,0,.65) 0 1.6px, rgba(255,215,0,0) 3px),
+    radial-gradient(circle at 62% 34%, rgba(255,215,0,.75) 0 2.2px, rgba(255,215,0,0) 3px),
+    radial-gradient(circle at 78% 64%, rgba(255,215,0,.55) 0 1.4px, rgba(255,215,0,0) 3px),
+    radial-gradient(circle at 44% 88%, rgba(255,215,0,.7) 0 2px, rgba(255,215,0,0) 3px),
+    radial-gradient(circle at 88% 22%, rgba(255,215,0,.6) 0 1.6px, rgba(255,215,0,0) 3px);
+  opacity:.9;
+  animation: goldFloat 5.5s linear infinite;
+  mix-blend-mode: screen;
+}
+
+/* sweep */
+.podItem.rank1 .podThumb::before{
+  content:"";
+  position:absolute;
+  inset:-10%;
+  pointer-events:none;
+  background: linear-gradient(120deg,
+    rgba(255,215,0,0) 0%,
+    rgba(255,215,0,.18) 30%,
+    rgba(255,215,0,0) 60%);
+  transform: translateX(-55%) translateY(12%) rotate(8deg);
+  animation: goldSweep 3.2s ease-in-out infinite;
+  mix-blend-mode: screen;
+}
+
+@keyframes goldFloat{
+  0%   { transform: translateY(18px) translateX(-10px); opacity:.75; }
+  50%  { transform: translateY(-10px) translateX(10px); opacity:1; }
+  100% { transform: translateY(18px) translateX(-10px); opacity:.75; }
+}
+@keyframes goldSweep{
+  0%   { transform: translateX(-55%) translateY(12%) rotate(8deg); opacity:.55; }
+  50%  { transform: translateX(55%) translateY(-6%) rotate(8deg); opacity:.9; }
+  100% { transform: translateX(-55%) translateY(12%) rotate(8deg); opacity:.55; }
+}
+
+/* Rank2 silver shimmer flow (add on top of inner frame) */
+.podItem.rank2 .podThumb::after{
+  content:"";
+  position:absolute;
+  inset:-12%;
+  pointer-events:none;
+  background: linear-gradient(115deg,
+    rgba(255,255,255,0) 0%,
+    rgba(255,255,255,.10) 25%,
+    rgba(255,255,255,.28) 45%,
+    rgba(255,255,255,.10) 65%,
+    rgba(255,255,255,0) 100%);
+  transform: translateX(-75%);
+  animation: silverShimmer 2.4s linear infinite;
+  mix-blend-mode: screen;
+  opacity:.85;
+}
+
+@keyframes silverShimmer{
+  0%   { transform: translateX(-75%); }
+  100% { transform: translateX(75%); }
+}
+
+/* Rank3 metallic texture no animation */
+.podItem.rank3 .podThumb::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background-image:
+    linear-gradient(135deg, rgba(255,255,255,.06) 0%, rgba(255,255,255,0) 40%, rgba(0,0,0,.12) 100%),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 2px, rgba(255,255,255,0) 2px 7px);
+  mix-blend-mode: overlay;
+  opacity:.9;
+}
+
 </style>
 </head>
 
