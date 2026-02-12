@@ -357,6 +357,8 @@
       const msg = String(e && e.message ? e.message : e);
       if(msg.includes("no_vote") || msg.includes("no_votes") || msg.includes("insufficient")){
         showError("你沒有票券，無法投票");
+      }else if(msg.includes("max_votes")){
+        showError("同一個作品每個帳號最多投5票");
       }else{
         showError("投票失敗，請稍後再試");
       }
