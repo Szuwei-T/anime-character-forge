@@ -1338,9 +1338,7 @@ q("#submitBtn").addEventListener("click", async ()=>{
         newlyUnlocked.push(rid);
       }
       saveOfflineDb(db2);
-      if(newlyUnlocked.length){
-        if(window.showCollectionFx) window.showCollectionFx(newlyUnlocked);
-      }
+      if(window.showCollectionFx) window.showCollectionFx(unlocked);
     }
 }else{
     toast("保存失敗");
