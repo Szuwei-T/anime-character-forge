@@ -1411,24 +1411,50 @@ async function doUpgrade(assetId){
   function closeUnlock(){
     const overlay = document.getElementById('unlock-overlay');
     if(!overlay) return;
+
     overlay.classList.remove('unlock-open');
     overlay.classList.add('unlock-hidden');
     overlay.style.display = 'none';
     overlay.setAttribute('aria-hidden','true');
+
+    // If multiple recipeIds were unlocked at once, continue showing them one by one
+    const q = window.__unlockQueue || [];
+    if(q.length && typeof window.__showNextUnlock === 'function'){
+      setTimeout(()=>window.__showNextUnlock(), 120);
+    }
   }
 
-  function showCollectionFx(recipeId){
-    if(!recipeId || typeof recipeId !== 'string') return;
+  function showCollectionFx(recipeIdOrList){
+    // Accept a single recipeId string OR an array of recipeIds
     const overlay = document.getElementById('unlock-overlay');
     const img = document.getElementById('unlock-img');
     if(!overlay || !img) return;
 
-    img.src = '/assets/' + recipeId + '.png';
+    const ids = Array.isArray(recipeIdOrList) ? recipeIdOrList : [recipeIdOrList];
+    const queue = (ids || []).map(x => String(x || "")).filter(Boolean);
 
-    overlay.classList.remove('unlock-hidden');
-    overlay.classList.add('unlock-open');
-    overlay.style.display = 'flex';
-    overlay.setAttribute('aria-hidden','false');
+    // Keep a global queue so CONFIRM can show next unlocked item
+    window.__unlockQueue = queue;
+
+    function showNext(){
+      const q = window.__unlockQueue || [];
+      const nextId = q.shift();
+      window.__unlockQueue = q;
+      if(!nextId) return;
+
+      img.src = '/assets/' + nextId + '.png';
+
+      overlay.classList.remove('unlock-hidden');
+      overlay.classList.add('unlock-open');
+      overlay.style.display = 'flex';
+      overlay.setAttribute('aria-hidden','false');
+    }
+
+    // Expose so closeUnlock can continue
+    window.__showNextUnlock = showNext;
+
+    // Show immediately
+    showNext();
   }
 
   window.showCollectionFx = showCollectionFx;
