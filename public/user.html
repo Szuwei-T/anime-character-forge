@@ -40,11 +40,6 @@
 .preview{width:min(520px,92vw);aspect-ratio:1365/2048;position:relative;border-radius:14px;overflow:hidden;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.10)}
 .preview .layer{background-size:contain}
 
-
-
-.avatar .avStack{position:relative;width:100%;height:100%}
-.avatar .avStack img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block}
-
 </style>
 </head>
 <body>
@@ -102,30 +97,6 @@
   const url = new URL(location.href);
   const uid = String(url.searchParams.get("uid") || "").trim();
 
-
-function pickAvatarUrls(p, prof){
-  const a = (p && p.avatar) ? p.avatar : null;
-  const headUrl = (a && a.headUrl) || (a && a.headId ? `/assets/${a.headId}.png` : "") || "";
-  const bodyUrl = (a && a.bodyUrl) || (a && a.bodyId ? `/assets/${a.bodyId}.png` : "") || "";
-  const bgUrl = (a && a.bgUrl) || (a && a.bgId ? `/assets/${a.bgId}.png` : "") || "";
-  const addon1Url = (a && a.addon1Url) || (a && a.addon1Id ? `/assets/${a.addon1Id}.png` : "") || "";
-  const addon2Url = (a && a.addon2Url) || (a && a.addon2Id ? `/assets/${a.addon2Id}.png` : "") || "";
-  const any = headUrl || bodyUrl || bgUrl || addon1Url || addon2Url;
-  if(any) return { headUrl, bodyUrl, bgUrl, addon1Url, addon2Url };
-
-  // fallback if backend returns only ids on profile
-  const h = String((prof && prof.avatarHeadId) || "");
-  const b = String((prof && prof.avatarBodyId) || "");
-  const g = String((prof && prof.avatarBgId) || "");
-  const a1 = String((prof && prof.avatarAddon1Id) || "");
-  const a2 = String((prof && prof.avatarAddon2Id) || "");
-  const u = (id)=> id ? `/assets/${id}.png` : "";
-  const any2 = h||b||g||a1||a2;
-  if(!any2) return null;
-  return { headUrl:u(h), bodyUrl:u(b), bgUrl:u(g), addon1Url:u(a1), addon2Url:u(a2) };
-}
-
-
   const grid = document.getElementById("grid");
   const btnBack = document.getElementById("btnBack");
   const btnFollow = document.getElementById("btnFollow");
@@ -150,6 +121,10 @@ function pickAvatarUrls(p, prof){
     error.style.display="none";
     error.textContent = "";
   }
+
+  // Tiny DOM helpers (some pages also have these in app.js, but user page must work standalone)
+  function q(sel, root=document){ return root.querySelector(sel); }
+  function qa(sel, root=document){ return Array.from(root.querySelectorAll(sel)); }
 
   function api(path, opts={}){
     const method = (opts.method || "GET").toUpperCase();
@@ -214,42 +189,13 @@ if(modalClose) modalClose.onclick = closeModal;
     if(!uid) return;
     const p = await api("/api/user/profile?uid=" + encodeURIComponent(uid));
     const prof = p.profile || {};
-    const stats = p.stats || {};
-
     const nm = (prof.userName && String(prof.userName).trim()) ? String(prof.userName).trim() : String(uid).slice(0,8);
     nameEl.textContent = nm;
-
-    // avatar (composite from user_saves)
-    avatar.innerHTML = "";
-    const urls = pickAvatarUrls(p, prof);
-    if(urls){
-      const stack = document.createElement("div");
-      stack.className = "avStack";
-      const add = (u)=>{ if(!u) return; const img=document.createElement("img"); img.src=u; img.alt=""; stack.appendChild(img); };
-      add(urls.bgUrl);
-      add(urls.bodyUrl);
-      add(urls.headUrl);
-      add(urls.addon1Url);
-      add(urls.addon2Url);
-      avatar.appendChild(stack);
-    }else if(p.avatarUrl){
-      const img = document.createElement("img");
-      img.src = p.avatarUrl;
-      img.alt = "avatar";
-      avatar.appendChild(img);
-    }else{
-      avatar.textContent = (nm.slice(0,1) || "?").toUpperCase();
-    }
-
+    avatar.textContent = nm.slice(0,1).toUpperCase();
     lv.textContent = "Lv." + String(Number(prof.level||1));
-    followers.textContent = "粉絲 " + String(Number(p.followers || stats.followers || 0));
-    following.textContent = "關注 " + String(Number(p.following || stats.following || 0));
-
-    const worksEl = q("#works"); if(worksEl) worksEl.textContent = "成品 " + String(Number(stats.worksCount||0));
-    const likesEl = q("#likes"); if(likesEl) likesEl.textContent = "Like " + String(Number(stats.likesReceived||0));
-    const unlocksEl = q("#unlocks"); if(unlocksEl) unlocksEl.textContent = "解鎖 " + String(Number(stats.collectionsUnlocked||0));
-
-    sub.textContent = (prof.userRegion && String(prof.userRegion).trim()) ? ("地區 " + String(prof.userRegion).trim()) : "";
+    followers.textContent = "粉絲 " + String(Number(p.followers||0));
+    following.textContent = "關注 " + String(Number(p.following||0));
+    sub.textContent = (prof.userRegion && String(prof.userRegion).trim()) ? String(prof.userRegion).trim() : "";
   }
 
   function refreshFollowBtn(){
