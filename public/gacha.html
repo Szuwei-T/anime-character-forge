@@ -353,7 +353,24 @@
       z-index: 5;
       pointer-events:none;
     }
-    .cell.win.red::after{
+    
+    /* ===== per-card rarity glow when it stops (10-pull clarity) ===== */
+    .cell.win.r1::after{ box-shadow: 0 0 0 2px rgba(148,163,184,0.85), 0 0 18px rgba(148,163,184,0.25); }
+    .cell.win.r2::after{ box-shadow: 0 0 0 2px rgba(34,197,94,0.90), 0 0 22px rgba(34,197,94,0.30); }
+    .cell.win.r3::after{ box-shadow: 0 0 0 2px rgba(59,130,246,0.92), 0 0 26px rgba(59,130,246,0.35); }
+    .cell.win.r4::after{ box-shadow: 0 0 0 2px rgba(168,85,247,0.95), 0 0 34px rgba(168,85,247,0.42); }
+    .cell.win.r5::after{ box-shadow: 0 0 0 2px rgba(245,158,11,0.98), 0 0 46px rgba(245,158,11,0.55), 0 0 90px rgba(255,255,255,0.18); }
+
+    .cell.focus::after{
+      animation: focusPulse 280ms ease-out 1;
+    }
+    @keyframes focusPulse{
+      0%{ transform: scale(1); opacity: 0.6; }
+      60%{ transform: scale(1.02); opacity: 1; }
+      100%{ transform: scale(1); opacity: 1; }
+    }
+
+.cell.win.red::after{
       box-shadow: 0 0 0 2px rgba(255,80,80,0.98), 0 0 20px rgba(255,80,80,0.45);
     }
 
@@ -1413,18 +1430,16 @@ function assetFullUrl(a){
       }
 
       
-      // Ten-pull thumbnails (guarantee on top)
+      // Ten-pull thumbnails (SSR/UR on top)
       if(cineTen && cineTenGrid){
         cineTenGrid.innerHTML = "";
         if(cineTenGuarantee) cineTenGuarantee.innerHTML = "";
         if(isTen){
           cineTen.classList.add("show");
 
-          // find guarantee card from backend flag, fallback to last item
-          let gCard = arr.find(w => w && (w._guarantee || w.guarantee || w.isGuarantee));
-          if(!gCard) gCard = arr[arr.length - 1];
-
-          const others = arr.filter(w => w !== gCard);
+          // featured: all SSR/UR (rarity >= 4), keep original order
+          const featured = arr.filter(w => Number(w?.rarity||1) >= 4);
+          const rest = arr.filter(w => Number(w?.rarity||1) < 4);
 
           const addItem = (w, container, best=false) => {
             const rr = Math.max(1, Math.min(5, Number(w?.rarity || 1)));
@@ -1441,13 +1456,22 @@ function assetFullUrl(a){
             container.appendChild(item);
           };
 
-          // guarantee (always show, marked)
+          // top row: SSR/UR (if any). reuse cineTenGuarantee as the top container
           if(cineTenGuarantee){
-            addItem(gCard, cineTenGuarantee, (gCard === focus));
+            if(featured.length){
+              for(const w of featured){
+                addItem(w, cineTenGuarantee, (w === focus));
+              }
+            }else{
+              // if no SSR/UR, show the best card on top for a bit of drama
+              addItem(focus, cineTenGuarantee, true);
+            }
           }
 
-          // other 9
-          for(const w of others){
+          // bottom grid: all remaining cards
+          for(const w of rest){
+            // avoid duplicating focus if it was used as fallback top card
+            if(!featured.length && w === focus) continue;
             addItem(w, cineTenGrid, (w === focus));
           }
         }else{
@@ -1681,6 +1705,13 @@ function renderGridDecoys(list){
 
         const w = Array.isArray(winners) ? winners[idx] : null;
         const rr = Math.max(1, Math.min(5, Number(w?.rarity || 1)));
+
+        // apply rarity class to landed cell for stronger visual difference
+        if(cell){
+          ["r1","r2","r3","r4","r5"].forEach(x=>cell.classList.remove(x));
+          cell.classList.add(`r${rr}`);
+        }
+
         sfxByRarity(rr);
         packHitFx(rr);
 
