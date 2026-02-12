@@ -870,6 +870,46 @@
       100%{ transform: translate(0,0); }
     }
 
+  
+    /* V2 clarity: show exactly which card is landing */
+    .cell.focus::after{
+      content:"";
+      position:absolute;
+      inset:-4px;
+      border-radius:16px;
+      box-shadow: 0 0 0 3px rgba(255,255,255,0.22), 0 0 26px rgba(255,255,255,0.22);
+      pointer-events:none;
+      z-index: 6;
+      animation: focusPop 260ms ease-out 1;
+    }
+    @keyframes focusPop{
+      0%{ transform: scale(0.98); opacity: 0.0; }
+      25%{ opacity: 1.0; }
+      100%{ transform: scale(1.00); opacity: 0.0; }
+    }
+
+    /* Cinematic 10-pull layout: guarantee on top */
+    .cine-ten{ width:min(860px, 92vw); }
+    .cine-ten-subtitle{
+      margin: 10px 0 8px;
+      font-size: 12px;
+      font-weight: 950;
+      letter-spacing: 0.6px;
+      opacity: 0.86;
+      text-align:center;
+    }
+    .cine-ten-g{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      margin-bottom: 6px;
+    }
+    .cine-ten-g .cine-ten-item{
+      width: 132px;
+      height: 196px;
+      border-radius: 18px;
+    }
+
   </style>
 </head>
 <body>
@@ -1372,15 +1412,24 @@ function assetFullUrl(a){
         confirmBtn.style.pointerEvents = "none";
       }
 
-      // Ten-pull thumbnails
+      
+      // Ten-pull thumbnails (guarantee on top)
       if(cineTen && cineTenGrid){
         cineTenGrid.innerHTML = "";
+        if(cineTenGuarantee) cineTenGuarantee.innerHTML = "";
         if(isTen){
           cineTen.classList.add("show");
-          for(const w of arr){
+
+          // find guarantee card from backend flag, fallback to last item
+          let gCard = arr.find(w => w && (w._guarantee || w.guarantee || w.isGuarantee));
+          if(!gCard) gCard = arr[arr.length - 1];
+
+          const others = arr.filter(w => w !== gCard);
+
+          const addItem = (w, container, best=false) => {
             const rr = Math.max(1, Math.min(5, Number(w?.rarity || 1)));
             const item = document.createElement("div");
-            item.className = `cine-ten-item r${rr}` + ((w === focus) ? " best" : "");
+            item.className = `cine-ten-item r${rr}` + (best ? " best" : "");
             const img = document.createElement("img");
             img.src = assetThumb(w);
             img.alt = String(w?.id || w?.assetId || "");
@@ -1389,7 +1438,17 @@ function assetFullUrl(a){
             tag.textContent = RARITY_NAME[rr] || `R${rr}`;
             item.appendChild(img);
             item.appendChild(tag);
-            cineTenGrid.appendChild(item);
+            container.appendChild(item);
+          };
+
+          // guarantee (always show, marked)
+          if(cineTenGuarantee){
+            addItem(gCard, cineTenGuarantee, (gCard === focus));
+          }
+
+          // other 9
+          for(const w of others){
+            addItem(w, cineTenGrid, (w === focus));
           }
         }else{
           cineTen.classList.remove("show");
@@ -1397,6 +1456,7 @@ function assetFullUrl(a){
       }
 
       // Show big card only for single pull
+
       const cineCardWrap = cineImg ? cineImg.closest(".cine-card") : null;
       if(cineCardWrap){
         cineCardWrap.style.display = isTen ? "none" : "";
@@ -1547,93 +1607,105 @@ function renderGridDecoys(list){
       frame.style.height = rect.height + "px";
     }
 
+    
     async function animateJumpGridToSlots(winnerSlots, winners, isTen){
       let rects = getGridCellRects();
-      const framesCount = isTen ? 10 : 1;
 
       framesLayer.innerHTML = "";
-       hideCinematic();
-      const frames = [];
-      for(let i=0;i<framesCount;i++){
-        const f = document.createElement("div");
-        f.className = "jump-frame " + (isTen && i === framesCount - 1 ? "red" : "gold");
-        framesLayer.appendChild(f);
-        frames.push(f);
-      }
-
-      // start positions
-      let slots = pickUniqueIndices(GRID_COUNT, framesCount);
-      for(let i=0;i<framesCount;i++){
-        placeFrame(frames[i], rects[slots[i]]);
-        frames[i].classList.remove("jump");
-        void frames[i].offsetWidth;
-        frames[i].classList.add("jump");
-      }
-
-      const steps = isTen ? 46 : 34;
-      let interval = 40;
-
-      for(let s=0;s<steps;s++){
-        await sleep(interval);
-
-        rects = getGridCellRects();
-        slots = pickUniqueIndices(GRID_COUNT, framesCount);
-        for(let i=0;i<framesCount;i++){
-          placeFrame(frames[i], rects[slots[i]]);
-          frames[i].classList.remove("jump");
-          void frames[i].offsetWidth;
-          frames[i].classList.add("jump");
-        }
-
-        if(s > steps*0.55) interval = Math.min(260, Math.round(interval*1.10 + 3));
-      }
-
-      // Final: frames land on the already-decided winner slots (one by one)
-      await sleep(220);
-      rects = getGridCellRects();
-
-      const finalSlots = Array.isArray(winnerSlots) ? winnerSlots.slice(0, framesCount) : [];
-      while(finalSlots.length < framesCount) finalSlots.push(0);
+      hideCinematic();
 
       const cells = Array.from(grid32El.querySelectorAll(".cell"));
-      cells.forEach(c=>c.classList.remove("win","win2","red","dim"));
+      // start: all dark
+      cells.forEach(c=>c.classList.remove("win","win2","red","focus"));
+      cells.forEach(c=>c.classList.add("dim"));
 
-      const winSet = new Set(finalSlots);
+      const finalSlotsAll = Array.isArray(winnerSlots) ? winnerSlots.slice() : [];
+      const framesCount = isTen ? 10 : 1;
+      const finalSlots = finalSlotsAll.slice(0, framesCount);
+      while(finalSlots.length < framesCount) finalSlots.push(0);
 
-      // For 10-pull: stop one frame at a time, and trigger FX by that card rarity
-      for(let i=0;i<framesCount;i++){
-        const slot = finalSlots[i];
-        placeFrame(frames[i], rects[slot]);
-        frames[i].classList.remove("jump");
-        void frames[i].offsetWidth;
-        frames[i].classList.add("jump");
+      // one visible frame for ten-pull (clearer), single frame for single-pull
+      const frame = document.createElement("div");
+      frame.className = "jump-frame gold";
+      framesLayer.appendChild(frame);
 
-        // mark the landed cell immediately
-        const cell = cells[slot];
-        if(cell){
-          cell.classList.add("win");
-          if(isTen && i === framesCount - 1) cell.classList.add("red");
-          setTimeout(()=>cell.classList.add("win2"), 30);
+      // start position
+      let slotNow = pickUniqueIndices(GRID_COUNT, 1)[0] || 0;
+      placeFrame(frame, rects[slotNow]);
+      frame.classList.remove("jump");
+      void frame.offsetWidth;
+      frame.classList.add("jump");
+
+      // helper: run a mini spin then land on target slot
+      async function spinAndLand(targetSlot, idx, total){
+        // spin
+        const steps = isTen ? 18 : 30;
+        let interval = 34;
+        for(let s=0;s<steps;s++){
+          await sleep(interval);
+          rects = getGridCellRects();
+          slotNow = pickUniqueIndices(GRID_COUNT, 1)[0] || slotNow;
+          placeFrame(frame, rects[slotNow]);
+          frame.classList.remove("jump");
+          void frame.offsetWidth;
+          frame.classList.add("jump");
+          if(s > steps*0.55) interval = Math.min(190, Math.round(interval*1.10 + 3));
         }
 
-        // rarity FX for this landed winner (uses backend-decided winners order)
-        const w = Array.isArray(winners) ? winners[i] : null;
+        // land
+        await sleep(90);
+        rects = getGridCellRects();
+        slotNow = targetSlot;
+        placeFrame(frame, rects[slotNow]);
+        frame.classList.remove("jump");
+        void frame.offsetWidth;
+        frame.classList.add("jump");
+
+        // frame style: last one red
+        if(isTen && idx === total - 1){
+          frame.classList.remove("gold");
+          frame.classList.add("red");
+        }else{
+          frame.classList.remove("red");
+          frame.classList.add("gold");
+        }
+
+        const cell = cells[slotNow];
+        if(cell){
+          cell.classList.remove("dim");
+          cell.classList.add("win","focus");
+          if(isTen && idx === total - 1) cell.classList.add("red");
+          setTimeout(()=>cell.classList.add("win2"), 30);
+          setTimeout(()=>cell.classList.remove("focus"), 280);
+        }
+
+        const w = Array.isArray(winners) ? winners[idx] : null;
         const rr = Math.max(1, Math.min(5, Number(w?.rarity || 1)));
         sfxByRarity(rr);
         packHitFx(rr);
 
-        // small pause so it feels like "一個一個停下"
         await sleep(isTen ? 260 : 0);
       }
 
-      // Dim non-winners after all frames land
+      if(isTen){
+        // stop one by one, each stop lights up that card
+        for(let i=0;i<framesCount;i++){
+          await spinAndLand(finalSlots[i], i, framesCount);
+        }
+      }else{
+        // single pull: one landing
+        await spinAndLand(finalSlots[0], 0, 1);
+      }
+
+      // keep non-winners dark, winners already lit
+      const winSet = new Set(finalSlots);
       cells.forEach((c, idx)=>{
         if(winSet.has(idx)) c.classList.remove("dim");
         else c.classList.add("dim");
       });
 
-      // Keep frames on winners
-      frames.forEach(f=>f.classList.remove("fade"));
+      // keep frame on last landed card
+      frame.classList.remove("fade");
     }
 
     async function buildGridWithPulled(pulled, opts={}){
@@ -1803,6 +1875,9 @@ function renderGridDecoys(list){
 
       <div class="cine-ten" id="cineTen">
         <div class="cine-ten-title" id="cineTenTitle">10連抽結果</div>
+        <div class="cine-ten-subtitle">保底</div>
+        <div class="cine-ten-g" id="cineTenGuarantee"></div>
+        <div class="cine-ten-subtitle">其餘9張</div>
         <div class="cine-ten-grid" id="cineTenGrid"></div>
       </div>
 
