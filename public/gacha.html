@@ -478,27 +478,68 @@
       border-color: rgba(255,214,102,0.55);
     }
     
-/* actionBar: 抽卡中 + 確認按鈕同一區塊，固定高度避免跳動 */
+
+/* Pro UI: actionBar 內部疊放，切換用 opacity，不造成 reflow */
 .actionBar{
+  position: relative;
   display:flex;
   justify-content:center;
   align-items:center;
-  gap: 14px;
+  gap: 0;
   margin-top: 14px;
-  height: 52px; /* 固定高度：顯示文字或按鈕都不跳 */
+  height: 52px; /* 固定高度：永不跳 */
   text-align:center;
+  user-select:none;
 }
+
 .actionBar .statusText{
-  font-weight: 950;
-  letter-spacing: 0.8px;
-  opacity: 0.92;
-  font-size: 16px;
-  line-height: 1.1;
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform: translate(-50%, -50%);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap: 4px;
+  width: 100%;
+  max-width: 92%;
+  pointer-events:none;
+  opacity: 1;
+  transition: opacity 180ms ease;
 }
-.actionBar .statusText .muted{
-  opacity: 0.85;
-  font-weight: 900;
-  font-size: 15px;
+
+.actionBar .confirm{
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform: translate(-50%, -50%);
+  display:inline-flex; /* 永遠佔位，靠 opacity 切換 */
+  align-items:center;
+  justify-content:center;
+  opacity: 0;
+  pointer-events:none;
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+/* 切換模式：loading 顯示文字；done 顯示按鈕 */
+.actionBar.mode-loading .statusText{ opacity: 1; }
+.actionBar.mode-loading .confirm{
+  opacity: 0;
+  pointer-events:none;
+  transform: translate(-50%, -50%) scale(0.98);
+}
+
+.actionBar.mode-done .statusText{ opacity: 0; }
+.actionBar.mode-done .confirm{
+  opacity: 1;
+  pointer-events:auto;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* 小小按鈕進場質感 */
+.actionBar.mode-done .confirm{
+  box-shadow: 0 18px 45px rgba(0,0,0,0.35);
 }
 .confirm{
       border:0;
@@ -511,8 +552,6 @@
       color:#111;
       display:none;
     }
-    .confirm.show{ display:inline-flex; }
-  
     .card.broken{
       outline: 2px solid rgba(255, 80, 80, 0.75);
     }
@@ -625,7 +664,7 @@
         <div class="loadCover" id="loadCover"><div class="spinner"></div><div class="txt" id="loadTxt">載入中</div></div>
       </div>
 
-      <div class="actionBar" id="actionBar">
+      <div class="actionBar mode-loading" id="actionBar">
         <div class="statusText">
           <div id="rollingText">抽卡中</div>
           <div id="rollSub" class="muted" style="display:none;"></div>
@@ -726,6 +765,7 @@ async function loadFeaturedVideo(){
     const rollSub = document.getElementById("rollSub");
     const rollingText = document.getElementById("rollingText");
     const confirmBtn = document.getElementById("confirmBtn");
+    const actionBar = document.getElementById("actionBar");
 
     function showLoad(msg){
       if(loadTxt) loadTxt.textContent = msg || "載入中";
@@ -783,6 +823,8 @@ async function loadFeaturedVideo(){
       grid32El.querySelectorAll(".cell").forEach(c=>c.classList.remove("dim","win","win2","red"));
       if(rollingText) rollingText.style.display = "";
       if(rollSub){ rollSub.style.display = "none"; rollSub.textContent = ""; }
+      if(actionBar){ actionBar.classList.add("mode-loading"); actionBar.classList.remove("mode-done"); }
+      if(confirmBtn){ confirmBtn.style.opacity="0"; confirmBtn.style.pointerEvents="none"; }
     }
 
     confirmBtn.addEventListener("click", () => hideOverlay());
@@ -1122,7 +1164,9 @@ function renderGridDecoys(list){
       animating = true;
 
       try{
-        confirmBtn.classList.remove("show");
+        if(actionBar){ actionBar.classList.add("mode-loading"); actionBar.classList.remove("mode-done"); }
+        confirmBtn.style.opacity = "0";
+        confirmBtn.style.pointerEvents = "none";
         showOverlay();
         // Cover previous 30 cards until the new 30 cards are fully loaded
         showLoad("載入中");
@@ -1151,7 +1195,9 @@ function renderGridDecoys(list){
 
         if(rollingText) rollingText.style.display = "none";
         if(rollSub){ rollSub.style.display = ""; rollSub.textContent = isTen ? "" : ""; }
-        confirmBtn.classList.add("show");
+        if(actionBar){ actionBar.classList.add("mode-done"); actionBar.classList.remove("mode-loading"); }
+        confirmBtn.style.opacity = "1";
+        confirmBtn.style.pointerEvents = "auto";
         animating = false;
       }catch(e){
         console.error(e);
@@ -1159,7 +1205,9 @@ function renderGridDecoys(list){
         if(rollingText) rollingText.style.display = "none";
         if(rollSub){ rollSub.style.display = ""; rollSub.textContent = "抽卡失敗"; }
         toast("抽卡失敗");
-        confirmBtn.classList.add("show");
+        if(actionBar){ actionBar.classList.add("mode-done"); actionBar.classList.remove("mode-loading"); }
+        confirmBtn.style.opacity = "1";
+        confirmBtn.style.pointerEvents = "auto";
         animating = false;
       }
     }
