@@ -486,46 +486,6 @@
       border-radius:10px;
       word-break: break-all;
     }
-
-    .gacha-stage.loading #grid32,
-    .gacha-stage.loading #framesLayer{
-      filter: blur(14px) brightness(0.55) saturate(0.65);
-      transform: translateZ(0);
-    }
-
-    .loadCover{
-      background: rgba(0,0,0,0.82);
-      backdrop-filter: blur(22px) saturate(0.7);
-    }
-    .loadCover:before{
-      content:"";
-      position:absolute;
-      inset:0;
-      background: radial-gradient(circle at 30% 25%, rgba(255,255,255,0.08), transparent 45%),
-                  radial-gradient(circle at 70% 70%, rgba(255,214,102,0.10), transparent 55%);
-      filter: blur(20px);
-      opacity: 0.65;
-      pointer-events:none;
-    }
-    .loadCover .spinner{ position: relative; z-index: 2; }
-    .loadCover .txt{ position: relative; z-index: 2; }
-
-    .statusRow{
-      display:flex;
-      justify-content:center;
-      margin-top: 12px;
-      min-height: 28px;
-    }
-    .statusText{
-      font-weight: 950;
-      letter-spacing: 0.8px;
-      opacity: 0.92;
-      padding: 6px 14px;
-      border-radius: 999px;
-      background: rgba(0,0,0,0.38);
-      border: 1px solid rgba(255,255,255,0.10);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
-    }
 </style>
 </head>
 <body>
@@ -616,18 +576,14 @@
 
   <div class="overlay" id="overlay">
     <div class="panel">
-      <h3>抽卡</h3>
-      <div class="gacha-stage" id="gachaStage">
+      <h3>抽卡中 <span class="sub" id="rollSub">連線中</span></h3>
+      <div class="gacha-stage">
         <div class="grid32" id="grid32"></div>
         <div class="framesLayer" id="framesLayer"></div>
         <div class="loadCover" id="loadCover"><div class="spinner"></div><div class="txt" id="loadTxt">載入中</div></div>
       </div>
-
-      <div class="statusRow">
-        <div class="statusText" id="statusText">抽卡中</div>
-      </div>
       <div class="footer">
-        <button class="confirm" id="confirmBtn" style="display:none;">確認</button>
+        <button class="confirm" id="confirmBtn">確認</button>
       </div>
     </div>
   </div>
@@ -720,18 +676,15 @@ async function loadFeaturedVideo(){
     const framesLayer = document.getElementById("framesLayer");
     const loadCover = document.getElementById("loadCover");
     const loadTxt = document.getElementById("loadTxt");
+    const rollSub = document.getElementById("rollSub");
     const confirmBtn = document.getElementById("confirmBtn");
-    const statusText = document.getElementById("statusText");
-    const gachaStage = document.getElementById("gachaStage");
 
     function showLoad(msg){
       if(loadTxt) loadTxt.textContent = msg || "載入中";
       if(loadCover) loadCover.classList.add("show");
-      if(gachaStage) gachaStage.classList.add("loading");
     }
     function hideLoad(){
       if(loadCover) loadCover.classList.remove("show");
-      if(gachaStage) gachaStage.classList.remove("loading");
     }
     function preloadImages(urls, timeoutMs=8000){
       const uniq = Array.from(new Set((urls||[]).filter(Boolean)));
@@ -776,26 +729,9 @@ async function loadFeaturedVideo(){
       // reset overlay state
       framesLayer.innerHTML = "";
       grid32El.querySelectorAll(".cell").forEach(c=>c.classList.remove("dim","win","win2","red"));
-      hideLoad();
-      setConfirmVisible(false, "");
     }
 
     confirmBtn.addEventListener("click", () => hideOverlay());
-    function setStatus(txt){
-      if(statusText) statusText.textContent = txt || "";
-    }
-
-    function setConfirmVisible(visible, doneText){
-      if(!confirmBtn) return;
-      if(visible){
-        confirmBtn.classList.add("show");
-        setStatus(doneText || "10連抽完成");
-      }else{
-        setConfirmVisible(false, "");
-        setStatus("抽卡中");
-      }
-    }
-
 
     function normalizeType(t){
       const x = String(t||"");
@@ -1132,35 +1068,35 @@ function renderGridDecoys(list){
       animating = true;
 
       try{
-        setConfirmVisible(false, "");
+        confirmBtn.classList.remove("show");
         showOverlay();
         // Cover previous 30 cards until the new 30 cards are fully loaded
         showLoad("載入中");
 
         // 1) Get the real awarded cards first (backend decides)
-        setStatus("抽卡中");
+        rollSub.textContent = "抽卡中";
         const pulled = await onlineGacha(opts);
         if(!pulled || pulled.length === 0) throw new Error("empty");
 
         // 2) Build the 30-card grid BEFORE animation:
         //    30 cards include the 1/10 real rewards, plus decoys (from /api/assets) for visuals only
-        setStatus("抽卡中");
+        rollSub.textContent = "準備動畫";
         const isTen = Number(opts.count||1) === 10;
         const pack = await buildGridWithPulled(pulled, opts);
 
         // 3) Run animation but DO NOT change grid content; only land frames onto the pre-decided winners
-        setStatus("抽卡中");
+        rollSub.textContent = "抽卡中";
         await animateJumpGridToSlots(pack.winnerSlots, pack.winners, isTen);
 
-        const doneText = isTen ? "10連抽完成" : "抽卡完成";
-        setConfirmVisible(true, doneText);
+        rollSub.textContent = isTen ? "10連抽完成" : "抽卡完成";
+        confirmBtn.classList.add("show");
         animating = false;
       }catch(e){
         console.error(e);
         hideLoad();
-        setStatus("抽卡失敗");
+        rollSub.textContent = "抽卡失敗";
         toast("抽卡失敗");
-        setConfirmVisible(true, "抽卡失敗");
+        confirmBtn.classList.add("show");
         animating = false;
       }
     }
