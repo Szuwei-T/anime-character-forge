@@ -170,85 +170,6 @@
   border-color: rgba(255,255,255,.35);
 }
 
-.social{
-  border-top:1px solid rgba(255,255,255,.10);
-  padding-top:10px;
-}
-.reactionRow{
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px;
-  margin-bottom:10px;
-}
-.reactBtn{
-  display:flex;
-  align-items:center;
-  gap:6px;
-  padding:8px 10px;
-  border-radius:999px;
-  border:1px solid rgba(255,255,255,.14);
-  background:rgba(255,255,255,.06);
-  cursor:pointer;
-  font-weight:850;
-  font-size:14px;
-}
-.reactBtn.on{
-  border-color: rgba(255,255,255,.30);
-  background: rgba(255,255,255,.10);
-}
-.commentSection{
-  border:1px solid rgba(255,255,255,.12);
-  background: rgba(0,0,0,.22);
-  border-radius:16px;
-  padding:10px;
-}
-.commentHead{
-  font-weight:950;
-  opacity:.92;
-  margin-bottom:8px;
-}
-.commentList{
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-  max-height:280px;
-  overflow:auto;
-  padding-right:4px;
-}
-.cmt{
-  border:1px solid rgba(255,255,255,.10);
-  background: rgba(255,255,255,.06);
-  border-radius:14px;
-  padding:8px 10px;
-}
-.cmtTop{
-  display:flex;
-  justify-content:space-between;
-  gap:10px;
-  font-size:12px;
-  opacity:.85;
-  margin-bottom:4px;
-}
-.cmtBody{
-  font-size:13px;
-  line-height:1.35;
-  opacity:.95;
-  word-break:break-word;
-}
-.commentInputRow{
-  display:flex;
-  gap:8px;
-  margin-top:10px;
-}
-#commentInput{
-  flex:1;
-  border:1px solid rgba(255,255,255,.14);
-  background: rgba(255,255,255,.06);
-  border-radius:12px;
-  padding:10px 12px;
-  color:#fff;
-  outline:none;
-}
 </style>
 </head>
 
@@ -265,7 +186,6 @@
         <div class="btn" id="btnStudio">回工作室</div>
         <div class="btn" id="btnRecipes">成品庫</div>
         <div class="btn" id="btnHome">首頁</div>
-        <div class="btn" id="btnDaily">每日任務</div>
       </div>
     </div>
 
@@ -303,35 +223,9 @@
       <div class="modalbody">
         <div class="bigwrap" id="bigwrap"></div>
         <div class="footnote" id="modalMeta"></div>
-<div class="social" id="modalSocial" style="margin-top:10px;">
-  <div class="reactionRow" id="reactionRow"></div>
-  <div class="commentSection">
-    <div class="commentHead">留言</div>
-    <div class="commentList" id="commentList"></div>
-    <div class="commentInputRow">
-      <input id="commentInput" placeholder="寫點什麼" maxlength="220" />
-      <button class="btn mini" id="commentSend">送出</button>
-    </div>
-  </div>
-</div>
       </div>
     </div>
   </div>
-
-<div class="modal" id="dailyModal" style="z-index:80;">
-  <div class="modalbox" style="max-width:640px;">
-    <div class="modalhead">
-      <div class="h">每日任務</div>
-      <div class="x" id="dailyClose">關閉</div>
-    </div>
-    <div class="modalbody">
-      <div id="dailyContent" style="opacity:.92;font-size:14px;line-height:1.5;"></div>
-      <div style="margin-top:12px;display:flex;justify-content:flex-end;gap:10px;">
-        <div class="btn" id="dailyClaim" style="display:none;">領取獎勵</div>
-      </div>
-    </div>
-  </div>
-</div>
 
 <script>
 (function(){
@@ -355,18 +249,6 @@
   const modalTitle = document.getElementById("modalTitle");
   const modalMeta = document.getElementById("modalMeta");
   const bigwrap = document.getElementById("bigwrap");
-
-const reactionRow = document.getElementById("reactionRow");
-const commentList = document.getElementById("commentList");
-const commentInput = document.getElementById("commentInput");
-const commentSend = document.getElementById("commentSend");
-let currentShowcaseId = "";
-
-const dailyBtn = document.getElementById("btnDaily");
-const dailyModal = document.getElementById("dailyModal");
-const dailyClose = document.getElementById("dailyClose");
-const dailyContent = document.getElementById("dailyContent");
-const dailyClaim = document.getElementById("dailyClaim");
 
   uidBadge.textContent = uid ? uid : "未登入";
 
@@ -564,33 +446,25 @@ function openUser(uid2){
     });
   }
 
-  async function openModalLayers(title, metaText, layers, showcaseId){
-  modalTitle.textContent = title || "預覽";
-  modalMeta.textContent = metaText || "";
-  bigwrap.innerHTML = "";
-  currentShowcaseId = showcaseId || "";
+  function openModalLayers(title, metaText, layers){
+    modalTitle.textContent = title || "預覽";
+    modalMeta.textContent = metaText || "";
+    bigwrap.innerHTML = "";
 
-  layers.forEach((l) => {
-    if (!l.url) return;
-    const div = document.createElement("div");
-    div.className = "layer";
-    div.style.zIndex = String(l.z || 0);
-    const img = document.createElement("img");
-    img.loading = "lazy";
-    img.src = l.url;
-    div.appendChild(img);
-    bigwrap.appendChild(div);
-  });
+    layers.forEach((l) => {
+      if (!l.url) return;
+      const div = document.createElement("div");
+      div.className = "layer";
+      div.style.zIndex = String(l.z || 0);
+      const img = document.createElement("img");
+      img.loading = "lazy";
+      img.src = l.url;
+      div.appendChild(img);
+      bigwrap.appendChild(div);
+    });
 
-  // reset social
-  if(reactionRow) reactionRow.innerHTML = "";
-  if(commentList) commentList.innerHTML = "";
-  if(commentInput) commentInput.value = "";
-
-  modal.classList.add("show");
-  if(currentShowcaseId) await loadShowcaseSocial(currentShowcaseId);
-}
-
+    modal.classList.add("show");
+  }
 
   modalClose.onclick = () => modal.classList.remove("show");
   modal.onclick = (e) => { if (e.target === modal) modal.classList.remove("show"); };
@@ -781,9 +655,8 @@ async function loadPodiumFromBackendOrLocal(items){
 
 const author = document.createElement("div");
 author.className = "author";
-const name = (s.authorName && String(s.authorName).trim()) ? String(s.authorName).trim() : String(s.userId || "").slice(0,8);
-const lv = Number(s.authorLevel || 1);
-author.innerHTML = `<span class="lv">Lv.${lv}</span><span class="nm"></span>`;
+const name = String(s.userId || "").slice(0, 8);
+author.innerHTML = `<span class="lv">Lv.?</span><span class="nm"></span>`;
 author.querySelector(".nm").textContent = name;
 author.onclick = (e) => { e.stopPropagation(); openUser(s.userId); };
 
