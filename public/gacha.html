@@ -571,15 +571,16 @@
 
     /* ===== V2 Cinematic Reveal (rarity hype) ===== */
     .cinematic{
-      position:absolute;
+      position:fixed;
       inset:0;
-      z-index: 120;
+      z-index: 99999;
       display:none;
       align-items:center;
       justify-content:center;
-      pointer-events:none;
+      pointer-events:none; /* never block buttons */
+      padding: 18px;
     }
-    .cinematic.show{ display:flex; pointer-events:auto; }
+    .cinematic.show{ display:flex; }
     .cinematic .cine-bg{
       position:absolute; inset:0;
       background: radial-gradient(circle at center, rgba(0,0,0,0.55), rgba(0,0,0,0.92));
@@ -596,7 +597,6 @@
       background: rgba(255,255,255,0.95);
       opacity:0;
       mix-blend-mode: screen;
-      pointer-events:none;
     }
     .cinematic.flash .cine-flash{
       animation: cineFlash 520ms ease-out 1;
@@ -609,7 +609,6 @@
 
     .cinematic .cine-shake{
       position:absolute; inset:0;
-      pointer-events:none;
     }
     .cinematic.shake .cine-shake{
       animation: cineShake 520ms ease-in-out 1;
@@ -691,7 +690,6 @@
       filter: blur(12px);
       transform: rotate(18deg);
       opacity: 0.85;
-      pointer-events:none;
     }
     .cine-card img{
       width: 94%;
@@ -722,7 +720,7 @@
 
     .cinematic .cine-glow{
       position:absolute;
-      inset:-2px;
+      inset: calc(18px + 0px);
       border-radius: 28px;
       pointer-events:none;
       opacity: 0;
@@ -851,22 +849,6 @@
         <div class="framesLayer" id="framesLayer"></div>
         <div class="loadCover" id="loadCover"><div class="spinner"></div><div class="txt" id="loadTxt">載入中</div></div>
       </div>
-
-      <!-- V2 cinematic rarity reveal -->
-      <div class="cinematic" id="cinematic" aria-hidden="true">
-        <div class="cine-bg"></div>
-        <div class="cine-black"></div>
-        <div class="cine-flash"></div>
-        <div class="cine-shake"></div>
-        <div class="cine-glow"></div>
-        <div class="cine-core">
-          <div class="cine-rarity" id="cineRarity">UR</div>
-          <div class="cine-sub" id="cineSub">恭喜獲得</div>
-          <div class="cine-card"><img id="cineImg" alt="reward" /></div>
-          <div class="cine-cta" id="cineCta">點擊確認繼續</div>
-        </div>
-      </div>
-
 
       <div class="actionBar mode-loading" id="actionBar">
         <div class="statusText">
@@ -1033,8 +1015,7 @@ async function loadFeaturedVideo(){
     }
 
     confirmBtn.addEventListener("click", () => { hideCinematic(); hideOverlay(); });
-
-    function normalizeType(t){
+function normalizeType(t){
       const x = String(t||"");
       if(x === "bg") return "background";
       if(x === "background") return "background";
@@ -1215,10 +1196,8 @@ async function onlineGacha(opts = {}) {
       const cineRarity = document.getElementById("cineRarity");
       const cineSub = document.getElementById("cineSub");
       const cineImg = document.getElementById("cineImg");
-      const cineCta = document.getElementById("cineCta");
       if(!cinematic || !cineImg) return;
 
-      // pick rarity + theme
       const r = Math.max(1, Math.min(5, Number(winner?.rarity || 1)));
       const rName = RARITY_NAME[r] || `R${r}`;
       cinematic.className = `cinematic show r${r}`;
@@ -1226,61 +1205,59 @@ async function onlineGacha(opts = {}) {
       cinematic.classList.add("black");
       cinematic.classList.remove("flash","shake","float","cta");
 
-      // lock confirm until CTA
+      // lock confirm until CTA (always restore in finally)
       if(confirmBtn){
         confirmBtn.style.opacity = "0.0";
         confirmBtn.style.pointerEvents = "none";
       }
 
-      // preload full image (not thumb)
-      const src = assetFullUrl(winner);
-      await preloadImages([src], 6000);
-      cineImg.src = src;
+      try{
+        const src = assetFullUrl(winner);
+        try{
+          await preloadImages([src], 6000);
+        }catch(_){ /* ignore preload errors */ }
+        cineImg.src = src;
 
-      cineRarity.textContent = rName;
-      const id = String(winner?.assetId || winner?.id || "").trim();
-      cineSub.textContent = id ? `恭喜獲得 ${id}` : "恭喜獲得";
+        cineRarity.textContent = rName;
+        const id = String(winner?.assetId || winner?.id || "").trim();
+        cineSub.textContent = id ? `恭喜獲得 ${id}` : "恭喜獲得";
 
-      // suspense: black screen then crack + flash
-      await sleep(180);
-      cinematic.classList.remove("black");
-      sfxByRarity(r);
+        await sleep(180);
+        cinematic.classList.remove("black");
+        sfxByRarity(r);
 
-      // SSR/UR more dramatic
-      if(r >= 4){
-        await sleep(140);
-        cinematic.classList.add("shake");
-        cinematic.classList.add("flash");
-      }else if(r === 3){
-        await sleep(120);
-        cinematic.classList.add("flash");
-      }else{
-        // tiny flash for R/C
-        await sleep(90);
-        cinematic.classList.add("flash");
-      }
+        if(r >= 4){
+          await sleep(140);
+          cinematic.classList.add("shake");
+          cinematic.classList.add("flash");
+        }else if(r === 3){
+          await sleep(120);
+          cinematic.classList.add("flash");
+        }else{
+          await sleep(90);
+          cinematic.classList.add("flash");
+        }
 
-      // float loop for big tiers
-      await sleep(520);
-      if(r >= 4) cinematic.classList.add("float");
+        await sleep(520);
+        if(r >= 4) cinematic.classList.add("float");
 
-      // show CTA and enable confirm
-      await sleep(r >= 5 ? 1200 : 700);
-      cinematic.classList.add("cta");
-      if(confirmBtn){
-        confirmBtn.style.opacity = "1";
-        confirmBtn.style.pointerEvents = "auto";
+        await sleep(r >= 5 ? 1200 : 700);
+        cinematic.classList.add("cta");
+      }finally{
+        if(confirmBtn){
+          confirmBtn.style.opacity = "1";
+          confirmBtn.style.pointerEvents = "auto";
+        }
       }
     }
 
     function hideCinematic(){
       const cinematic = document.getElementById("cinematic");
       if(!cinematic) return;
-      cinematic.classList.remove("show","black","flash","shake","float","cta");
+      cinematic.className = "cinematic";
       cinematic.setAttribute("aria-hidden","true");
-      // reset img so next time anim plays clean
       const cineImg = document.getElementById("cineImg");
-      if(cineImg) cineImg.style.opacity = "";
+      if(cineImg) cineImg.removeAttribute("src");
     }
 
 
@@ -1585,5 +1562,21 @@ function renderGridDecoys(list){
     btnAddon21.addEventListener("click", () => startGacha({ count: 1, premium: false, type: "addon2" }));
     btnAddon210.addEventListener("click", () => startGacha({ count: 10, premium: false, type: "addon2" }));
   </script>
+
+  <!-- V2 cinematic rarity reveal (fixed layer, never blocks clicks) -->
+  <div class="cinematic" id="cinematic" aria-hidden="true">
+    <div class="cine-bg"></div>
+    <div class="cine-black"></div>
+    <div class="cine-flash"></div>
+    <div class="cine-shake"></div>
+    <div class="cine-glow"></div>
+    <div class="cine-core">
+      <div class="cine-rarity" id="cineRarity">UR</div>
+      <div class="cine-sub" id="cineSub">恭喜獲得</div>
+      <div class="cine-card"><img id="cineImg" alt="reward" /></div>
+      <div class="cine-cta" id="cineCta">點擊確認繼續</div>
+    </div>
+  </div>
+
 </body>
 </html>
