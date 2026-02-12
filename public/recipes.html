@@ -17,7 +17,33 @@
     .btnSmall[disabled]{opacity:.45;cursor:not-allowed}
     .tag{margin-left:auto;font-size:12px;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.10);font-weight:800}
     .meta{margin-top:8px;opacity:.75;font-size:12px}
-  </style>
+  
+/* master account panel */
+.masterPanel{margin:12px 0 14px 0;padding:14px;border-radius:16px;border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.22);display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.mpAvatar{width:54px;height:54px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);overflow:hidden;position:relative;flex:0 0 auto}
+.mpAvatar .layer{position:absolute;inset:0}
+.mpAvatar .layer img{width:100%;height:100%;object-fit:cover;display:block}
+.mpMain{display:flex;flex-direction:column;gap:8px;flex:1 1 auto;min-width:240px}
+.mpRow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.mpName{font-size:16px;font-weight:900;letter-spacing:.2px}
+.pill{padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);font-size:12px;font-weight:900;white-space:nowrap}
+.btnMini{padding:8px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);cursor:pointer;font-weight:900;font-size:12px}
+.btnMini:hover{background:rgba(255,255,255,.10)}
+.mpStats{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.mpHint{font-size:12px;opacity:.75;font-weight:900}
+
+.mpModal{position:fixed;inset:0;z-index:99999;display:none}
+.mpModal.show{display:block}
+.mpBack{position:absolute;inset:0;background:rgba(0,0,0,.70);backdrop-filter: blur(10px)}
+.mpCard{position:relative;width:min(520px,94vw);margin:12vh auto 0;border-radius:18px;border:1px solid rgba(255,255,255,.14);background:rgba(15,20,30,.92);box-shadow:0 30px 110px rgba(0,0,0,.65);padding:14px}
+.mpTop{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.mpTitle{font-weight:950}
+.mpClose{cursor:pointer;padding:8px 10px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.10);font-size:12px;font-weight:900}
+.mpCard label{display:block;font-size:12px;opacity:.8;margin:10px 0 6px}
+.mpCard input{width:100%;padding:12px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.25);color:#fff;outline:none;box-sizing:border-box}
+.mpActions{display:flex;gap:10px;align-items:center;justify-content:flex-end;margin-top:12px;flex-wrap:wrap}
+
+</style>
 </head>
 <body>
   <div class="container">
@@ -31,6 +57,37 @@
         <a class="badge" href="profile.html">My</a>
       </div>
     </div>
+
+<div class="masterPanel" id="masterPanel" style="display:none">
+  <div class="mpAvatar" id="mpAvatar" title="點這裡可更換頭像"></div>
+  <div class="mpMain">
+    <div class="mpRow">
+      <div class="mpName" id="mpName">玩家</div>
+      <div class="pill" id="mpLv">Lv.1</div>
+      <button class="btnMini" id="btnRename" type="button">改名</button>
+      <div class="mpHint" id="mpRenameHint">第 1 次改名免費</div>
+    </div>
+    <div class="mpStats" id="mpStats"></div>
+  </div>
+</div>
+
+<div class="mpModal" id="mpModal">
+  <div class="mpBack" id="mpBack"></div>
+  <div class="mpCard">
+    <div class="mpTop">
+      <div class="mpTitle">修改遊戲名</div>
+      <div class="mpClose" id="mpClose">關閉</div>
+    </div>
+    <div class="mpHint">規則 第 1 次免費 之後每次 50 Gem</div>
+    <label>新遊戲名</label>
+    <input id="mpInput" maxlength="20" />
+    <div class="mpHint" id="mpCostHint"></div>
+    <div class="mpActions">
+      <button class="btnMini" id="mpSubmit" type="button">確認修改</button>
+    </div>
+  </div>
+</div>
+
 
     <div class="card">
       <div class="cardHeader">
@@ -56,6 +113,104 @@
     const errNotice = q("#errNotice");
     const grid = q("#grid");
 
+
+function esc(s){return String(s||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;");}
+
+function mkAvatarLayer(id){
+  const wrap = document.createElement("div");
+  wrap.className = "layer";
+  if(!id) return wrap;
+  const img = document.createElement("img");
+  img.loading = "lazy";
+  img.src = "/assets/" + id + ".png";
+  wrap.appendChild(img);
+  return wrap;
+}
+
+function renderMasterPanel(resp){
+  const panel = q("#masterPanel");
+  if(!panel) return;
+  panel.style.display = "flex";
+
+  const a = resp.account || {};
+  const s = resp.stats || {};
+
+  const nm = (String(a.userName||"").trim()) || ("UID " + String(a.userId||"").slice(0,8));
+  q("#mpName").textContent = nm;
+  q("#mpLv").textContent = "Lv." + String(Number(a.level||1));
+
+  const renameCount = Number(a.nameChangeCount||0);
+  const renameCost = renameCount >= 1 ? 50 : 0;
+  q("#mpRenameHint").textContent = renameCost === 0 ? "第 1 次改名免費" : ("改名費用 " + String(renameCost) + " Gem");
+
+  const st = q("#mpStats");
+  st.innerHTML = "";
+  const addP = (k,v)=>{ const d=document.createElement("div"); d.className="pill"; d.textContent = k + " " + String(v); st.appendChild(d); };
+  addP("Gold", Number(a.userGold||0));
+  addP("Gem", Number(a.userGem||0));
+  addP("票", Number(a.userVote||0));
+  addP("作品", Number(s.worksCount||0));
+  addP("粉絲", Number(s.followers||0));
+  addP("Like", Number(s.likesReceived||0));
+  addP("成品", Number(s.savesCount||0));
+  addP("解鎖", Number(s.collectionsUnlocked||0));
+
+  // avatar preview uses current avatar ids from account
+  const av = q("#mpAvatar");
+  av.innerHTML = "";
+  const headId = String(a.avatarHeadId||"");
+  const bodyId = String(a.avatarBodyId||"");
+  const bgId = String(a.avatarBgId||"");
+  const addon1Id = String(a.avatarAddon1Id||"");
+  const addon2Id = String(a.avatarAddon2Id||"");
+  av.appendChild(mkAvatarLayer(bgId));
+  av.appendChild(mkAvatarLayer(bodyId));
+  av.appendChild(mkAvatarLayer(headId));
+  av.appendChild(mkAvatarLayer(addon1Id));
+  av.appendChild(mkAvatarLayer(addon2Id));
+
+  // click avatar jumps to saves list already here so just scroll to grid
+  av.onclick = ()=>{ window.scrollTo({ top: grid.offsetTop - 20, behavior:"smooth" }); };
+
+  // rename modal
+  const modal = q("#mpModal");
+  const openBtn = q("#btnRename");
+  const closeBtn = q("#mpClose");
+  const back = q("#mpBack");
+  const input = q("#mpInput");
+  const costHint = q("#mpCostHint");
+  const submit = q("#mpSubmit");
+
+  function show(){ modal.classList.add("show"); input.value = nm; input.focus(); costHint.textContent = renameCost===0 ? "本次費用 0 Gem" : ("本次費用 " + String(renameCost) + " Gem 目前 Gem " + String(Number(a.userGem||0))); }
+  function hide(){ modal.classList.remove("show"); }
+
+  openBtn.onclick = show;
+  closeBtn.onclick = hide;
+  back.onclick = hide;
+
+  submit.onclick = async ()=>{
+    const newName = String(input.value||"").trim();
+    if(newName.length < 2){ toast("名稱太短"); return; }
+    submit.disabled = true;
+    try{
+      const r = await api("/api/me/name", { method:"POST", body: JSON.stringify({ userName: newName }) });
+      if(!r || !r.ok){
+        toast(r?.error || "改名失敗");
+        return;
+      }
+      toast(r.cost ? ("已修改 扣除 " + String(r.cost) + " Gem") : "已修改");
+      hide();
+      // refresh account and panel
+      const again = await api("/api/me/account");
+      if(again && again.ok) renderMasterPanel(again);
+    }catch(_){
+      toast("改名失敗");
+    }finally{
+      submit.disabled = false;
+    }
+  };
+}
+
     if(APP.offline){
       offlineNotice.style.display = "block";
       return;
@@ -76,7 +231,9 @@
           addon2Id: String(a.account.avatarAddon2Id||""),
         };
       }
-    }catch(_){}
+    
+      if(a && a.ok) renderMasterPanel(a);
+}catch(_){}
 
     async function loadSaves(){
       const r = await api("/api/me/saves");
