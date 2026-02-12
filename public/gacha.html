@@ -477,33 +477,30 @@
         inset 0 0 0 1px rgba(255,255,255,0.10);
       border-color: rgba(255,214,102,0.55);
     }
-    .statusBar{
+    
+/* actionBar: 抽卡中 + 確認按鈕同一區塊，固定高度避免跳動 */
+.actionBar{
   display:flex;
   justify-content:center;
+  align-items:center;
+  gap: 14px;
   margin-top: 14px;
-  min-height: 28px;
+  height: 52px; /* 固定高度：顯示文字或按鈕都不跳 */
   text-align:center;
 }
-.statusBar .statusText{
+.actionBar .statusText{
   font-weight: 950;
   letter-spacing: 0.8px;
   opacity: 0.92;
   font-size: 16px;
+  line-height: 1.1;
 }
-.statusBar .statusText .muted{
+.actionBar .statusText .muted{
   opacity: 0.85;
   font-weight: 900;
   font-size: 15px;
 }
-
-.footer{
-      display:flex;
-      justify-content:center;
-      margin-top: 16px;
-      gap: 10px;
-      align-items:center;
-    }
-    .confirm{
+.confirm{
       border:0;
       border-radius: 999px;
       padding: 12px 26px;
@@ -628,14 +625,11 @@
         <div class="loadCover" id="loadCover"><div class="spinner"></div><div class="txt" id="loadTxt">載入中</div></div>
       </div>
 
-      <div class="statusBar">
+      <div class="actionBar" id="actionBar">
         <div class="statusText">
           <div id="rollingText">抽卡中</div>
           <div id="rollSub" class="muted" style="display:none;"></div>
         </div>
-      </div>
-
-      <div class="footer">
         <button class="confirm" id="confirmBtn">確認</button>
       </div>
 

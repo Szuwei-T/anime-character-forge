@@ -274,7 +274,7 @@
       setVoteBadge(0);
       return;
     }
-    const endpoints = ["/api/me", "/api/account", "/api/user"];
+    const endpoints = ["/api/me/account"];
     for(const ep of endpoints){
       try{
         const r = await api(ep);
@@ -293,7 +293,7 @@
 
   function getVoteCount(s){
     const v =
-      s.voteCount ?? s.vote_count ??
+      s.votes ?? s.voteCount ?? s.vote_count ??
       s.voteTotal ?? s.vote_total ??
       s.upvotes ?? s.upVotes ??
       s.ticketVotes ?? s.ticket_votes;
@@ -348,7 +348,7 @@
       try{
         if(Array.isArray(lastFilteredItems) && lastFilteredItems.length){
           const it = lastFilteredItems.find(x => String(x.showcaseId || x.id || x.showcase_id || x.showcaseID || "") === String(showcaseId));
-          if(it && finalCount !== undefined) it.voteCount = Number(finalCount || 0);
+          if(it && finalCount !== undefined){ it.voteCount = Number(finalCount || 0); it.votes = Number(finalCount || 0); }
           renderPodiumFromItems(lastFilteredItems);
         }
       }catch(e){}
