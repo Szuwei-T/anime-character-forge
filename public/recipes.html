@@ -100,6 +100,67 @@
     .bigwrap img.single{width:100%;height:auto;display:block}
     .footnote{margin-top:10px;font-size:12px;opacity:.75}
     .empty{opacity:.75;padding:14px 0}
+  
+/* Master account info panel */
+.accountPanel{
+  margin:12px 0 14px;
+  padding:14px;
+  border-radius:18px;
+  border:1px solid rgba(255,255,255,.10);
+  background:rgba(0,0,0,.25);
+  display:flex;
+  gap:12px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+.apLeft{display:flex;gap:12px;align-items:center;flex:1 1 auto;min-width:260px}
+.apAvatar{
+  width:54px;height:54px;border-radius:50%;
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.12);
+  overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:900;
+  flex:0 0 auto;
+}
+.apAvatar img{width:100%;height:100%;object-fit:contain;display:block;background:rgba(0,0,0,.12)}
+.apNameRow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.apName{font-weight:950;font-size:15px;letter-spacing:.2px}
+.apLv{padding:4px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:rgba(0,0,0,.14);font-weight:900;font-size:13px}
+.apBtns{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.apBtn{cursor:pointer;user-select:none;padding:8px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);font-size:13px;font-weight:900}
+.apBtn:hover{background:rgba(255,255,255,.10)}
+.apBtn:disabled{opacity:.55;cursor:not-allowed}
+.apStats{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.pill{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);font-size:12px;font-weight:900;white-space:nowrap}
+.note{font-size:12px;opacity:.75;font-weight:900}
+
+.avatarBadge{
+  position:absolute;
+  top:10px;
+  right:10px;
+  z-index:5;
+  padding:6px 10px;
+  border-radius:999px;
+  background:rgba(0,0,0,.45);
+  border:1px solid rgba(255,255,255,.16);
+  font-size:12px;
+  font-weight:900;
+}
+.setAvatarBtn{
+  cursor:pointer;
+  user-select:none;
+  padding:8px 12px;
+  border-radius:999px;
+  background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.14);
+  font-size:12px;
+  opacity:.95;
+  white-space:nowrap;
+}
+.setAvatarBtn:hover{background:rgba(255,255,255,.12)}
+.setAvatarBtn.disabled{opacity:.5;cursor:not-allowed;pointer-events:none;background:rgba(255,255,255,.04)}
+
   </style>
 </head>
 <body>
@@ -116,6 +177,23 @@
         <div class="btn" id="btnHome">首頁</div>
       </div>
     </div>
+
+<div class="accountPanel" id="accountPanel" style="display:none;">
+  <div class="apLeft">
+    <div class="apAvatar" id="apAvatar">?</div>
+    <div>
+      <div class="apNameRow">
+        <div class="apName" id="apName">Player</div>
+        <div class="apLv" id="apLv">Lv.1</div>
+      </div>
+      <div class="apBtns">
+        <div class="apBtn" id="btnRename">改名</div>
+        <div class="note" id="renameRule">第 1 次免費 之後 50 Gem</div>
+      </div>
+    </div>
+  </div>
+  <div class="apStats" id="apStats"></div>
+</div>
 
     <div class="tabs">
       <div class="tabbtn active" id="tabSaves">我的成品</div>
@@ -167,9 +245,90 @@
 
   uidBadge.textContent = uid ? uid : "未登入";
 
+let meAccount = null;
+let currentAvatarRecipeId = "";
+
+function avatarUrlFromRecipeId(rid){
+  if(!rid) return "";
+  // assets are served by Pages, keep relative
+  return "/assets/" + String(rid) + ".png";
+}
+
+function renderAccountPanel(){
+  const panel = document.getElementById("accountPanel");
+  if(!panel || !meAccount) return;
+  panel.style.display = "flex";
+
+  const a = meAccount.account || {};
+  const s = meAccount.stats || {};
+  const name = (a.userName && String(a.userName).trim()) ? String(a.userName).trim() : ("UID " + String(a.userId||uid||"").slice(0,8));
+  const lv = Number(a.level || 1);
+  const gold = Number(a.userGold || 0);
+  const gem = Number(a.userGem || 0);
+  const vote = Number(a.userVote || 0);
+
+  currentAvatarRecipeId = String(a.avatarRecipeId || "");
+  document.getElementById("apName").textContent = name;
+  document.getElementById("apLv").textContent = "Lv." + String(lv);
+
+  const av = document.getElementById("apAvatar");
+  av.innerHTML = "";
+  const avUrl = meAccount.avatarUrl || avatarUrlFromRecipeId(currentAvatarRecipeId);
+  if(avUrl){
+    const img = document.createElement("img");
+    img.src = avUrl;
+    img.alt = "avatar";
+    av.appendChild(img);
+  }else{
+    av.textContent = (name[0] || "?").toUpperCase();
+  }
+
+  const stats = document.getElementById("apStats");
+  stats.innerHTML = "";
+  const add = (k,v)=>{ const d=document.createElement("div"); d.className="pill"; d.textContent = k + " " + v; stats.appendChild(d); };
+  add("Gold", String(gold));
+  add("Gem", String(gem));
+  add("票", String(vote));
+  add("成品", String(Number(s.collectionsUnlocked||0)));
+  add("作品", String(Number(s.worksCount||0)));
+  add("粉絲", String(Number(s.followers||0)));
+  add("Like", String(Number(s.likesReceived||0)));
+
+  const renameBtn = document.getElementById("btnRename");
+  renameBtn.onclick = async ()=>{
+    const next = prompt("輸入新的遊戲名稱 (2-16 字)", name);
+    if(next === null) return;
+    const newName = String(next||"").trim();
+    if(newName.length < 2){ showError("名稱太短"); return; }
+    clearError();
+    try{
+      const r = await apiReq("POST", "/api/me/name", { userName: newName });
+      // r: {ok, cost, ...}
+      meAccount = await api("/api/me/account");
+      renderAccountPanel();
+      showError(r.cost ? ("已修改 扣除 " + r.cost + " Gem") : "已修改");
+    }catch(e){
+      showError("改名失敗：" + (e && e.message ? e.message : String(e)));
+    }
+  };
+}
+
+async function loadMeAccount(){
+  if(!uid) return;
+  try{
+    meAccount = await api("/api/me/account");
+    setNet(true);
+    renderAccountPanel();
+  }catch(e){
+    // ignore
+  }
+}
+
   document.getElementById("btnStudio").onclick = () => location.href = "/studio";
   document.getElementById("btnGacha").onclick = () => location.href = "/gacha";
   document.getElementById("btnHome").onclick = () => location.href = "/";
+
+  loadMeAccount();
 
   function setNet(ok){
     netBadge.textContent = ok ? "Online" : "Offline";
@@ -479,8 +638,15 @@ if (curItem){
       const unlocked = unlockSet.has(String(r.recipeId));
 
       const card = document.createElement("div");
-      card.className = "card" + (unlocked ? "" : " locked");
+card.className = "card" + (unlocked ? "" : " locked");
 
+const rid = String(r.recipeId);
+if(currentAvatarRecipeId && rid === currentAvatarRecipeId){
+  const b = document.createElement("div");
+  b.className = "avatarBadge";
+  b.textContent = "目前頭像";
+  card.appendChild(b);
+}
       const th = document.createElement("div");
       th.className = "thumb";
       const img = document.createElement("img");
@@ -496,15 +662,45 @@ if (curItem){
       }
 
       const meta = document.createElement("div");
-      meta.className = "meta";
-      const time = document.createElement("div");
-      time.className = "time";
-      time.textContent = "Recipe #" + r.recipeId;
-      const parts = document.createElement("div");
-      parts.className = "parts";
-      parts.textContent = unlocked ? "已解鎖，可查看原圖" : "未解鎖";
-      meta.appendChild(time);
-      meta.appendChild(parts);
+meta.className = "meta";
+
+const row = document.createElement("div");
+row.className = "row";
+
+const time = document.createElement("div");
+time.className = "time";
+time.textContent = "Recipe #" + r.recipeId;
+
+const btn = document.createElement("div");
+btn.className = "setAvatarBtn";
+btn.textContent = "設為頭像";
+if(!unlocked || !uid){
+  btn.classList.add("disabled");
+}
+btn.onclick = async (ev)=>{
+  ev.stopPropagation();
+  if(!uid){ showError("請先登入"); return; }
+  if(!unlocked){ showError("未解鎖無法設頭像"); return; }
+  clearError();
+  try{
+    await apiReq("POST", "/api/me/avatar", { recipeId: String(r.recipeId) });
+    await loadMeAccount();
+    renderRecipes(recipes, unlockSet);
+    showError("已設為頭像");
+  }catch(e){
+    showError("設定失敗：" + (e && e.message ? e.message : String(e)));
+  }
+};
+
+row.appendChild(time);
+row.appendChild(btn);
+
+const parts = document.createElement("div");
+parts.className = "parts";
+parts.textContent = unlocked ? "已解鎖，可查看原圖" : "未解鎖";
+
+meta.appendChild(row);
+meta.appendChild(parts);
 
       card.appendChild(th);
       card.appendChild(meta);
