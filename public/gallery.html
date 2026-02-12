@@ -496,6 +496,16 @@
   opacity:.9;
 }
 
+
+
+.author{display:flex;align-items:center;gap:8px}
+.author .av{width:28px;height:28px;border-radius:50%;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);flex:0 0 auto}
+.author .meta{display:flex;gap:6px;align-items:center}
+.author .avImg{width:28px;height:28px;object-fit:cover;display:block}
+.author .avStack{position:relative;width:28px;height:28px;display:block}
+.author .avStack img{position:absolute;inset:0;width:28px;height:28px;object-fit:contain;display:block}
+.author .avTxt{font-weight:900;font-size:12px;opacity:.9}
+
 </style>
 </head>
 
@@ -752,7 +762,52 @@ console.error(e);
     }
   }
 
-  function fmtTime(ts){
+  
+function renderAvatarStackUrls(avatar){
+  if(!avatar) return null;
+  const headUrl = avatar.headUrl || (avatar.headId ? `/assets/${avatar.headId}.png` : "");
+  const bodyUrl = avatar.bodyUrl || (avatar.bodyId ? `/assets/${avatar.bodyId}.png` : "");
+  const bgUrl = avatar.bgUrl || (avatar.bgId ? `/assets/${avatar.bgId}.png` : "");
+  const addon1Url = avatar.addon1Url || (avatar.addon1Id ? `/assets/${avatar.addon1Id}.png` : "");
+  const addon2Url = avatar.addon2Url || (avatar.addon2Id ? `/assets/${avatar.addon2Id}.png` : "");
+  const any = headUrl || bodyUrl || bgUrl || addon1Url || addon2Url;
+  if(!any) return null;
+  return { headUrl, bodyUrl, bgUrl, addon1Url, addon2Url };
+}
+
+function renderAvatarStackHTML(urls, altText){
+  if(!urls) return `<span class="avTxt">${String(altText||"?").slice(0,1).toUpperCase()}</span>`;
+  const safe = (u)=> escapeHtml(u||"");
+  return `
+    <span class="avStack" aria-label="avatar">
+      ${urls.bgUrl ? `<img src="${safe(urls.bgUrl)}" alt="">` : ""}
+      ${urls.bodyUrl ? `<img src="${safe(urls.bodyUrl)}" alt="">` : ""}
+      ${urls.headUrl ? `<img src="${safe(urls.headUrl)}" alt="">` : ""}
+      ${urls.addon1Url ? `<img src="${safe(urls.addon1Url)}" alt="">` : ""}
+      ${urls.addon2Url ? `<img src="${safe(urls.addon2Url)}" alt="">` : ""}
+    </span>
+  `;
+}
+
+function renderAuthorAvatar(s, name){
+  // Prefer composite avatar from saves
+  const avatar = {
+    headId: s.authorAvatarHeadId,
+    bodyId: s.authorAvatarBodyId,
+    bgId: s.authorAvatarBgId,
+    addon1Id: s.authorAvatarAddon1Id,
+    addon2Id: s.authorAvatarAddon2Id
+  };
+  const urls = renderAvatarStackUrls(avatar);
+  if(urls) return renderAvatarStackHTML(urls, name);
+
+  // Fallback to legacy recipe avatar
+  const arid = String(s.authorAvatarRecipeId || "");
+  if(arid) return `<img src="/assets/${escapeHtml(arid)}.png" alt="avatar" class="avImg">`;
+
+  return `<span class="avTxt">${String(name||"?").slice(0,1).toUpperCase()}</span>`;
+}
+function fmtTime(ts){
     if (!ts) return "";
     try{
       const d = new Date(ts);
@@ -985,8 +1040,17 @@ async function loadPodiumFromBackendOrLocal(items){
 
 const author = document.createElement("div");
 author.className = "author";
-const name = String(s.userId || "").slice(0, 8);
-author.innerHTML = `<span class="lv">Lv.?</span><span class="nm"></span>`;
+
+const name = String(s.authorName || "").trim() || String(s.userName || "").trim() || String(s.userId || "").slice(0, 8);
+const lv = Number(s.authorLevel || 1);
+
+author.innerHTML = `
+  <span class="av">${renderAuthorAvatar(s, name)}</span>
+  <span class="meta">
+    <span class="lv">Lv.${lv}</span>
+    <span class="nm"></span>
+  </span>
+`;
 author.querySelector(".nm").textContent = name;
 author.onclick = (e) => { e.stopPropagation(); openUser(s.userId); };
 
