@@ -497,32 +497,24 @@
 }
 
 
-    .accountPanel{margin:12px 0 14px 0;padding:14px;border-radius:16px;border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.25);display:flex;gap:12px;align-items:center}
-    .accountPanel.hidden{display:none}
-    .apAvatar{width:54px;height:54px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);overflow:hidden;display:flex;align-items:center;justify-content:center;font-weight:900}
-    .apAvatar img{width:100%;height:100%;object-fit:cover;display:block}
-    .apMain{flex:1;min-width:0}
-    .apRow1{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    .apName{font-size:18px;font-weight:900}
-    .apEdit{cursor:pointer;padding:6px 10px;border-radius:10px;border:1px sol
-    <div class="accountPanel hidden" id="accountPanel">
-      <div class="apAvatar" id="apAvatar">?</div>
-      <div class="apMain">
-        <div class="apRow1">
-          <div class="apName" id="apName">未命名</div>
-          <div class="chip" id="apLevel">Lv.1</div>
-          <div class="apEdit" id="btnEditName">改名</div>
-          <div class="chip" id="apNameRule">首次免費 之後 50 Gem</div>
-        </div>
-        <div class="apChips" id="apChips"></div>
-      </div>
-    </div>
+    .accountbar{margin:12px 0 16px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);border-radius:16px;padding:12px 12px}
+    .ab-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .ab-left{display:flex;align-items:center;gap:12px}
+    .ab-avatar{width:48px;height:48px;border-radius:16px;overflow:hidden;background:rgba(255,255,255,.08);position:relative;flex:0 0 auto}
+    .ab-avatar img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+    .ab-name{font-weight:900}
+    .ab-sub{opacity:.75;font-size:12px}
+    .ab-stats{display:flex;gap:10px;flex-wrap:wrap}
+    .ab-stat{border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.04);border-radius:12px;padding:8px 10px;min-width:86px}
+    .ab-k{opacity:.7;font-size:11px}
+    .ab-v{font-weight:900;font-size:14px}
+    .author{display:flex;align-items:center;gap:8px;margin-top:10px}
+    .author .aava{width:28px;height:28px;border-radius:10px;overflow:hidden;background:rgba(255,255,255,.08);position:relative}
+    .author .aava img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+    .author .aname{font-weight:800;font-size:13px;opacity:.92}
+    .author .alv{opacity:.7;font-size:12px}
 
-id rgba(255,255,255,.12);background:rgba(255,255,255,.06);font-weight:800}
-    .apChips{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-    .chip{padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.04);font-weight:800;font-size:12px}
-
-</style>
+  </style>
 </head>
 
 <body>
@@ -580,6 +572,88 @@ id rgba(255,255,255,.12);background:rgba(255,255,255,.06);font-weight:800}
   </div>
 
 <script>
+  function stackAvatar(el, layers){
+    el.innerHTML = "";
+    (layers||[]).filter(x=>x && x.url).forEach((l)=>{
+      const img=document.createElement("img");
+      img.src=l.url;
+      img.style.zIndex=String(l.z||1);
+      el.appendChild(img);
+    });
+  }
+
+  async function loadAccountBar(){
+    const bar = document.getElementById("accountBar");
+    if(!bar) return;
+    const me = localStorage.getItem("acf_uid") || "";
+    if(!me){
+      bar.innerHTML = "<div style='opacity:.8'>尚未登入</div>";
+      return;
+    }
+    try{
+      const data = await api("/api/me/summary", { method:"GET" });
+      if(!data || data.ok===false){
+        bar.innerHTML = "<div style='opacity:.8'>帳號資料讀取失敗</div>";
+        return;
+      }
+      const a = data.account || {};
+      const st = data.stats || {};
+      const avatar = data.avatar || null;
+      const name = (a.userName && String(a.userName).trim()) ? String(a.userName).trim() : "玩家";
+      bar.innerHTML = "";
+      const row = document.createElement("div");
+      row.className = "ab-row";
+
+      const left = document.createElement("div");
+      left.className = "ab-left";
+
+      const ava = document.createElement("div");
+      ava.className = "ab-avatar";
+      if(avatar){
+        stackAvatar(ava, [
+          {url: avatar.bgUrl, z:10},
+          {url: avatar.addon2Url, z:20},
+          {url: avatar.headUrl, z:30},
+          {url: avatar.bodyUrl, z:40},
+          {url: avatar.addon1Url, z:50},
+        ]);
+      }else{
+        ava.textContent = name.slice(0,1).toUpperCase();
+        ava.style.display="flex";ava.style.alignItems="center";ava.style.justifyContent="center";ava.style.fontWeight="900";
+      }
+
+      const info = document.createElement("div");
+      const n = document.createElement("div");
+      n.className="ab-name";
+      n.textContent = name + " · Lv." + String(a.level||1);
+      const sub = document.createElement("div");
+      sub.className="ab-sub";
+      sub.textContent = "UID " + String(a.userId||me).slice(0,8);
+
+      info.appendChild(n); info.appendChild(sub);
+      left.appendChild(ava); left.appendChild(info);
+
+      const stats = document.createElement("div");
+      stats.className="ab-stats";
+      const addStat=(k,v)=>{ const s=document.createElement("div"); s.className="ab-stat"; s.innerHTML=`<div class="ab-k">${k}</div><div class="ab-v">${v}</div>`; stats.appendChild(s); };
+
+      addStat("金幣", String(a.userGold||0));
+      addStat("Gem", String(a.userGem||0));
+      addStat("票數", String(a.userVote||0));
+      addStat("成品", String(st.works||0));
+      addStat("粉絲", String(st.followers||0));
+      addStat("Like", String(st.likes||0));
+      addStat("收藏冊", String(st.unlockedCollections||0) + "/" + String(st.totalCollections||0));
+
+      row.appendChild(left);
+      row.appendChild(stats);
+      bar.appendChild(row);
+
+    }catch(e){
+      bar.innerHTML = "<div style='opacity:.8'>帳號資料讀取失敗</div>";
+    }
+  }
+
 (function(){
   const DEFAULT_WORKER = "https://acf-api.dream-league-baseball.workers.dev";
   const WORKER_BASE = window.WORKER_BASE || localStorage.getItem("acf_worker_base") || DEFAULT_WORKER;
@@ -615,66 +689,12 @@ async function loadMeSocial(){
     const acc = await api("/api/me/account");
     if(acc && acc.account){
       setVoteBadge(acc.account.userVote || 0);
-      renderAccountPanel(acc);
     }
     const fav = await api("/api/me/favorites");
     favoriteSet = new Set((fav.items || []).map(x=>String(x.showcaseId)));
     const fol = await api("/api/me/following");
     followingSet = new Set((fol.items || []).map(x=>String(x.targetUserId)));
   }catch(_){}
-}
-
-function renderAccountPanel(acc){
-  const panel = q("#accountPanel");
-  if(!panel) return;
-  panel.classList.remove("hidden");
-
-  const account = acc.account || {};
-  const stats = acc.stats || {};
-  const avatarUrl = acc.avatarUrl || "";
-  const userName = (account.userName || "").trim() || ("UID " + String(account.userId||"").slice(0,8));
-  q("#apName").textContent = userName;
-  q("#apLevel").textContent = `Lv.${Number(account.level||1)}`;
-
-  const av = q("#apAvatar");
-  av.innerHTML = "";
-  if(avatarUrl){
-    const img = document.createElement("img");
-    img.src = avatarUrl;
-    img.alt = "avatar";
-    av.appendChild(img);
-  }else{
-    av.textContent = (userName[0] || "?").toUpperCase();
-  }
-
-  const chips = q("#apChips");
-  chips.innerHTML = "";
-  const add = (k,v)=>{ const d=document.createElement("div"); d.className="chip"; d.textContent = `${k} ${v}`; chips.appendChild(d); };
-  add("Gold", Number(account.userGold||0));
-  add("Gem", Number(account.userGem||0));
-  add("票券", Number(account.userVote||0));
-  add("成品", Number(stats.worksCount||0));
-  add("Follower", Number(stats.followers||0));
-  add("Like", Number(stats.likesReceived||0));
-  add("解鎖", Number(stats.collectionsUnlocked||0));
-
-  const btn = q("#btnEditName");
-  btn.onclick = async () => {
-    const current = (account.userName || "").trim();
-    const next = prompt("輸入新的遊戲名稱 (2-16 字)", current);
-    if(next === null) return;
-    const name = String(next||"").trim();
-    if(name.length < 2) return toast("名稱太短");
-    try{
-      const r = await api("/api/me/name", { method:"POST", body: JSON.stringify({ userName: name }) });
-      if(!r?.ok) return toast(r?.error || "改名失敗");
-      // refresh
-      const again = await api("/api/me/account");
-      if(again?.account) renderAccountPanel(again);
-    }catch(_){
-      toast("改名失敗");
-    }
-  };
 }
 
 function openUser(uid2){
@@ -1065,27 +1085,9 @@ async function loadPodiumFromBackendOrLocal(items){
 
 const author = document.createElement("div");
 author.className = "author";
-const name = String(s.authorName || s.userName || "").trim() || String(s.userId || "").slice(0, 8);
-const lv = Number(s.authorLevel || 1);
-const arid = String(s.authorAvatarRecipeId || "");
-author.innerHTML = `<span class="av"></span><span class="meta"><span class="lv">Lv.${lv}</span><span class="nm"></span></span>`;
+const name = String(s.userId || "").slice(0, 8);
+author.innerHTML = `<span class="lv">Lv.?</span><span class="nm"></span>`;
 author.querySelector(".nm").textContent = name;
-
-const av = author.querySelector(".av");
-if(arid){
-  av.innerHTML = `<img src="/assets/${arid}.png" alt="avatar" style="width:28px;height:28px;object-fit:cover;display:block;border-radius:50%;">`;
-}else{
-  av.textContent = (name[0] || "?").toUpperCase();
-  av.style.width = "28px";
-  av.style.height = "28px";
-  av.style.display = "inline-flex";
-  av.style.alignItems = "center";
-  av.style.justifyContent = "center";
-  av.style.borderRadius = "50%";
-  av.style.background = "rgba(255,255,255,.08)";
-  av.style.border = "1px solid rgba(255,255,255,.12)";
-  av.style.fontWeight = "900";
-}
 author.onclick = (e) => { e.stopPropagation(); openUser(s.userId); };
 
 const actions = document.createElement("div");
@@ -1251,6 +1253,7 @@ actions.appendChild(followBtn);
     }
   }
 
+  loadAccountBar();
   load();
 })();
 </script>

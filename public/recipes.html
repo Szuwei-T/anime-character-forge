@@ -5,20 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>成品庫</title>
   <link rel="stylesheet" href="style.css" />
-  <style>
-    .recipesGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
-    .rCard{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);border-radius:14px;overflow:hidden}
-    .rImg{width:100%;aspect-ratio:3/4;background:rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center}
-    .rImg img{width:100%;height:100%;object-fit:cover;display:block}
-    .rBody{padding:10px}
-    .rName{font-weight:800;font-size:14px;line-height:1.2}
-    .rMeta{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
-    .rBtnRow{display:flex;gap:8px;margin-top:10px}
-    .btnSmall{padding:8px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:rgba(0,0,0,.25);cursor:pointer;font-weight:700}
-    .btnSmall[disabled]{opacity:.45;cursor:not-allowed}
-    .avatarTag{margin-left:auto;font-size:12px;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.10)}
-    .locked .rImg{filter:grayscale(1);opacity:.55}
-  </style>
 </head>
 <body>
   <div class="container">
@@ -33,149 +19,61 @@
       </div>
     </div>
 
-    <div class="card">
-      <div class="cardHeader">
-        <h2>成品庫</h2>
-        <a class="badge" href="hub.html">返回</a>
-      </div>
-      <div class="cardBody">
-        <div class="notice">
-          初始全鎖
-          只有當你在工作室搭配出完全一樣的組合 才會解鎖並加入收藏
-          解鎖後可以從這裡指定 1 張成品作為頭像
-        </div>
-        <div class="hr"></div>
-
-        <div class="notice" id="avatarNotice" style="display:none"></div>
-
-        <div class="recipesGrid" id="recipesGrid"></div>
-      </div>
+    
+<div class="card">
+  <div class="cardHeader">
+    <h2>成品庫</h2>
+    <a class="badge" href="hub.html">返回</a>
+  </div>
+  <div class="cardBody">
+    <div class="notice">
+      初始全鎖
+      只有當你在工作室搭配出完全一樣的組合 才會解鎖並加入收藏
     </div>
+    <div class="hr"></div>
+    <table class="table" id="recipeTable">
+      <thead><tr><th>成品</th><th>稀有度</th><th>狀態</th><th>配方提示</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
   </div>
 
   <script src="app.js"></script>
-  <script>
-  (async function(){
-    await initSession();
-    q("#netBadge").textContent = APP.offline ? "Offline" : "Online";
-    const db = offlineDb();
+  
+<script>
+(async function(){
+  await initSession();
+  q("#netBadge").textContent = APP.offline ? "Offline" : "Online";
+  const db = offlineDb();
 
-    let me = null;
-    let currentAvatarRecipeId = "";
+  function isUnlocked(recipeId){
+    const k = `${APP.uid}:${recipeId}`;
+    return !!db.unlocks[k];
+  }
 
-    if(!APP.offline){
-      try{
-        const r = await api("/api/me/account");
-        me = r || null;
-        currentAvatarRecipeId = String(r?.account?.avatarRecipeId || "");
-        db.profile = db.profile || {};
-        db.profile[APP.uid] = db.profile[APP.uid] || {};
-        db.profile[APP.uid].avatarRecipeId = currentAvatarRecipeId;
-      }catch(_){}
-    }else{
-      currentAvatarRecipeId = String(db.profile?.[APP.uid]?.avatarRecipeId || "");
-    }
+  function hint(r){
+    // MVP 只顯示分類提示
+    const a = (r.accessoryIds||[]).length;
+    return `頭部 1  身體 1  背景 1  附件 ${a}`;
+  }
 
-    const avatarNotice = q("#avatarNotice");
-    if(APP.offline){
-      avatarNotice.style.display = "block";
-      avatarNotice.textContent = "離線模式下無法設定頭像 請連線後再設定";
-    }
+  const tbody = q("#recipeTable tbody");
+  tbody.innerHTML = "";
+  for(const r of db.recipes){
+    const unlocked = isUnlocked(r.recipeId);
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${unlocked ? r.name : "??????"}</td>
+      <td>${rarityPill(r.rarity||3)}</td>
+      <td>${unlocked ? "已解鎖" : "上鎖"}</td>
+      <td>${hint(r)}</td>
+    `;
+    tbody.appendChild(tr);
+  }
+})();
+</script>
 
-    function isUnlocked(recipeId){
-      const k = `${APP.uid}:${recipeId}`;
-      return !!db.unlocks[k];
-    }
-
-    function hint(r){
-      const a = (r.accessoryIds||[]).length;
-      return `頭部 1 身體 1 背景 1 附件 ${a}`;
-    }
-
-    async function setAvatar(recipeId){
-      if(APP.offline) return;
-      const r = await api("/api/me/avatar", { method:"POST", body: JSON.stringify({ recipeId }) });
-      if(r?.ok){
-        currentAvatarRecipeId = String(r.avatarRecipeId || "");
-        db.profile = db.profile || {};
-        db.profile[APP.uid] = db.profile[APP.uid] || {};
-        db.profile[APP.uid].avatarRecipeId = currentAvatarRecipeId;
-        render();
-      }else{
-        toast(r?.error || "設定失敗");
-      }
-    }
-
-    function recipeImgUrl(recipeId){
-      return `/assets/${recipeId}.png`;
-    }
-
-    function render(){
-      const grid = q("#recipesGrid");
-      grid.innerHTML = "";
-      for(const r of db.recipes){
-        const unlocked = isUnlocked(r.recipeId);
-        const card = document.createElement("div");
-        card.className = "rCard" + (unlocked ? "" : " locked");
-
-        const imgWrap = document.createElement("div");
-        imgWrap.className = "rImg";
-        if(unlocked){
-          const img = document.createElement("img");
-          img.loading = "lazy";
-          img.alt = r.name || "recipe";
-          img.src = recipeImgUrl(r.recipeId);
-          imgWrap.appendChild(img);
-        }else{
-          imgWrap.textContent = "LOCKED";
-        }
-
-        const body = document.createElement("div");
-        body.className = "rBody";
-
-        const name = document.createElement("div");
-        name.className = "rName";
-        name.textContent = unlocked ? (r.name || r.recipeId) : "??????";
-
-        const meta = document.createElement("div");
-        meta.className = "rMeta";
-        meta.innerHTML = `${rarityPill(r.rarity||3)} <span class="badge">${unlocked ? "已解鎖" : "上鎖"}</span>`;
-
-        const btnRow = document.createElement("div");
-        btnRow.className = "rBtnRow";
-        const btn = document.createElement("button");
-        btn.className = "btnSmall";
-        btn.textContent = "設為頭像";
-        btn.disabled = !unlocked || APP.offline;
-        btn.onclick = () => setAvatar(r.recipeId);
-
-        const tag = document.createElement("div");
-        tag.className = "avatarTag";
-        tag.style.visibility = (unlocked && currentAvatarRecipeId === r.recipeId) ? "visible" : "hidden";
-        tag.textContent = "目前頭像";
-
-        btnRow.appendChild(btn);
-        btnRow.appendChild(tag);
-
-        const hintEl = document.createElement("div");
-        hintEl.style.opacity = ".75";
-        hintEl.style.marginTop = "8px";
-        hintEl.style.fontSize = "12px";
-        hintEl.textContent = hint(r);
-
-        body.appendChild(name);
-        body.appendChild(meta);
-        body.appendChild(btnRow);
-        body.appendChild(hintEl);
-
-        card.appendChild(imgWrap);
-        card.appendChild(body);
-        grid.appendChild(card);
-      }
-    }
-
-    render();
-  })();
-  </script>
 </body>
 </html>
