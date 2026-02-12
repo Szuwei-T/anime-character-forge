@@ -550,8 +550,44 @@
       cursor:pointer;
       background: linear-gradient(135deg, #ffde88, #caa54a);
       color:#111;
-      display:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
     }
+.actionBtns{
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform: translate(-50%, -50%);
+  display:flex;
+  gap:10px;
+  align-items:center;
+  justify-content:center;
+  opacity:0;
+  pointer-events:none;
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+.actionBar.mode-done .actionBtns{
+  opacity:1;
+  pointer-events:auto;
+  transform: translate(-50%, -50%) scale(1);
+}
+.actionBar.mode-loading .actionBtns{
+  opacity:0;
+  pointer-events:none;
+  transform: translate(-50%, -50%) scale(0.98);
+}
+.share{
+  border:1px solid rgba(255,255,255,0.18);
+  border-radius: 999px;
+  padding: 12px 18px;
+  font-size: 15px;
+  font-weight: 900;
+  cursor:pointer;
+  background: rgba(255,255,255,0.10);
+  color:#fff;
+}
+.share:hover{ background: rgba(255,255,255,0.14); }
     .card.broken{
       outline: 2px solid rgba(255, 80, 80, 0.75);
     }
@@ -568,282 +604,19 @@
       border-radius:10px;
       word-break: break-all;
     }
-
-    /* ===== V2 Cinematic Reveal (rarity hype) ===== */
-    .cinematic{
-      position:fixed;
-      inset:0;
-      z-index: 99999;
-      display:none;
-      align-items:center;
-      justify-content:center;
-      pointer-events:auto; /* cinematic handles close */
-      padding: 18px;
-    }
-    .cinematic.show{ display:flex; }
-    .cinematic .cine-bg{
-      cursor:pointer;
-
-      position:absolute; inset:0;
-      background: radial-gradient(circle at center, rgba(0,0,0,0.55), rgba(0,0,0,0.92));
-      backdrop-filter: blur(2px);
-    }
-    .cinematic .cine-black{
-      position:absolute; inset:0;
-      background:#000;
-      opacity:0;
-    }
-    .cinematic.black .cine-black{ opacity:1; }
-    .cinematic .cine-flash{
-      position:absolute; inset:0;
-      background: rgba(255,255,255,0.95);
-      opacity:0;
-      mix-blend-mode: screen;
-    }
-    .cinematic.flash .cine-flash{
-      animation: cineFlash 520ms ease-out 1;
-    }
-    @keyframes cineFlash{
-      0%{ opacity:0; }
-      12%{ opacity:1; }
-      100%{ opacity:0; }
-    }
-
-    .cinematic .cine-shake{
-      position:absolute; inset:0;
-    }
-    .cinematic.shake .cine-shake{
-      animation: cineShake 520ms ease-in-out 1;
-    }
-    @keyframes cineShake{
-      0%{ transform: translate(0,0); }
-      15%{ transform: translate(-4px, 2px); }
-      30%{ transform: translate(4px, -2px); }
-      45%{ transform: translate(-3px, -1px); }
-      60%{ transform: translate(3px, 1px); }
-      100%{ transform: translate(0,0); }
-    }
-
-    .cinematic .cine-core{
-      pointer-events:auto;
-
-      position:relative;
-      z-index: 2;
-      width: min(820px, 92vw);
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      gap: 14px;
-      padding: 24px 18px 18px;
-      border-radius: 26px;
-      border: 1px solid rgba(255,255,255,0.12);
-      background:
-        radial-gradient(circle at 30% 20%, rgba(255,255,255,0.08), transparent 55%),
-        radial-gradient(circle at 70% 80%, rgba(121,215,255,0.06), transparent 55%),
-        rgba(15,18,26,0.82);
-      box-shadow: 0 30px 140px rgba(0,0,0,0.78);
-      overflow:hidden;
-    }
-
-    .cine-rarity{
-      font-weight: 1000;
-      letter-spacing: 1px;
-      font-size: clamp(24px, 4vw, 44px);
-      line-height: 1;
-      text-shadow: 0 10px 30px rgba(0,0,0,0.65);
-      opacity: 0;
-      transform: translateY(8px) scale(0.98);
-    }
-    .cinematic.show .cine-rarity{
-      animation: cineTextIn 680ms cubic-bezier(.2,.9,.2,1) 1 forwards;
-    }
-    @keyframes cineTextIn{
-      0%{ opacity:0; transform: translateY(10px) scale(0.98); }
-      55%{ opacity:1; transform: translateY(0) scale(1.02); }
-      100%{ opacity:1; transform: translateY(0) scale(1); }
-    }
-
-    .cine-sub{
-      opacity: 0.82;
-      font-size: 13px;
-      font-weight: 800;
-      letter-spacing: 0.3px;
-    }
-
-    .cine-card{
-      width: min(520px, 86vw);
-      aspect-ratio: 1 / 1;
-      border-radius: 22px;
-      border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(255,255,255,0.04);
-      box-shadow: 0 24px 90px rgba(0,0,0,0.65);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      overflow:hidden;
-      position:relative;
-    }
-    .cine-card::before{
-      content:"";
-      position:absolute;
-      inset:-55%;
-      background:
-        radial-gradient(circle at 25% 20%, rgba(255,255,255,0.16), transparent 55%),
-        radial-gradient(circle at 70% 75%, rgba(121,215,255,0.12), transparent 60%),
-        radial-gradient(circle at 45% 70%, rgba(255,198,106,0.12), transparent 60%);
-      filter: blur(12px);
-      transform: rotate(18deg);
-      opacity: 0.85;
-    }
-    .cine-card img{
-      width: 94%;
-      height: 94%;
-      object-fit: contain;
-      display:block;
-      position:relative;
-      z-index:1;
-      transform: scale(0.96);
-      opacity: 0;
-    }
-    .cinematic.show .cine-card img{
-      animation: cineCardIn 820ms cubic-bezier(.2,.9,.2,1) 1 forwards;
-    }
-    @keyframes cineCardIn{
-      0%{ opacity:0; transform: scale(0.92); }
-      55%{ opacity:1; transform: scale(1.03); }
-      100%{ opacity:1; transform: scale(1.00); }
-    }
-    .cinematic.float .cine-card img{
-      animation: cineFloat 3.2s ease-in-out infinite;
-    }
-    @keyframes cineFloat{
-      0%{ transform: translateY(0) scale(1); }
-      50%{ transform: translateY(-10px) scale(1.01); }
-      100%{ transform: translateY(0) scale(1); }
-    }
-
-    .cinematic .cine-glow{
-      position:absolute;
-      inset: calc(18px + 0px);
-      border-radius: 28px;
-      pointer-events:none;
-      opacity: 0;
-      z-index: 3;
-    }
-    .cinematic.show .cine-glow{ opacity: 1; }
-
-    /* rarity themes */
-    .cinematic.r1 .cine-glow{ box-shadow: 0 0 0 1px rgba(148,163,184,0.35), 0 0 35px rgba(148,163,184,0.22); }
-    .cinematic.r2 .cine-glow{ box-shadow: 0 0 0 1px rgba(34,197,94,0.35), 0 0 40px rgba(34,197,94,0.22); }
-    .cinematic.r3 .cine-glow{ box-shadow: 0 0 0 1px rgba(59,130,246,0.35), 0 0 55px rgba(59,130,246,0.24); }
-    .cinematic.r4 .cine-glow{ box-shadow: 0 0 0 1px rgba(168,85,247,0.38), 0 0 80px rgba(168,85,247,0.30); }
-    .cinematic.r5 .cine-glow{ box-shadow: 0 0 0 1px rgba(245,158,11,0.45), 0 0 110px rgba(245,158,11,0.34), 0 0 180px rgba(255,255,255,0.18); }
-
-    .cinematic.r4 .cine-rarity{ color: #c084fc; }
-    .cinematic.r5 .cine-rarity{ color: #fbbf24; }
-    .cinematic.r3 .cine-rarity{ color: #60a5fa; }
-    .cinematic.r2 .cine-rarity{ color: #34d399; }
-    .cinematic.r1 .cine-rarity{ color: rgba(148,163,184,0.95); }
-
-    
-    .cine-ten{
-      width: 100%;
-      max-width: min(760px, 92vw);
-      display:none;
-      flex-direction:column;
-      gap:10px;
-      margin-top: 2px;
-    }
-    .cine-ten.show{ display:flex; }
-    .cine-ten-title{
-      font-size: 12px;
-      font-weight: 900;
-      opacity: 0.85;
-      letter-spacing: 0.4px;
-      text-align:center;
-    }
-    .cine-ten-grid{
-      display:grid;
-      grid-template-columns: repeat(10, 1fr);
-      gap: 8px;
-      width: 100%;
-      padding: 6px 2px 0;
-    }
-    @media (max-width: 940px){
-      .cine-ten-grid{ grid-template-columns: repeat(5, 1fr); }
-    }
-    .cine-ten-item{
-      position:relative;
-      border-radius: 12px;
-      overflow:hidden;
-      background: rgba(0,0,0,0.22);
-      border: 1px solid rgba(255,255,255,0.10);
-      aspect-ratio: 2 / 3;
-    }
-    .cine-ten-item img{
-      position:absolute; inset:0;
-      width:100%; height:100%;
-      object-fit: contain;
-      display:block;
-      filter: saturate(0.95) contrast(1.05);
-      opacity: 0.96;
-    }
-    .cine-ten-item.best{
-      transform: translateY(-1px);
-      box-shadow: 0 0 0 2px rgba(255,215,0,0.95), 0 0 18px rgba(255,215,0,0.30);
-      border-color: rgba(255,215,0,0.55);
-    }
-    .cine-ten-item .tag{
-      position:absolute;
-      left: 6px;
-      top: 6px;
-      font-size: 10px;
-      font-weight: 950;
-      padding: 3px 7px;
-      border-radius: 999px;
-      background: rgba(0,0,0,0.60);
-      border: 1px solid rgba(255,255,255,0.14);
-      letter-spacing: 0.3px;
-      opacity: 0.95;
-    }
-    .cine-ten-item.r3 .tag{ color: #60a5fa; border-color: rgba(96,165,250,0.35); }
-    .cine-ten-item.r4 .tag{ color: #c084fc; border-color: rgba(192,132,252,0.35); }
-    .cine-ten-item.r5 .tag{ color: #fbbf24; border-color: rgba(251,191,36,0.42); }
-
-    .cine-ok{
-      margin-top: 2px;
-      border: 0;
-      border-radius: 999px;
-      padding: 12px 18px;
-      font-size: 15px;
-      font-weight: 1000;
-      letter-spacing: 0.5px;
-      cursor: pointer;
-      color: #0a0f18;
-      background: linear-gradient(135deg, rgba(255,198,106,0.98), rgba(255,159,47,0.98));
-      box-shadow: 0 18px 45px rgba(0,0,0,0.45);
-      user-select:none;
-    }
-    .cine-ok:active{ transform: translateY(1px); }
-
-    .cine-cta{
-      margin-top: 6px;
-      font-size: 13px;
-      font-weight: 900;
-      opacity: 0.0;
-      transform: translateY(6px);
-    }
-    .cinematic.cta .cine-cta{
-      opacity: 0.92;
-      transform: translateY(0);
-      transition: 220ms ease;
-    }
-
-  </style>
+/* override old confirm absolute layout, use actionBtns wrapper */
+.actionBar .confirm{ position:static !important; left:auto !important; top:auto !important; transform:none !important; opacity:1 !important; pointer-events:auto !important; display:inline-flex !important; }
+.actionBar .share{ display:inline-flex !important; }
+.actionBar.mode-loading .confirm, .actionBar.mode-loading .share{ pointer-events:none; opacity:0; }
+.actionBar.mode-done .confirm, .actionBar.mode-done .share{ pointer-events:auto; opacity:1; }
+</style>
 </head>
 <body>
   <div class="wrap">
     <h1>本期 Featured 角色</h1>
+<div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:-6px 0 14px;">
+  <button class="btn" id="btnDaily">每日任務</button>
+</div>
 
     <div class="heroGrid">
       <div>
@@ -940,12 +713,28 @@
           <div id="rollingText">抽卡中</div>
           <div id="rollSub" class="muted" style="display:none;"></div>
         </div>
-        <button class="confirm" id="confirmBtn">確認</button>
+        <div class="actionBtns">
+  <button class="share" id="shareBtn" style="display:none;">分享</button>
+  <button class="confirm" id="confirmBtn">確認</button>
+</div>
       </div>
 
   </div>
 
-  <script src="app.js"></script>
+<div class="overlay" id="dailyOverlay" style="z-index:60;">
+  <div class="panel" style="max-width:640px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;">
+      <div style="font-weight:950;letter-spacing:.4px;">每日任務</div>
+      <div class="btn gray small" id="dailyClose">關閉</div>
+    </div>
+    <div id="dailyContent" style="opacity:.92;font-size:14px;line-height:1.5;"></div>
+    <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:flex-end;">
+      <button class="btn" id="dailyClaim" style="display:none;">領取獎勵</button>
+    </div>
+  </div>
+</div>
+
+  <script src="app.js"></script
   <script>
 
     // featured video: load from DB season featured table
@@ -1091,7 +880,6 @@ async function loadFeaturedVideo(){
       overlay.classList.remove("show");
       // reset overlay state
       framesLayer.innerHTML = "";
-       hideCinematic();
       grid32El.querySelectorAll(".cell").forEach(c=>c.classList.remove("dim","win","win2","red"));
       if(rollingText) rollingText.style.display = "";
       if(rollSub){ rollSub.style.display = "none"; rollSub.textContent = ""; }
@@ -1099,8 +887,9 @@ async function loadFeaturedVideo(){
       if(confirmBtn){ confirmBtn.style.opacity="0"; confirmBtn.style.pointerEvents="none"; }
     }
 
-    confirmBtn.addEventListener("click", () => { hideCinematic(); hideOverlay(); });
-function normalizeType(t){
+    confirmBtn.addEventListener("click", () => hideOverlay());
+
+    function normalizeType(t){
       const x = String(t||"");
       if(x === "bg") return "background";
       if(x === "background") return "background";
@@ -1213,201 +1002,6 @@ async function onlineGacha(opts = {}) {
 
     function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
 
-
-    const RARITY_NAME = {1:"C",2:"R",3:"SR",4:"SSR",5:"UR"};
-
-    // Simple WebAudio SFX (no external files)
-    let _audioCtx = null;
-    function _ctx(){
-      try{
-        _audioCtx = _audioCtx || new (window.AudioContext || window.webkitAudioContext)();
-        return _audioCtx;
-      }catch(_){ return null; }
-    }
-    function playTone(freq, dur=0.12, type="sine", gain=0.06, when=0){
-      const ctx = _ctx();
-      if(!ctx) return;
-      const t0 = ctx.currentTime + (when||0);
-      const o = ctx.createOscillator();
-      const g = ctx.createGain();
-      o.type = type;
-      o.frequency.setValueAtTime(freq, t0);
-      g.gain.setValueAtTime(0.0001, t0);
-      g.gain.exponentialRampToValueAtTime(gain, t0 + 0.01);
-      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-      o.connect(g); g.connect(ctx.destination);
-      o.start(t0);
-      o.stop(t0 + dur + 0.02);
-    }
-    function sfxByRarity(r){
-      const rr = Number(r||1);
-      if(rr >= 5){
-        // UR: heartbeat + lift
-        playTone(70, 0.10, "sine", 0.10, 0.00);
-        playTone(70, 0.10, "sine", 0.10, 0.18);
-        playTone(220, 0.10, "triangle", 0.10, 0.40);
-        playTone(330, 0.14, "triangle", 0.10, 0.52);
-        playTone(520, 0.16, "sawtooth", 0.08, 0.66);
-        return;
-      }
-      if(rr === 4){
-        playTone(180, 0.10, "triangle", 0.08, 0.00);
-        playTone(260, 0.12, "triangle", 0.08, 0.12);
-        playTone(420, 0.14, "sawtooth", 0.06, 0.26);
-        return;
-      }
-      if(rr === 3){
-        playTone(240, 0.10, "sine", 0.06, 0.00);
-        playTone(360, 0.12, "triangle", 0.05, 0.12);
-        return;
-      }
-      if(rr === 2){
-        playTone(260, 0.08, "sine", 0.04, 0.00);
-        return;
-      }
-      playTone(220, 0.06, "sine", 0.03, 0.00);
-    }
-
-    function assetFullUrl(a){
-      if(!a) return "/assets/placeholder.png";
-      if(a.imageUrl) return String(a.imageUrl);
-      const id = a.id || a.assetId || "";
-      if(id) return `/assets/${id}.png`;
-      return "/assets/placeholder.png";
-    }
-
-    
-    async function playCinematicForPack(winners, isTen){
-      const cinematic = document.getElementById("cinematic");
-      const cineRarity = document.getElementById("cineRarity");
-      const cineSub = document.getElementById("cineSub");
-      const cineImg = document.getElementById("cineImg");
-      const cineTen = document.getElementById("cineTen");
-      const cineTenGrid = document.getElementById("cineTenGrid");
-      const cineOk = document.getElementById("cineOk");
-      const cineCta = document.getElementById("cineCta");
-      if(!cinematic || !cineImg || !cineOk) return;
-
-      const arr = Array.isArray(winners) ? winners.filter(Boolean) : [];
-      if(arr.length === 0) return;
-
-      // pick focus: best rarity, tie -> later item wins (feels like "最後一張更重要")
-      let focus = arr[0];
-      for(const w of arr){
-        const rw = Number(w?.rarity||1);
-        const rf = Number(focus?.rarity||1);
-        if(rw > rf) focus = w;
-        else if(rw === rf) focus = w;
-      }
-
-      const r = Math.max(1, Math.min(5, Number(focus?.rarity || 1)));
-      const rName = RARITY_NAME[r] || `R${r}`;
-
-      cinematic.className = `cinematic show r${r}`;
-      cinematic.setAttribute("aria-hidden","false");
-      cinematic.classList.add("black");
-      cinematic.classList.remove("flash","shake","float","cta");
-
-      // Hide underlying confirm (we use cinematic confirm)
-      if(confirmBtn){
-        confirmBtn.style.opacity = "0.0";
-        confirmBtn.style.pointerEvents = "none";
-      }
-
-      // Ten-pull thumbnails
-      if(cineTen && cineTenGrid){
-        cineTenGrid.innerHTML = "";
-        if(isTen){
-          cineTen.classList.add("show");
-          for(const w of arr){
-            const rr = Math.max(1, Math.min(5, Number(w?.rarity || 1)));
-            const item = document.createElement("div");
-            item.className = `cine-ten-item r${rr}` + ((w === focus) ? " best" : "");
-            const img = document.createElement("img");
-            img.src = assetThumb(w);
-            img.alt = String(w?.id || w?.assetId || "");
-            const tag = document.createElement("div");
-            tag.className = "tag";
-            tag.textContent = RARITY_NAME[rr] || `R${rr}`;
-            item.appendChild(img);
-            item.appendChild(tag);
-            cineTenGrid.appendChild(item);
-          }
-        }else{
-          cineTen.classList.remove("show");
-        }
-      }
-
-      // Text
-      cineRarity.textContent = rName;
-      const id = String(focus?.assetId || focus?.id || "").trim();
-      cineSub.textContent = isTen ? (id ? `10連抽 最稀有：${id}` : "10連抽 結果") : (id ? `恭喜獲得 ${id}` : "恭喜獲得");
-      if(cineCta) cineCta.textContent = "點擊確認繼續";
-
-      // Image: show thumb immediately, then try full
-      const thumbSrc = assetThumb(focus);
-      cineImg.src = thumbSrc;
-
-      const fullSrc = assetFullUrl(focus);
-      if(fullSrc && fullSrc !== thumbSrc){
-        const test = new Image();
-        test.onload = ()=>{ cineImg.src = fullSrc; };
-        test.onerror = ()=>{};
-        test.src = fullSrc;
-      }
-
-      // Close behavior
-      const close = () => {
-        hideCinematic();
-        try{ hideOverlay(); }catch(_){}
-      };
-      cineOk.onclick = close;
-      const bg = cinematic.querySelector(".cine-bg");
-      if(bg) bg.onclick = close;
-
-      // suspense & FX
-      await sleep(180);
-      cinematic.classList.remove("black");
-      sfxByRarity(r);
-
-      if(r >= 4){
-        await sleep(140);
-        cinematic.classList.add("shake");
-        cinematic.classList.add("flash");
-      }else if(r === 3){
-        await sleep(120);
-        cinematic.classList.add("flash");
-      }else{
-        await sleep(90);
-        cinematic.classList.add("flash");
-      }
-
-      await sleep(520);
-      if(r >= 4) cinematic.classList.add("float");
-
-      // stay on screen until user confirms
-    }
-
-    function hideCinematic(){
-      const cinematic = document.getElementById("cinematic");
-      if(!cinematic) return;
-      cinematic.className = "cinematic";
-      cinematic.setAttribute("aria-hidden","true");
-      const cineImg = document.getElementById("cineImg");
-      if(cineImg) cineImg.removeAttribute("src");
-      const cineTenGrid = document.getElementById("cineTenGrid");
-      if(cineTenGrid) cineTenGrid.innerHTML = "";
-      const cineTen = document.getElementById("cineTen");
-      if(cineTen) cineTen.classList.remove("show");
-      // restore underlying confirm for non-cinematic paths
-      if(typeof confirmBtn !== "undefined" && confirmBtn){
-        confirmBtn.style.opacity = "1";
-        confirmBtn.style.pointerEvents = "auto";
-      }
-    }
-
-
-
     function pickUniqueIndices(n, k){
       const out = [];
       const used = new Set();
@@ -1484,7 +1078,6 @@ function renderGridDecoys(list){
       const framesCount = isTen ? 10 : 1;
 
       framesLayer.innerHTML = "";
-       hideCinematic();
       const frames = [];
       for(let i=0;i<framesCount;i++){
         const f = document.createElement("div");
@@ -1660,15 +1253,10 @@ function renderGridDecoys(list){
         
         await animateJumpGridToSlots(pack.winnerSlots, pack.winners, isTen);
 
-        // V2: cinematic reveal (focus on last winner in 10-pull, otherwise the only winner)
-        try{
-          const winners = Array.isArray(pack.winners) ? pack.winners : [];
-          if(winners.length) await playCinematicForPack(winners, isTen);
-        }catch(_){ /* ignore cinematic errors */ }
-
         if(rollingText) rollingText.style.display = "none";
         if(rollSub){ rollSub.style.display = ""; rollSub.textContent = isTen ? "" : ""; }
         if(actionBar){ actionBar.classList.add("mode-done"); actionBar.classList.remove("mode-loading"); }
+        if(shareBtn){ shareBtn.style.display = ""; }
         confirmBtn.style.opacity = "1";
         confirmBtn.style.pointerEvents = "auto";
         animating = false;
@@ -1679,6 +1267,7 @@ function renderGridDecoys(list){
         if(rollSub){ rollSub.style.display = ""; rollSub.textContent = "抽卡失敗"; }
         toast("抽卡失敗");
         if(actionBar){ actionBar.classList.add("mode-done"); actionBar.classList.remove("mode-loading"); }
+        if(shareBtn){ shareBtn.style.display = ""; }
         confirmBtn.style.opacity = "1";
         confirmBtn.style.pointerEvents = "auto";
         animating = false;
@@ -1706,30 +1295,209 @@ function renderGridDecoys(list){
 
     btnAddon21.addEventListener("click", () => startGacha({ count: 1, premium: false, type: "addon2" }));
     btnAddon210.addEventListener("click", () => startGacha({ count: 10, premium: false, type: "addon2" }));
-  </script>
+  
 
-  <!-- V2 cinematic rarity reveal (fixed layer, never blocks clicks) -->
-  <div class="cinematic" id="cinematic" aria-hidden="true">
-    <div class="cine-bg"></div>
-    <div class="cine-black"></div>
-    <div class="cine-flash"></div>
-    <div class="cine-shake"></div>
-    <div class="cine-glow"></div>
-    <div class="cine-core" role="dialog" aria-modal="true">
-      <div class="cine-rarity" id="cineRarity">UR</div>
-      <div class="cine-sub" id="cineSub">恭喜獲得</div>
+    // Share image and Daily tasks
+    let lastResultForShare = null;
+    const shareBtn = document.getElementById("shareBtn");
 
-      <div class="cine-card"><img id="cineImg" alt="reward" /></div>
+    async function loadMeAccountSafe(){
+      try{
+        if(typeof window.api === "function"){
+          const data = await window.api("/api/me/account");
+          return data && data.account ? data.account : null;
+        }
+      }catch(_){}
+      return null;
+    }
 
-      <div class="cine-ten" id="cineTen">
-        <div class="cine-ten-title" id="cineTenTitle">10連抽結果</div>
-        <div class="cine-ten-grid" id="cineTenGrid"></div>
-      </div>
+    function rarityName(r){
+      const n = Number(r||0);
+      if(n>=5) return "UR";
+      if(n===4) return "SSR";
+      if(n===3) return "SR";
+      if(n===2) return "R";
+      return "C";
+    }
 
-      <button class="cine-ok" id="cineOk" type="button">確認</button>
-      <div class="cine-cta" id="cineCta">點擊確認繼續</div>
-    </div>
-  </div>
+    function roundRect(ctx, x, y, w, h, r, fill, stroke){
+      const rr = Math.min(r, w/2, h/2);
+      ctx.beginPath();
+      ctx.moveTo(x+rr, y);
+      ctx.arcTo(x+w, y, x+w, y+h, rr);
+      ctx.arcTo(x+w, y+h, x, y+h, rr);
+      ctx.arcTo(x, y+h, x, y, rr);
+      ctx.arcTo(x, y, x+w, y, rr);
+      ctx.closePath();
+      if(fill) ctx.fill();
+      if(stroke) ctx.stroke();
+    }
 
+    function loadImageCrossOrigin(src){
+      return new Promise((resolve, reject)=>{
+        const im = new Image();
+        im.crossOrigin = "anonymous";
+        im.onload = ()=>resolve(im);
+        im.onerror = reject;
+        im.src = src;
+      });
+    }
+
+    async function generateShareImage(){
+      if(!lastResultForShare) throw new Error("no_result");
+      const acc = await loadMeAccountSafe();
+      const uid = localStorage.getItem("acf_uid") || "";
+      const name = (acc && acc.userName) ? String(acc.userName) : (localStorage.getItem("acf_name") || "Player");
+      const level = acc && acc.level ? Number(acc.level) : 1;
+
+      const winner = lastResultForShare.winner || lastResultForShare.focus || (Array.isArray(lastResultForShare.items) ? lastResultForShare.items[0] : null);
+      const rarity = rarityName(winner && winner.rarity);
+      const assetId = winner && (winner.assetId || winner.id) ? String(winner.assetId || winner.id) : "";
+      const imageUrl = winner && (winner.imageUrl || winner.url) ? String(winner.imageUrl || winner.url) : "";
+
+      const W = 1080, H = 1920;
+      const c = document.createElement("canvas");
+      c.width = W; c.height = H;
+      const ctx = c.getContext("2d");
+
+      const g = ctx.createLinearGradient(0,0,W,H);
+      g.addColorStop(0,"#0b0d12");
+      g.addColorStop(1,"#1e293b");
+      ctx.fillStyle = g;
+      ctx.fillRect(0,0,W,H);
+
+      ctx.fillStyle = "rgba(255,255,255,0.92)";
+      ctx.font = "900 56px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+      ctx.fillText("抽卡結果", 70, 130);
+
+      ctx.fillStyle = "rgba(255,255,255,0.72)";
+      ctx.font = "800 34px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+      ctx.fillText("UID " + uid, 70, 188);
+      ctx.fillText("名字 " + name, 70, 236);
+      ctx.fillText("等級 " + String(level), 70, 284);
+
+      ctx.save();
+      ctx.translate(70, 340);
+      const badgeW = 260, badgeH = 88;
+      ctx.fillStyle = rarity === "UR" ? "rgba(140,255,220,0.20)" :
+                      rarity === "SSR" ? "rgba(255,180,60,0.18)" :
+                      rarity === "SR" ? "rgba(200,140,255,0.18)" :
+                      rarity === "R" ? "rgba(90,170,255,0.18)" : "rgba(255,255,255,0.10)";
+      roundRect(ctx, 0, 0, badgeW, badgeH, 24, true, false);
+      ctx.strokeStyle = "rgba(255,255,255,0.18)";
+      ctx.lineWidth = 2;
+      roundRect(ctx, 0, 0, badgeW, badgeH, 24, false, true);
+      ctx.fillStyle = "rgba(255,255,255,0.92)";
+      ctx.font = "950 44px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+      ctx.fillText(rarity, 26, 58);
+      ctx.restore();
+
+      ctx.fillStyle = "rgba(255,255,255,0.72)";
+      ctx.font = "800 30px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+      ctx.fillText("素材 " + assetId, 70, 470);
+
+      if(imageUrl){
+        try{
+          const img = await loadImageCrossOrigin(imageUrl);
+          const boxX = 120, boxY = 560, boxW = 840, boxH = 1120;
+          ctx.fillStyle = "rgba(255,255,255,0.06)";
+          roundRect(ctx, boxX, boxY, boxW, boxH, 34, true, false);
+          ctx.strokeStyle = "rgba(255,255,255,0.12)";
+          ctx.lineWidth = 2;
+          roundRect(ctx, boxX, boxY, boxW, boxH, 34, false, true);
+
+          const iw = img.width, ih = img.height;
+          const s = Math.min(boxW*0.92/iw, boxH*0.92/ih);
+          const dw = iw*s, dh = ih*s;
+          const dx = boxX + (boxW - dw)/2;
+          const dy = boxY + (boxH - dh)/2;
+          ctx.drawImage(img, dx, dy, dw, dh);
+        }catch(_){}
+      }
+
+      ctx.fillStyle = "rgba(255,255,255,0.55)";
+      ctx.font = "700 28px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+      ctx.fillText("DREAM LEAGUE BASEBALL", 70, H - 80);
+
+      const blob = await new Promise(res => c.toBlob(res, "image/png", 0.95));
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "gacha_result.png";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url), 4000);
+    }
+
+    if(shareBtn){
+      shareBtn.onclick = async ()=>{
+        try{
+          shareBtn.disabled = true;
+          await generateShareImage();
+        }catch(e){
+          alert("分享失敗 " + String(e && e.message ? e.message : e));
+        }finally{
+          shareBtn.disabled = false;
+        }
+      };
+    }
+
+    const dailyOverlay = document.getElementById("dailyOverlay");
+    const dailyClose = document.getElementById("dailyClose");
+    const dailyBtn = document.getElementById("btnDaily");
+    const dailyContent = document.getElementById("dailyContent");
+    const dailyClaim = document.getElementById("dailyClaim");
+
+    async function refreshDaily(){
+      if(!dailyContent || typeof window.api !== "function") return;
+      dailyContent.textContent = "讀取中";
+      try{
+        const data = await window.api("/api/daily");
+        if(!data || !data.ok) throw new Error((data && data.error) ? data.error : "daily_failed");
+        const t = data.tasks || [];
+        const reward = data.reward || {};
+        dailyContent.innerHTML = `
+          <div style="opacity:.85;margin-bottom:10px;">日期 ${data.dateKey}</div>
+          ${t.map(x=>`<div style="display:flex;justify-content:space-between;gap:10px;margin:6px 0;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.10);">
+            <div style="font-weight:850;">${x.title}</div>
+            <div style="opacity:.9;font-weight:900;">${Math.min(x.done,x.need)}/${x.need}</div>
+          </div>`).join("")}
+          <div style="margin-top:10px;opacity:.9;">
+            獎勵 票券 ${reward.userVote||0} 金幣 ${reward.userGold||0} 經驗 ${reward.exp||0}
+          </div>
+        `;
+        dailyClaim.style.display = data.canClaim ? "" : "none";
+      }catch(e){
+        dailyContent.textContent = "讀取失敗 " + String(e && e.message ? e.message : e);
+        dailyClaim.style.display = "none";
+      }
+    }
+
+    if(dailyBtn && dailyOverlay){
+      dailyBtn.onclick = async ()=>{ dailyOverlay.classList.add("show"); await refreshDaily(); };
+    }
+    if(dailyClose && dailyOverlay){
+      dailyClose.onclick = ()=> dailyOverlay.classList.remove("show");
+    }
+    if(dailyOverlay){
+      dailyOverlay.addEventListener("click", (e)=>{ if(e.target === dailyOverlay) dailyOverlay.classList.remove("show"); });
+    }
+    if(dailyClaim){
+      dailyClaim.onclick = async ()=>{
+        try{
+          dailyClaim.disabled = true;
+          const data = await window.api("/api/daily/claim", { method:"POST", body:{} });
+          if(!data || !data.ok) throw new Error((data && data.error) ? data.error : "claim_failed");
+          await refreshDaily();
+          alert("領取成功");
+        }catch(e){
+          alert("領取失敗 " + String(e && e.message ? e.message : e));
+        }finally{
+          dailyClaim.disabled = false;
+        }
+      };
+    }
+    </script>
 </body>
 </html>
