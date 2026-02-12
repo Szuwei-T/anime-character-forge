@@ -170,6 +170,96 @@
   border-color: rgba(255,255,255,.35);
 }
 
+
+/* PODIUM LAYOUT */
+.podium {
+  display:flex;
+  align-items:flex-end; /* bottom align */
+  justify-content:center;
+  gap:24px;
+  margin-bottom:28px;
+}
+
+.podium-card {
+  position:relative;
+  transition:transform .25s ease;
+}
+
+.podium-card .thumb {
+  aspect-ratio:1365/2048; /* exact image ratio */
+  border-radius:14px;
+  overflow:hidden;
+}
+
+/* FIRST PLACE */
+.podium-card.rank1 {
+  transform:scale(1);
+}
+.podium-card.rank1 .thumb {
+  border:3px solid #FFD700;
+  box-shadow:
+    0 0 12px rgba(255,215,0,.9),
+    0 0 30px rgba(255,215,0,.6),
+    inset 0 0 10px rgba(255,215,0,.6);
+  animation:goldGlow 2s infinite alternate;
+}
+
+@keyframes goldGlow {
+  from {
+    box-shadow:
+      0 0 12px rgba(255,215,0,.7),
+      0 0 25px rgba(255,215,0,.4);
+  }
+  to {
+    box-shadow:
+      0 0 20px rgba(255,215,0,1),
+      0 0 45px rgba(255,215,0,.8);
+  }
+}
+
+/* SECOND PLACE */
+.podium-card.rank2 {
+  transform:scale(.8);
+}
+.podium-card.rank2 .thumb {
+  border:3px solid #C0C0C0;
+  box-shadow:
+    0 0 10px rgba(192,192,192,.7);
+}
+
+/* THIRD PLACE */
+.podium-card.rank3 {
+  transform:scale(.6);
+}
+.podium-card.rank3 .thumb {
+  border:3px solid #CD7F32;
+}
+
+/* rank label */
+.rank-label {
+  position:absolute;
+  top:-12px;
+  left:50%;
+  transform:translateX(-50%);
+  padding:4px 10px;
+  border-radius:999px;
+  font-weight:700;
+  font-size:13px;
+}
+
+.rank1 .rank-label {
+  background:#FFD700;
+  color:#000;
+}
+.rank2 .rank-label {
+  background:#C0C0C0;
+  color:#000;
+}
+.rank3 .rank-label {
+  background:#CD7F32;
+  color:#000;
+}
+
 </style>
 </head>
 
@@ -525,6 +615,10 @@ function buildPodItem(rank, s){
   top.appendChild(v);
 
   const th = document.createElement("div");
+    const rankLabel = document.createElement("div");
+    rankLabel.className = "rank-label";
+    rankLabel.textContent = "#"+rank;
+    
   th.className = "podThumb";
   const layersThumb = [
     { url: s.bgUrl, z: 10 },
@@ -624,9 +718,13 @@ async function loadPodiumFromBackendOrLocal(items){
 
     items.forEach((s) => {
       const card = document.createElement("div");
-      card.className = "card";
+      card.className = "card podium-card rank"+rank;
 
       const th = document.createElement("div");
+    const rankLabel = document.createElement("div");
+    rankLabel.className = "rank-label";
+    rankLabel.textContent = "#"+rank;
+    
       th.className = "thumb";
 
       // Layer order (top->bottom):
@@ -762,7 +860,8 @@ actions.appendChild(followBtn);
       voteBar.appendChild(voteCount);
       meta.appendChild(voteBar);
 
-      card.appendChild(th);
+      card.appendChild(rankLabel);
+card.appendChild(th);
       card.appendChild(meta);
 
       card.onclick = () => {
