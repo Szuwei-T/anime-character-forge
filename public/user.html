@@ -41,9 +41,8 @@
 .preview .layer{background-size:contain}
 
 
-    #abAvatar img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-    .miniBtn{padding:8px 10px;border-radius:12px}
-  </style>
+    .avatar img{width:100%;height:100%;object-fit:cover;display:block}
+</style>
 </head>
 <body>
   <div class="wrap">
@@ -67,30 +66,10 @@
             <div class="badge" id="lv">Lv.1</div>
             <div class="badge" id="followers">粉絲 0</div>
             <div class="badge" id="following">關注 0</div>
+            <div class="badge" id="works">成品 0</div>
+            <div class="badge" id="likes">Like 0</div>
+            <div class="badge" id="unlocks">解鎖 0</div>
           </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card" id="accountCard" style="margin-bottom:14px">
-      <div class="profile" style="align-items:flex-start">
-        <div class="avatar" id="abAvatar" style="width:64px;height:64px;border-radius:20px;overflow:hidden;position:relative"></div>
-        <div class="pinfo" style="gap:10px">
-          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-            <div class="name" id="abName">玩家</div>
-            <button class="btn" id="btnRename" style="padding:8px 10px;border-radius:12px">改名</button>
-          </div>
-          <div class="sub" id="abUid">UID</div>
-          <div class="badges" style="flex-wrap:wrap">
-            <div class="badge" id="abGold">金幣 0</div>
-            <div class="badge" id="abGem">Gem 0</div>
-            <div class="badge" id="abVotes">票數 0</div>
-            <div class="badge" id="abWorks">成品 0</div>
-            <div class="badge" id="abFollowers">粉絲 0</div>
-            <div class="badge" id="abLikes">Like 0</div>
-            <div class="badge" id="abCollections">收藏冊 0/0</div>
-          </div>
-          <div class="sub" id="abRenameRule" style="opacity:.8"></div>
         </div>
       </div>
     </div>
@@ -197,97 +176,6 @@ if(modalClose) modalClose.onclick = closeModal;
     stackInto(node, layers);
   }
 
-
-  function stackAvatar(el, layers){
-    el.innerHTML = "";
-    el.style.position = "relative";
-    (layers||[]).filter(x=>x && x.url).forEach((l)=>{
-      const img=document.createElement("img");
-      img.src=l.url;
-      img.style.zIndex=String(l.z||1);
-      el.appendChild(img);
-    });
-  }
-
-  function renderAvatar(el, avatar, fallbackText){
-    if(avatar && (avatar.headUrl || avatar.bodyUrl || avatar.bgUrl || avatar.addon1Url || avatar.addon2Url)){
-      stackAvatar(el, [
-        {url: avatar.bgUrl, z:10},
-        {url: avatar.addon2Url, z:20},
-        {url: avatar.headUrl, z:30},
-        {url: avatar.bodyUrl, z:40},
-        {url: avatar.addon1Url, z:50},
-      ]);
-      el.textContent = "";
-      return;
-    }
-    el.innerHTML = "";
-    el.textContent = (fallbackText || "?").slice(0,1).toUpperCase();
-  }
-
-  async function loadAccountMaster(){
-    const card = document.getElementById("accountCard");
-    if(!card) return;
-    const isMe = (uid === me) || (!uid && !!me);
-    document.getElementById("btnRename").style.display = isMe ? "" : "none";
-    document.getElementById("abRenameRule").style.display = isMe ? "" : "none";
-
-    try{
-      const data = isMe ? await api("/api/me/summary", { method:"GET" }) : await api("/api/user/profile?uid=" + encodeURIComponent(uid), { method:"GET" });
-      if(!data || data.ok===false) return;
-
-      const profile = isMe ? (data.account || {}) : (data.profile || {});
-      const st = isMe ? (data.stats || {}) : (data.stats || {});
-      const avatar = data.avatar || null;
-
-      const name = (profile.userName && String(profile.userName).trim()) ? String(profile.userName).trim() : "玩家";
-      document.getElementById("abName").textContent = name + " · Lv." + String(profile.level||1);
-      document.getElementById("abUid").textContent = "UID " + String(profile.userId||uid||me).slice(0,8);
-
-      renderAvatar(document.getElementById("abAvatar"), avatar, name);
-
-      document.getElementById("abGold").textContent = "金幣 " + String(profile.userGold||0);
-      document.getElementById("abGem").textContent = "Gem " + String(profile.userGem||0);
-      document.getElementById("abVotes").textContent = "票數 " + String(profile.userVote||0);
-      document.getElementById("abWorks").textContent = "成品 " + String(st.works||0);
-      document.getElementById("abFollowers").textContent = "粉絲 " + String((data.followers ?? st.followers) || 0);
-      document.getElementById("abLikes").textContent = "Like " + String(st.likes||0);
-      document.getElementById("abCollections").textContent = "收藏冊 " + String(st.unlockedCollections||0) + "/" + String(st.totalCollections||0);
-
-      if(isMe){
-        const renameFreeUsed = Number(profile.renameFreeUsed||0);
-        document.getElementById("abRenameRule").textContent = renameFreeUsed===0 ? "改名 1 次免費，之後每次需 50 Gem" : "改名每次需 50 Gem";
-      }
-    }catch(e){}
-  }
-
-  async function doRename(){
-    const isMe = (uid === me) || (!uid && !!me);
-    if(!isMe) return;
-
-    const cur = document.getElementById("abName").textContent.replace(/ · Lv\..*$/,"").trim();
-    const next = prompt("輸入新的遊戲名稱", cur);
-    if(next===null) return;
-    const userName = String(next||"").trim();
-    if(!userName) return showError("名稱不能為空");
-
-    try{
-      clearError();
-      const r = await api("/api/me/account", { method:"POST", body: { userName, userRegion:"" } });
-      if(r?.ok===false){
-        if(r.error==="need_gem"){
-          showError("Gem 不足，需要 " + String(r.need) + " Gem（你目前 " + String(r.gem) + "）");
-          return;
-        }
-        throw r;
-      }
-      toast("已更新名稱");
-      await loadAccountMaster();
-      await loadProfile();
-    }catch(err){
-      showError(String(err.error || err.message || err));
-    }
-  }
   let followingSet = new Set();
 
   async function loadMeFollowing(){
@@ -302,55 +190,31 @@ if(modalClose) modalClose.onclick = closeModal;
     if(!uid) return;
     const p = await api("/api/user/profile?uid=" + encodeURIComponent(uid));
     const prof = p.profile || {};
+    const stats = p.stats || {};
     const nm = (prof.userName && String(prof.userName).trim()) ? String(prof.userName).trim() : String(uid).slice(0,8);
     nameEl.textContent = nm;
-    avatar.textContent = nm.slice(0,1).toUpperCase();
+
+    // avatar
+    avatar.innerHTML = "";
+    if(p.avatarUrl){
+      const img = document.createElement("img");
+      img.src = p.avatarUrl;
+      img.alt = "avatar";
+      avatar.appendChild(img);
+    }else{
+      avatar.textContent = (nm.slice(0,1) || "?").toUpperCase();
+    }
+
     lv.textContent = "Lv." + String(Number(prof.level||1));
-    followers.textContent = "粉絲 " + String(Number(p.followers||0));
-    following.textContent = "關注 " + String(Number(p.following||0));
-    sub.textContent = (prof.userRegion && String(prof.userRegion).trim()) ? String(prof.userRegion).trim() : "";
+    followers.textContent = "粉絲 " + String(Number(p.followers||stats.followers||0));
+    following.textContent = "關注 " + String(Number(p.following||stats.following||0));
+    q("#works").textContent = "成品 " + String(Number(stats.worksCount||0));
+    q("#likes").textContent = "Like " + String(Number(stats.likesReceived||0));
+    q("#unlocks").textContent = "解鎖 " + String(Number(stats.collectionsUnlocked||0));
+
+    sub.textContent = (prof.userRegion && String(prof.userRegion).trim()) ? ("地區 " + String(prof.userRegion).trim()) : "";
   }
-
-  function refreshFollowBtn(){
-    if(!me){
-      btnFollow.textContent = "未登入";
-      btnFollow.disabled = true;
-      return;
-    }
-    if(uid === me){
-      btnFollow.textContent = "自己";
-      btnFollow.disabled = true;
-      return;
-    }
-    const isFollow = followingSet.has(uid);
-    btnFollow.textContent = isFollow ? "已關注" : "關注";
-    btnFollow.classList.toggle("on", isFollow);
-    btnFollow.disabled = false;
-  }
-
-  async function toggleFollow(){
-    if(!me) return showError("請先登入");
-    clearError();
-    try{
-      if(followingSet.has(uid)){
-        await api("/api/follow", { method:"DELETE", body:{ targetUserId: uid } });
-        followingSet.delete(uid);
-      }else{
-        await api("/api/follow", { method:"POST", body:{ targetUserId: uid } });
-        followingSet.add(uid);
-      }
-      refreshFollowBtn();
-      await loadProfile();
-    }catch(err){
-      showError(String(err.error || err.message || err));
-    }
-  }
-
-  btnFollow.onclick = toggleFollow;
-  const btnRename = document.getElementById("btnRename");
-  if(btnRename) btnRename.onclick = doRename;
-
-  async function loadWorks(){
+async function loadWorks(){
     const r = await api("/api/user/showcases?uid=" + encodeURIComponent(uid));
     const items = r.items || [];
     grid.innerHTML = "";
@@ -400,25 +264,6 @@ if(modalClose) modalClose.onclick = closeModal;
       const actions = document.createElement("div");
       actions.className="actions";
 
-      const setAvaBtn = document.createElement("button");
-      setAvaBtn.className = "btn";
-      setAvaBtn.textContent = "設為頭像";
-      setAvaBtn.style.display = (uid===me) ? "" : "none";
-      setAvaBtn.onclick = async (e)=>{
-        e.stopPropagation();
-        if(uid!==me) return;
-        clearError();
-        try{
-          const r = await api("/api/me/avatar", { method:"POST", body:{ showcaseId: s.showcaseId } });
-          if(r?.ok===false) throw r;
-          toast("已設為頭像");
-          await loadAccountMaster();
-          await loadProfile();
-        }catch(err){
-          showError(String(err.error || err.message || err));
-        }
-      };
-
       const favBtn = document.createElement("button");
       favBtn.className="btn";
       favBtn.textContent = "收藏";
@@ -436,7 +281,6 @@ if(modalClose) modalClose.onclick = closeModal;
         }
       };
 
-      actions.appendChild(setAvaBtn);
       actions.appendChild(favBtn);
 
       meta.appendChild(title);
