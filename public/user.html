@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>玩家</title>
+  <style>
+    body{margin:0;background:#0b0f16;color:#e8eefc;font-family:system-ui,-apple-system,Segoe UI,Roboto,"Noto Sans TC",sans-serif;}
+    .wrap{max-width:1100px;margin:0 auto;padding:18px;}
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;}
+    .btn{cursor:pointer;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#e8eefc;padding:10px 12px;border-radius:12px}
+    .btn:disabled{opacity:.6;cursor:not-allowed}
+    .btn.on{border-color:rgba(255,255,255,.35);background:rgba(255,255,255,.10)}
+    .card{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);border-radius:16px;overflow:hidden}
+    .profile{display:flex;gap:14px;align-items:center;padding:14px}
+    .avatar{width:52px;height:52px;border-radius:18px;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-weight:800}
+    .pinfo{flex:1}
+    .name{font-size:18px;font-weight:800}
+    .sub{opacity:.85;font-size:13px;margin-top:4px}
+    .badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+    .badge{padding:4px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:rgba(0,0,0,.14);font-size:13px;font-weight:700}
+    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px}
+    @media(max-width:980px){.grid{grid-template-columns:repeat(3,1fr)}}
+    @media(max-width:720px){.grid{grid-template-columns:repeat(2,1fr)}}
+    .thumb{aspect-ratio:1/1;background:rgba(0,0,0,.25);position:relative}
+    .layer{position:absolute;inset:0;background-position:center;background-repeat:no-repeat;background-size:cover}
+    .meta{padding:10px 10px 12px 10px}
+    .title{font-weight:800}
+    .row{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:6px}
+    .pill{font-size:13px;opacity:.9}
+    .actions{display:flex;gap:8px;margin-top:10px}
+    .error{display:none;margin-top:10px;padding:10px 12px;border:1px solid rgba(255,80,80,.35);background:rgba(255,80,80,.10);border-radius:12px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div style="display:flex;gap:10px;align-items:center">
+        <button class="btn" id="btnBack">返回</button>
+        <div style="opacity:.9" id="uidText"></div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <button class="btn" id="btnFollow">關注</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="profile">
+        <div class="avatar" id="avatar">?</div>
+        <div class="pinfo">
+          <div class="name" id="name">玩家</div>
+          <div class="sub" id="sub"> </div>
+          <div class="badges">
+            <div class="badge" id="lv">Lv.1</div>
+            <div class="badge" id="followers">粉絲 0</div>
+            <div class="badge" id="following">關注 0</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="error" id="error"></div>
+
+    <div class="grid" id="grid"></div>
+  </div>
+
+<script>
+(function(){
+  const DEFAULT_WORKER = "https://acf-api.dream-league-baseball.workers.dev";
+  const WORKER_BASE = window.WORKER_BASE || localStorage.getItem("acf_worker_base") || DEFAULT_WORKER;
+
+  const me = localStorage.getItem("acf_uid") || "";
+  const url = new URL(location.href);
+  const uid = String(url.searchParams.get("uid") || "").trim();
+
+  const grid = document.getElementById("grid");
+  const btnBack = document.getElementById("btnBack");
+  const btnFollow = document.getElementById("btnFollow");
+  const uidText = document.getElementById("uidText");
+  const avatar = document.getElementById("avatar");
+  const nameEl = document.getElementById("name");
+  const sub = document.getElementById("sub");
+  const lv = document.getElementById("lv");
+  const followers = document.getElementById("followers");
+  const following = document.getElementById("following");
+  const error = document.getElementById("error");
+
+  uidText.textContent = uid ? ("UID " + uid) : "缺少 uid";
+
+  btnBack.onclick = () => history.length > 1 ? history.back() : (location.href="/gallery");
+
+  function showError(msg){
+    error.style.display="block";
+    error.textContent = msg;
+  }
+  function clearError(){
+    error.style.display="none";
+    error.textContent = "";
+  }
+
+  function api(path, opts={}){
+    const method = (opts.method || "GET").toUpperCase();
+    const headers = { "content-type":"application/json", "x-user-id": me || "" };
+    const fetchOpts = { method, headers };
+    if(opts.body !== undefined) fetchOpts.body = JSON.stringify(opts.body);
+    return fetch(WORKER_BASE + path, fetchOpts).then(async (r)=>{
+      const t = await r.text();
+      let data = {};
+      try{ data = JSON.parse(t || "{}"); }catch(_){ data = { ok:false, error:t }; }
+      if(!r.ok || data.ok === false) throw data;
+      return data;
+    });
+  }
+
+  function stackThumb(node, layers){
+    node.innerHTML="";
+    layers.forEach((x)=>{
+      if(!x.url) return;
+      const d=document.createElement("div");
+      d.className="layer";
+      d.style.zIndex = String(x.z||1);
+      d.style.backgroundImage = `url(${x.url})`;
+      node.appendChild(d);
+    });
+  }
+
+  let followingSet = new Set();
+
+  async function loadMeFollowing(){
+    if(!me) return;
+    try{
+      const fol = await api("/api/me/following");
+      followingSet = new Set((fol.items||[]).map(x=>String(x.targetUserId)));
+    }catch(_){}
+  }
+
+  async function loadProfile(){
+    if(!uid) return;
+    const p = await api("/api/user/profile?uid=" + encodeURIComponent(uid));
+    const prof = p.profile || {};
+    const nm = (prof.userName && String(prof.userName).trim()) ? String(prof.userName).trim() : String(uid).slice(0,8);
+    nameEl.textContent = nm;
+    avatar.textContent = nm.slice(0,1).toUpperCase();
+    lv.textContent = "Lv." + String(Number(prof.level||1));
+    followers.textContent = "粉絲 " + String(Number(p.followers||0));
+    following.textContent = "關注 " + String(Number(p.following||0));
+    sub.textContent = (prof.userRegion && String(prof.userRegion).trim()) ? String(prof.userRegion).trim() : "";
+  }
+
+  function refreshFollowBtn(){
+    if(!me){
+      btnFollow.textContent = "未登入";
+      btnFollow.disabled = true;
+      return;
+    }
+    if(uid === me){
+      btnFollow.textContent = "自己";
+      btnFollow.disabled = true;
+      return;
+    }
+    const isFollow = followingSet.has(uid);
+    btnFollow.textContent = isFollow ? "已關注" : "關注";
+    btnFollow.classList.toggle("on", isFollow);
+    btnFollow.disabled = false;
+  }
+
+  async function toggleFollow(){
+    if(!me) return showError("請先登入");
+    clearError();
+    try{
+      if(followingSet.has(uid)){
+        await api("/api/follow", { method:"DELETE", body:{ targetUserId: uid } });
+        followingSet.delete(uid);
+      }else{
+        await api("/api/follow", { method:"POST", body:{ targetUserId: uid } });
+        followingSet.add(uid);
+      }
+      refreshFollowBtn();
+      await loadProfile();
+    }catch(err){
+      showError(String(err.error || err.message || err));
+    }
+  }
+
+  btnFollow.onclick = toggleFollow;
+
+  async function loadWorks(){
+    const r = await api("/api/user/showcases?uid=" + encodeURIComponent(uid));
+    const items = r.items || [];
+    grid.innerHTML = "";
+    if(items.length === 0){
+      grid.innerHTML = "<div style='opacity:.85'>目前沒有任何作品</div>";
+      return;
+    }
+    items.forEach((s)=>{
+      const card = document.createElement("div");
+      card.className="card";
+
+      const th = document.createElement("div");
+      th.className="thumb";
+
+      const layers = [
+        { url: s.bgUrl, z: 10 },
+        { url: s.addon2Url, z: 20 },
+        { url: s.headUrl, z: 30 },
+        { url: s.bodyUrl, z: 40 },
+        { url: s.addon1Url, z: 50 },
+      ];
+      stackThumb(th, layers);
+
+      const meta = document.createElement("div");
+      meta.className="meta";
+
+      const title = document.createElement("div");
+      title.className="title";
+      title.textContent = (s.title && String(s.title).trim()) ? String(s.title).trim() : "未命名作品";
+
+      const row = document.createElement("div");
+      row.className="row";
+
+      const pill = document.createElement("div");
+      pill.className="pill";
+      const votes = Number(s.votes || 0);
+      const favs = Number(s.favorites || 0);
+      pill.textContent = "票數 " + String(votes) + " · 收藏 " + String(favs);
+
+      const season = document.createElement("div");
+      season.className="pill";
+      season.textContent = String(s.seasonId || "");
+
+      row.appendChild(pill);
+      row.appendChild(season);
+
+      const actions = document.createElement("div");
+      actions.className="actions";
+
+      const favBtn = document.createElement("button");
+      favBtn.className="btn";
+      favBtn.textContent = "收藏";
+
+      favBtn.onclick = async (e)=>{
+        e.stopPropagation();
+        if(!me) return showError("請先登入");
+        clearError();
+        try{
+          await api("/api/favorite", { method:"POST", body:{ showcaseId: s.showcaseId } });
+          favBtn.textContent = "已收藏";
+          favBtn.classList.add("on");
+        }catch(err){
+          showError(String(err.error || err.message || err));
+        }
+      };
+
+      actions.appendChild(favBtn);
+
+      meta.appendChild(title);
+      meta.appendChild(row);
+      meta.appendChild(actions);
+
+      card.appendChild(th);
+      card.appendChild(meta);
+      grid.appendChild(card);
+    });
+  }
+
+  (async ()=>{
+    try{
+      await loadMeFollowing();
+      refreshFollowBtn();
+      await loadProfile();
+      await loadWorks();
+    }catch(err){
+      showError(String(err.error || err.message || err));
+    }
+  })();
+})();
+</script>
+</body>
+</html>

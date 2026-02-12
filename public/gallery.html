@@ -72,12 +72,6 @@
     .voteBtn:hover{background:rgba(255,255,255,.10)}
     .voteBtn:disabled{opacity:.45;cursor:not-allowed}
     .voteCount{font-size:12px;opacity:.86;font-weight:800}
-.miniRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;align-items:center}
-.miniBtn{cursor:pointer;user-select:none;padding:9px 12px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);font-size:13px;transition:.15s;font-weight:900}
-.miniBtn:hover{background:rgba(255,255,255,.10)}
-.miniBtn.primary{background:rgba(255,255,255,.14)}
-.miniBtn:disabled{opacity:.45;cursor:not-allowed}
-.authorLink{cursor:pointer;text-decoration:underline; text-underline-offset:3px}
 
 
 /* Podium */
@@ -144,7 +138,39 @@
 .podItem.rank2{min-height:280px;opacity:.92}
 .podItem.rank3{min-height:270px;opacity:.90}
 
-  </style>
+  
+.author{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  font-size:13px;
+  opacity:.92;
+  padding:0 12px 10px 12px;
+  cursor:pointer;
+}
+.author .lv{
+  padding:2px 8px;
+  border:1px solid rgba(255,255,255,.18);
+  border-radius:999px;
+  background:rgba(0,0,0,.18);
+  font-weight:700;
+}
+.actions{
+  display:flex;
+  gap:8px;
+  padding:0 12px 12px 12px;
+}
+.btn.mini{
+  padding:8px 10px;
+  font-size:13px;
+  border-radius:10px;
+}
+.btn.mini.on{
+  opacity:.95;
+  border-color: rgba(255,255,255,.35);
+}
+
+</style>
 </head>
 
 <body>
@@ -180,7 +206,6 @@
         <option value="S1">S1</option>
       </select>
       <div class="btn" id="btnReload">重新整理</div>
-      <div class="btn" id="btnBackAll" style="display:none;">返回全部</div>
     </div>
 
     <div class="statusline" id="statusLine">讀取中</div>
@@ -207,21 +232,17 @@
   const DEFAULT_WORKER = "https://acf-api.dream-league-baseball.workers.dev";
   const WORKER_BASE = window.WORKER_BASE || localStorage.getItem("acf_worker_base") || DEFAULT_WORKER;
 
-  const h1El = document.querySelector("h1");
   const uid = localStorage.getItem("acf_uid") || "";
-  const viewUserId = new URLSearchParams(location.search).get("user") || "";
   const uidBadge = document.getElementById("uidBadge");
   const netBadge = document.getElementById("netBadge");
   const voteBadge = document.getElementById("voteBadge");
   const statusLine = document.getElementById("statusLine");
   const errorBox = document.getElementById("errorBox");
   const grid = document.getElementById("grid");
-  const btnBackAll = document.getElementById("btnBackAll");
 
   const chipNewest = document.getElementById("chipNewest");
   const chipTop = document.getElementById("chipTop");
   const seasonSel = document.getElementById("seasonSel");
-  if(viewUserId && btnBackAll){ btnBackAll.style.display=""; btnBackAll.onclick = ()=>{ location.href = "gallery.html"; }; }
 
   const modal = document.getElementById("modal");
   const modalClose = document.getElementById("modalClose");
@@ -232,6 +253,30 @@
   uidBadge.textContent = uid ? uid : "未登入";
 
   let userVote = 0;
+
+let followingSet = new Set();
+let favoriteSet = new Set();
+
+async function loadMeSocial(){
+  if(!uid) return;
+  try{
+    const acc = await api("/api/me/account");
+    if(acc && acc.account){
+      setVoteBadge(acc.account.userVote || 0);
+    }
+    const fav = await api("/api/me/favorites");
+    favoriteSet = new Set((fav.items || []).map(x=>String(x.showcaseId)));
+    const fol = await api("/api/me/following");
+    followingSet = new Set((fol.items || []).map(x=>String(x.targetUserId)));
+  }catch(_){}
+}
+
+function openUser(uid2){
+  const u = String(uid2||"").trim();
+  if(!u) return;
+  location.href = "/user.html?uid=" + encodeURIComponent(u);
+}
+
 
   function setVoteBadge(n){
     const v = Number(n || 0);
@@ -377,15 +422,6 @@
     }
   }
 
-  function escapeHtml(s){
-    return String(s||"")
-      .replace(/&/g,"&amp;")
-      .replace(/</g,"&lt;")
-      .replace(/>/g,"&gt;")
-      .replace(/\"/g,"&quot;")
-      .replace(/'/g,"&#039;");
-  }
-
   function fmtTime(ts){
     if (!ts) return "";
     try{
@@ -410,8 +446,9 @@
     });
   }
 
-  function openModalLayers(title, metaText, layers, showcase){
+  function openModalLayers(title, metaText, layers){
     modalTitle.textContent = title || "預覽";
+    modalMeta.textContent = metaText || "";
     bigwrap.innerHTML = "";
 
     layers.forEach((l) => {
@@ -425,99 +462,6 @@
       div.appendChild(img);
       bigwrap.appendChild(div);
     });
-
-    // Meta + actions
-    const s = showcase || {};
-    const authorName = (s.userName && String(s.userName).trim()) ? String(s.userName).trim() : ("@" + String(s.userId || ""));
-    const authorLevel = Number(s.userLevel || 1);
-    const votesNow = Number(getVoteCount(s) || 0);
-
-    const authorLine = document.createElement("div");
-    authorLine.innerHTML =
-      '<span class="authorLink" id="authorLink">' + escapeHtml(authorName) + "</span>" +
-      ' <span style="opacity:.75">Lv.' + String(authorLevel) + '</span>' +
-      ' <span style="opacity:.65"> · ' + escapeHtml(metaText || "") + '</span>' +
-      ' <span style="opacity:.75"> · 票數 ' + String(votesNow) + '</span>';
-
-    const row = document.createElement("div");
-    row.className = "miniRow";
-
-    const btnFollow = document.createElement("button");
-    btnFollow.className = "miniBtn";
-    btnFollow.type = "button";
-    btnFollow.textContent = (Number(s.isFollowing || 0) ? "已關注" : "關注");
-    btnFollow.disabled = (!uid) || String(uid) === String(s.userId || "");
-
-    const btnFav = document.createElement("button");
-    btnFav.className = "miniBtn";
-    btnFav.type = "button";
-    btnFav.textContent = (Number(s.isFavorited || 0) ? "已收藏" : "收藏");
-    btnFav.disabled = (!uid);
-
-    const btnAuthorWorks = document.createElement("button");
-    btnAuthorWorks.className = "miniBtn primary";
-    btnAuthorWorks.type = "button";
-    btnAuthorWorks.textContent = "看他所有作品";
-
-    btnFollow.onclick = async (ev) => {
-      ev.stopPropagation();
-      if(!uid) return;
-      const targetUserId = String(s.userId || "");
-      if(!targetUserId) return;
-      try{
-        if(Number(s.isFollowing || 0)){
-          await api("/api/unfollow", { targetUserId });
-          s.isFollowing = 0;
-          btnFollow.textContent = "關注";
-        }else{
-          await api("/api/follow", { targetUserId });
-          s.isFollowing = 1;
-          btnFollow.textContent = "已關注";
-        }
-      }catch(e){
-        showError("操作失敗，請稍後再試");
-      }
-    };
-
-    btnFav.onclick = async (ev) => {
-      ev.stopPropagation();
-      if(!uid) return;
-      const showcaseId = String(s.showcaseId || s.id || "");
-      if(!showcaseId) return;
-      try{
-        if(Number(s.isFavorited || 0)){
-          await api("/api/unfavorite", { showcaseId });
-          s.isFavorited = 0;
-          btnFav.textContent = "收藏";
-        }else{
-          await api("/api/favorite", { showcaseId });
-          s.isFavorited = 1;
-          btnFav.textContent = "已收藏";
-        }
-      }catch(e){
-        showError("操作失敗，請稍後再試");
-      }
-    };
-
-    btnAuthorWorks.onclick = () => {
-      const u = String(s.userId || "");
-      if(!u) return;
-      location.href = "gallery.html?user=" + encodeURIComponent(u);
-    };
-
-    row.appendChild(btnFollow);
-    row.appendChild(btnFav);
-    row.appendChild(btnAuthorWorks);
-
-    modalMeta.innerHTML = "";
-    modalMeta.appendChild(authorLine);
-    modalMeta.appendChild(row);
-
-    // link click
-    setTimeout(()=>{
-      const el = document.getElementById("authorLink");
-      if(el) el.onclick = () => btnAuthorWorks.click();
-    },0);
 
     modal.classList.add("show");
   }
@@ -615,7 +559,7 @@ function buildPodItem(rank, s){
       { url: s.bodyUrl, z: 40 },
       { url: s.addon1Url, z: 50 },
     ];
-    openModalLayers(title, fmtTime(s.createdAt) + (s.seasonId ? (" · " + s.seasonId) : ""), layersBig, s);
+    openModalLayers(title, "票數 " + String(getVoteCount(s)) + " · " + fmtTime(s.createdAt), layersBig);
   };
 
   return item;
@@ -706,18 +650,90 @@ async function loadPodiumFromBackendOrLocal(items){
       const pill = document.createElement("div");
       pill.className = "pill";
       const votes = Number(s.votes || 0);
-      pill.textContent = "票數 " + String(votes);
+      const favs = Number(s.favorites || 0);
+      pill.textContent = "票數 " + String(votes) + " · 收藏 " + String(favs);
+
+const author = document.createElement("div");
+author.className = "author";
+const name = (s.authorName && String(s.authorName).trim()) ? String(s.authorName).trim() : String(s.userId || "").slice(0,8);
+const lv = Number(s.authorLevel || 1);
+author.innerHTML = `<span class="lv">Lv.${lv}</span><span class="nm"></span>`;
+author.querySelector(".nm").textContent = name;
+author.onclick = (e) => { e.stopPropagation(); openUser(s.userId); };
+
+const actions = document.createElement("div");
+actions.className = "actions";
+
+const favBtn = document.createElement("button");
+favBtn.className = "btn mini";
+const isFav = favoriteSet.has(String(s.showcaseId));
+favBtn.textContent = isFav ? "已收藏" : "收藏";
+if(isFav) favBtn.classList.add("on");
+favBtn.onclick = async (e) => {
+  e.stopPropagation();
+  if(!uid) return showError("請先登入");
+  try{
+    if(favoriteSet.has(String(s.showcaseId))){
+      await api("/api/favorite", { method:"DELETE", body:{ showcaseId: s.showcaseId } });
+      favoriteSet.delete(String(s.showcaseId));
+      favBtn.textContent = "收藏";
+      favBtn.classList.remove("on");
+    }else{
+      await api("/api/favorite", { method:"POST", body:{ showcaseId: s.showcaseId } });
+      favoriteSet.add(String(s.showcaseId));
+      favBtn.textContent = "已收藏";
+      favBtn.classList.add("on");
+    }
+  }catch(err){
+    showError(String(err?.error || err?.message || err));
+  }
+};
+
+const followBtn = document.createElement("button");
+followBtn.className = "btn mini";
+const targetId = String(s.userId || "");
+if(uid && targetId === uid){
+  followBtn.textContent = "自己";
+  followBtn.disabled = true;
+  followBtn.style.opacity = ".6";
+}else{
+  const isFollow = followingSet.has(targetId);
+  followBtn.textContent = isFollow ? "已關注" : "關注";
+  if(isFollow) followBtn.classList.add("on");
+  followBtn.onclick = async (e) => {
+    e.stopPropagation();
+    if(!uid) return showError("請先登入");
+    try{
+      if(followingSet.has(targetId)){
+        await api("/api/follow", { method:"DELETE", body:{ targetUserId: targetId } });
+        followingSet.delete(targetId);
+        followBtn.textContent = "關注";
+        followBtn.classList.remove("on");
+      }else{
+        await api("/api/follow", { method:"POST", body:{ targetUserId: targetId } });
+        followingSet.add(targetId);
+        followBtn.textContent = "已關注";
+        followBtn.classList.add("on");
+      }
+    }catch(err){
+      showError(String(err?.error || err?.message || err));
+    }
+  };
+}
+
+actions.appendChild(favBtn);
+actions.appendChild(followBtn);
 
       row.appendChild(t);
       row.appendChild(pill);
 
       const sline = document.createElement("div");
       sline.className = "s";
-      const nm = (s.userName && String(s.userName).trim()) ? String(s.userName).trim() : ("@" + String(s.userId || ""));
-      const lv = Number(s.userLevel || 1);
-      sline.textContent = nm + " Lv." + String(lv) + " · " + fmtTime(s.createdAt) + (s.seasonId ? (" · " + s.seasonId) : "");
+      sline.textContent = "@" + String(s.userId || "") + " · " + fmtTime(s.createdAt) + (s.seasonId ? (" · " + s.seasonId) : "");
 
       meta.appendChild(row);
+      meta.appendChild(author);
+      meta.appendChild(actions);
       meta.appendChild(sline);
 
       const voteBar = document.createElement("div");
@@ -755,7 +771,7 @@ async function loadPodiumFromBackendOrLocal(items){
           { url: s.bodyUrl, z: 40 },
           { url: s.addon1Url, z: 50 },
         ];
-        openModalLayers(title, fmtTime(s.createdAt) + (s.seasonId ? (" · " + s.seasonId) : ""), layersBig, s);
+        openModalLayers(title, "★ " + avg.toFixed(2) + " · votes " + votes + " · " + fmtTime(s.createdAt), layersBig);
       };
 
       grid.appendChild(card);
@@ -763,14 +779,13 @@ async function loadPodiumFromBackendOrLocal(items){
   }
 
   async function load(){
+    await loadMeSocial();
     grid.innerHTML = "";
     clearError();
     statusLine.textContent = "讀取中";
 
     try{
-      const res = viewUserId ? await api("/api/user/showcases?userId=" + encodeURIComponent(viewUserId)) : await api("/api/gallery");
-      if(h1El){ h1El.textContent = viewUserId ? "玩家作品" : "作品展示"; }
-
+      const res = await api("/api/gallery");
       setNet(true);
       await loadMyAccount();
 
@@ -782,14 +797,13 @@ async function loadPodiumFromBackendOrLocal(items){
       }
 
 
-       if(!viewUserId){
-         await loadPodiumFromBackendOrLocal(items);
-       }else{
-         if(podiumWrap) podiumWrap.style.display = "none";
-       }
+       await loadPodiumFromBackendOrLocal(items);
 
       if(chipTop.classList.contains("active")){
         items.sort((a,b)=>{
+          const av = Number(a.avgScore || 0);
+          const bv = Number(b.avgScore || 0);
+          if(bv !== av) return bv - av;
           const ac = Number(a.votes || 0);
           const bc = Number(b.votes || 0);
           if(bc !== ac) return bc - ac;
