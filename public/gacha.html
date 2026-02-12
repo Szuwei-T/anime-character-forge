@@ -237,18 +237,41 @@
       max-height: 70vh;
     }
 
+/* loadCover 顯示時，整個 30 張卡區域只剩輪廓 */
+.gacha-stage.loading .grid32{
+  filter: blur(18px) saturate(0.55) brightness(0.55);
+  transform: scale(1.02);
+}
+.gacha-stage.loading .cell .label{
+  opacity:0;
+}
+
     .loadCover{
-      position:absolute;
-      inset:0;
-      display:none;
-      align-items:center;
-      justify-content:center;
-      flex-direction:column;
-      gap: 14px;
-      background: rgba(10,12,18,0.72);
-      backdrop-filter: blur(6px);
-      z-index: 5;
-    }
+  position:absolute;
+  inset:0;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  gap: 14px;
+  /* 深色遮蓋 + 強模糊，讓背後只剩輪廓 */
+  background: rgba(0,0,0,0.86);
+  backdrop-filter: blur(18px);
+  z-index: 5;
+}
+.loadCover::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(circle at 50% 40%, rgba(255,255,255,0.06), transparent 55%),
+    linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.70));
+  pointer-events:none;
+}
+.loadCover .spinner, .loadCover .txt{
+  position:relative;
+  z-index:1;
+}
     .loadCover.show{ display:flex; }
     .loadCover .txt{
       font-weight: 900;
@@ -450,7 +473,26 @@
         inset 0 0 0 1px rgba(255,255,255,0.10);
       border-color: rgba(255,214,102,0.55);
     }
-    .footer{
+    .statusBar{
+  display:flex;
+  justify-content:center;
+  margin-top: 14px;
+  min-height: 28px;
+  text-align:center;
+}
+.statusBar .statusText{
+  font-weight: 950;
+  letter-spacing: 0.8px;
+  opacity: 0.92;
+  font-size: 16px;
+}
+.statusBar .statusText .muted{
+  opacity: 0.85;
+  font-weight: 900;
+  font-size: 15px;
+}
+
+.footer{
       display:flex;
       justify-content:center;
       margin-top: 16px;
@@ -576,12 +618,17 @@
 
   <div class="overlay" id="overlay">
     <div class="panel">
-      <h3>抽卡中 <span class="sub" id="rollSub">連線中</span></h3>
+      <h3>抽卡 <span class="sub">Gacha</span></h3>
       <div class="gacha-stage">
         <div class="grid32" id="grid32"></div>
         <div class="framesLayer" id="framesLayer"></div>
         <div class="loadCover" id="loadCover"><div class="spinner"></div><div class="txt" id="loadTxt">載入中</div></div>
-      </div>
+<div class="statusBar">
+  <div class="statusText">
+    <div id="rollingText">抽卡中</div>
+    <div id="rollSub" class="muted" style="display:none;">10連抽完成</div>
+  </div>
+</div>
       <div class="footer">
         <button class="confirm" id="confirmBtn">確認</button>
       </div>
@@ -677,14 +724,19 @@ async function loadFeaturedVideo(){
     const loadCover = document.getElementById("loadCover");
     const loadTxt = document.getElementById("loadTxt");
     const rollSub = document.getElementById("rollSub");
+    const rollingText = document.getElementById("rollingText");
     const confirmBtn = document.getElementById("confirmBtn");
 
     function showLoad(msg){
       if(loadTxt) loadTxt.textContent = msg || "載入中";
       if(loadCover) loadCover.classList.add("show");
+      const stage = loadCover && loadCover.closest(".gacha-stage");
+      if(stage) stage.classList.add("loading");
     }
     function hideLoad(){
       if(loadCover) loadCover.classList.remove("show");
+      const stage = loadCover && loadCover.closest(".gacha-stage");
+      if(stage) stage.classList.remove("loading");
     }
     function preloadImages(urls, timeoutMs=8000){
       const uniq = Array.from(new Set((urls||[]).filter(Boolean)));
@@ -729,6 +781,8 @@ async function loadFeaturedVideo(){
       // reset overlay state
       framesLayer.innerHTML = "";
       grid32El.querySelectorAll(".cell").forEach(c=>c.classList.remove("dim","win","win2","red"));
+      if(rollingText) rollingText.style.display = "";
+      if(rollSub){ rollSub.style.display = "none"; rollSub.textContent = ""; }
     }
 
     confirmBtn.addEventListener("click", () => hideOverlay());
@@ -1074,27 +1128,36 @@ function renderGridDecoys(list){
         showLoad("載入中");
 
         // 1) Get the real awarded cards first (backend decides)
-        rollSub.textContent = "抽卡中";
+        if(rollingText) rollingText.style.display = "";
+        if(rollSub) rollSub.style.display = "none";
+        if(rollSub) rollSub.textContent = "";
+        
         const pulled = await onlineGacha(opts);
         if(!pulled || pulled.length === 0) throw new Error("empty");
 
         // 2) Build the 30-card grid BEFORE animation:
         //    30 cards include the 1/10 real rewards, plus decoys (from /api/assets) for visuals only
-        rollSub.textContent = "準備動畫";
+        // still showing rollingText below cards while preparing
+
         const isTen = Number(opts.count||1) === 10;
         const pack = await buildGridWithPulled(pulled, opts);
 
         // 3) Run animation but DO NOT change grid content; only land frames onto the pre-decided winners
-        rollSub.textContent = "抽卡中";
+        if(rollingText) rollingText.style.display = "";
+        if(rollSub) rollSub.style.display = "none";
+        if(rollSub) rollSub.textContent = "";
+        
         await animateJumpGridToSlots(pack.winnerSlots, pack.winners, isTen);
 
-        rollSub.textContent = isTen ? "10連抽完成" : "抽卡完成";
+        if(rollingText) rollingText.style.display = "none";
+        if(rollSub){ rollSub.style.display = ""; rollSub.textContent = isTen ? "10連抽完成" : "抽卡完成"; }
         confirmBtn.classList.add("show");
         animating = false;
       }catch(e){
         console.error(e);
         hideLoad();
-        rollSub.textContent = "抽卡失敗";
+        if(rollingText) rollingText.style.display = "none";
+        if(rollSub){ rollSub.style.display = ""; rollSub.textContent = "抽卡失敗"; }
         toast("抽卡失敗");
         confirmBtn.classList.add("show");
         animating = false;
