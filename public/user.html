@@ -22,15 +22,25 @@
     .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px}
     @media(max-width:980px){.grid{grid-template-columns:repeat(3,1fr)}}
     @media(max-width:720px){.grid{grid-template-columns:repeat(2,1fr)}}
-    .thumb{aspect-ratio:1/1;background:rgba(0,0,0,.25);position:relative}
-    .layer{position:absolute;inset:0;background-position:center;background-repeat:no-repeat;background-size:cover}
+    .thumb{aspect-ratio:1365/2048;background:rgba(0,0,0,.25);position:relative}
+    .layer{position:absolute;inset:0;background-position:center;background-repeat:no-repeat;background-size:contain}
     .meta{padding:10px 10px 12px 10px}
     .title{font-weight:800}
     .row{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:6px}
     .pill{font-size:13px;opacity:.9}
     .actions{display:flex;gap:8px;margin-top:10px}
     .error{display:none;margin-top:10px;padding:10px 12px;border:1px solid rgba(255,80,80,.35);background:rgba(255,80,80,.10);border-radius:12px}
-  </style>
+  
+.modal{position:fixed;inset:0;z-index:9999;display:none}
+.modalBack{position:absolute;inset:0;background:rgba(0,0,0,.68);backdrop-filter:blur(10px)}
+.modalCard{position:relative;max-width:980px;margin:24px auto;padding:14px;border-radius:18px;border:1px solid rgba(255,255,255,.14);background:rgba(15,20,30,.92)}
+.modalTop{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.modalTitle{font-weight:900;font-size:16px}
+.modalBody{display:flex;justify-content:center}
+.preview{width:min(520px,92vw);aspect-ratio:1365/2048;position:relative;border-radius:14px;overflow:hidden;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.10)}
+.preview .layer{background-size:contain}
+
+</style>
 </head>
 <body>
   <div class="wrap">
@@ -63,6 +73,20 @@
 
     <div class="grid" id="grid"></div>
   </div>
+
+<div class="modal" id="modal" style="display:none">
+  <div class="modalBack" id="modalBack"></div>
+  <div class="modalCard">
+    <div class="modalTop">
+      <div class="modalTitle" id="modalTitle">作品預覽</div>
+      <button class="btn" id="modalClose">關閉</button>
+    </div>
+    <div class="modalBody">
+      <div class="preview" id="preview"></div>
+    </div>
+  </div>
+</div>
+
 
 <script>
 (function(){
@@ -112,16 +136,39 @@
     });
   }
 
-  function stackThumb(node, layers){
-    node.innerHTML="";
-    layers.forEach((x)=>{
-      if(!x.url) return;
-      const d=document.createElement("div");
-      d.className="layer";
-      d.style.zIndex = String(x.z||1);
-      d.style.backgroundImage = `url(${x.url})`;
-      node.appendChild(d);
-    });
+
+const modal = document.getElementById("modal");
+const modalBack = document.getElementById("modalBack");
+const modalClose = document.getElementById("modalClose");
+const modalTitle = document.getElementById("modalTitle");
+const preview = document.getElementById("preview");
+
+function stackInto(node, layers){
+  node.innerHTML="";
+  layers.forEach((x)=>{
+    if(!x.url) return;
+    const d=document.createElement("div");
+    d.className="layer";
+    d.style.zIndex = String(x.z||1);
+    d.style.backgroundImage = `url(${x.url})`;
+    node.appendChild(d);
+  });
+}
+
+function openModal(title, layers){
+  modalTitle.textContent = title || "作品預覽";
+  stackInto(preview, layers);
+  modal.style.display = "block";
+}
+function closeModal(){
+  modal.style.display = "none";
+  preview.innerHTML = "";
+}
+if(modalBack) modalBack.onclick = closeModal;
+if(modalClose) modalClose.onclick = closeModal;
+
+    function stackThumb(node, layers){
+    stackInto(node, layers);
   }
 
   let followingSet = new Set();
@@ -256,6 +303,17 @@
       meta.appendChild(title);
       meta.appendChild(row);
       meta.appendChild(actions);
+
+      card.onclick = ()=>{
+        const layers2 = [
+          { url: s.bgUrl, z: 10 },
+          { url: s.addon2Url, z: 20 },
+          { url: s.headUrl, z: 30 },
+          { url: s.bodyUrl, z: 40 },
+          { url: s.addon1Url, z: 50 },
+        ];
+        openModal((s.title && String(s.title).trim()) ? String(s.title).trim() : "作品預覽", layers2);
+      };
 
       card.appendChild(th);
       card.appendChild(meta);
