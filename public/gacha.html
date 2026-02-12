@@ -839,9 +839,41 @@
       transition: 220ms ease;
     }
 
+  
+    /* pack hit flash */
+    .packFlash{
+      position:fixed;
+      inset:0;
+      z-index: 9998;
+      pointer-events:none;
+      opacity:0;
+      background: rgba(255,255,255,0.0);
+      mix-blend-mode: screen;
+    }
+    .packFlash.play{
+      animation: packFlash 420ms ease-out 1;
+    }
+    @keyframes packFlash{
+      0%{ opacity:0; }
+      12%{ opacity:0.85; }
+      100%{ opacity:0; }
+    }
+    .packShake{
+      animation: packShake 420ms ease-in-out 1;
+    }
+    @keyframes packShake{
+      0%{ transform: translate(0,0); }
+      15%{ transform: translate(-3px, 2px); }
+      30%{ transform: translate(3px, -2px); }
+      45%{ transform: translate(-2px, -1px); }
+      60%{ transform: translate(2px, 1px); }
+      100%{ transform: translate(0,0); }
+    }
+
   </style>
 </head>
 <body>
+  <div class="packFlash" id="packFlash"></div>
   <div class="wrap">
     <h1>本期 Featured 角色</h1>
 
@@ -1268,7 +1300,33 @@ async function onlineGacha(opts = {}) {
       playTone(220, 0.06, "sine", 0.03, 0.00);
     }
 
-    function assetFullUrl(a){
+    
+    function packHitFx(r){
+      const el = document.getElementById("packFlash");
+      if(!el) return;
+      const rr = Math.max(1, Math.min(5, Number(r||1)));
+      // color by rarity
+      let bg = "rgba(255,255,255,0.85)";
+      if(rr === 1) bg = "rgba(148,163,184,0.55)";
+      if(rr === 2) bg = "rgba(34,197,94,0.55)";
+      if(rr === 3) bg = "rgba(59,130,246,0.60)";
+      if(rr === 4) bg = "rgba(168,85,247,0.65)";
+      if(rr === 5) bg = "rgba(245,158,11,0.70)";
+      el.style.background = bg;
+      el.classList.remove("play");
+      void el.offsetWidth;
+      el.classList.add("play");
+
+      // shake the panel a bit on SSR/UR
+      const p = document.querySelector(".panel");
+      if(p && rr >= 4){
+        p.classList.remove("packShake");
+        void p.offsetWidth;
+        p.classList.add("packShake");
+      }
+    }
+
+function assetFullUrl(a){
       if(!a) return "/assets/placeholder.png";
       if(a.imageUrl) return String(a.imageUrl);
       const id = a.id || a.assetId || "";
@@ -1338,18 +1396,28 @@ async function onlineGacha(opts = {}) {
         }
       }
 
+      // Show big card only for single pull
+      const cineCardWrap = cineImg ? cineImg.closest(".cine-card") : null;
+      if(cineCardWrap){
+        cineCardWrap.style.display = isTen ? "none" : "";
+      }
+
       // Text
       cineRarity.textContent = rName;
       const id = String(focus?.assetId || focus?.id || "").trim();
       cineSub.textContent = isTen ? (id ? `10連抽 最稀有：${id}` : "10連抽 結果") : (id ? `恭喜獲得 ${id}` : "恭喜獲得");
       if(cineCta) cineCta.textContent = "點擊確認繼續";
 
-      // Image: show thumb immediately, then try full
+      // Image: final display
+      // head/body: always use thumb (avoid heavy full image)
+      // others: show thumb first, then upgrade to full when loaded
       const thumbSrc = assetThumb(focus);
       cineImg.src = thumbSrc;
 
-      const fullSrc = assetFullUrl(focus);
-      if(fullSrc && fullSrc !== thumbSrc){
+      const tFocus = String(focus?.type || "");
+      const allowFull = !(tFocus === "head" || tFocus === "body");
+      const fullSrc = allowFull ? assetFullUrl(focus) : "";
+      if(allowFull && fullSrc && fullSrc !== thumbSrc){
         const test = new Image();
         test.onload = ()=>{ cineImg.src = fullSrc; };
         test.onerror = ()=>{};
@@ -1520,33 +1588,45 @@ function renderGridDecoys(list){
         if(s > steps*0.55) interval = Math.min(260, Math.round(interval*1.10 + 3));
       }
 
-      // Final: frames land on the already-decided winner slots
+      // Final: frames land on the already-decided winner slots (one by one)
       await sleep(220);
       rects = getGridCellRects();
 
       const finalSlots = Array.isArray(winnerSlots) ? winnerSlots.slice(0, framesCount) : [];
       while(finalSlots.length < framesCount) finalSlots.push(0);
 
-      for(let i=0;i<framesCount;i++){
-        placeFrame(frames[i], rects[finalSlots[i]]);
-        frames[i].classList.remove("jump");
-        void frames[i].offsetWidth;
-        frames[i].classList.add("jump");
-      }
-
       const cells = Array.from(grid32El.querySelectorAll(".cell"));
       cells.forEach(c=>c.classList.remove("win","win2","red","dim"));
 
-      // Highlight winners, dim others (no image swapping)
       const winSet = new Set(finalSlots);
-      finalSlots.forEach((slot, i)=>{
-        const cell = cells[slot];
-        if(!cell) return;
-        cell.classList.add("win");
-        if(isTen && i === framesCount - 1) cell.classList.add("red");
-        setTimeout(()=>cell.classList.add("win2"), 30);
-      });
 
+      // For 10-pull: stop one frame at a time, and trigger FX by that card rarity
+      for(let i=0;i<framesCount;i++){
+        const slot = finalSlots[i];
+        placeFrame(frames[i], rects[slot]);
+        frames[i].classList.remove("jump");
+        void frames[i].offsetWidth;
+        frames[i].classList.add("jump");
+
+        // mark the landed cell immediately
+        const cell = cells[slot];
+        if(cell){
+          cell.classList.add("win");
+          if(isTen && i === framesCount - 1) cell.classList.add("red");
+          setTimeout(()=>cell.classList.add("win2"), 30);
+        }
+
+        // rarity FX for this landed winner (uses backend-decided winners order)
+        const w = Array.isArray(winners) ? winners[i] : null;
+        const rr = Math.max(1, Math.min(5, Number(w?.rarity || 1)));
+        sfxByRarity(rr);
+        packHitFx(rr);
+
+        // small pause so it feels like "一個一個停下"
+        await sleep(isTen ? 260 : 0);
+      }
+
+      // Dim non-winners after all frames land
       cells.forEach((c, idx)=>{
         if(winSet.has(idx)) c.classList.remove("dim");
         else c.classList.add("dim");
@@ -1660,10 +1740,10 @@ function renderGridDecoys(list){
         
         await animateJumpGridToSlots(pack.winnerSlots, pack.winners, isTen);
 
-        // V2: cinematic reveal (focus on last winner in 10-pull, otherwise the only winner)
+        // V2: cinematic reveal (single = big card, ten = 10 thumbnails)
         try{
           const winners = Array.isArray(pack.winners) ? pack.winners : [];
-          if(winners.length) await playCinematicForPack(winners, isTen);
+          await playCinematicForPack(winners, isTen);
         }catch(_){ /* ignore cinematic errors */ }
 
         if(rollingText) rollingText.style.display = "none";
