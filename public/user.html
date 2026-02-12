@@ -40,8 +40,6 @@
 .preview{width:min(520px,92vw);aspect-ratio:1365/2048;position:relative;border-radius:14px;overflow:hidden;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.10)}
 .preview .layer{background-size:contain}
 
-
-    .avatar img{width:100%;height:100%;object-fit:cover;display:block}
 </style>
 </head>
 <body>
@@ -66,9 +64,6 @@
             <div class="badge" id="lv">Lv.1</div>
             <div class="badge" id="followers">粉絲 0</div>
             <div class="badge" id="following">關注 0</div>
-            <div class="badge" id="works">成品 0</div>
-            <div class="badge" id="likes">Like 0</div>
-            <div class="badge" id="unlocks">解鎖 0</div>
           </div>
         </div>
       </div>
@@ -190,31 +185,57 @@ if(modalClose) modalClose.onclick = closeModal;
     if(!uid) return;
     const p = await api("/api/user/profile?uid=" + encodeURIComponent(uid));
     const prof = p.profile || {};
-    const stats = p.stats || {};
     const nm = (prof.userName && String(prof.userName).trim()) ? String(prof.userName).trim() : String(uid).slice(0,8);
     nameEl.textContent = nm;
-
-    // avatar
-    avatar.innerHTML = "";
-    if(p.avatarUrl){
-      const img = document.createElement("img");
-      img.src = p.avatarUrl;
-      img.alt = "avatar";
-      avatar.appendChild(img);
-    }else{
-      avatar.textContent = (nm.slice(0,1) || "?").toUpperCase();
-    }
-
+    avatar.textContent = nm.slice(0,1).toUpperCase();
     lv.textContent = "Lv." + String(Number(prof.level||1));
-    followers.textContent = "粉絲 " + String(Number(p.followers||stats.followers||0));
-    following.textContent = "關注 " + String(Number(p.following||stats.following||0));
-    q("#works").textContent = "成品 " + String(Number(stats.worksCount||0));
-    q("#likes").textContent = "Like " + String(Number(stats.likesReceived||0));
-    q("#unlocks").textContent = "解鎖 " + String(Number(stats.collectionsUnlocked||0));
-
-    sub.textContent = (prof.userRegion && String(prof.userRegion).trim()) ? ("地區 " + String(prof.userRegion).trim()) : "";
+    followers.textContent = "粉絲 " + String(Number(p.followers||0));
+    following.textContent = "關注 " + String(Number(p.following||0));
+    sub.textContent = (prof.userRegion && String(prof.userRegion).trim()) ? String(prof.userRegion).trim() : "";
   }
-async function loadWorks(){
+
+  function refreshFollowBtn(){
+    if(!me){
+      btnFollow.textContent = "未登入";
+      btnFollow.disabled = true;
+      return;
+    }
+    if(uid === me){
+      btnFollow.textContent = "自己";
+      btnFollow.disabled = true;
+      return;
+    }
+    const isFollow = followingSet.has(uid);
+    btnFollow.textContent = isFollow ? "已關注" : "關注";
+    btnFollow.classList.toggle("on", isFollow);
+    btnFollow.disabled = false;
+  }
+
+  // Expose for any shared/master UI scripts that may call it.
+  // Keeps compatibility with pages that expect a global function.
+  window.refreshFollowBtn = refreshFollowBtn;
+
+  async function toggleFollow(){
+    if(!me) return showError("請先登入");
+    clearError();
+    try{
+      if(followingSet.has(uid)){
+        await api("/api/follow", { method:"DELETE", body:{ targetUserId: uid } });
+        followingSet.delete(uid);
+      }else{
+        await api("/api/follow", { method:"POST", body:{ targetUserId: uid } });
+        followingSet.add(uid);
+      }
+      refreshFollowBtn();
+      await loadProfile();
+    }catch(err){
+      showError(String(err.error || err.message || err));
+    }
+  }
+
+  btnFollow.onclick = toggleFollow;
+
+  async function loadWorks(){
     const r = await api("/api/user/showcases?uid=" + encodeURIComponent(uid));
     const items = r.items || [];
     grid.innerHTML = "";
