@@ -593,9 +593,8 @@ async function loadPodiumFromBackendOrLocal(items){
 
       const pill = document.createElement("div");
       pill.className = "pill";
-      const avg = Number(s.avgScore || 0);
       const votes = Number(s.votes || 0);
-      pill.textContent = "★ " + avg.toFixed(2) + " · " + votes;
+      pill.textContent = "票數 " + String(votes);
 
       row.appendChild(t);
       row.appendChild(pill);
@@ -642,7 +641,7 @@ async function loadPodiumFromBackendOrLocal(items){
           { url: s.bodyUrl, z: 40 },
           { url: s.addon1Url, z: 50 },
         ];
-        openModalLayers(title, "★ " + avg.toFixed(2) + " · votes " + votes + " · " + fmtTime(s.createdAt), layersBig);
+        openModalLayers(title, "票數 " + String(votes) + " · " + fmtTime(s.createdAt), layersBig);
       };
 
       grid.appendChild(card);
@@ -671,9 +670,6 @@ async function loadPodiumFromBackendOrLocal(items){
 
       if(chipTop.classList.contains("active")){
         items.sort((a,b)=>{
-          const av = Number(a.avgScore || 0);
-          const bv = Number(b.avgScore || 0);
-          if(bv !== av) return bv - av;
           const ac = Number(a.votes || 0);
           const bc = Number(b.votes || 0);
           if(bc !== ac) return bc - ac;
