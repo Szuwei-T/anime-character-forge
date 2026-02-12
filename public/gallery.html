@@ -197,10 +197,8 @@
 
 <script>
 (function(){
-  const DEFAULT_WORKER = ""; // default: same-origin (Pages -> /api/*)
-  let WORKER_BASE = window.WORKER_BASE || localStorage.getItem("acf_worker_base") || DEFAULT_WORKER;
-  // If a previous build stored an old worker base, ignore it to avoid 404.
-  if(String(WORKER_BASE).includes("dream-league-baseball")) WORKER_BASE = DEFAULT_WORKER;
+  const DEFAULT_WORKER = "https://acf-api.dream-league-baseball.workers.dev";
+  const WORKER_BASE = window.WORKER_BASE || localStorage.getItem("acf_worker_base") || DEFAULT_WORKER;
 
   const uid = localStorage.getItem("acf_uid") || "";
   const uidBadge = document.getElementById("uidBadge");
@@ -258,16 +256,7 @@
     const fetchOpts = { method, headers };
     if(opts.body !== undefined) fetchOpts.body = JSON.stringify(opts.body);
 
-    // WORKER_BASE:
-    // - ""  => same-origin (recommended): fetch("/api/...")
-    // - "https://xxxx.workers.dev" => absolute worker base
-    // - "/something" => relative base
-    const baseRaw = String(WORKER_BASE || "");
-    const base = baseRaw.endsWith("/") ? baseRaw.slice(0, -1) : baseRaw;
-    const p = String(path || "");
-    const url = base ? (base + (p.startsWith("/") ? p : ("/" + p))) : (p.startsWith("/") ? p : ("/" + p));
-
-    return fetch(url, fetchOpts).then(async (r) => {
+    return fetch(WORKER_BASE + path, fetchOpts).then(async (r) => {
       const t = await r.text();
       let j = {};
       try { j = t ? JSON.parse(t) : {}; } catch { j = { ok:false, error:"bad_json", raw:t }; }
@@ -285,7 +274,7 @@
       setVoteBadge(0);
       return;
     }
-    const endpoints = ["/api/me/account"];
+    const endpoints = ["/api/me", "/api/account", "/api/user"];
     for(const ep of endpoints){
       try{
         const r = await api(ep);
@@ -304,7 +293,7 @@
 
   function getVoteCount(s){
     const v =
-      s.votes ?? s.voteCount ?? s.vote_count ??
+      s.voteCount ?? s.vote_count ??
       s.voteTotal ?? s.vote_total ??
       s.upvotes ?? s.upVotes ??
       s.ticketVotes ?? s.ticket_votes;
@@ -548,21 +537,20 @@ function renderPodiumFromItems(items){
   if(m3) podiumEl.appendChild(m3);
 }
 
-async function loadPodium(items){
-  // Podium is computed by votes locally from current gallery items.
-  // If items not provided (or empty), refresh from backend.
-  if(!Array.isArray(items) || !items.length){
-    try{
-      const season = String(seasonSel.value || "").trim();
-      const qs = season ? ("?seasonId=" + encodeURIComponent(season)) : "";
-      const r = await api("/api/gallery" + qs);
-      if(r && Array.isArray(r.items)){
-        renderPodiumFromItems(r.items);
-        return;
-      }
-    }catch(e){}
+async function loadPodiumFromBackendOrLocal(items){
+  const season = String(seasonSel.value || "").trim();
+  // Try backend /api/podium first (if exists), otherwise fallback to local sort
+  try{
+    const qs = season ? ("?seasonId=" + encodeURIComponent(season)) : "";
+    const r = await api("/api/podium" + qs);
+    if(r && Array.isArray(r.items)){
+      renderPodiumFromItems(r.items);
+      return;
+    }
+  }catch(e){
+    // ignore and fallback
   }
-  renderPodiumFromItems(items || []);
+  renderPodiumFromItems(items);
 }
 
 
@@ -679,7 +667,7 @@ async function loadPodium(items){
       }
 
 
-       await loadPodium(items);
+       await loadPodiumFromBackendOrLocal(items);
 
       if(chipTop.classList.contains("active")){
         items.sort((a,b)=>{

@@ -631,7 +631,7 @@
       <div class="statusBar">
         <div class="statusText">
           <div id="rollingText">抽卡中</div>
-          <div id="rollSub" class="muted" style="display:none;">10連抽完成</div>
+          <div id="rollSub" class="muted" style="display:none;"></div>
         </div>
       </div>
 
@@ -1156,7 +1156,7 @@ function renderGridDecoys(list){
         await animateJumpGridToSlots(pack.winnerSlots, pack.winners, isTen);
 
         if(rollingText) rollingText.style.display = "none";
-        if(rollSub){ rollSub.style.display = ""; rollSub.textContent = isTen ? "10連抽完成" : "抽卡完成"; }
+        if(rollSub){ rollSub.style.display = ""; rollSub.textContent = isTen ? "" : "抽卡完成"; }
         confirmBtn.classList.add("show");
         animating = false;
       }catch(e){
