@@ -38,15 +38,15 @@
       outline:none;
     }
 
-    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
-    .card{border-radius:18px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10);overflow:hidden;cursor:pointer;transition:.15s;position:relative}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
+    .card{border-radius:18px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10);overflow:hidden;cursor:pointer;transition:.15s;position:relative;display:flex;gap:12px;align-items:stretch;padding:12px}
     .card:hover{background:rgba(255,255,255,.07)}
-    .thumb{aspect-ratio:3/4;background:rgba(0,0,0,.15);position:relative}
+    .thumb{width:96px;flex:0 0 auto;aspect-ratio:3/4;background:rgba(0,0,0,.15);position:relative;border-radius:14px;overflow:hidden}
     .thumb .layer{position:absolute;inset:0}
     .thumb .layer img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block}
 
-    .meta{padding:10px 12px}
-    .meta .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .meta{padding:0;flex:1;display:flex;flex-direction:column;gap:8px;min-width:0}
+    .meta .row{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0}
     .meta .t{font-size:12px;opacity:.85;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .meta .s{font-size:12px;opacity:.70;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .pill{
@@ -67,11 +67,16 @@
     .footnote{margin-top:10px;font-size:12px;opacity:.75}
     .empty{opacity:.75;padding:14px 0}
   
-    .voteBar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px}
-    .voteBtn{cursor:pointer;user-select:none;padding:9px 12px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);font-size:13px;transition:.15s;font-weight:800}
-    .voteBtn:hover{background:rgba(255,255,255,.10)}
-    .voteBtn:disabled{opacity:.45;cursor:not-allowed}
-    .voteCount{font-size:12px;opacity:.86;font-weight:800}
+    .iconRow{display:flex;align-items:center;gap:10px;justify-content:flex-start;flex-wrap:wrap}
+    .iconBtn{cursor:pointer;user-select:none;width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);font-size:16px;display:inline-flex;align-items:center;justify-content:center;transition:.15s}
+    .iconBtn:hover{background:rgba(255,255,255,.10)}
+    .iconBtn:disabled{opacity:.45;cursor:not-allowed}
+    .iconBtn.on{border-color:rgba(255,255,255,.35);opacity:.95}
+    .iconStat{display:flex;align-items:center;gap:8px;opacity:.9;font-size:12px;font-weight:900;white-space:nowrap}
+
+    /* Recommended section bigger preview */
+    #recWrap .grid{grid-template-columns:repeat(auto-fill,minmax(360px,1fr));}
+    #recWrap .thumb{width:118px;}
 
 
 /* Podium */
@@ -517,6 +522,7 @@
         <div class="badge">帳號 <span id="uidBadge">未登入</span></div>
         <div class="badge">狀態 <span id="netBadge">檢查中</span></div>
         <div class="badge">票券 <span id="voteBadge">0</span></div>
+        <div class="badge">GEM <span id="gemBadge">0</span></div>
       </div>
       <div class="actions">
         <div class="btn" id="btnStudio">回工作室</div>
@@ -534,6 +540,14 @@
   <div class="podium" id="podium"></div>
 </div>
 
+<div class="podiumWrap" id="recWrap" style="display:none;">
+  <div class="podiumTitle">
+    <div class="h">🔥 本期推薦</div>
+    <div class="sub" id="recSub">推薦次數 > 1 的作品</div>
+  </div>
+  <div class="grid" id="recGrid"></div>
+</div>
+
     <div class="toolbar">
       <div class="chip active" id="chipNewest">最新</div>
       <div class="chip" id="chipTop">最高分</div>
@@ -546,6 +560,14 @@
 
     <div class="statusline" id="statusLine">讀取中</div>
     <div id="errorBox" class="errorbox" style="display:none;"></div>
+
+    <div class="recWrap" id="recWrap" style="display:none;">
+      <div class="recTitle">
+        <div class="h">🔥 本期推薦</div>
+        <div class="sub">被推薦次數 &gt; 1 的作品，按推薦次數排序</div>
+      </div>
+      <div class="recGrid" id="recGrid"></div>
+    </div>
 
     <div class="grid" id="grid"></div>
   </div>
@@ -572,6 +594,7 @@
   const uidBadge = document.getElementById("uidBadge");
   const netBadge = document.getElementById("netBadge");
   const voteBadge = document.getElementById("voteBadge");
+  const gemBadge = document.getElementById("gemBadge");
   const statusLine = document.getElementById("statusLine");
   const errorBox = document.getElementById("errorBox");
   const grid = document.getElementById("grid");
@@ -589,6 +612,7 @@
   uidBadge.textContent = uid ? uid : "未登入";
 
   let userVote = 0;
+  let userGem = 0;
 
 let followingSet = new Set();
 let favoriteSet = new Set();
@@ -599,6 +623,7 @@ async function loadMeSocial(){
     const acc = await api("/api/me/account");
     if(acc && acc.account){
       setVoteBadge(acc.account.userVote || 0);
+      setGemBadge(acc.account.userGem || 0);
     }
     const fav = await api("/api/me/favorites");
     favoriteSet = new Set((fav.items || []).map(x=>String(x.showcaseId)));
@@ -618,6 +643,12 @@ function openUser(uid2){
     const v = Number(n || 0);
     userVote = v;
     if(voteBadge) voteBadge.textContent = String(v);
+  }
+
+  function setGemBadge(n){
+    const g = Number(n || 0);
+    userGem = g;
+    if(gemBadge) gemBadge.textContent = String(g);
   }
 
 
@@ -724,15 +755,21 @@ function openUser(uid2){
         undefined;
 
       let finalCount = undefined;
+      const setVoteText = (el, n)=>{
+        if(!el) return;
+        const isSpan = (el.tagName || "").toLowerCase() === "span";
+        el.textContent = isSpan ? String(n) : ("票數 " + String(n));
+      };
+
       if(newCount !== undefined){
         finalCount = Number(newCount || 0);
-        if(countEl) countEl.textContent = "票數 " + String(finalCount);
+        setVoteText(countEl, finalCount);
       }else{
         // fallback optimistic update
         if(countEl){
           const cur = Number(String(countEl.textContent || "").replace(/[^0-9]/g, "") || 0);
           finalCount = cur + 1;
-          countEl.textContent = "票數 " + String(finalCount);
+          setVoteText(countEl, finalCount);
         }
       }
 
@@ -873,7 +910,11 @@ function fmtTime(ts){
 const podiumWrap = document.getElementById("podiumWrap");
 const podiumEl = document.getElementById("podium");
 const podiumSub = document.getElementById("podiumSub");
+const recWrap = document.getElementById("recWrap");
+const recGrid = document.getElementById("recGrid");
+const recSub = document.getElementById("recSub");
 let lastFilteredItems = [];
+let lastSeasonItems = [];
 
 function top3ByVotes(items){
   return (items || [])
@@ -978,6 +1019,46 @@ function renderPodiumFromItems(items){
   if(m3) podiumEl.appendChild(m3);
 }
 
+function getRecommendCount(s){
+  return Number(s.recommends ?? s.recommendCount ?? s.recommend_count ?? 0);
+}
+
+function renderRecommendSection(items){
+  lastSeasonItems = (items || []).slice();
+  if(!recWrap || !recGrid) return;
+
+  const recItems = lastSeasonItems
+    .filter(x => getRecommendCount(x) > 1)
+    .slice()
+    .sort((a,b)=>{
+      const ar = getRecommendCount(a);
+      const br = getRecommendCount(b);
+      if(br !== ar) return br - ar;
+      const av = Number(getVoteCount(a) || 0);
+      const bv = Number(getVoteCount(b) || 0);
+      if(bv !== av) return bv - av;
+      return Number(b.createdAt || 0) - Number(a.createdAt || 0);
+    });
+
+  if(!recItems.length){
+    recWrap.style.display = "none";
+    return;
+  }
+
+  recWrap.style.display = "";
+  if(recSub){
+    const season = String(seasonSel.value || "").trim();
+    recSub.textContent = season ? ("Season " + season + " · 推薦次數 > 1") : "推薦次數 > 1";
+  }
+
+  // Reuse main renderer but into recGrid
+  recGrid.innerHTML = "";
+  recItems.forEach(s => {
+    const card = buildGalleryCard(s);
+    recGrid.appendChild(card);
+  });
+}
+
 async function loadPodiumFromBackendOrLocal(items){
   const season = String(seasonSel.value || "").trim();
   // Try backend /api/podium first (if exists), otherwise fallback to local sort
@@ -995,180 +1076,181 @@ async function loadPodiumFromBackendOrLocal(items){
 }
 
 
-  function render(items){
-    grid.innerHTML = "";
+  function buildGalleryCard(s){
+    const card = document.createElement("div");
+    card.className = "card";
 
-    if(!items || items.length === 0){
-      grid.innerHTML = '<div class="empty">目前沒有任何展示作品</div>';
-      return;
-    }
+    const th = document.createElement("div");
+    th.className = "thumb";
+    const layersThumb = [
+      { url: s.bgUrl, z: 10 },
+      { url: s.addon2Url, z: 20 },
+      { url: s.headUrl, z: 30 },
+      { url: s.bodyUrl, z: 40 },
+      { url: s.addon1Url, z: 50 },
+    ];
+    makeStackThumb(th, layersThumb);
 
-    items.forEach((s) => {
-      const card = document.createElement("div");
-      card.className = "card";
+    const meta = document.createElement("div");
+    meta.className = "meta";
 
-      const th = document.createElement("div");
-      th.className = "thumb";
+    const title = (s.title && String(s.title).trim()) ? String(s.title).trim() : "未命名作品";
+    const name = String(s.authorName || "").trim() || String(s.userName || "").trim() || String(s.userId || "").slice(0, 8);
+    const lv = Number(s.authorLevel || 1);
 
-      // Layer order (top->bottom):
-      // addon1 top, body 2, head 3, addon2 4, bg bottom
-      const layersThumb = [
+    const topRow = document.createElement("div");
+    topRow.className = "row";
+
+    const t = document.createElement("div");
+    t.className = "t";
+    t.textContent = title;
+
+    const right = document.createElement("div");
+    right.className = "s";
+    right.textContent = (s.seasonId ? String(s.seasonId) + " · " : "") + fmtTime(s.createdAt);
+
+    topRow.appendChild(t);
+    topRow.appendChild(right);
+
+    const author = document.createElement("div");
+    author.className = "author";
+    author.innerHTML = `
+      <span class="av">${renderAuthorAvatar(s, name)}</span>
+      <span class="meta"><span class="lv">Lv.${lv}</span><span class="nm"></span></span>
+    `;
+    author.querySelector(".nm").textContent = name;
+    author.onclick = (e) => { e.stopPropagation(); openUser(s.userId); };
+
+    const iconRow = document.createElement("div");
+    iconRow.className = "iconRow";
+
+    const voteStat = document.createElement("div");
+    voteStat.className = "iconStat";
+    const voteBtn = document.createElement("button");
+    voteBtn.className = "iconBtn";
+    voteBtn.type = "button";
+    voteBtn.title = "投票";
+    voteBtn.textContent = "🗳️";
+    voteBtn.disabled = (!uid) || Number(userVote || 0) <= 0;
+    const voteN = document.createElement("span");
+    voteN.textContent = String(getVoteCount(s));
+    voteBtn.onclick = (ev) => {
+      ev.stopPropagation();
+      const sid = s.showcaseId || s.id || s.showcase_id || s.showcaseID || "";
+      voteFor(String(sid), voteBtn, voteN);
+    };
+    voteStat.appendChild(voteBtn);
+    voteStat.appendChild(voteN);
+
+    const favStat = document.createElement("div");
+    favStat.className = "iconStat";
+    const favBtn = document.createElement("button");
+    favBtn.className = "iconBtn";
+    favBtn.type = "button";
+    favBtn.title = "收藏";
+    favBtn.textContent = "❤️";
+    const favN = document.createElement("span");
+    const favCount0 = Number(s.favorites || 0);
+    favN.textContent = String(favCount0);
+    const isFav = favoriteSet.has(String(s.showcaseId));
+    if(isFav) favBtn.classList.add("on");
+    favBtn.onclick = async (e) => {
+      e.stopPropagation();
+      if(!uid) return showError("請先登入");
+      try{
+        if(favoriteSet.has(String(s.showcaseId))){
+          await api("/api/favorite", { method:"DELETE", body:{ showcaseId: s.showcaseId } });
+          favoriteSet.delete(String(s.showcaseId));
+          favBtn.classList.remove("on");
+          s.favorites = Math.max(0, Number(s.favorites||0) - 1);
+        }else{
+          await api("/api/favorite", { method:"POST", body:{ showcaseId: s.showcaseId } });
+          favoriteSet.add(String(s.showcaseId));
+          favBtn.classList.add("on");
+          s.favorites = Number(s.favorites||0) + 1;
+        }
+        favN.textContent = String(Number(s.favorites||0));
+      }catch(err){
+        showError(String(err?.error || err?.message || err));
+      }
+    };
+    favStat.appendChild(favBtn);
+    favStat.appendChild(favN);
+
+    const recStat = document.createElement("div");
+    recStat.className = "iconStat";
+    const recBtn = document.createElement("button");
+    recBtn.className = "iconBtn";
+    recBtn.type = "button";
+    recBtn.title = "推薦（每次 50 GEM）";
+    recBtn.textContent = "🔥";
+    const recN = document.createElement("span");
+    recN.textContent = String(getRecommendCount(s));
+    recBtn.disabled = (!uid) || Number(userGem||0) < 50;
+    recBtn.onclick = async (e) => {
+      e.stopPropagation();
+      if(!uid) return showError("請先登入");
+      try{
+        const r = await api("/api/recommend", { method:"POST", body:{ showcaseId: s.showcaseId } });
+        if(r){
+          if(r.userGem !== undefined) setGemBadge(r.userGem);
+          if(r.recommends !== undefined) s.recommends = r.recommends;
+          recN.textContent = String(getRecommendCount(s));
+          renderRecommendSection(lastSeasonItems);
+          recBtn.disabled = Number(userGem||0) < 50;
+        }
+      }catch(err){
+        const msg = String(err?.error || err?.message || err);
+        if(msg.includes("max_per_showcase_reached")){
+          showError("你在本賽季對這個作品已經推薦滿 5 次，不能再推薦了");
+        }else if(msg.includes("insufficient_gem")){
+          showError("GEM 不足，推薦一次需要 50 GEM");
+        }else{
+          showError("推薦失敗：" + msg);
+        }
+      }
+    };
+    recStat.appendChild(recBtn);
+    recStat.appendChild(recN);
+
+    iconRow.appendChild(voteStat);
+    iconRow.appendChild(favStat);
+    iconRow.appendChild(recStat);
+
+    const sline = document.createElement("div");
+    sline.className = "s";
+    sline.textContent = "@" + String(s.userId || "") + " · " + (s.seasonId ? ("Season " + String(s.seasonId) + "") : "");
+
+    meta.appendChild(topRow);
+    meta.appendChild(author);
+    meta.appendChild(iconRow);
+    meta.appendChild(sline);
+
+    card.appendChild(th);
+    card.appendChild(meta);
+
+    card.onclick = () => {
+      clearError();
+      const layersBig = [
         { url: s.bgUrl, z: 10 },
         { url: s.addon2Url, z: 20 },
         { url: s.headUrl, z: 30 },
         { url: s.bodyUrl, z: 40 },
         { url: s.addon1Url, z: 50 },
       ];
-      makeStackThumb(th, layersThumb);
+      openModalLayers(title, "票數 " + String(getVoteCount(s)) + " · 收藏 " + String(Number(s.favorites||0)) + " · 推薦 " + String(getRecommendCount(s)) + " · " + fmtTime(s.createdAt), layersBig);
+    };
 
-      const meta = document.createElement("div");
-      meta.className = "meta";
-
-      const row = document.createElement("div");
-      row.className = "row";
-
-      const t = document.createElement("div");
-      t.className = "t";
-      const title = (s.title && String(s.title).trim()) ? String(s.title).trim() : "未命名作品";
-      t.textContent = title;
-
-      const pill = document.createElement("div");
-      pill.className = "pill";
-      const votes = Number(s.votes || 0);
-      const favs = Number(s.favorites || 0);
-      pill.textContent = "票數 " + String(votes) + " · 收藏 " + String(favs);
-
-const author = document.createElement("div");
-author.className = "author";
-
-const name = String(s.authorName || "").trim() || String(s.userName || "").trim() || String(s.userId || "").slice(0, 8);
-const lv = Number(s.authorLevel || 1);
-
-author.innerHTML = `
-  <span class="av">${renderAuthorAvatar(s, name)}</span>
-  <span class="meta">
-    <span class="lv">Lv.${lv}</span>
-    <span class="nm"></span>
-  </span>
-`;
-author.querySelector(".nm").textContent = name;
-author.onclick = (e) => { e.stopPropagation(); openUser(s.userId); };
-
-const actions = document.createElement("div");
-actions.className = "actions";
-
-const favBtn = document.createElement("button");
-favBtn.className = "btn mini";
-const isFav = favoriteSet.has(String(s.showcaseId));
-favBtn.textContent = isFav ? "已收藏" : "收藏";
-if(isFav) favBtn.classList.add("on");
-favBtn.onclick = async (e) => {
-  e.stopPropagation();
-  if(!uid) return showError("請先登入");
-  try{
-    if(favoriteSet.has(String(s.showcaseId))){
-      await api("/api/favorite", { method:"DELETE", body:{ showcaseId: s.showcaseId } });
-      favoriteSet.delete(String(s.showcaseId));
-      favBtn.textContent = "收藏";
-      favBtn.classList.remove("on");
-    }else{
-      await api("/api/favorite", { method:"POST", body:{ showcaseId: s.showcaseId } });
-      favoriteSet.add(String(s.showcaseId));
-      favBtn.textContent = "已收藏";
-      favBtn.classList.add("on");
-    }
-  }catch(err){
-    showError(String(err?.error || err?.message || err));
+    return card;
   }
-};
 
-const followBtn = document.createElement("button");
-followBtn.className = "btn mini";
-const targetId = String(s.userId || "");
-if(uid && targetId === uid){
-  followBtn.textContent = "自己";
-  followBtn.disabled = true;
-  followBtn.style.opacity = ".6";
-}else{
-  const isFollow = followingSet.has(targetId);
-  followBtn.textContent = isFollow ? "已關注" : "關注";
-  if(isFollow) followBtn.classList.add("on");
-  followBtn.onclick = async (e) => {
-    e.stopPropagation();
-    if(!uid) return showError("請先登入");
-    try{
-      if(followingSet.has(targetId)){
-        await api("/api/follow", { method:"DELETE", body:{ targetUserId: targetId } });
-        followingSet.delete(targetId);
-        followBtn.textContent = "關注";
-        followBtn.classList.remove("on");
-      }else{
-        await api("/api/follow", { method:"POST", body:{ targetUserId: targetId } });
-        followingSet.add(targetId);
-        followBtn.textContent = "已關注";
-        followBtn.classList.add("on");
-      }
-    }catch(err){
-      showError(String(err?.error || err?.message || err));
+  function render(items){
+    grid.innerHTML = "";
+    if(!items || items.length === 0){
+      grid.innerHTML = '<div class="empty">目前沒有任何展示作品</div>';
+      return;
     }
-  };
-}
-
-actions.appendChild(favBtn);
-actions.appendChild(followBtn);
-
-      row.appendChild(t);
-      row.appendChild(pill);
-
-      const sline = document.createElement("div");
-      sline.className = "s";
-      sline.textContent = "@" + String(s.userId || "") + " · " + fmtTime(s.createdAt) + (s.seasonId ? (" · " + s.seasonId) : "");
-
-      meta.appendChild(row);
-      meta.appendChild(author);
-      meta.appendChild(actions);
-      meta.appendChild(sline);
-
-      const voteBar = document.createElement("div");
-      voteBar.className = "voteBar";
-
-      const voteBtn = document.createElement("button");
-      voteBtn.className = "voteBtn";
-      voteBtn.type = "button";
-      voteBtn.textContent = "投票";
-      voteBtn.disabled = (!uid) || Number(userVote || 0) <= 0;
-
-      const voteCount = document.createElement("div");
-      voteCount.className = "voteCount";
-      voteCount.textContent = "票數 " + String(getVoteCount(s));
-
-      voteBtn.onclick = (ev) => {
-        ev.stopPropagation();
-        const sid = s.showcaseId || s.id || s.showcase_id || s.showcaseID || "";
-        voteFor(String(sid), voteBtn, voteCount);
-      };
-
-      voteBar.appendChild(voteBtn);
-      voteBar.appendChild(voteCount);
-      meta.appendChild(voteBar);
-
-      card.appendChild(th);
-      card.appendChild(meta);
-
-      card.onclick = () => {
-        clearError();
-        const layersBig = [
-          { url: s.bgUrl, z: 10 },
-          { url: s.addon2Url, z: 20 },
-          { url: s.headUrl, z: 30 },
-          { url: s.bodyUrl, z: 40 },
-          { url: s.addon1Url, z: 50 },
-        ];
-        openModalLayers(title, "★ " + avg.toFixed(2) + " · votes " + votes + " · " + fmtTime(s.createdAt), layersBig);
-      };
-
-      grid.appendChild(card);
-    });
+    items.forEach((s) => grid.appendChild(buildGalleryCard(s)));
   }
 
   async function load(){
@@ -1178,28 +1260,28 @@ actions.appendChild(followBtn);
     statusLine.textContent = "讀取中";
 
     try{
-      const res = await api("/api/gallery");
+      const season = String(seasonSel.value || "").trim();
+      const qs = season ? ("?seasonId=" + encodeURIComponent(season)) : "";
+      const res = await api("/api/gallery" + qs);
       setNet(true);
       await loadMyAccount();
 
-      const season = String(seasonSel.value || "").trim();
       let items = (res.items || []).slice();
 
-      if(season){
-        items = items.filter(x => String(x.seasonId || "") === season);
-      }
-
-
-       await loadPodiumFromBackendOrLocal(items);
+      await loadPodiumFromBackendOrLocal(items);
+      renderRecommendSection(items);
 
       if(chipTop.classList.contains("active")){
         items.sort((a,b)=>{
-          const av = Number(a.avgScore || 0);
-          const bv = Number(b.avgScore || 0);
+          const av = Number(getVoteCount(a) || 0);
+          const bv = Number(getVoteCount(b) || 0);
           if(bv !== av) return bv - av;
-          const ac = Number(a.votes || 0);
-          const bc = Number(b.votes || 0);
-          if(bc !== ac) return bc - ac;
+          const ar = getRecommendCount(a);
+          const br = getRecommendCount(b);
+          if(br !== ar) return br - ar;
+          const af = Number(a.favorites || 0);
+          const bf = Number(b.favorites || 0);
+          if(bf !== af) return bf - af;
           return Number(b.createdAt || 0) - Number(a.createdAt || 0);
         });
       }else{
