@@ -153,6 +153,8 @@
 
   uidBadge.textContent = uid ? uid : "未登入";
 
+  let avatarSavedOn = 0;
+
   document.getElementById("btnStudio").onclick = () => location.href = "/studio";
   document.getElementById("btnGacha").onclick = () => location.href = "/gacha";
   document.getElementById("btnHome").onclick = () => location.href = "/";
@@ -292,6 +294,25 @@
   tabSaves.onclick = () => setTab("saves");
   tabRecipes.onclick = () => setTab("recipes");
 
+  async function loadAvatarSavedOn(){
+    avatarSavedOn = 0;
+    if(!uid) return 0;
+    try{
+      const a = await api("/api/me/account");
+      // backend may return avatarSave or account.avatarSaveOn
+      if(a && a.avatarSave && a.avatarSave.savedOn){
+        avatarSavedOn = Number(a.avatarSave.savedOn||0);
+      }else if(a && a.account && a.account.avatarSaveOn){
+        avatarSavedOn = Number(a.account.avatarSaveOn||0);
+      }else if(a && a.account && a.account.avatarSavedOn){
+        avatarSavedOn = Number(a.account.avatarSavedOn||0);
+      }
+    }catch(e){
+      console.warn("loadAvatarSavedOn failed", e);
+    }
+    return avatarSavedOn;
+  }
+
   async function loadSaves(){
     gridSaves.innerHTML = "";
     try{
@@ -316,6 +337,7 @@
       }
 
       const saves = res.saves || [];
+      await loadAvatarSavedOn();
       statusLine.textContent = "共 " + saves.length + " 個成品";
 
       if (saves.length === 0){
@@ -350,6 +372,29 @@
         const time = document.createElement("div");
         time.className = "time";
         time.textContent = fmtTime(s.savedOn);
+
+        const btnAvatar = document.createElement("div");
+        btnAvatar.className = "showBtn";
+        const isAvatar = Number(s.savedOn||0) && Number(s.savedOn||0) === Number(avatarSavedOn||0);
+        btnAvatar.textContent = isAvatar ? "目前頭像" : "設為頭像";
+        if (isAvatar) btnAvatar.classList.add("disabled");
+        btnAvatar.onclick = async (ev) => {
+          if (btnAvatar.classList.contains("disabled")) return;
+          ev.stopPropagation();
+          clearError();
+          if (!uid){
+            showError("請先登入後再設定頭像");
+            return;
+          }
+          try{
+            await apiReq("POST", "/api/me/avatar", { savedOn: Number(s.savedOn||0) });
+            // refresh state and UI
+            await loadAvatarSavedOn();
+            loadSaves();
+          }catch(e){
+            showError("設定頭像失敗：" + (e && e.message ? e.message : String(e)));
+          }
+        };
 
         const btnShow = document.createElement("div");
         btnShow.className = "showBtn";
@@ -404,6 +449,7 @@
         };
 
         row.appendChild(time);
+        row.appendChild(btnAvatar);
         row.appendChild(btnShow);
 
         const parts = document.createElement("div");
