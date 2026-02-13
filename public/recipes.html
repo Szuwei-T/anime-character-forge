@@ -100,7 +100,53 @@
     .bigwrap img.single{width:100%;height:auto;display:block}
     .footnote{margin-top:10px;font-size:12px;opacity:.75}
     .empty{opacity:.75;padding:14px 0}
-  </style>
+  
+/* ===== Master Account Bar ===== */
+.masterAccountCard{
+  margin: 12px 0 14px 0;
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,.10);
+  background: rgba(0,0,0,.25);
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.maLeft{display:flex;gap:12px;align-items:center;flex: 1 1 auto;min-width: 240px;}
+.maAvatar{
+  width: 54px;height:54px;border-radius:50%;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.12);
+  overflow:hidden;display:flex;align-items:center;justify-content:center;
+  font-weight:900;color:rgba(255,255,255,.85);flex:0 0 auto;
+  position:relative;
+}
+.maAvatar .layer{position:absolute;inset:0}
+.maAvatar .layer img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block}
+.maNameRow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.maName{font-weight:950;letter-spacing:.2px;font-size:15px;}
+.maLv{padding:4px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:rgba(0,0,0,.14);font-weight:900;font-size:13px;opacity:.95;}
+.maBtns{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.maBtn{cursor:pointer;user-select:none;padding:8px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);font-size:13px;font-weight:900;color:inherit;}
+.maBtn:hover{background:rgba(255,255,255,.10)}
+.maBtn:disabled{opacity:.55;cursor:not-allowed}
+.maStats{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.maPill{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);font-size:12px;font-weight:900;opacity:.95;white-space:nowrap;}
+.maModal{position:fixed;inset:0;z-index:99999;display:none}
+.maModal.show{display:block}
+.maBack{position:absolute;inset:0;background:rgba(0,0,0,.68);backdrop-filter: blur(10px)}
+.maCard{position:relative;width:min(520px,94vw);margin:12vh auto 0;border-radius:18px;border:1px solid rgba(255,255,255,.14);background:rgba(15,20,30,.92);box-shadow:0 30px 110px rgba(0,0,0,.65);padding:14px;}
+.maCard .top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.maCard .title{font-weight:950}
+.maCard .x{cursor:pointer;padding:8px 10px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.10);font-size:12px}
+.maCard label{display:block;font-size:12px;opacity:.8;margin:10px 0 6px}
+.maCard input{width:100%;padding:12px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.25);color:#fff;outline:none;box-sizing:border-box;}
+.maHint{font-size:12px;opacity:.75;margin-top:8px;line-height:1.4}
+.maCard .row{display:flex;gap:10px;align-items:center;justify-content:flex-end;margin-top:12px;flex-wrap:wrap}
+/* ===== End Master Account Bar ===== */
+
+</style>
 </head>
 <body>
   <div class="page-wrap">
@@ -116,6 +162,7 @@
         <div class="btn" id="btnHome">首頁</div>
       </div>
     </div>
+    <div id="masterAccount"></div>
 
     <div class="tabs">
       <div class="tabbtn active" id="tabSaves">我的成品</div>
@@ -221,6 +268,175 @@
       }
       return j;
     });
+
+function escapeHtml(str){
+  return String(str || "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#39;");
+}
+
+function fmtInt(n){
+  const x = Number(n || 0);
+  if(!Number.isFinite(x)) return "0";
+  return String(Math.floor(x));
+}
+
+// ----- Master account bar -----
+const masterMount = document.getElementById("masterAccount");
+let meAccountCache = null;
+
+function renderAvatarStack(el, layers){
+  el.innerHTML = "";
+  const order = [
+    { url: layers.bgUrl, z: 10 },
+    { url: layers.addon2Url, z: 20 },
+    { url: layers.headUrl, z: 30 },
+    { url: layers.bodyUrl, z: 40 },
+    { url: layers.addon1Url, z: 50 },
+  ];
+  order.forEach((l)=>{
+    if(!l.url) return;
+    const d=document.createElement("div");
+    d.className="layer";
+    d.style.zIndex=String(l.z);
+    const img=document.createElement("img");
+    img.loading="lazy";
+    img.src=l.url;
+    d.appendChild(img);
+    el.appendChild(d);
+  });
+  if(!el.childElementCount){
+    const span=document.createElement("span");
+    span.textContent="P";
+    el.appendChild(span);
+  }
+}
+
+async function loadMeAccount(){
+  if(!uid){
+    if(masterMount) masterMount.innerHTML = "";
+    return;
+  }
+  try{
+    const res = await api("/api/me/account");
+    meAccountCache = res;
+    if(!masterMount) return;
+
+    const a = res.account || res.me || res.user || {};
+    const s = res.stats || {};
+    const name = a.userName || a.name || "Player";
+    const lv = fmtInt(a.level || 1);
+    const gold = fmtInt(a.userGold ?? a.coins ?? 0);
+    const gem = fmtInt(a.userGem ?? a.gems ?? 0);
+    const vote = fmtInt(a.userVote ?? a.votes ?? 0);
+
+    const worksCount = fmtInt(s.worksCount || s.works || 0);
+    const followers = fmtInt(s.followers || 0);
+    const likesReceived = fmtInt(s.likesReceived || s.likes || 0);
+    const collectionsUnlocked = fmtInt(s.collectionsUnlocked || s.collections || 0);
+    const savesCount = fmtInt(s.savesCount || 0);
+
+    const nameChangeCount = Number(a.nameChangeCount || 0);
+    const renameCost = nameChangeCount >= 1 ? 50 : 0;
+
+    masterMount.innerHTML = `
+      <div class="masterAccountCard">
+        <div class="maLeft">
+          <div class="maAvatar" id="maAvatar" title="點我從我的成品設定頭像"></div>
+          <div style="display:flex;flex-direction:column;gap:8px;min-width:220px">
+            <div class="maNameRow">
+              <div class="maName">${escapeHtml(name)}</div>
+              <div class="maLv">Lv.${escapeHtml(lv)}</div>
+            </div>
+            <div class="maBtns">
+              <button class="maBtn" id="maRename">改名</button>
+              <span style="font-size:12px;opacity:.75;font-weight:900">${renameCost===0 ? "第 1 次改名免費" : `改名費用 ${renameCost} Gem`}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="maStats">
+          <div class="maPill">Gold ${gold}</div>
+          <div class="maPill">Gem ${gem}</div>
+          <div class="maPill">票 ${vote}</div>
+          <div class="maPill">成品 ${savesCount}</div>
+          <div class="maPill">解鎖 ${collectionsUnlocked}</div>
+          <div class="maPill">作品 ${worksCount}</div>
+          <div class="maPill">粉絲 ${followers}</div>
+          <div class="maPill">Like ${likesReceived}</div>
+        </div>
+      </div>
+
+      <div class="maModal" id="maModal">
+        <div class="maBack"></div>
+        <div class="maCard">
+          <div class="top">
+            <div class="title">修改遊戲名</div>
+            <div class="x" id="maClose">關閉</div>
+          </div>
+          <div style="font-size:12px;opacity:.75;line-height:1.4;font-weight:900">
+            規則 第 1 次免費 之後每次 50 Gem
+          </div>
+          <label>新遊戲名</label>
+          <input id="maNameInput" maxlength="20" value="${escapeHtml(name)}" />
+          <div class="maHint" id="maCostHint">${renameCost===0 ? "本次費用 0 Gem" : `本次費用 ${renameCost} Gem 目前 Gem ${gem}`}</div>
+          <div class="row">
+            <button class="maBtn" id="maSubmit">確認修改</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // avatar render
+    const av = masterMount.querySelector("#maAvatar");
+    const avatar = res.avatar || a.avatar || {};
+    renderAvatarStack(av, avatar);
+
+    if(av){
+      av.addEventListener("click", ()=>{ setTab("saves"); window.scrollTo({top:0, behavior:"smooth"}); });
+    }
+
+    const modal = masterMount.querySelector("#maModal");
+    const open = masterMount.querySelector("#maRename");
+    const close = masterMount.querySelector("#maClose");
+    const back = masterMount.querySelector(".maBack");
+    const submit = masterMount.querySelector("#maSubmit");
+    const input = masterMount.querySelector("#maNameInput");
+
+    const showModal=()=>{ if(modal) modal.classList.add("show"); if(input) input.focus(); };
+    const hideModal=()=>{ if(modal) modal.classList.remove("show"); };
+    if(open) open.onclick=showModal;
+    if(close) close.onclick=hideModal;
+    if(back) back.onclick=hideModal;
+
+    if(submit){
+      submit.onclick = async ()=>{
+        const newName = String(input?.value || "").trim();
+        if(!newName){ showError("遊戲名不能為空"); return; }
+        submit.disabled=true;
+        try{
+          await apiReq("POST","/api/me/name",{ userName:newName });
+          hideModal();
+          clearError();
+          await loadMeAccount();
+        }catch(e){
+          showError("改名失敗：" + (e?.message || String(e)));
+        }finally{
+          submit.disabled=false;
+        }
+      };
+    }
+
+  }catch(e){
+    // If CORS blocks, show clear message
+    if(masterMount){
+      masterMount.innerHTML = `<div class="errorbox">帳號區載入失敗：${escapeHtml(e?.message || String(e))}<br>如果看到 CORS blocked，請更新 Worker 的 CORS 回應</div>`;
+    }
+  }
+}
   }
 
 
@@ -377,6 +593,57 @@
 
         const btnShow = document.createElement("div");
         btnShow.className = "showBtn";
+
+
+const btnAvatar = document.createElement("div");
+btnAvatar.className = "showBtn";
+btnAvatar.textContent = "設為頭像";
+
+const curAvatar = (meAccountCache && (meAccountCache.avatar || (meAccountCache.account && meAccountCache.account.avatar))) || {};
+const curKey = comboKey(curAvatar.headId, curAvatar.bodyId, curAvatar.bgId, curAvatar.addon1Id, curAvatar.addon2Id);
+const thisKey = comboKey(s.headId, s.bodyId, s.bgId, s.addon1Id, s.addon2Id);
+
+if (curKey && curKey === thisKey){
+  btnAvatar.textContent = "目前頭像";
+  btnAvatar.classList.add("disabled");
+}
+
+btnAvatar.onclick = async (ev) => {
+  if (btnAvatar.classList.contains("disabled")) return;
+  ev.stopPropagation();
+  clearError();
+
+  if (!uid){
+    showError("請先登入後再設定頭像");
+    return;
+  }
+
+  const payload = {
+    saveId: s.saveId || s.id || null,
+    headId: s.headId || null,
+    bodyId: s.bodyId || null,
+    bgId: s.bgId || null,
+    addon1Id: s.addon1Id || null,
+    addon2Id: s.addon2Id || null,
+    headUrl: s.headUrl || null,
+    bodyUrl: s.bodyUrl || null,
+    bgUrl: s.bgUrl || null,
+    addon1Url: s.addon1Url || null,
+    addon2Url: s.addon2Url || null,
+  };
+
+  btnAvatar.textContent = "設定中";
+  try{
+    await apiReq("POST", "/api/me/avatar", payload);
+    await loadMeAccount();
+    // Update all avatar buttons quickly by reloading saves
+    await loadSaves();
+  }catch(e){
+    showError("設定頭像失敗：" + (e?.message || String(e)));
+    btnAvatar.textContent = "設為頭像";
+  }
+};
+
         
         let isShowing = showcaseComboSet.has(comboKey(s.headId, s.bodyId, s.bgId, s.addon1Id, s.addon2Id));
         btnShow.textContent = isShowing ? "展示中" : "展示";
@@ -432,6 +699,7 @@ if (curItem){
         };
 
         row.appendChild(time);
+        row.appendChild(btnAvatar);
         row.appendChild(btnShow);
 
         const parts = document.createElement("div");
@@ -546,6 +814,7 @@ if (curItem){
   }
 
   // initial
+  loadMeAccount();
   setTab("saves");
 })();
 </script>
