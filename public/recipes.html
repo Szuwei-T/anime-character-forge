@@ -3,21 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>我的成品</title>
+  <title>成品庫</title>
   <link rel="stylesheet" href="style.css" />
-  <style>
-    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
-    .card2{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);border-radius:14px;overflow:hidden}
-    .prev{width:100%;aspect-ratio:3/4;background:rgba(0,0,0,.25);position:relative;display:flex;align-items:center;justify-content:center}
-    .layer{position:absolute;inset:0}
-    .layer img{width:100%;height:100%;object-fit:cover;display:block}
-    .body{padding:10px}
-    .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-    .btnSmall{padding:8px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:rgba(0,0,0,.25);cursor:pointer;font-weight:700}
-    .btnSmall[disabled]{opacity:.45;cursor:not-allowed}
-    .tag{margin-left:auto;font-size:12px;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.10);font-weight:800}
-    .meta{margin-top:8px;opacity:.75;font-size:12px}
-  </style>
 </head>
 <body>
   <div class="container">
@@ -32,166 +19,89 @@
       </div>
     </div>
 
-    <div class="card">
-      <div class="cardHeader">
-        <h2>我的成品</h2>
-        <a class="badge" href="studio.html">返回工作室</a>
-      </div>
-      <div class="cardBody">
-        <div class="notice" id="offlineNotice" style="display:none">離線模式下無法讀取雲端成品與設定頭像</div>
-        <div class="notice" id="errNotice" style="display:none"></div>
-        <div class="hr"></div>
-        <div class="grid" id="grid"></div>
-      </div>
+    
+<div class="card">
+  <div class="cardHeader">
+    <h2>成品庫</h2>
+    <a class="badge" href="hub.html">返回</a>
+  </div>
+  <div class="cardBody">
+    <div class="notice">
+      初始全鎖
+      只有當你在工作室搭配出完全一樣的組合 才會解鎖並加入收藏
     </div>
+    <div class="hr"></div>
+    <table class="table" id="recipeTable">
+      <thead><tr><th>成品</th><th>稀有度</th><th>狀態</th><th>配方提示</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
   </div>
 
   <script src="app.js"></script>
-  <script>
-  (async function(){
-    await initSession();
-    q("#netBadge").textContent = APP.offline ? "Offline" : "Online";
+  
+<script>
+(async function(){
+  await initSession();
+  q("#netBadge").textContent = APP.offline ? "Offline" : "Online";
 
-    const offlineNotice = q("#offlineNotice");
-    const errNotice = q("#errNotice");
-    const grid = q("#grid");
-
-    if(APP.offline){
-      offlineNotice.style.display = "block";
-      return;
-    }
-
-    let account = null;
-    let avatar = { headId:"", bodyId:"", bgId:"", addon1Id:"", addon2Id:"", savedOn:0 };
-
+  // Backward compat: older recipes page variants call loadMeAccount() to render the account bar.
+  // Keep it defined so the page never crashes even if the layout changes.
+  async function loadMeAccount(){
     try{
-      const a = await api("/api/me/account");
-      if(a && a.ok && a.account){
-        account = a.account;
-        // avatar is chosen from user_saves (composite). Backend returns avatarSave when set.
-        if(a.avatarSave){
-          avatar = {
-            headId: String(a.avatarSave.headId||""),
-            bodyId: String(a.avatarSave.bodyId||""),
-            bgId: String(a.avatarSave.bgId||""),
-            addon1Id: String(a.avatarSave.addon1Id||""),
-            addon2Id: String(a.avatarSave.addon2Id||""),
-            savedOn: Number(a.avatarSave.savedOn||0)
-          };
-        }else{
-          avatar = { headId:"", bodyId:"", bgId:"", addon1Id:"", addon2Id:"", savedOn: Number(a.account.avatarSaveOn||0) };
-        }
+      if(APP.offline) return null;
+      const data = await api("/api/me/account", { method:"GET" });
+      const acc = data && (data.account || data.me || data.user || data);
+      // If the page has optional account UI, fill it.
+      const nameEl = document.getElementById("meName");
+      const goldEl = document.getElementById("meGold");
+      const gemEl  = document.getElementById("meGem");
+      const voteEl = document.getElementById("meVote");
+      if(acc){
+        if(nameEl) nameEl.textContent = String(acc.userName || acc.name || APP.name || "Player");
+        if(goldEl) goldEl.textContent = String(Number(acc.userGold || acc.gold || 0));
+        if(gemEl)  gemEl.textContent  = String(Number(acc.userGem  || acc.gem  || 0));
+        if(voteEl) voteEl.textContent = String(Number(acc.userVote || acc.vote || 0));
       }
-    }catch(_){}
-
-    async function loadSaves(){
-      const r = await api("/api/me/saves");
-      if(!r || !r.ok){
-        errNotice.style.display = "block";
-        errNotice.textContent = r?.error || "讀取成品失敗";
-        return [];
-      }
-      return r.saves || [];
+      return data;
+    }catch(e){
+      // Do not break the page if account fetch fails.
+      return null;
     }
+  }
 
-    function sameAvatar(s){
-      const so = Number(s?.savedOn||0);
-      return so && so === Number(avatar?.savedOn||0);
-    }
+  // If this page version expects it, run it.
+  await loadMeAccount();
+  const db = offlineDb();
 
-    async function setAvatar(s){
-      const savedOn = Number(s?.savedOn||0);
-      if(!savedOn){ toast("無法設定：缺少保存時間 savedOn"); return; }
-      const r = await api("/api/me/avatar", { method:"POST", body: JSON.stringify({ savedOn }) });
-      if(!r || !r.ok){
-        toast(r?.error || "設定失敗");
-        return;
-      }
-      avatar = {
-        headId: s.headId||"",
-        bodyId: s.bodyId||"",
-        bgId: s.bgId||"",
-        addon1Id: s.addon1Id||"",
-        addon2Id: s.addon2Id||"",
-        savedOn
-      };
-      render(currentSaves);
-      toast("已設為頭像");
-    }
+  function isUnlocked(recipeId){
+    const k = `${APP.uid}:${recipeId}`;
+    return !!db.unlocks[k];
+  }
 
-    function mkLayer(url){
-      const d = document.createElement("div");
-      d.className = "layer";
-      if(!url) return d;
-      const img = document.createElement("img");
-      img.loading = "lazy";
-      img.src = url;
-      d.appendChild(img);
-      return d;
-    }
+  function hint(r){
+    // MVP 只顯示分類提示
+    const a = (r.accessoryIds||[]).length;
+    return `頭部 1  身體 1  背景 1  附件 ${a}`;
+  }
 
-    function renderOne(s){
-      const wrap = document.createElement("div");
-      wrap.className = "card2";
+  const tbody = q("#recipeTable tbody");
+  tbody.innerHTML = "";
+  for(const r of db.recipes){
+    const unlocked = isUnlocked(r.recipeId);
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${unlocked ? r.name : "??????"}</td>
+      <td>${rarityPill(r.rarity||3)}</td>
+      <td>${unlocked ? "已解鎖" : "上鎖"}</td>
+      <td>${hint(r)}</td>
+    `;
+    tbody.appendChild(tr);
+  }
+})();
+</script>
 
-      const prev = document.createElement("div");
-      prev.className = "prev";
-      prev.appendChild(mkLayer(s.bgUrl));
-      prev.appendChild(mkLayer(s.bodyUrl));
-      prev.appendChild(mkLayer(s.headUrl));
-      prev.appendChild(mkLayer(s.addon1Url));
-      prev.appendChild(mkLayer(s.addon2Url));
-
-      const body = document.createElement("div");
-      body.className = "body";
-
-      const row = document.createElement("div");
-      row.className = "row";
-
-      const btn = document.createElement("button");
-      btn.className = "btnSmall";
-      btn.textContent = "設為頭像";
-      btn.onclick = ()=> setAvatar(s);
-
-      const tag = document.createElement("div");
-      tag.className = "tag";
-      tag.textContent = "目前頭像";
-      tag.style.display = sameAvatar(s) ? "inline-block" : "none";
-
-      row.appendChild(btn);
-      row.appendChild(tag);
-
-      const meta = document.createElement("div");
-      meta.className = "meta";
-      const d = s.savedOn ? new Date(s.savedOn).toLocaleString() : "";
-      meta.textContent = d ? ("保存 " + d) : "";
-
-      body.appendChild(row);
-      body.appendChild(meta);
-
-      wrap.appendChild(prev);
-      wrap.appendChild(body);
-      return wrap;
-    }
-
-    let currentSaves = await loadSaves();
-
-    function render(list){
-      grid.innerHTML = "";
-      if(!list.length){
-        const n = document.createElement("div");
-        n.className = "notice";
-        n.textContent = "你還沒有保存任何成品 請到工作室保存";
-        grid.appendChild(n);
-        return;
-      }
-      for(const s of list){
-        grid.appendChild(renderOne(s));
-      }
-    }
-
-    render(currentSaves);
-  })();
-  </script>
 </body>
 </html>
