@@ -54,79 +54,47 @@
     .select{padding:10px 12px;border-radius:999px;background:rgba(0,0,0,.20);border:1px solid rgba(255,255,255,.14);color:var(--txt)}
     .status{font-size:12px;color:var(--mut)}
     .error{margin:10px 0;padding:12px 14px;border-radius:14px;background:rgba(255,0,70,.10);border:1px solid rgba(255,0,70,.25);color:rgba(255,210,220,.95);display:none}
-    .podiumWrap{margin:10px 0 12px}
-    .podiumGrid{display:flex;justify-content:center;align-items:flex-end;gap:18px;flex-wrap:wrap}
-    .podiumItem{display:flex;flex-direction:column;align-items:center;gap:10px;transform-origin:center bottom}
-    .podiumItem.rank1{transform:scale(1.08)}
-    .podiumItem.rank2{transform:scale(.98)}
+    .podiumWrap{margin:12px 0 14px}
+    .podiumTitle{display:flex;align-items:center;gap:10px;margin:6px 0 10px}
+    .podiumTitle .h{font-size:14px;opacity:.92}
+    .podiumTitle .sub{font-size:12px;opacity:.68}
+
+    .podiumGrid{display:flex;justify-content:center;align-items:flex-end;gap:18px;flex-wrap:nowrap}
+    .podiumItem{display:flex;flex-direction:column;align-items:center;gap:8px;transform-origin:center bottom;min-width:0}
+    .podiumItem.rank1{transform:scale(1.15)}
+    .podiumItem.rank2{transform:scale(1.00)}
     .podiumItem.rank3{transform:scale(.92)}
-    .podiumFrame{border-radius:22px;overflow:hidden;position:relative;background:rgba(255,255,255,.06);cursor:pointer}
-    .podiumFrame::before{content:"";position:absolute;inset:-2px;border-radius:24px;pointer-events:none}
-    .podiumFrame::after{content:"";position:absolute;inset:0;border-radius:22px;pointer-events:none}
-    .podiumFrame.rank1::before{background:linear-gradient(135deg, rgba(255,214,90,.95), rgba(255,140,0,.65), rgba(255,214,90,.95));filter:blur(.2px)}
-    .podiumFrame.rank2::before{background:linear-gradient(135deg, rgba(230,230,240,.95), rgba(170,170,190,.55), rgba(230,230,240,.95))}
-    .podiumFrame.rank3::before{background:linear-gradient(135deg, rgba(210,140,80,.95), rgba(140,90,60,.55), rgba(210,140,80,.95))}
-    .podiumFrameInner{position:relative;border-radius:20px;overflow:hidden;margin:2px;background:rgba(0,0,0,.14)}
-    .podThumb{width:260px;aspect-ratio:3/4;background:rgba(0,0,0,.10);position:relative}
-    .podiumItem.rank1 .podThumb{width:320px}
-    .podiumItem.rank2 .podThumb{width:285px}
-    .podiumItem.rank3 .podThumb{width:260px}
 
-    .podiumFrame.rank1::after{
-      background:
-        radial-gradient(180px 120px at 20% 10%, rgba(255,215,90,.35), transparent 70%),
-        radial-gradient(220px 160px at 80% 0%, rgba(255,120,0,.22), transparent 70%),
-        radial-gradient(180px 140px at 50% 85%, rgba(255,215,90,.18), transparent 70%);
-      mix-blend-mode:screen;
-      animation:podGlow 1.6s ease-in-out infinite;
-    }
-    @keyframes podGlow{
-      0%,100%{opacity:.55;filter:blur(0px)}
-      50%{opacity:.95;filter:blur(1px)}
-    }
-    .podiumFrame.rank1 .spark{
-      position:absolute;inset:0;pointer-events:none;z-index:90;
-      background:
-        radial-gradient(3px 3px at 18% 22%, rgba(255,255,255,.9), transparent 60%),
-        radial-gradient(2px 2px at 72% 18%, rgba(255,255,255,.75), transparent 60%),
-        radial-gradient(2px 2px at 86% 52%, rgba(255,255,255,.65), transparent 60%),
-        radial-gradient(2px 2px at 34% 70%, rgba(255,255,255,.7), transparent 60%),
-        radial-gradient(3px 3px at 58% 62%, rgba(255,255,255,.85), transparent 60%);
-      animation:sparkMove 2.2s linear infinite;
-      opacity:.8;
-    }
-    @keyframes sparkMove{
-      0%{transform:translateY(6px);opacity:.55}
-      50%{transform:translateY(-6px);opacity:.95}
-      100%{transform:translateY(6px);opacity:.55}
-    }
+    .podiumTop{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 4px}
+    .podiumLeft{display:flex;align-items:center;gap:8px;min-width:0}
+    .rankIcon{width:18px;height:18px;display:block;opacity:.95}
+    .rankLabel{font-size:13px;font-weight:800;letter-spacing:.3px;white-space:nowrap}
+    .rankLabel.rank1{color:rgba(255,214,90,.98)}
+    .rankLabel.rank2{color:rgba(215,220,235,.98)}
+    .rankLabel.rank3{color:rgba(211,154,106,.98)}
 
-    .podiumFrame.rank2::after{
-      background:linear-gradient(120deg, transparent 0%, rgba(255,255,255,.10) 40%, transparent 70%);
-      transform:translateX(-40%);
-      animation:podShine 2.4s ease-in-out infinite;
-      opacity:.55;
-    }
-    @keyframes podShine{
-      0%{transform:translateX(-60%)}
-      50%{transform:translateX(60%)}
-      100%{transform:translateX(60%)}
-    }
+    .podiumAuthor{display:flex;align-items:center;gap:8px;min-width:0;text-decoration:none;color:inherit}
+    .podiumAuthor:hover{opacity:.92}
+    .podiumAuthor .avMini{width:26px;height:26px;border-radius:999px;overflow:hidden;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);display:grid;place-items:center;font-size:11px}
+    .podiumAuthor .authorName{font-size:12px;opacity:.92;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}
 
-    .podiumMeta{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
-    .rankIcon{width:22px;height:22px;display:block;opacity:.95}
-    .rankText{font-size:12px;opacity:.85}
-    .voteText{font-size:12px;opacity:.70}
-    .authorLink{display:flex;align-items:center;gap:8px;text-decoration:none;color:inherit;max-width:260px}
-    .authorLink:hover{opacity:.95;text-decoration:underline}
-    .avMini{width:28px;height:28px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);display:grid;place-items:center;overflow:hidden;font-size:12px}
-    .avMini .layer img{object-fit:contain}
-    .authorName{font-size:12px;opacity:.88;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
-    .podVotes{font-size:12px;opacity:.80;white-space:nowrap}
-    .podiumCard.rank1{border-color:rgba(255,215,0,.55);box-shadow:0 0 0 1px rgba(255,215,0,.25), 0 18px 40px rgba(255,215,0,.10)}
-    .podiumCard.rank2{border-color:rgba(210,210,210,.55);box-shadow:0 0 0 1px rgba(210,210,210,.22), 0 18px 40px rgba(210,210,210,.08)}
-    .podiumCard.rank3{border-color:rgba(205,127,50,.55);box-shadow:0 0 0 1px rgba(205,127,50,.22), 0 18px 40px rgba(205,127,50,.08)}
+    .podiumVotes{font-size:12px;opacity:.75;white-space:nowrap}
 
+    .podiumFrame{border-radius:24px;overflow:hidden;position:relative;background:rgba(255,255,255,.06);cursor:pointer;border:1px solid rgba(255,255,255,.14)}
+    .podiumFrameInner{position:relative}
+    .podiumFrame.rank1{box-shadow:0 0 0 2px rgba(255,214,90,.75), 0 0 26px rgba(255,190,60,.25)}
+    .podiumFrame.rank2{box-shadow:0 0 0 2px rgba(215,220,235,.55)}
+    .podiumFrame.rank3{box-shadow:0 0 0 2px rgba(211,154,106,.45)}
+
+    .spark{position:absolute;inset:-30%;pointer-events:none;background:radial-gradient(circle at 30% 30%, rgba(255,220,120,.35), transparent 45%),radial-gradient(circle at 70% 60%, rgba(255,170,60,.22), transparent 50%);filter:blur(0px);animation:sparkMove 2.8s linear infinite}
+    @keyframes sparkMove{0%{transform:translate(-2%,0%) rotate(0deg)}100%{transform:translate(2%,-2%) rotate(360deg)}}
+
+    @media (max-width:780px){
+      .podiumGrid{flex-wrap:wrap}
+      .podiumItem.rank1{transform:scale(1.06)}
+      .podiumItem.rank2{transform:scale(1.00)}
+      .podiumItem.rank3{transform:scale(.96)}
+    }
 
 
     .recWrap{margin:12px 0 10px;display:none}
@@ -597,23 +565,20 @@ function showError(msg){
       }
 
       frame.appendChild(inner);
-      item.appendChild(frame);
 
-      const meta = document.createElement("div");
-      meta.className = "podiumMeta";
+      const top = document.createElement("div");
+      top.className = "podiumTop";
 
-      const rankBox = document.createElement("div");
-      rankBox.style.display = "flex";
-      rankBox.style.alignItems = "center";
-      rankBox.style.gap = "8px";
-      rankBox.innerHTML = iconFor(rank) + `<div class="rankText">第 ${rank} 名</div>`;
-
-      const vote = document.createElement("div");
-      vote.className = "voteText";
-      vote.textContent = "票數 " + String(Number(s.votes || 0));
+      const left = document.createElement("div");
+      left.className = "podiumLeft";
+      const lab = document.createElement("div");
+      lab.className = "rankLabel rank" + String(rank);
+      lab.textContent = "第 " + String(rank) + " 名";
+      left.innerHTML = iconFor(rank);
+      left.appendChild(lab);
 
       const authorLink = document.createElement("a");
-      authorLink.className = "authorLink";
+      authorLink.className = "podiumAuthor";
       authorLink.href = "/user?uid=" + encodeURIComponent(String(s.userId || ""));
       authorLink.onclick = (e)=>{ e.stopPropagation(); };
 
@@ -642,11 +607,16 @@ function showError(msg){
       authorLink.appendChild(av);
       authorLink.appendChild(nm);
 
-      meta.appendChild(rankBox);
-      meta.appendChild(authorLink);
-      meta.appendChild(vote);
+      const vote = document.createElement("div");
+      vote.className = "podiumVotes";
+      vote.textContent = "票數 " + String(Number(s.votes || 0));
 
-      item.appendChild(meta);
+      top.appendChild(left);
+      top.appendChild(authorLink);
+      top.appendChild(vote);
+
+      item.appendChild(top);
+      item.appendChild(frame);
 
       frame.onclick = ()=>{
         openModal("作品", "票數 " + String(Number(s.votes||0)) + " · " + fmtTime(s.createdAt), [
