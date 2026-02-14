@@ -221,7 +221,7 @@
   async function api(url, opts){
     const o = opts || {};
     const headers = Object.assign({}, o.headers || {}, { "content-type":"application/json" });
-    if(uid) headers["x-uid"] = uid;
+    if(uid) headers["x-user-id"] = uid;
     const res = await fetch(url, Object.assign({}, o, {
       headers,
       body: o.body ? JSON.stringify(o.body) : undefined
@@ -312,17 +312,21 @@
   }
 
   async function recommend(showcaseId){
-    if(!uid) return showError("請先登入");
-    if(userGem < 50) return showError("GEM 不足");
-    try{
-      await api("/api/recommend", { method:"POST", body:{ showcaseId } });
-      showToast("已推薦 1 次 (花費 50 GEM)");
-      await loadMe();
-    }catch(e){
-      if(e.error === "recommend_limit") return showError("同一作品同一賽季最多推薦 5 次");
-      if(e.error === "no_gem") return showError("GEM 不足");
-      showError(String(e.error || e.message || "推薦失敗"));
-    }
+  if(!uid) return showError("請先登入");
+  if(userGem < 50) return showError("GEM 不足");
+  try{
+    await api("/api/recommend", { method:"POST", body:{ showcaseId } });
+    showToast("已推薦 1 次 (花費 50 GEM)");
+    await loadMe();
+    await load(); // refresh counts + 本期推薦區
+  }catch(e){
+    const code = String(e.error || e.code || "");
+    if(code === "max_per_showcase_reached" || code === "recommend_limit") return showError("同一作品同一賽季最多推薦 5 次");
+    if(code === "insufficient_gem" || code === "no_gem") return showError("GEM 不足");
+    if(code === "unauthorized") return showError("請先登入");
+    showError(String(e.error || e.message || "推薦失敗"));
+  }
+}
   }
 
   function renderPodium(items){
@@ -527,7 +531,7 @@
       const recBtn = document.createElement("button");
       recBtn.className = "iconBtn warn";
       recBtn.type = "button";
-      recBtn.innerHTML = ICON_FIRE + "<span>推薦</span>";
+      recBtn.innerHTML = ICON_FIRE + "<span>推薦 (" + String(recs) + ")</span>";
       recBtn.onclick = async (e)=>{
         e.stopPropagation();
         await recommend(sid);
@@ -578,7 +582,26 @@
       const res = await api("/api/gallery" + qs, { method:"GET" });
       let items = (res.items || []).slice();
 
-      if(!seasonOptionsLoaded){
+      
+// Default ordering: recommended-first for "爆款版" feel
+items.sort((a,b)=>{
+  const ar = Number(a.recommends||0);
+  const br = Number(b.recommends||0);
+  if(br !== ar) return br - ar;
+  const av = Number(a.votes||0);
+  const bv = Number(b.votes||0);
+  if(bv !== av) return bv - av;
+  return Number(b.createdAt||0) - Number(a.createdAt||0);
+});
+
+// User-selected sort override
+const sortMode = String(sortSel.value || "new");
+if(sortMode === "new"){
+  items.sort((a,b)=> Number(b.createdAt||0) - Number(a.createdAt||0));
+}else if(sortMode === "top"){
+  items.sort((a,b)=> Number(b.votes||0) - Number(a.votes||0) || Number(b.createdAt||0) - Number(a.createdAt||0));
+}
+if(!seasonOptionsLoaded){
         const set = new Set(items.map(x => x.seasonId).filter(Boolean));
         const arr = Array.from(set).sort().reverse();
         arr.forEach(sid=>{
