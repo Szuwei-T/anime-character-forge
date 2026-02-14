@@ -276,7 +276,7 @@
     letter-spacing: 1px;
     text-transform: uppercase;
     box-shadow: 0 30px 90px rgba(0,0,0,0.55);
-    animation: levelUpPop 1100ms ease-in-out 1;
+    animation: levelUpPop 450ms ease-out 1;
   }
   #levelUpFx .levelUpSub{
     margin-top: 8px;
@@ -297,11 +297,10 @@
   #levelUpConfirm{
     margin-top: 6px;
   }
+  /* Keep visible until user clicks CONFIRM */
   @keyframes levelUpPop{
     0%{ transform: translateY(10px) scale(0.92); opacity: 0; }
-    18%{ transform: translateY(0) scale(1.02); opacity: 1; }
-    55%{ transform: translateY(0) scale(1); opacity: 1; }
-    100%{ transform: translateY(-6px) scale(0.98); opacity: 0; }
+    100%{ transform: translateY(0) scale(1); opacity: 1; }
   }
 
   /* Stage preview a bit larger */
@@ -645,6 +644,14 @@ window.showLevelUpFx = function showLevelUpFx(payload){
   }
 
   fx.classList.add("active");
+};
+
+window.closeLevelUpFx = function closeLevelUpFx(){
+  const fx = q("#levelUpFx");
+  if(!fx) return;
+  fx.classList.remove("active");
+  const rangeEl = q("#levelUpRange");
+  if(rangeEl) rangeEl.textContent = "";
 };
 
 
