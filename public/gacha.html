@@ -14,41 +14,48 @@
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, "Noto Sans TC", sans-serif;
     }
     .wrap{
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  padding: 0;
-}
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 56px 20px 88px;
+    }
     h1{
-  position: fixed;
-  top: 14px;
-  left: 0;
-  right: 0;
-  margin: 0;
-  text-align: center;
-  font-size: 22px;
-  letter-spacing: 0.6px;
-  opacity: 0.90;
-  z-index: 20;
-  pointer-events: none;
-  text-shadow: 0 18px 40px rgba(0,0,0,0.65);
-}
 
-    .heroGrid{
-  display: grid;
-  grid-template-columns: 1fr 360px;
-  gap: 18px;
-  align-items: start;
-  min-height: 100vh;
-  padding: 0 18px 18px;
+      margin:0 0 18px;
+      font-size: 28px;
+      letter-spacing: 0.6px;
+      opacity: 0.92;
+      text-align:center;
+    }
+
+    
+.pageTitle{ display:none; }
+
+.featuredTitleOverlay{
+  position:absolute;
+  top:12px;
+  left:12px;
+  z-index:5;
+  font-weight: 900;
+  font-size: 16px;
+  letter-spacing: 0.3px;
+  text-shadow: 0 10px 30px rgba(0,0,0,0.85);
+  padding: 6px 10px;
+  border-radius: 12px;
+  background: rgba(0,0,0,0.28);
+  border: 1px solid rgba(255,255,255,0.14);
+  backdrop-filter: blur(8px);
+  pointer-events:none;
+  white-space: nowrap;
 }
+.heroGrid{
+      display:grid;
+      grid-template-columns: 1fr 340px;
+      gap: 18px;
+      align-items:start;
+    }
     @media (max-width: 940px){
-  .heroGrid{
-    grid-template-columns: 1fr;
-    padding: 0 14px 14px;
-  }
-  .rightPanel{ margin-left: 0; margin-top: 14px; }
-}
+      .heroGrid{ grid-template-columns: 1fr; }
+    }
     @media (min-width: 941px){
       /* 右側抽指定素材區塊往左疊到 video 上 */
       .heroGrid{ position: relative; }
@@ -77,195 +84,18 @@
     }
     .featureStage{
   width: 100%;
-  height: 100vh;
   max-width: none;
+  height: 100vh;
+  min-height: 100vh;
   border-radius: 0;
   background: transparent;
   border: none;
   box-shadow: none;
-  overflow: hidden;
-  position: relative;
-}
-
-
-/* Commercial hero video layers */
-.featureStage .bgVideo{
-  position:absolute;
-  inset:-3%;
-  width:106%;
-  height:106%;
-  object-fit: cover;
-  object-position: center 18%;
-  filter: blur(22px) brightness(0.62) saturate(1.25);
-  transform: scale(1.08);
-  z-index: 0;
-  pointer-events:none;
-}
-.featureStage .fgVideo{
-  position:absolute;
-  inset:0;
-  width:100%;
-  height:100%;
-  object-fit: cover;
-  object-position: center 18%;
-  z-index: 1;
-  pointer-events:none;
-}
-/* subtle film grain */
-.featureStage .grain{
-  position:absolute;
-  inset:0;
-  z-index:2;
-  pointer-events:none;
-  background: radial-gradient(ellipse at 30% 10%, rgba(255,255,255,0.10), transparent 55%),
-              radial-gradient(ellipse at 80% 20%, rgba(255,255,255,0.06), transparent 55%),
-              linear-gradient(180deg, rgba(0,0,0,0.45), rgba(0,0,0,0.15) 35%, rgba(0,0,0,0.60));
-  mix-blend-mode: normal;
-}
-
-/* Top-left small featured label */
-.featureBadge{
-  position:absolute;
-  top: 16px;
-  left: 18px;
-  z-index: 6;
-  font-weight: 900;
-  font-size: 14px;
-  letter-spacing: 0.4px;
-  padding: 8px 10px;
-  border-radius: 12px;
-  background: rgba(0,0,0,0.45);
-  border: 1px solid rgba(255,255,255,0.16);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 18px 50px rgba(0,0,0,0.35);
-}
-
-/* Top-right viral boost tag */
-.promoTag{
-  position:absolute;
-  top: 14px;
-  right: 14px;
-  z-index: 6;
-  padding: 10px 12px;
-  border-radius: 16px;
-  background: linear-gradient(135deg, rgba(255,168,0,0.95), rgba(255,72,72,0.92), rgba(255,0,180,0.85));
-  box-shadow: 0 22px 60px rgba(255,120,40,0.28), 0 12px 26px rgba(0,0,0,0.35);
-  border: 1px solid rgba(255,255,255,0.25);
-  overflow:hidden;
-}
-.promoTag:before{
-  content:"";
-  position:absolute;
-  top:-60%;
-  left:-60%;
-  width: 220%;
-  height: 220%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent);
-  transform: rotate(25deg);
-  animation: shine 2.8s linear infinite;
-  opacity: 0.55;
-}
-@keyframes shine{
-  0%{ transform: translateX(-35%) rotate(25deg); }
-  100%{ transform: translateX(35%) rotate(25deg); }
-}
-.promoBig{
-  position:relative;
-  z-index:1;
-  font-weight: 1000;
-  font-size: 18px;
-  letter-spacing: 0.4px;
-  text-shadow: 0 14px 40px rgba(0,0,0,0.35);
-  white-space: nowrap;
-}
-
-/* Bottom draw overlay */
-.gachaOverlay{
-  position:absolute;
-  left: 18px;
-  right: 18px;
-  bottom: 18px;
-  z-index: 7;
-  display:grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-@media (max-width: 940px){
-  .gachaOverlay{ grid-template-columns: 1fr; }
-  .featureStage{ height: 76vh; min-height: 520px; }
-}
-
-/* Draw cards */
-.gachaCard{
-  background: rgba(0,0,0,0.60);
-  border: 1px solid rgba(255,255,255,0.16);
-  border-radius: 20px;
-  padding: 12px 12px 10px;
-  backdrop-filter: blur(12px);
-  box-shadow: 0 18px 70px rgba(0,0,0,0.38);
-}
-.gachaHead{
   display:flex;
-  align-items:baseline;
-  justify-content:space-between;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-.gachaName{ font-weight: 950; font-size: 16px; letter-spacing: 0.2px; }
-.gachaDesc{ opacity: 0.85; font-weight: 850; font-size: 12px; white-space: nowrap; }
-.drawRow{ display:flex; gap: 10px; align-items:flex-start; justify-content: space-between; }
-.drawCol{ flex: 1; display:flex; flex-direction: column; align-items:center; gap: 4px; }
-.btn.small{ padding: 9px 12px; border-radius: 12px; font-size: 14px; min-width: 92px; }
-.cost{ font-size: 12px; opacity: 0.92; font-weight: 850; letter-spacing: 0.2px; }
-.guarantee{ font-size: 12px; opacity: 0.88; font-weight: 850; }
-.pity{ margin-top: 8px; font-size: 12px; opacity: 0.92; font-weight: 900; text-align:center; }
-
-/* Right panel overlap */
-@media (min-width: 941px){
-  .rightPanel{
-    margin-left: -160px;
-    margin-top: 82px;
-    z-index: 10;
-    position: relative;
-  }
-}
-
-/* Shop teaser */
-.shopTeaser{
-  background: linear-gradient(135deg, rgba(0,0,0,0.65), rgba(0,0,0,0.35));
-  border: 1px solid rgba(255,255,255,0.16);
-  border-radius: 18px;
-  padding: 12px;
-  backdrop-filter: blur(12px);
-  box-shadow: 0 18px 70px rgba(0,0,0,0.38);
-  margin-bottom: 12px;
-  position: relative;
-  overflow:hidden;
-}
-.shopTeaser:before{
-  content:"";
-  position:absolute;
-  inset:-30%;
-  background: radial-gradient(circle at 30% 30%, rgba(255,168,0,0.18), transparent 55%),
-              radial-gradient(circle at 80% 20%, rgba(0,200,255,0.16), transparent 55%),
-              radial-gradient(circle at 60% 80%, rgba(255,0,180,0.14), transparent 55%);
-}
-.shopTeaserInner{ position:relative; z-index:1; display:flex; gap: 10px; align-items:center; justify-content:space-between; }
-.shopTitle{ font-weight: 1000; font-size: 14px; letter-spacing: 0.3px; }
-.shopSub{ font-weight: 850; font-size: 12px; opacity: 0.88; margin-top: 2px; }
-.shopBtn{
-  display:inline-flex;
   align-items:center;
-  gap: 8px;
-  padding: 10px 12px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, rgba(255,168,0,0.95), rgba(0,200,255,0.85));
-  color: #0b0f14;
-  font-weight: 1000;
-  text-decoration:none;
-  box-shadow: 0 18px 50px rgba(0,0,0,0.35);
-  border: 1px solid rgba(255,255,255,0.22);
-  white-space: nowrap;
+  justify-content:center;
+  overflow:hidden;
+  position:relative;
 }
 /* 背景鋪滿的模糊層 讓 video 像本頁背景一樣 */
 .featureStage .bgVideo{
@@ -297,38 +127,47 @@
       50%{ transform: translateY(-10px) scale(1.01); }
       100%{ transform: translateY(0) scale(1); }
     }
-    
-
-    
-
-.promoTag{
+    .promoTag{
   position:absolute;
-  top:14px;
-  right:14px;
-  z-index:3;
-  padding:10px 12px;
-  border-radius: 14px;
-  background: rgba(0,0,0,0.55);
-  border: 1px solid rgba(255,255,255,0.18);
-  backdrop-filter: blur(10px);
+  top:16px;
+  right:16px;
+  z-index:6;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255,255,255,0.18), transparent 55%),
+    linear-gradient(135deg, rgba(255,179,71,0.92), rgba(255,97,97,0.88));
+  box-shadow:
+    0 18px 55px rgba(0,0,0,0.45),
+    0 0 0 1px rgba(255,255,255,0.22) inset,
+    0 0 40px rgba(255,179,71,0.35);
+  overflow:hidden;
   text-align:right;
   pointer-events:none;
 }
+.promoTag:before{
+  content:"";
+  position:absolute;
+  inset:-40%;
+  background: linear-gradient(120deg, transparent 35%, rgba(255,255,255,0.40) 50%, transparent 65%);
+  transform: rotate(20deg);
+  animation: shine 2.2s linear infinite;
+  opacity: 0.55;
+}
+@keyframes shine{
+  0%{ transform: translateX(-35%) rotate(20deg); }
+  100%{ transform: translateX(35%) rotate(20deg); }
+}
 .promoBig{
-  font-weight: 950;
+  position:relative;
+  z-index:1;
+  font-weight: 1000;
   font-size: 18px;
   letter-spacing: 0.4px;
-  text-shadow: 0 10px 30px rgba(0,0,0,0.75);
+  color: #141414;
+  text-shadow: 0 10px 26px rgba(0,0,0,0.35);
   white-space: nowrap;
 }
-.promoBoom{
-  margin-top: 2px;
-  font-weight: 1000;
-  font-size: 28px;
-  letter-spacing: 2px;
-  text-shadow: 0 14px 38px rgba(0,0,0,0.85);
-}
-
 .gachaOverlay{
   position:absolute;
   left:14px;
@@ -421,7 +260,40 @@
       box-shadow: 0 18px 60px rgba(0,0,0,0.35);
       padding: 12px 12px 12px;
     }
-    .sideCard .title{
+    .shopCta{
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255,198,106,0.18), transparent 55%),
+    radial-gradient(circle at 80% 60%, rgba(121,215,255,0.16), transparent 55%),
+    rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.14);
+}
+.shopCtaBody{
+  display:flex;
+  flex-direction:column;
+  gap: 10px;
+}
+.shopLine{
+  font-size: 13px;
+  opacity: 0.92;
+  font-weight: 850;
+  line-height: 1.35;
+}
+.shopBtn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width: 100%;
+  border-radius: 999px;
+  padding: 12px 14px;
+  font-weight: 1000;
+  letter-spacing: 0.4px;
+  text-decoration:none;
+  color:#111;
+  background: linear-gradient(135deg, #ffde88, #caa54a);
+  box-shadow: 0 18px 45px rgba(0,0,0,0.35);
+}
+.shopBtn:hover{ filter: brightness(1.05); }
+.sideCard .title{
       font-weight: 900;
       letter-spacing: 0.3px;
       opacity: 0.95;
@@ -1433,29 +1305,75 @@
       <div>
         <div class="featured">
           <div class="featureStage">
-  <div class="featureBadge">本期 Featured 角色</div>
-  <div class="promoTag" aria-hidden="true">
-    <div class="promoBig">素材獲得機率+300%</div>
-  </div>
+            <div class="featuredTitleOverlay">本期 Featured 角色</div>
+            <div class="promoTag" aria-hidden="true">
+              <div class="promoBig">素材獲得機率+300%</div>
+</div>
 
-  <video id="featuredVideoBg" class="bgVideo" muted autoplay loop playsinline></video>
-  <video id="featuredVideo" class="fgVideo" muted autoplay loop playsinline></video>
+            <video id="featuredVideoBg" class="bgVideo" muted autoplay loop playsinline></video>
+            <video id="featuredVideo" class="fgVideo" muted autoplay loop playsinline></video>
+            <img id="featuredFallbackBg" class="bgVideo" src="/assets/feature_character.png" alt="" style="display:none;">
+            <img id="featuredFallback" src="/assets/feature_character.png" alt="" style="display:none; position:absolute; inset:0; width:100%; height:100%; object-fit:contain; z-index:1;">
 
-  <img id="featuredFallbackBg" class="bgVideo" src="/assets/feature_character.png" alt="" style="display:none;">
-  <img id="featuredFallback" src="/assets/feature_character.png" alt="" style="display:none; position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center 18%; z-index:1;">
-
-  <div class="grain" aria-hidden="true"></div>
-
-  <div class="gachaOverlay">
+            <div class="gachaOverlay">
               <div class="gachaCard">
                 <div class="gachaHead">
                   <div class="gachaName">普通抽卡</div>
-</div>
+                  <div class="gachaDesc">單次 或 10 連抽</div>
+                </div>
+
+                <div class="drawRow">
+                  <div class="drawCol">
+                    <button class="btn orange small" id="btnNormal1">1次</button>
+                    <div class="cost">cost 100gold</div>
+                  </div>
+                  <div class="drawCol">
+                    <button class="btn orange small" id="btnNormal10">10次</button>
+                    <div class="cost">cost 1000gold</div>
+                    <div class="guarantee">必出SR以上</div>
+                  </div>
+                </div>
+
+                <div class="pity" id="pityNormal">再抽200次 必出SSR</div>
+              </div>
+
+              <div class="gachaCard">
+                <div class="gachaHead">
+                  <div class="gachaName">高級抽卡</div>
+                  <div class="gachaDesc">單次 或 10 連抽</div>
+                </div>
+
+                <div class="drawRow">
+                  <div class="drawCol">
+                    <button class="btn blue small" id="btnPremium1">1次</button>
+                    <div class="cost">cost 10gem</div>
+                  </div>
+                  <div class="drawCol">
+                    <button class="btn blue small" id="btnPremium10">10次</button>
+                    <div class="cost">cost 100gem</div>
+                    <div class="guarantee">必出SSR以上</div>
+                  </div>
+                </div>
+
+                <div class="pity" id="pityPremium">再抽200次 必出UR</div>
+              </div>
+            </div>
+          </div>
         </div>
 
       </div>
 
       <div class="side">
+<div class="sideCard shopCta">
+  <div class="title">
+    <span>想抽更爽</span>
+    <span style="opacity:0.8;font-weight:900">去充值</span>
+  </div>
+  <div class="shopCtaBody">
+    <div class="shopLine">補充 <b>Gold</b> 與 <b>Gem</b> 立刻提升抽卡體驗</div>
+    <a class="shopBtn" href="shop.html">前往 Shop</a>
+  </div>
+</div>
         <div class="sideCard">
           <div class="title"><span>抽角色</span><span style="opacity:0.7;font-weight:800">head</span></div>
           <div class="miniRow">
@@ -2761,7 +2679,6 @@ function renderGridDecoys(list){
       }
     }
     loadFeaturedVideo();
-    if (window.loadPityStatus) window.loadPityStatus();
     loadPityStatus();
 
     btnNormal1.addEventListener("click", () => startGacha({ count: 1, premium: false }));
