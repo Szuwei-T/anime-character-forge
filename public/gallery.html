@@ -184,7 +184,23 @@
   const mSub = document.getElementById("mSub");
   const mThumb = document.getElementById("mThumb");
 
-  let uid = (localStorage.getItem("uid") || localStorage.getItem("userId") || localStorage.getItem("userid") || "").trim();
+    const WORKER_BASE =
+    (location.hostname === "127.0.0.1" || location.hostname === "localhost")
+      ? ""
+      : "https://acf-api.dream-league-baseball.workers.dev";
+
+  function getOrCreateUid(){
+    const k = "acf_uid";
+    let id = localStorage.getItem(k);
+    if(!id){
+      id = crypto.randomUUID();
+      localStorage.setItem(k, id);
+    }
+    return id;
+  }
+
+  let uid = (localStorage.getItem("acf_uid") || localStorage.getItem("uid") || localStorage.getItem("userId") || localStorage.getItem("userid") || "").trim();
+  if(!uid) uid = getOrCreateUid();
   // allow overriding via ?uid=
   try{ const u = new URL(location.href).searchParams.get("uid"); if(u) uid = String(u).trim(); }catch(_){ }
   let userVote = 0;
@@ -231,18 +247,30 @@
 
   async function api(url, opts){
     const o = opts || {};
-    const headers = Object.assign({}, o.headers || {}, { "content-type":"application/json" });
+    const headers = Object.assign({}, o.headers || {});
     if(uid) headers["x-user-id"] = uid;
-    const res = await fetch(url, Object.assign({}, o, {
+
+    const hasBody = o.body !== undefined && o.body !== null;
+    // Only set JSON header when we actually send JSON
+    if(hasBody) headers["content-type"] = "application/json";
+
+    const fullUrl = (WORKER_BASE || "") + url;
+
+    const res = await fetch(fullUrl, Object.assign({}, o, {
       headers,
-      body: o.body ? JSON.stringify(o.body) : undefined
+      cache: "no-store",
+      body: hasBody ? JSON.stringify(o.body) : undefined
     }));
+
     const text = await res.text();
     let data;
-    try{ data = JSON.parse(text); }catch(e){ data = { ok:false, error:text || ("HTTP " + res.status) }; }
+    try{ data = JSON.parse(text); }
+    catch(e){ data = { ok:false, error:text || ("HTTP " + res.status) }; }
+
     if(!res.ok || data.ok === false) throw data;
     return data;
   }
+
 
   function makeStackThumb(container, layers){
     container.innerHTML = "";
