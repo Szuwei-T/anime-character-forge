@@ -215,7 +215,17 @@
     .recAuthorName{font-size:12px;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
     .recTitleLine{font-weight:700;font-size:13px;line-height:1.2;opacity:.95;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   
-  </style>
+  
+
+    /* ===== Rankings ===== */
+    .authorGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+    .authorCard{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 12px;border-radius:18px;background:var(--card);border:1px solid var(--bd);cursor:pointer;transition:.15s}
+    .authorCard:hover{background:rgba(255,255,255,.08)}
+    .authorLeft{display:flex;align-items:center;gap:10px;min-width:0}
+    .authorAvBig{width:40px;height:40px;border-radius:14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);overflow:hidden;display:grid;place-items:center;font-size:12px;flex:0 0 40px}
+    .authorNameBig{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;opacity:.95}
+    .authorSub{font-size:12px;opacity:.68;white-space:nowrap}
+</style>
 </head>
 <body>
   <div class="wrap">
@@ -269,6 +279,33 @@
       <div class="recGrid" id="recGrid"></div>
     </div>
 
+
+    <div class="recWrap" id="favRankWrap">
+      <div class="recTitle">
+        <div class="h">💖 收藏榜</div>
+        <div class="sub">不限賽季 · 依被收藏數排序</div>
+      </div>
+      <div class="recGrid" id="favRankGrid"></div>
+    </div>
+
+    <div class="recWrap" id="newRankWrap">
+      <div class="recTitle">
+        <div class="h">🆕 新人榜</div>
+        <div class="sub">註冊 1 個月內 · 依被收藏數排序</div>
+      </div>
+      <div class="recGrid" id="newRankGrid"></div>
+    </div>
+
+    <div class="recWrap" id="authorRankWrap">
+      <div class="recTitle">
+        <div class="h">👑 熱門作者榜</div>
+        <div class="sub">不限賽季 · 依被關注數排序</div>
+      </div>
+      <div class="authorGrid" id="authorRankGrid"></div>
+    </div>
+
+
+
     <div class="entries" id="grid"></div>
   </div>
 
@@ -294,6 +331,12 @@
   const grid = document.getElementById("grid");
   const recWrap = document.getElementById("recWrap");
   const recGrid = document.getElementById("recGrid");
+  const favRankWrap = document.getElementById("favRankWrap");
+  const favRankGrid = document.getElementById("favRankGrid");
+  const newRankWrap = document.getElementById("newRankWrap");
+  const newRankGrid = document.getElementById("newRankGrid");
+  const authorRankWrap = document.getElementById("authorRankWrap");
+  const authorRankGrid = document.getElementById("authorRankGrid");
   const podiumGrid = document.getElementById("podiumGrid");
   const errorBox = document.getElementById("errorBox");
   const statusLine = document.getElementById("statusLine");
@@ -1051,12 +1094,177 @@ function showError(msg){
     });
   }
 
+
+  function clearRankings(){
+    if(favRankGrid) favRankGrid.innerHTML = "";
+    if(newRankGrid) newRankGrid.innerHTML = "";
+    if(authorRankGrid) authorRankGrid.innerHTML = "";
+    if(favRankWrap) favRankWrap.style.display = "none";
+    if(newRankWrap) newRankWrap.style.display = "none";
+    if(authorRankWrap) authorRankWrap.style.display = "none";
+  }
+
+  function renderRankShowcaseGrid(wrapEl, gridEl, items, badgeTextFn){
+    if(!wrapEl || !gridEl) return;
+    gridEl.innerHTML = "";
+    const list = (items||[]).filter(x => Number(x.favorites||0) > 0);
+    if(list.length === 0){
+      wrapEl.style.display = "none";
+      return;
+    }
+    wrapEl.style.display = "block";
+
+    list.forEach((s)=>{
+      const card = document.createElement("div");
+      card.className = "recCard";
+
+      const th = document.createElement("div");
+      th.className = "recThumb";
+      makeStackThumb(th, [
+        { url: s.bgUrl, z:10 },
+        { url: s.addon2Url, z:20 },
+        { url: s.headUrl, z:30 },
+        { url: s.bodyUrl, z:40 },
+        { url: s.addon1Url, z:50 },
+      ]);
+
+      const meta = document.createElement("div");
+      meta.className = "recMeta";
+
+      const topRow = document.createElement("div");
+      topRow.className = "recMetaTop";
+
+      const author = document.createElement("div");
+      author.className = "recAuthor";
+      const authorName = String(s.authorName || s.userName || s.userId || "").trim() || "Player";
+
+      const av = document.createElement("div");
+      av.className = "recAuthorAv";
+      renderAvatarInto(av, s, authorName);
+
+      const nm = document.createElement("div");
+      nm.className = "recAuthorName";
+      nm.textContent = authorName;
+
+      author.appendChild(av);
+      author.appendChild(nm);
+      author.onclick = (e)=>{ e.stopPropagation(); gotoUserProfile(s.userId); };
+
+      const b = document.createElement("div");
+      b.className = "recBadge";
+      b.textContent = badgeTextFn ? badgeTextFn(s) : ("收藏 " + String(Number(s.favorites||0)));
+
+      topRow.appendChild(author);
+      topRow.appendChild(b);
+
+      const t = document.createElement("div");
+      t.className = "recTitleLine";
+      t.textContent = (s.title && String(s.title).trim()) ? String(s.title).trim() : "未命名作品";
+
+      meta.appendChild(topRow);
+      meta.appendChild(t);
+
+      card.appendChild(th);
+      card.appendChild(meta);
+
+      card.onclick = ()=>{
+        openModal(t.textContent, "收藏 " + String(Number(s.favorites||0)) + " · 票數 " + String(Number(s.votes||0)) + (Number(s.recommends||0) ? (" · 推薦 " + String(Number(s.recommends||0))) : "") + " · " + fmtTime(s.createdAt), [
+          { url: s.bgUrl, z:10 },
+          { url: s.addon2Url, z:20 },
+          { url: s.headUrl, z:30 },
+          { url: s.bodyUrl, z:40 },
+          { url: s.addon1Url, z:50 },
+        ]);
+      };
+
+      gridEl.appendChild(card);
+    });
+  }
+
+  function renderAuthorRank(items){
+    if(!authorRankWrap || !authorRankGrid) return;
+    authorRankGrid.innerHTML = "";
+    const list = (items||[]).filter(x => Number(x.followers||0) > 0);
+    if(list.length === 0){
+      authorRankWrap.style.display = "none";
+      return;
+    }
+    authorRankWrap.style.display = "block";
+
+    list.forEach((a, idx)=>{
+      const card = document.createElement("div");
+      card.className = "authorCard";
+
+      const left = document.createElement("div");
+      left.className = "authorLeft";
+
+      const av = document.createElement("div");
+      av.className = "authorAvBig";
+      // Reuse avatar renderer with a compatible object shape
+      const fakeShow = {
+        authorAvatarBgId: a.authorAvatarBgId,
+        authorAvatarAddon2Id: a.authorAvatarAddon2Id,
+        authorAvatarHeadId: a.authorAvatarHeadId,
+        authorAvatarBodyId: a.authorAvatarBodyId,
+        authorAvatarAddon1Id: a.authorAvatarAddon1Id,
+      };
+      renderAvatarInto(av, fakeShow, a.userName || a.userId || "Player");
+
+      const txt = document.createElement("div");
+      txt.style.minWidth = "0";
+
+      const nm = document.createElement("div");
+      nm.className = "authorNameBig";
+      nm.textContent = String(a.userName || "Player");
+
+      const sub = document.createElement("div");
+      sub.className = "authorSub";
+      sub.textContent = "關注 " + String(Number(a.followers||0)) + " · Lv." + String(Number(a.level||1));
+
+      txt.appendChild(nm);
+      txt.appendChild(sub);
+
+      left.appendChild(av);
+      left.appendChild(txt);
+
+      const right = document.createElement("div");
+      right.className = "pill2";
+      right.textContent = "#" + String(idx + 1);
+
+      card.appendChild(left);
+      card.appendChild(right);
+
+      card.onclick = ()=> gotoUserProfile(a.userId);
+
+      authorRankGrid.appendChild(card);
+    });
+  }
+
+  async function loadRankings(){
+    clearRankings();
+    try{
+      const [favRes, newRes, authRes] = await Promise.all([
+        api("/api/rank/favorites?limit=24", { method:"GET" }),
+        api("/api/rank/newcomers?limit=24", { method:"GET" }),
+        api("/api/rank/authors?limit=30", { method:"GET" }),
+      ]);
+
+      if(favRes && favRes.ok) renderRankShowcaseGrid(favRankWrap, favRankGrid, favRes.items || [], (s)=>"收藏 " + String(Number(s.favorites||0)));
+      if(newRes && newRes.ok) renderRankShowcaseGrid(newRankWrap, newRankGrid, newRes.items || [], (s)=>"新人 · 收藏 " + String(Number(s.favorites||0)));
+      if(authRes && authRes.ok) renderAuthorRank(authRes.items || []);
+    }catch(e){
+      // rankings are optional; ignore failures
+      clearRankings();
+    }
+  }
+
   async function load(){
     clearError();
     statusLine.textContent = "讀取中";
     try{
       await loadMe();
       await loadFavorites();
+      await loadRankings();
 
       const seasonId = String(seasonSel.value||"").trim();
       const qs = seasonId ? ("?seasonId=" + encodeURIComponent(seasonId)) : "";
