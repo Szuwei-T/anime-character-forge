@@ -31,6 +31,23 @@
     .btnRow{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
     .pill{padding:10px 14px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);color:var(--txt);cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:8px}
     .pill:hover{background:rgba(255,255,255,.10)}
+    
+    .master{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:10px 0 14px;padding:10px 12px;border-radius:18px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12)}
+    .masterLeft{display:flex;align-items:center;gap:12px;min-width:0}
+    .masterAvatar{width:46px;height:46px;border-radius:14px;background:rgba(0,0,0,.20);border:1px solid rgba(255,255,255,.14);overflow:hidden;position:relative;flex:0 0 46px;display:grid;place-items:center}
+    .masterName{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}
+    .masterSub{font-size:12px;opacity:.65;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}
+    .masterStats{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+    .statPill{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);font-size:12px;opacity:.92;white-space:nowrap}
+    .statPill strong{opacity:.95}
+
+    .podiumGrid{align-items:end}
+    .rankBadge{position:absolute;left:10px;top:10px;padding:6px 10px;border-radius:999px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.18);font-size:12px;backdrop-filter: blur(4px)}
+    .podiumCard{transform-origin:bottom center}
+    .podiumCard.rank1{grid-column:2;transform:scale(1);border:2px solid rgba(255,205,60,.75);box-shadow:0 0 0 1px rgba(255,205,60,.18), 0 16px 40px rgba(0,0,0,.25)}
+    .podiumCard.rank2{grid-column:1;transform:scale(.90);border:2px solid rgba(210,215,225,.70);box-shadow:0 0 0 1px rgba(210,215,225,.16), 0 14px 34px rgba(0,0,0,.22)}
+    .podiumCard.rank3{grid-column:3;transform:scale(.80);border:2px solid rgba(205,140,85,.75);box-shadow:0 0 0 1px rgba(205,140,85,.16), 0 12px 28px rgba(0,0,0,.20)}
+
     .toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:12px 0 14px}
     .seg{display:flex;gap:8px;flex-wrap:wrap}
     select,button{font:inherit}
@@ -119,6 +136,18 @@
       </div>
     </div>
 
+
+    <div class="master" id="masterBox" style="display:none">
+      <div class="masterLeft">
+        <div class="masterAvatar" id="masterAvatar"></div>
+        <div class="masterTxt">
+          <div class="masterName" id="masterName">Player</div>
+          <div class="masterSub" id="masterSub"></div>
+        </div>
+      </div>
+      <div class="masterStats" id="masterStats"></div>
+    </div>
+
     <div class="toolbar">
       <div class="seg">
         <select id="sortSel" class="select">
@@ -177,6 +206,12 @@
   const sortSel = document.getElementById("sortSel");
   const seasonSel = document.getElementById("seasonSel");
   const toast = document.getElementById("toast");
+
+  const masterBox = document.getElementById("masterBox");
+  const masterAvatar = document.getElementById("masterAvatar");
+  const masterName = document.getElementById("masterName");
+  const masterSub = document.getElementById("masterSub");
+  const masterStats = document.getElementById("masterStats");
 
   const modal = document.getElementById("modal");
   const mClose = document.getElementById("mClose");
@@ -286,6 +321,51 @@
     container.appendChild(wrap);
   }
 
+
+  function renderMaster(me){
+    if(!masterBox) return;
+    if(!me || !me.account){
+      masterBox.style.display = "none";
+      return;
+    }
+    const acc = me.account || {};
+    const st = me.stats || {};
+    masterBox.style.display = "flex";
+
+    masterName.textContent = String(acc.userName || "Player");
+    masterSub.textContent = "Lv " + String(Number(acc.level || 1)) + (acc.userRegion ? (" · " + String(acc.userRegion)) : "");
+
+    // avatar
+    masterAvatar.innerHTML = "";
+    if(me.avatarSave){
+      makeStackThumb(masterAvatar, [
+        { url: me.avatarSave.bgId ? ("/assets/" + me.avatarSave.bgId + ".png") : "", z:10 },
+        { url: me.avatarSave.addon2Id ? ("/assets/" + me.avatarSave.addon2Id + ".png") : "", z:20 },
+        { url: me.avatarSave.headId ? ("/assets/" + me.avatarSave.headId + ".png") : "", z:30 },
+        { url: me.avatarSave.bodyId ? ("/assets/" + me.avatarSave.bodyId + ".png") : "", z:40 },
+        { url: me.avatarSave.addon1Id ? ("/assets/" + me.avatarSave.addon1Id + ".png") : "", z:50 },
+      ]);
+    }else{
+      const d = document.createElement("div");
+      d.style.fontSize = "12px";
+      d.style.opacity = ".9";
+      d.textContent = initials(acc.userName || "Player");
+      masterAvatar.appendChild(d);
+    }
+
+    const pills = [];
+    const add = (k,v)=> pills.push('<div class="statPill"><strong>' + k + '</strong> ' + String(v) + '</div>');
+    add("Gold", Number(acc.userGold||0));
+    add("GEM", Number(acc.userGem||0));
+    add("票", Number(acc.userVote||0));
+    add("Like", Number(st.likes||0));
+    add("成品", Number(st.saves||0));
+    add("Follower", Number(st.followers||0));
+    add("收藏", Number(st.collectionsUnlocked||0));
+
+    masterStats.innerHTML = pills.join("");
+  }
+
   function openModal(title, sub, layers){
     mTitle.textContent = title;
     mSub.textContent = sub || "";
@@ -300,11 +380,15 @@
   async function loadMe(){
     try{
       const me = await api("/api/me/account", { method:"GET" });
-      userVote = Number(me.userVote || 0);
-      userGem = Number(me.userGem || 0);
+      const acc = me.account || {};
+      const st = me.stats || {};
+      userVote = Number(acc.userVote || 0);
+      userGem = Number(acc.userGem || 0);
+      renderMaster(me);
     }catch(e){
       userVote = 0;
       userGem = 0;
+      renderMaster(null);
     }
   }
 
@@ -675,7 +759,7 @@ if(!seasonOptionsLoaded){
         items.sort((a,b)=> Number(b.createdAt||0) - Number(a.createdAt||0));
       }
 
-      statusLine.textContent = "共 " + String(items.length) + " 個作品 · 票 " + String(userVote) + " · GEM " + String(userGem) + (uid ? "" : " · 未登入");
+      statusLine.textContent = "共 " + String(items.length) + " 個作品";
 
       // podium from current filtered items
       const podium = items.slice().sort((a,b)=> Number(b.votes||0) - Number(a.votes||0)).slice(0,3);
