@@ -45,8 +45,8 @@
     .rankBadge{position:absolute;left:10px;top:10px;padding:6px 10px;border-radius:999px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.18);font-size:12px;backdrop-filter: blur(4px)}
     .podiumCard{transform-origin:bottom center}
     .podiumCard.rank1{grid-column:2;transform:scale(1);border:2px solid rgba(255,205,60,.75);box-shadow:0 0 0 1px rgba(255,205,60,.18), 0 16px 40px rgba(0,0,0,.25)}
-    .podiumCard.rank2{grid-column:1;transform:scale(1);border:2px solid rgba(210,215,225,.70);box-shadow:0 0 0 1px rgba(210,215,225,.16), 0 14px 34px rgba(0,0,0,.22)}
-    .podiumCard.rank3{grid-column:3;transform:scale(1);border:2px solid rgba(205,140,85,.75);box-shadow:0 0 0 1px rgba(205,140,85,.16), 0 12px 28px rgba(0,0,0,.20)}
+    .podiumCard.rank2{grid-column:1;transform:scale(.90);border:2px solid rgba(210,215,225,.70);box-shadow:0 0 0 1px rgba(210,215,225,.16), 0 14px 34px rgba(0,0,0,.22)}
+    .podiumCard.rank3{grid-column:3;transform:scale(.80);border:2px solid rgba(205,140,85,.75);box-shadow:0 0 0 1px rgba(205,140,85,.16), 0 12px 28px rgba(0,0,0,.20)}
 
     .toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:12px 0 14px}
     .seg{display:flex;gap:8px;flex-wrap:wrap}
@@ -58,8 +58,8 @@
     .podiumGrid{display:flex;justify-content:center;align-items:flex-end;gap:14px}
     .podiumCard{border-radius:18px;overflow:hidden;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);cursor:pointer;transform-origin:center bottom}
     .podiumCard.rank1{transform:scale(1)}
-    .podiumCard.rank2{transform:scale(1)}
-    .podiumCard.rank3{transform:scale(1)}
+    .podiumCard.rank2{transform:scale(.9)}
+    .podiumCard.rank3{transform:scale(.8)}
     .podThumb{aspect-ratio:3/4;background:rgba(0,0,0,.16);position:relative}
     .podTop{position:absolute;left:10px;right:10px;top:10px;display:flex;flex-direction:column;gap:6px;z-index:80}
     .podTopRow{display:flex;align-items:center;justify-content:space-between;gap:10px}
@@ -76,11 +76,11 @@
     .recTitle{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:6px 0 10px}
     .recTitle .h{font-size:14px;opacity:.92}
     .recTitle .sub{font-size:12px;opacity:.68}
-    .recGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
-    .recCard{border-radius:18px;overflow:hidden;background:var(--card);border:1px solid var(--bd);cursor:pointer;transition:.15s}
+    .recGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
+    .recCard{display:flex;align-items:stretch;gap:0;border-radius:18px;overflow:hidden;background:var(--card);border:1px solid var(--bd);cursor:pointer;transition:.15s}
     .recCard:hover{background:rgba(255,255,255,.08)}
-    .recThumb{aspect-ratio:3/4;background:rgba(0,0,0,.16);position:relative}
-    .recMeta{padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .recThumb{width:140px;flex:0 0 140px;aspect-ratio:3/4;background:rgba(0,0,0,.16);position:relative}
+    .recMeta{padding:10px 12px;display:flex;flex-direction:column;gap:8px;flex:1}
     .recBadge{padding:6px 10px;border-radius:999px;background:rgba(255,165,0,.10);border:1px solid rgba(255,165,0,.22);font-size:12px;white-space:nowrap}
 
     .entries{display:flex;flex-direction:column;gap:10px;margin-top:10px}
@@ -207,13 +207,13 @@
     }
 
     /* Recommended cards author */
-    .recMeta{flex-direction:column;align-items:stretch;gap:10px}
+    .recMeta{padding:10px 12px;display:flex;flex-direction:column;gap:8px;flex:1}
     .recMetaTop{display:flex;align-items:center;justify-content:space-between;gap:10px}
     .recAuthor{display:flex;align-items:center;gap:8px;min-width:0;cursor:pointer}
     .recAuthor:hover .recAuthorName{text-decoration:underline}
     .recAuthorAv{width:26px;height:26px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);overflow:hidden;display:grid;place-items:center;font-size:11px;flex:0 0 26px}
     .recAuthorName{font-size:12px;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
-    .recTitleLine{font-size:12px;opacity:.82;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .recTitleLine{font-weight:700;font-size:13px;line-height:1.2;opacity:.95;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   
   </style>
 </head>
@@ -790,8 +790,60 @@ function showError(msg){
         t.className = "recTitleLine";
         t.textContent = (s.title && String(s.title).trim()) ? String(s.title).trim() : "未命名作品";
 
+        const actions = document.createElement("div");
+        actions.className = "iconRow";
+
+        const voteBtn = document.createElement("button");
+        voteBtn.className = "iconBtn";
+        voteBtn.type = "button";
+        voteBtn.innerHTML = ICON_VOTE + "<span>投票</span>";
+        if((!uid) || userVote <= 0) voteBtn.style.opacity = ".6";
+        voteBtn.onclick = async (e)=>{
+          e.stopPropagation();
+          clearError();
+          if(!uid){
+            showToast("請先登入");
+            return showError("請先登入");
+          }
+          if(userVote <= 0){
+            showToast("票數已投滿");
+            return showError("票數已投滿");
+          }
+          const done = setBtnBusy(voteBtn, "投票中");
+          showToast("投票中");
+          try{
+            await vote(String(s.showcaseId || s.id || ""));
+          }finally{
+            done();
+          }
+          await load();
+        };
+
+        const favBtn = document.createElement("button");
+        favBtn.className = "iconBtn";
+        favBtn.type = "button";
+        const sid2 = String(s.showcaseId || s.id || "");
+        const isFav2 = favoriteSet.has(sid2);
+        if(isFav2) favBtn.classList.add("on");
+        favBtn.innerHTML = ICON_HEART + "<span>" + (isFav2 ? "已收藏" : "收藏") + "</span>";
+        favBtn.onclick = async (e)=>{
+          e.stopPropagation();
+          clearError();
+          const done = setBtnBusy(favBtn, isFav2 ? "取消中" : "收藏中");
+          try{
+            await toggleFav(sid2);
+          }finally{
+            done();
+          }
+          await load();
+        };
+
+        actions.appendChild(voteBtn);
+        actions.appendChild(favBtn);
+
         meta.appendChild(topRow);
         meta.appendChild(t);
+        meta.appendChild(actions);
 
         card.appendChild(th);
         card.appendChild(meta);
