@@ -55,16 +55,73 @@
     .status{font-size:12px;color:var(--mut)}
     .error{margin:10px 0;padding:12px 14px;border-radius:14px;background:rgba(255,0,70,.10);border:1px solid rgba(255,0,70,.25);color:rgba(255,210,220,.95);display:none}
     .podiumWrap{margin:10px 0 12px}
-    .podiumGrid{display:flex;justify-content:center;align-items:flex-end;gap:14px}
-    .podiumCard{border-radius:18px;overflow:hidden;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);cursor:pointer;transform-origin:center bottom}
-    .podiumCard.rank1{transform:scale(1)}
-    .podiumCard.rank2{transform:scale(.9)}
-    .podiumCard.rank3{transform:scale(.8)}
-    .podThumb{aspect-ratio:3/4;background:rgba(0,0,0,.16);position:relative}
-    .podTop{position:absolute;left:10px;right:10px;top:10px;display:flex;flex-direction:column;gap:6px;z-index:80}
-    .podTopRow{display:flex;align-items:center;justify-content:space-between;gap:10px}
-    .rankBadge{padding:6px 10px;border-radius:999px;font-size:12px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(6px);white-space:nowrap}
-    .podTitle{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.95}
+    .podiumGrid{display:flex;justify-content:center;align-items:flex-end;gap:18px;flex-wrap:wrap}
+    .podiumItem{display:flex;flex-direction:column;align-items:center;gap:10px;transform-origin:center bottom}
+    .podiumItem.rank1{transform:scale(1.08)}
+    .podiumItem.rank2{transform:scale(.98)}
+    .podiumItem.rank3{transform:scale(.92)}
+    .podiumFrame{border-radius:22px;overflow:hidden;position:relative;background:rgba(255,255,255,.06);cursor:pointer}
+    .podiumFrame::before{content:"";position:absolute;inset:-2px;border-radius:24px;pointer-events:none}
+    .podiumFrame::after{content:"";position:absolute;inset:0;border-radius:22px;pointer-events:none}
+    .podiumFrame.rank1::before{background:linear-gradient(135deg, rgba(255,214,90,.95), rgba(255,140,0,.65), rgba(255,214,90,.95));filter:blur(.2px)}
+    .podiumFrame.rank2::before{background:linear-gradient(135deg, rgba(230,230,240,.95), rgba(170,170,190,.55), rgba(230,230,240,.95))}
+    .podiumFrame.rank3::before{background:linear-gradient(135deg, rgba(210,140,80,.95), rgba(140,90,60,.55), rgba(210,140,80,.95))}
+    .podiumFrameInner{position:relative;border-radius:20px;overflow:hidden;margin:2px;background:rgba(0,0,0,.14)}
+    .podThumb{width:260px;aspect-ratio:3/4;background:rgba(0,0,0,.10);position:relative}
+    .podiumItem.rank1 .podThumb{width:320px}
+    .podiumItem.rank2 .podThumb{width:285px}
+    .podiumItem.rank3 .podThumb{width:260px}
+
+    .podiumFrame.rank1::after{
+      background:
+        radial-gradient(180px 120px at 20% 10%, rgba(255,215,90,.35), transparent 70%),
+        radial-gradient(220px 160px at 80% 0%, rgba(255,120,0,.22), transparent 70%),
+        radial-gradient(180px 140px at 50% 85%, rgba(255,215,90,.18), transparent 70%);
+      mix-blend-mode:screen;
+      animation:podGlow 1.6s ease-in-out infinite;
+    }
+    @keyframes podGlow{
+      0%,100%{opacity:.55;filter:blur(0px)}
+      50%{opacity:.95;filter:blur(1px)}
+    }
+    .podiumFrame.rank1 .spark{
+      position:absolute;inset:0;pointer-events:none;z-index:90;
+      background:
+        radial-gradient(3px 3px at 18% 22%, rgba(255,255,255,.9), transparent 60%),
+        radial-gradient(2px 2px at 72% 18%, rgba(255,255,255,.75), transparent 60%),
+        radial-gradient(2px 2px at 86% 52%, rgba(255,255,255,.65), transparent 60%),
+        radial-gradient(2px 2px at 34% 70%, rgba(255,255,255,.7), transparent 60%),
+        radial-gradient(3px 3px at 58% 62%, rgba(255,255,255,.85), transparent 60%);
+      animation:sparkMove 2.2s linear infinite;
+      opacity:.8;
+    }
+    @keyframes sparkMove{
+      0%{transform:translateY(6px);opacity:.55}
+      50%{transform:translateY(-6px);opacity:.95}
+      100%{transform:translateY(6px);opacity:.55}
+    }
+
+    .podiumFrame.rank2::after{
+      background:linear-gradient(120deg, transparent 0%, rgba(255,255,255,.10) 40%, transparent 70%);
+      transform:translateX(-40%);
+      animation:podShine 2.4s ease-in-out infinite;
+      opacity:.55;
+    }
+    @keyframes podShine{
+      0%{transform:translateX(-60%)}
+      50%{transform:translateX(60%)}
+      100%{transform:translateX(60%)}
+    }
+
+    .podiumMeta{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+    .rankIcon{width:22px;height:22px;display:block;opacity:.95}
+    .rankText{font-size:12px;opacity:.85}
+    .voteText{font-size:12px;opacity:.70}
+    .authorLink{display:flex;align-items:center;gap:8px;text-decoration:none;color:inherit;max-width:260px}
+    .authorLink:hover{opacity:.95;text-decoration:underline}
+    .avMini{width:28px;height:28px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);display:grid;place-items:center;overflow:hidden;font-size:12px}
+    .avMini .layer img{object-fit:contain}
+    .authorName{font-size:12px;opacity:.88;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
     .podVotes{font-size:12px;opacity:.80;white-space:nowrap}
     .podiumCard.rank1{border-color:rgba(255,215,0,.55);box-shadow:0 0 0 1px rgba(255,215,0,.25), 0 18px 40px rgba(255,215,0,.10)}
     .podiumCard.rank2{border-color:rgba(210,210,210,.55);box-shadow:0 0 0 1px rgba(210,210,210,.22), 0 18px 40px rgba(210,210,210,.08)}
@@ -76,7 +133,7 @@
     .recTitle{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:6px 0 10px}
     .recTitle .h{font-size:14px;opacity:.92}
     .recTitle .sub{font-size:12px;opacity:.68}
-    .recGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+    .recGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
     .recCard{border-radius:18px;overflow:hidden;background:var(--card);border:1px solid var(--bd);cursor:pointer;transition:.15s}
     .recCard:hover{background:rgba(255,255,255,.08)}
     .recThumb{aspect-ratio:3/4;background:rgba(0,0,0,.16);position:relative}
@@ -504,9 +561,21 @@ function showError(msg){
       return;
     }
 
+    const ICON_CROWN = `<svg class="rankIcon" viewBox="0 0 24 24" fill="none"><path d="M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M6 18l-2-9 6 4 2-7 2 7 6-4-2 9" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M7 18v2h10v-2" stroke="currentColor" stroke-width="2"/></svg>`;
+    const ICON_MEDAL = `<svg class="rankIcon" viewBox="0 0 24 24" fill="none"><path d="M8 3h8l-2 5h-4l-2-5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12 21a6 6 0 1 0 0-12 6 6 0 0 0 0 12Z" stroke="currentColor" stroke-width="2"/><path d="M12 12v3l2 1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
+    const iconFor = (rank)=> rank === 1 ? ICON_CROWN : ICON_MEDAL;
+
+    const u = (id)=> id ? ("/assets/" + id + ".png") : "";
+
     ordered.forEach(({s, rank})=>{
-      const card = document.createElement("div");
-      card.className = "podiumCard rank" + String(rank);
+      const item = document.createElement("div");
+      item.className = "podiumItem rank" + String(rank);
+
+      const frame = document.createElement("div");
+      frame.className = "podiumFrame rank" + String(rank);
+
+      const inner = document.createElement("div");
+      inner.className = "podiumFrameInner";
 
       const th = document.createElement("div");
       th.className = "podThumb";
@@ -519,35 +588,68 @@ function showError(msg){
         { url: s.addon1Url, z:50 },
       ]);
 
-      const top = document.createElement("div");
-      top.className = "podTop";
+      inner.appendChild(th);
 
-      const row = document.createElement("div");
-      row.className = "podTopRow";
+      if(rank === 1){
+        const sp = document.createElement("div");
+        sp.className = "spark";
+        inner.appendChild(sp);
+      }
 
-      const badge = document.createElement("div");
-      badge.className = "rankBadge";
-      badge.textContent = "#" + String(rank);
+      frame.appendChild(inner);
+      item.appendChild(frame);
 
-      const votes = document.createElement("div");
-      votes.className = "podVotes";
-      votes.textContent = "票數 " + String(Number(s.votes || 0));
+      const meta = document.createElement("div");
+      meta.className = "podiumMeta";
 
-      row.appendChild(badge);
-      row.appendChild(votes);
+      const rankBox = document.createElement("div");
+      rankBox.style.display = "flex";
+      rankBox.style.alignItems = "center";
+      rankBox.style.gap = "8px";
+      rankBox.innerHTML = iconFor(rank) + `<div class="rankText">第 ${rank} 名</div>`;
 
-      const title = document.createElement("div");
-      title.className = "podTitle";
-      title.textContent = (s.title && String(s.title).trim()) ? String(s.title).trim() : "未命名作品";
+      const vote = document.createElement("div");
+      vote.className = "voteText";
+      vote.textContent = "票數 " + String(Number(s.votes || 0));
 
-      top.appendChild(row);
-      top.appendChild(title);
+      const authorLink = document.createElement("a");
+      authorLink.className = "authorLink";
+      authorLink.href = "/user?uid=" + encodeURIComponent(String(s.userId || ""));
+      authorLink.onclick = (e)=>{ e.stopPropagation(); };
 
-      th.appendChild(top);
-      card.appendChild(th);
+      const av = document.createElement("div");
+      av.className = "avMini";
 
-      card.onclick = ()=>{
-        openModal(title.textContent, "票數 " + String(Number(s.votes||0)) + " · " + fmtTime(s.createdAt), [
+      const authorName = String(s.authorName || "").trim();
+      const hasAvatar = !!(s.authorAvatarHeadId || s.authorAvatarBodyId || s.authorAvatarBgId || s.authorAvatarAddon1Id || s.authorAvatarAddon2Id);
+
+      if(hasAvatar){
+        makeStackThumb(av, [
+          { url: u(s.authorAvatarBgId), z:10 },
+          { url: u(s.authorAvatarAddon2Id), z:20 },
+          { url: u(s.authorAvatarHeadId), z:30 },
+          { url: u(s.authorAvatarBodyId), z:40 },
+          { url: u(s.authorAvatarAddon1Id), z:50 },
+        ]);
+      }else{
+        av.textContent = initials(authorName || String(s.userId || ""));
+      }
+
+      const nm = document.createElement("div");
+      nm.className = "authorName";
+      nm.textContent = authorName || String(s.userId || "").slice(0, 8);
+
+      authorLink.appendChild(av);
+      authorLink.appendChild(nm);
+
+      meta.appendChild(rankBox);
+      meta.appendChild(authorLink);
+      meta.appendChild(vote);
+
+      item.appendChild(meta);
+
+      frame.onclick = ()=>{
+        openModal("作品", "票數 " + String(Number(s.votes||0)) + " · " + fmtTime(s.createdAt), [
           { url: s.bgUrl, z:10 },
           { url: s.addon2Url, z:20 },
           { url: s.headUrl, z:30 },
@@ -556,7 +658,7 @@ function showError(msg){
         ]);
       };
 
-      podiumGrid.appendChild(card);
+      podiumGrid.appendChild(item);
     });
   }
 
