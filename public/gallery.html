@@ -134,6 +134,87 @@
     .podiumCard{width:240px;max-width:44vw}
     @media (max-width:640px){ .podiumCard{width:86vw;max-width:86vw} .podiumGrid{flex-direction:column;align-items:stretch} }
 
+  
+    /* ===== Podium v2 (meta outside + author link + effects) ===== */
+    .podiumGrid{gap:18px}
+    .podiumOuter{display:flex;flex-direction:column;gap:10px;align-items:stretch}
+    .podMetaTop{height:56px;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:0 2px}
+    .podLeft{display:flex;flex-direction:column;gap:6px;min-width:0}
+    .podRankLine{display:flex;align-items:center;gap:8px;min-width:0}
+    .rankIcon{width:22px;height:22px;display:grid;place-items:center;flex:0 0 22px}
+    .rankText{font-size:14px;font-weight:900;letter-spacing:.6px;white-space:nowrap}
+    .rankText.gold{color:rgba(255,215,0,.95)}
+    .rankText.silver{color:rgba(220,225,235,.92)}
+    .rankText.bronze{color:rgba(205,127,50,.95)}
+    .podVotesTop{font-size:12px;opacity:.78;white-space:nowrap;margin-top:2px}
+    .podAuthor{display:flex;align-items:center;gap:8px;min-width:0;cursor:pointer}
+    .podAuthor:hover .podAuthorName{text-decoration:underline}
+    .podAuthorAv{width:28px;height:28px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);overflow:hidden;display:grid;place-items:center;font-size:11px;flex:0 0 28px}
+    .podAuthorName{font-size:12px;opacity:.92;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px}
+    .podiumCard{width:auto;overflow:hidden}
+    .podiumOuter.rank1{width:320px}
+    .podiumOuter.rank2{width:290px}
+    .podiumOuter.rank3{width:260px}
+    @media (max-width:640px){
+      .podiumOuter.rank1,.podiumOuter.rank2,.podiumOuter.rank3{width:86vw}
+      .podMetaTop{height:auto}
+    }
+
+    /* Remove old in-thumb overlays for podium */
+    .podTop{display:none!important}
+
+    /* Rank effects */
+    .podiumCard.rank1 .podThumb::before{
+      content:"";
+      position:absolute;inset:-40%;
+      background:linear-gradient(115deg, transparent 35%, rgba(255,215,0,.35) 45%, rgba(255,255,255,.25) 50%, rgba(255,215,0,.35) 55%, transparent 65%);
+      transform:translateX(-30%) rotate(8deg);
+      animation:podShine 2.6s linear infinite;
+      pointer-events:none;
+      mix-blend-mode:screen;
+      opacity:.9;
+    }
+    .podiumCard.rank1 .podThumb::after{
+      content:"";
+      position:absolute;inset:0;
+      background:
+        radial-gradient(10px 10px at 18% 22%, rgba(255,215,0,.55), transparent 60%),
+        radial-gradient(12px 12px at 76% 30%, rgba(255,255,255,.35), transparent 62%),
+        radial-gradient(9px 9px at 62% 72%, rgba(255,215,0,.45), transparent 60%),
+        radial-gradient(8px 8px at 30% 78%, rgba(255,255,255,.28), transparent 60%);
+      animation:podSparkle 1.8s ease-in-out infinite;
+      pointer-events:none;
+      mix-blend-mode:screen;
+      opacity:.65;
+    }
+    @keyframes podShine{
+      0%{transform:translateX(-45%) rotate(8deg)}
+      100%{transform:translateX(45%) rotate(8deg)}
+    }
+    @keyframes podSparkle{
+      0%,100%{opacity:.40;filter:blur(.2px)}
+      50%{opacity:.85;filter:blur(.6px)}
+    }
+    .podiumCard.rank1{box-shadow:0 0 0 1px rgba(255,215,0,.28), 0 18px 44px rgba(255,215,0,.16)}
+    .podiumCard.rank2{box-shadow:0 0 0 1px rgba(210,215,225,.22), 0 18px 40px rgba(210,215,225,.10)}
+    .podiumCard.rank2 .podThumb{box-shadow:inset 0 0 0 1px rgba(255,255,255,.10)}
+    .podiumCard.rank2 .podThumb::after{
+      content:"";
+      position:absolute;inset:0;
+      background:radial-gradient(140px 120px at 50% 20%, rgba(230,235,245,.18), transparent 65%);
+      pointer-events:none;
+      opacity:.8;
+    }
+
+    /* Recommended cards author */
+    .recMeta{flex-direction:column;align-items:stretch;gap:10px}
+    .recMetaTop{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .recAuthor{display:flex;align-items:center;gap:8px;min-width:0;cursor:pointer}
+    .recAuthor:hover .recAuthorName{text-decoration:underline}
+    .recAuthorAv{width:26px;height:26px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);overflow:hidden;display:grid;place-items:center;font-size:11px;flex:0 0 26px}
+    .recAuthorName{font-size:12px;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
+    .recTitleLine{font-size:12px;opacity:.82;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  
   </style>
 </head>
 <body>
@@ -315,6 +396,49 @@ function showError(msg){
     return (a + b).toUpperCase();
   }
 
+
+  function gotoUserProfile(userId){
+    const id = String(userId || "").trim();
+    if(!id) return;
+    // site uses clean routes (e.g. /recipes, /maker), so follow the same pattern
+    location.href = "/user?uid=" + encodeURIComponent(id);
+  }
+
+  function avatarLayersFromShow(s){
+    // prefer author avatar (user_saves) if present, else fallback to initials
+    const bg = String(s.authorAvatarBgId || "").trim();
+    const a2 = String(s.authorAvatarAddon2Id || "").trim();
+    const head = String(s.authorAvatarHeadId || "").trim();
+    const body = String(s.authorAvatarBodyId || "").trim();
+    const a1 = String(s.authorAvatarAddon1Id || "").trim();
+    const mk = (id)=> id ? ("/assets/" + id + ".png") : "";
+    const layers = [
+      { url: mk(bg), z:10 },
+      { url: mk(a2), z:20 },
+      { url: mk(head), z:30 },
+      { url: mk(body), z:40 },
+      { url: mk(a1), z:50 },
+    ];
+    return layers.filter(x => x.url);
+  }
+
+  function renderAvatarInto(el, show, fallbackName){
+    el.innerHTML = "";
+    const layers = avatarLayersFromShow(show || {});
+    if(layers.length){
+      makeStackThumb(el, layers);
+      const layer = el.querySelector(".layer");
+      if(layer) layer.style.position = "absolute";
+      el.style.position = "relative";
+    }else{
+      el.style.position = "relative";
+      const d = document.createElement("div");
+      d.textContent = initials(fallbackName || "Player");
+      el.appendChild(d);
+    }
+  }
+
+
   async function api(url, opts){
     const o = opts || {};
     const headers = Object.assign({}, o.headers || {});
@@ -484,7 +608,8 @@ function showError(msg){
     if(code === "unauthorized") return showError("請先登入");
     showError(String(e.error || e.message || "推薦失敗"));
   }
-}  function renderPodium(items){
+}  
+  function renderPodium(items){
     podiumGrid.innerHTML = "";
     const wrap = document.getElementById("podiumWrap");
     const titleEl = document.getElementById("podiumTitle");
@@ -504,7 +629,71 @@ function showError(msg){
       return;
     }
 
+    const rankColorClass = (rank)=> rank===1 ? "gold" : (rank===2 ? "silver" : "bronze");
+    const rankIconSvg = (rank)=>{
+      if(rank===1){
+        return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="M7 4h10l-1 6-4 3-4-3-1-6Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 20h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M10 13v7M14 13v7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
+      }
+      if(rank===2){
+        return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="M8 5h8l-1 6-3 2-3-2-1-6Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 20h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M12 13v7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
+      }
+      return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="M9 6h6l-1 6-2 2-2-2-1-6Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M10 20h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
+    };
+
     ordered.forEach(({s, rank})=>{
+      const outer = document.createElement("div");
+      outer.className = "podiumOuter rank" + String(rank);
+
+      const metaTop = document.createElement("div");
+      metaTop.className = "podMetaTop";
+
+      const left = document.createElement("div");
+      left.className = "podLeft";
+
+      const rankLine = document.createElement("div");
+      rankLine.className = "podRankLine";
+
+      const icon = document.createElement("div");
+      icon.className = "rankIcon";
+      icon.innerHTML = rankIconSvg(rank);
+
+      const rankText = document.createElement("div");
+      rankText.className = "rankText " + rankColorClass(rank);
+      rankText.textContent = (rank===1 ? "第一名" : (rank===2 ? "第二名" : "第三名"));
+
+      rankLine.appendChild(icon);
+      rankLine.appendChild(rankText);
+
+      const author = document.createElement("div");
+      author.className = "podAuthor";
+      const authorName = String(s.authorName || s.userName || s.userId || "").trim() || "Player";
+
+      const av = document.createElement("div");
+      av.className = "podAuthorAv";
+      renderAvatarInto(av, s, authorName);
+
+      const nm = document.createElement("div");
+      nm.className = "podAuthorName";
+      nm.textContent = authorName;
+
+      author.appendChild(av);
+      author.appendChild(nm);
+
+      author.onclick = (e)=>{
+        e.stopPropagation();
+        gotoUserProfile(s.userId);
+      };
+
+      left.appendChild(rankLine);
+      left.appendChild(author);
+
+      const right = document.createElement("div");
+      right.className = "podVotesTop";
+      right.textContent = "票數 " + String(Number(s.votes || 0));
+
+      metaTop.appendChild(left);
+      metaTop.appendChild(right);
+
       const card = document.createElement("div");
       card.className = "podiumCard rank" + String(rank);
 
@@ -519,35 +708,12 @@ function showError(msg){
         { url: s.addon1Url, z:50 },
       ]);
 
-      const top = document.createElement("div");
-      top.className = "podTop";
-
-      const row = document.createElement("div");
-      row.className = "podTopRow";
-
-      const badge = document.createElement("div");
-      badge.className = "rankBadge";
-      badge.textContent = "#" + String(rank);
-
-      const votes = document.createElement("div");
-      votes.className = "podVotes";
-      votes.textContent = "票數 " + String(Number(s.votes || 0));
-
-      row.appendChild(badge);
-      row.appendChild(votes);
-
-      const title = document.createElement("div");
-      title.className = "podTitle";
-      title.textContent = (s.title && String(s.title).trim()) ? String(s.title).trim() : "未命名作品";
-
-      top.appendChild(row);
-      top.appendChild(title);
-
-      th.appendChild(top);
       card.appendChild(th);
+      outer.appendChild(metaTop);
+      outer.appendChild(card);
 
-      card.onclick = ()=>{
-        openModal(title.textContent, "票數 " + String(Number(s.votes||0)) + " · " + fmtTime(s.createdAt), [
+      outer.onclick = ()=>{
+        openModal("作品", "票數 " + String(Number(s.votes||0)) + " · " + fmtTime(s.createdAt), [
           { url: s.bgUrl, z:10 },
           { url: s.addon2Url, z:20 },
           { url: s.headUrl, z:30 },
@@ -556,9 +722,10 @@ function showError(msg){
         ]);
       };
 
-      podiumGrid.appendChild(card);
+      podiumGrid.appendChild(outer);
     });
   }
+
 
   function render(items){
 
@@ -588,14 +755,44 @@ function showError(msg){
         ]);
         const meta = document.createElement("div");
         meta.className = "recMeta";
-        const t = document.createElement("div");
-        t.className = "t";
-        t.textContent = (s.title && String(s.title).trim()) ? String(s.title).trim() : "未命名作品";
+
+        const topRow = document.createElement("div");
+        topRow.className = "recMetaTop";
+
+        const author = document.createElement("div");
+        author.className = "recAuthor";
+        const authorName = String(s.authorName || s.userName || s.userId || "").trim() || "Player";
+
+        const av = document.createElement("div");
+        av.className = "recAuthorAv";
+        renderAvatarInto(av, s, authorName);
+
+        const nm = document.createElement("div");
+        nm.className = "recAuthorName";
+        nm.textContent = authorName;
+
+        author.appendChild(av);
+        author.appendChild(nm);
+
+        author.onclick = (e)=>{
+          e.stopPropagation();
+          gotoUserProfile(s.userId);
+        };
+
         const b = document.createElement("div");
         b.className = "recBadge";
         b.textContent = "推薦 " + String(Number(s.recommends||0));
+
+        topRow.appendChild(author);
+        topRow.appendChild(b);
+
+        const t = document.createElement("div");
+        t.className = "recTitleLine";
+        t.textContent = (s.title && String(s.title).trim()) ? String(s.title).trim() : "未命名作品";
+
+        meta.appendChild(topRow);
         meta.appendChild(t);
-        meta.appendChild(b);
+
         card.appendChild(th);
         card.appendChild(meta);
         card.onclick = ()=>{
@@ -676,7 +873,7 @@ function showError(msg){
 
       const av = document.createElement("div");
       av.className = "av";
-      av.textContent = initials(name);
+      renderAvatarInto(av, s, name);
 
       const nmWrap = document.createElement("div");
       nmWrap.style.minWidth = "0";
@@ -694,6 +891,8 @@ function showError(msg){
 
       authorMini.appendChild(av);
       authorMini.appendChild(nmWrap);
+      authorMini.style.cursor = "pointer";
+      authorMini.onclick = (e)=>{ e.stopPropagation(); gotoUserProfile(s.userId); };
 
       const iconRow = document.createElement("div");
       iconRow.className = "iconRow";
