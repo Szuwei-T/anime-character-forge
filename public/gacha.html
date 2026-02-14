@@ -35,6 +35,16 @@
     @media (max-width: 940px){
       .heroGrid{ grid-template-columns: 1fr; }
     }
+    @media (min-width: 941px){
+      /* 右側抽指定素材區塊往左疊到 video 上 */
+      .heroGrid{ position: relative; }
+      .rightPanel{
+        margin-left: -140px;
+        margin-top: 28px;
+        z-index: 6;
+      }
+    }
+
 
     .featured{
       display:flex;
@@ -53,9 +63,9 @@
     }
     .featureStage{
   width: 100%;
-  max-width: 980px;
-  aspect-ratio: 16 / 9;
-  border-radius: 26px;
+  max-width: 1200px;
+  height: clamp(420px, 62vh, 760px);
+  border-radius: 28px;
   background: transparent;
   border: none;
   box-shadow: none;
@@ -65,6 +75,30 @@
   overflow:hidden;
   position:relative;
 }
+/* 背景鋪滿的模糊層 讓 video 像本頁背景一樣 */
+.featureStage .bgVideo{
+  position:absolute;
+  inset:-2%;
+  width:104%;
+  height:104%;
+  object-fit: cover;
+  object-position: center 25%;
+  filter: blur(18px) brightness(0.72) saturate(1.2);
+  transform: scale(1.06);
+  z-index:0;
+  pointer-events:none;
+}
+/* 前景保留完整畫面 不再被裁切 */
+.featureStage .fgVideo{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit: contain;
+  z-index:1;
+  pointer-events:none;
+}
+
     .featureStage:before{
       content:"";
       position:absolute;
@@ -1236,8 +1270,10 @@
               <div class="promoBoom">爆款</div>
             </div>
 
-            <video id="featuredVideo" muted autoplay loop playsinline></video>
-            <img id="featuredFallback" src="/assets/feature_character.png" alt="" style="display:none;">
+            <video id="featuredVideoBg" class="bgVideo" muted autoplay loop playsinline></video>
+            <video id="featuredVideo" class="fgVideo" muted autoplay loop playsinline></video>
+            <img id="featuredFallbackBg" class="bgVideo" src="/assets/feature_character.png" alt="" style="display:none;">
+            <img id="featuredFallback" src="/assets/feature_character.png" alt="" style="display:none; position:absolute; inset:0; width:100%; height:100%; object-fit:contain; z-index:1;">
 
             <div class="gachaOverlay">
               <div class="gachaCard">
@@ -1356,7 +1392,9 @@
     
 async function loadFeaturedVideo(){
   const v = document.getElementById("featuredVideo");
+  const vbg = document.getElementById("featuredVideoBg");
   const img = document.getElementById("featuredFallback");
+  const imgbg = document.getElementById("featuredFallbackBg");
   if(!v) return;
 
   // Ensure autoplay works on mobile
@@ -1372,7 +1410,9 @@ async function loadFeaturedVideo(){
     try{ v.removeAttribute("src"); }catch(_){}
     try{ v.load(); }catch(_){}
     v.style.display = "none";
+    if(vbg) vbg.style.display = "none";
     if(img) img.style.display = "";
+    if(imgbg) imgbg.style.display = "";
   };
 
   const normalizeFeaturedList = (data)=>{
@@ -1650,7 +1690,9 @@ async function loadPityStatus(){
     const data = isResponseLike ? await resp.json() : resp;
     if(data && data.ok) updatePityUI(data);
   }catch(_){}
-}}
+}
+window.loadPityStatus = loadPityStatus;
+}
 
     function assetThumb(a){
       if(!a) return "/assets/placeholder.png";
