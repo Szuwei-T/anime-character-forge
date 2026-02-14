@@ -55,20 +55,21 @@
     .status{font-size:12px;color:var(--mut)}
     .error{margin:10px 0;padding:12px 14px;border-radius:14px;background:rgba(255,0,70,.10);border:1px solid rgba(255,0,70,.25);color:rgba(255,210,220,.95);display:none}
     .podiumWrap{margin:10px 0 12px}
-    .podiumGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-    .podiumCard{border-radius:18px;overflow:hidden;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12)}
+    .podiumGrid{display:flex;justify-content:center;align-items:flex-end;gap:14px}
+    .podiumCard{border-radius:18px;overflow:hidden;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);cursor:pointer;transform-origin:center bottom}
+    .podiumCard.rank1{transform:scale(1)}
+    .podiumCard.rank2{transform:scale(.9)}
+    .podiumCard.rank3{transform:scale(.8)}
     .podThumb{aspect-ratio:3/4;background:rgba(0,0,0,.16);position:relative}
-    .meta{padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px}
-    .meta .t{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.92}
-    .meta .r{font-size:12px;opacity:.68}
-
-    .podiumTitle{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:6px 0 10px}
-    .podiumTitle .h{font-size:14px;opacity:.92}
-    .podiumTitle .sub{font-size:12px;opacity:.68}
-    .rankBadge{position:absolute;left:10px;top:10px;padding:6px 10px;border-radius:999px;font-size:12px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(6px)}
+    .podTop{position:absolute;left:10px;right:10px;top:10px;display:flex;flex-direction:column;gap:6px;z-index:80}
+    .podTopRow{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .rankBadge{padding:6px 10px;border-radius:999px;font-size:12px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(6px);white-space:nowrap}
+    .podTitle{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.95}
+    .podVotes{font-size:12px;opacity:.80;white-space:nowrap}
     .podiumCard.rank1{border-color:rgba(255,215,0,.55);box-shadow:0 0 0 1px rgba(255,215,0,.25), 0 18px 40px rgba(255,215,0,.10)}
     .podiumCard.rank2{border-color:rgba(210,210,210,.55);box-shadow:0 0 0 1px rgba(210,210,210,.22), 0 18px 40px rgba(210,210,210,.08)}
     .podiumCard.rank3{border-color:rgba(205,127,50,.55);box-shadow:0 0 0 1px rgba(205,127,50,.22), 0 18px 40px rgba(205,127,50,.08)}
+
 
 
     .recWrap{margin:12px 0 10px;display:none}
@@ -104,6 +105,9 @@
     .iconBtn:hover{background:rgba(255,255,255,.10)}
     .iconBtn.on{background:rgba(120,255,200,.08);border-color:rgba(120,255,200,.20)}
     .iconBtn.warn{background:rgba(255,165,0,.10);border-color:rgba(255,165,0,.22)}
+.iconBtn.busy{opacity:.7;pointer-events:none}
+    .iconBtn.busy .spin{width:12px;height:12px;border-radius:999px;border:2px solid rgba(255,255,255,.35);border-top-color:rgba(255,255,255,.90);display:inline-block;animation:spin 0.8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
     .icon{width:16px;height:16px;display:block;opacity:.9}
     .metaLine{font-size:12px;opacity:.65;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
@@ -253,7 +257,29 @@
     clearTimeout(showToast._t);
     showToast._t = setTimeout(()=>toast.classList.remove("show"), 1400);
   }
-  function showError(msg){
+  
+  function setBtnBusy(btn, label){
+    if(!btn) return ()=>{};
+    const span = btn.querySelector("span");
+    const oldText = span ? span.textContent : "";
+    btn.classList.add("busy");
+    btn.disabled = true;
+    if(span) span.textContent = label;
+    // add tiny spinner if not exists
+    if(!btn.querySelector(".spin")){
+      const sp = document.createElement("i");
+      sp.className = "spin";
+      btn.insertBefore(sp, span || null);
+    }
+    return ()=>{
+      const sp = btn.querySelector(".spin");
+      if(sp) sp.remove();
+      btn.classList.remove("busy");
+      btn.disabled = false;
+      if(span) span.textContent = oldText;
+    };
+  }
+function showError(msg){
     errorBox.style.display="block";
     errorBox.textContent = msg;
   }
@@ -452,17 +478,19 @@
 }  function renderPodium(items){
     podiumGrid.innerHTML = "";
     const top3 = (items||[]).slice(0,3);
-    top3.forEach((s, idx)=>{
+
+    // Visual order: #2 (left), #1 (center), #3 (right)
+    const ordered = [];
+    if(top3.length === 1) ordered.push({ s: top3[0], rank: 1 });
+    if(top3.length === 2) ordered.push({ s: top3[1], rank: 2 }, { s: top3[0], rank: 1 });
+    if(top3.length >= 3) ordered.push({ s: top3[1], rank: 2 }, { s: top3[0], rank: 1 }, { s: top3[2], rank: 3 });
+
+    ordered.forEach(({s, rank})=>{
       const card = document.createElement("div");
-      card.className = "podiumCard rank" + String(idx+1);
+      card.className = "podiumCard rank" + String(rank);
 
       const th = document.createElement("div");
       th.className = "podThumb";
-
-      const badge = document.createElement("div");
-      badge.className = "rankBadge";
-      badge.textContent = "#" + String(idx+1);
-      th.appendChild(badge);
 
       makeStackThumb(th, [
         { url: s.bgUrl, z:10 },
@@ -472,21 +500,35 @@
         { url: s.addon1Url, z:50 },
       ]);
 
-      const meta = document.createElement("div");
-      meta.className = "meta";
-      const t = document.createElement("div");
-      t.className = "t";
-      t.textContent = (s.title && String(s.title).trim()) ? String(s.title).trim() : "未命名作品";
-      const r = document.createElement("div");
-      r.className = "r";
-      r.textContent = "票數 " + String(Number(s.votes || 0));
-      meta.appendChild(t);
-      meta.appendChild(r);
+      const top = document.createElement("div");
+      top.className = "podTop";
+
+      const row = document.createElement("div");
+      row.className = "podTopRow";
+
+      const badge = document.createElement("div");
+      badge.className = "rankBadge";
+      badge.textContent = "#" + String(rank);
+
+      const votes = document.createElement("div");
+      votes.className = "podVotes";
+      votes.textContent = "票數 " + String(Number(s.votes || 0));
+
+      row.appendChild(badge);
+      row.appendChild(votes);
+
+      const title = document.createElement("div");
+      title.className = "podTitle";
+      title.textContent = (s.title && String(s.title).trim()) ? String(s.title).trim() : "未命名作品";
+
+      top.appendChild(row);
+      top.appendChild(title);
+
+      th.appendChild(top);
       card.appendChild(th);
-      card.appendChild(meta);
 
       card.onclick = ()=>{
-        openModal(t.textContent, "票數 " + String(Number(s.votes||0)) + " · " + fmtTime(s.createdAt), [
+        openModal(title.textContent, "票數 " + String(Number(s.votes||0)) + " · " + fmtTime(s.createdAt), [
           { url: s.bgUrl, z:10 },
           { url: s.addon2Url, z:20 },
           { url: s.headUrl, z:30 },
@@ -494,14 +536,17 @@
           { url: s.addon1Url, z:50 },
         ]);
       };
+
       podiumGrid.appendChild(card);
     });
   }
 
   function render(items){
+
     grid.innerHTML = "";
     recGrid.innerHTML = "";
-    recWrap.style.display = "none";
+    recWrap.style.display = "block";
+    recGrid.innerHTML = "";
 
     const recItems = (items||[])
       .filter(x => Number(x.recommends || 0) > 1)
@@ -509,7 +554,6 @@
       .sort((a,b)=> Number(b.recommends||0) - Number(a.recommends||0));
 
     if(recItems.length > 0){
-      recWrap.style.display = "block";
       recItems.forEach((s)=>{
         const card = document.createElement("div");
         card.className = "recCard";
@@ -545,7 +589,18 @@
         };
         recGrid.appendChild(card);
       });
+    }else{
+      const empty = document.createElement("div");
+      empty.style.padding = "10px 12px";
+      empty.style.borderRadius = "14px";
+      empty.style.background = "rgba(255,255,255,.05)";
+      empty.style.border = "1px solid rgba(255,255,255,.10)";
+      empty.style.color = "rgba(255,255,255,.70)";
+      empty.style.fontSize = "12px";
+      empty.textContent = "目前還沒有推薦次數 > 1 的作品";
+      recGrid.appendChild(empty);
     }
+
 
     items.forEach((s)=>{
       const sid = String(s.showcaseId || s.id || "");
@@ -641,11 +696,23 @@
       if((!uid) || userVote <= 0) voteBtn.style.opacity = ".6";
       voteBtn.onclick = async (e)=>{
         e.stopPropagation();
-        if(!uid) return showError("請先登入");
-        if(userVote <= 0) return showError("票數不足");
-        await vote(sid);
-        await loadMe();
-        load();
+        clearError();
+        if(!uid){
+          showToast("請先登入");
+          return showError("請先登入");
+        }
+        if(userVote <= 0){
+          showToast("票數已投滿");
+          return showError("票數已投滿");
+        }
+        const done = setBtnBusy(voteBtn, "投票中");
+        showToast("投票中");
+        try{
+          await vote(sid);
+        }finally{
+          done();
+        }
+        await load(); // includes loadMe + refresh counts
       };
 
       const favBtn = document.createElement("button");
@@ -656,8 +723,14 @@
       favBtn.innerHTML = ICON_HEART + "<span>" + (isFav ? "已收藏" : "收藏") + "</span>";
       favBtn.onclick = async (e)=>{
         e.stopPropagation();
-        await toggleFav(sid);
-        load();
+        clearError();
+        const done = setBtnBusy(favBtn, isFav ? "取消中" : "收藏中");
+        try{
+          await toggleFav(sid);
+        }finally{
+          done();
+        }
+        await load();
       };
 
       const recBtn = document.createElement("button");
@@ -666,8 +739,23 @@
       recBtn.innerHTML = ICON_FIRE + "<span>推薦 (" + String(recs) + ")</span>";
       recBtn.onclick = async (e)=>{
         e.stopPropagation();
-        await recommend(sid);
-        load();
+        clearError();
+        if(!uid){
+          showToast("請先登入");
+          return showError("請先登入");
+        }
+        if(userGem < 50){
+          showToast("GEM 不足");
+          return showError("GEM 不足");
+        }
+        const done = setBtnBusy(recBtn, "推薦中");
+        showToast("推薦中");
+        try{
+          await recommend(sid);
+        }finally{
+          done();
+        }
+        await load();
       };
 
       iconRow.appendChild(voteBtn);
