@@ -32,18 +32,18 @@
 
 .featuredTitleOverlay{
   position:absolute;
-  top:16px;
-  left:16px;
+  top:12px;
+  left:12px;
   z-index:5;
-  font-weight: 950;
-  font-size: 22px;
-  letter-spacing: 0.6px;
-  text-shadow: 0 14px 40px rgba(0,0,0,0.85);
-  padding: 10px 12px;
-  border-radius: 16px;
-  background: rgba(0,0,0,0.35);
-  border: 1px solid rgba(255,255,255,0.16);
-  backdrop-filter: blur(10px);
+  font-weight: 900;
+  font-size: 16px;
+  letter-spacing: 0.3px;
+  text-shadow: 0 10px 30px rgba(0,0,0,0.85);
+  padding: 6px 10px;
+  border-radius: 12px;
+  background: rgba(0,0,0,0.28);
+  border: 1px solid rgba(255,255,255,0.14);
+  backdrop-filter: blur(8px);
   pointer-events:none;
   white-space: nowrap;
 }
@@ -84,9 +84,10 @@
     }
     .featureStage{
   width: 100%;
-  max-width: 1200px;
-  height: clamp(420px, 62vh, 760px);
-  border-radius: 28px;
+  max-width: none;
+  height: 100vh;
+  min-height: 100vh;
+  border-radius: 0;
   background: transparent;
   border: none;
   box-shadow: none;
@@ -1303,10 +1304,6 @@
     <div class="heroGrid">
       <div>
         <div class="featured">
-          <div class="badge">
-            <span style="opacity:0.8">本期 Featured 角色</span>
-          </div>
-
           <div class="featureStage">
             <div class="featuredTitleOverlay">本期 Featured 角色</div>
             <div class="promoTag" aria-hidden="true">
