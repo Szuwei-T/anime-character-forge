@@ -262,46 +262,162 @@
     justify-content:center;
     z-index: 10000;
     pointer-events:auto;
-    background: rgba(0,0,0,0.25);
-    backdrop-filter: blur(2px);
+    background:
+      radial-gradient(circle at 50% 35%, rgba(255,255,255,0.12), rgba(0,0,0,0.78) 55%, rgba(0,0,0,0.92) 100%);
+    backdrop-filter: blur(4px);
   }
   #levelUpFx.active{ display:flex; }
-  #levelUpFx .levelUpCard{
-    padding: 18px 22px;
-    border-radius: 16px;
-    border: 1px solid rgba(255,255,255,0.22);
-    background: rgba(0,0,0,0.65);
-    color: #fff;
-    font-weight: 900;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    box-shadow: 0 30px 90px rgba(0,0,0,0.55);
-    animation: levelUpPop 450ms ease-out 1;
-  }
-  #levelUpFx .levelUpSub{
-    margin-top: 8px;
-    font-size: 12px;
-    font-weight: 700;
-    opacity: 0.85;
-    letter-spacing: 0.3px;
-    text-align:center;
-  }
 
+  /* Big, colorful, obvious pop */
   .levelUpCardWrap{
+    position: relative;
     display:flex;
     flex-direction:column;
     align-items:center;
-    gap:12px;
+    gap:14px;
     pointer-events:auto;
+    padding: 26px 28px 22px;
+    border-radius: 22px;
+    border: 1px solid rgba(255,255,255,0.18);
+    background: rgba(0,0,0,0.58);
+    box-shadow:
+      0 40px 140px rgba(0,0,0,0.70),
+      0 0 0 1px rgba(255,255,255,0.08) inset;
+    transform-origin: center;
+    animation: levelUpWrapPop 560ms ease-out 1, levelUpWrapFloat 2200ms ease-in-out infinite;
+    overflow:hidden;
   }
+
+  /* Neon particle layer */
+  .levelUpCardWrap::before{
+    content:"";
+    position:absolute;
+    inset:-60%;
+    background-image:
+      radial-gradient(circle, rgba(255,255,255,0.85) 2px, transparent 2.6px),
+      radial-gradient(circle, rgba(255,215,0,0.85) 2px, transparent 2.6px),
+      radial-gradient(circle, rgba(0,229,255,0.78) 2px, transparent 2.6px),
+      radial-gradient(circle, rgba(255,0,255,0.60) 2px, transparent 2.6px);
+    background-size: 88px 88px, 110px 110px, 96px 96px, 140px 140px;
+    opacity: 0.55;
+    filter: blur(0.2px);
+    animation: levelUpParticlesSpin 2400ms linear infinite;
+    pointer-events:none;
+  }
+
+  /* Burst ring */
+  .levelUpCardWrap::after{
+    content:"";
+    position:absolute;
+    width: 520px;
+    height: 520px;
+    border-radius: 999px;
+    border: 2px solid rgba(255,255,255,0.10);
+    box-shadow:
+      0 0 30px rgba(255,255,255,0.10),
+      0 0 120px rgba(255,215,0,0.12),
+      0 0 160px rgba(0,229,255,0.12);
+    opacity: 0.75;
+    transform: scale(0.78);
+    animation: levelUpRing 1200ms ease-out 1;
+    pointer-events:none;
+  }
+
+  #levelUpFx .levelUpCard{
+    position:relative;
+    z-index: 2;
+    padding: 6px 10px;
+    border-radius: 14px;
+    font-weight: 950;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-size: 34px;
+    text-align:center;
+    line-height: 1.08;
+
+    /* animated gradient text */
+    background: linear-gradient(90deg,#ffdf00,#ff6a00,#ff00ff,#00e5ff,#00ff9c,#ffdf00);
+    background-size: 420% 420%;
+    -webkit-background-clip: text;
+    color: transparent;
+
+    /* strong glow */
+    text-shadow:
+      0 0 18px rgba(255,255,255,0.24),
+      0 0 42px rgba(255,215,0,0.32),
+      0 0 62px rgba(0,229,255,0.22);
+    animation: levelUpGradient 1600ms linear infinite, levelUpTextPulse 1100ms ease-in-out infinite;
+  }
+
+  #levelUpFx .levelUpSub{
+    position:relative;
+    z-index: 2;
+    margin-top: -2px;
+    font-size: 20px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    opacity: 0.98;
+    text-align:center;
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.16);
+    background: rgba(0,0,0,0.35);
+    box-shadow: 0 16px 48px rgba(0,0,0,0.40);
+  }
+
   #levelUpConfirm{
+    position:relative;
+    z-index: 2;
     margin-top: 6px;
+    padding: 14px 58px;
+    font-size: 20px;
+    font-weight: 950;
+    letter-spacing: 1px;
+    border:none;
+    border-radius: 999px;
+    cursor:pointer;
+    color:#081018;
+    background: linear-gradient(90deg,#ffdf00,#ff6a00,#ff00ff,#00e5ff);
+    background-size: 220% 220%;
+    box-shadow:
+      0 0 24px rgba(255,215,0,0.30),
+      0 0 70px rgba(255,106,0,0.22),
+      0 18px 50px rgba(0,0,0,0.40);
+    transition: transform 0.12s ease;
+    animation: levelUpGradient 1400ms linear infinite;
   }
-  /* Keep visible until user clicks CONFIRM */
-  @keyframes levelUpPop{
-    0%{ transform: translateY(10px) scale(0.92); opacity: 0; }
+  #levelUpConfirm:hover{ transform: scale(1.05); }
+  #levelUpConfirm:active{ transform: scale(0.98); }
+
+  @keyframes levelUpWrapPop{
+    0%{ transform: translateY(14px) scale(0.86); opacity: 0; }
+    55%{ transform: translateY(0) scale(1.04); opacity: 1; }
     100%{ transform: translateY(0) scale(1); opacity: 1; }
   }
+  @keyframes levelUpWrapFloat{
+    0%{ transform: translateY(0) scale(1); }
+    50%{ transform: translateY(-4px) scale(1.005); }
+    100%{ transform: translateY(0) scale(1); }
+  }
+  @keyframes levelUpParticlesSpin{
+    0%{ transform: rotate(0deg) scale(1); }
+    100%{ transform: rotate(360deg) scale(1.05); }
+  }
+  @keyframes levelUpRing{
+    0%{ transform: scale(0.68); opacity: 0; }
+    20%{ opacity: 0.9; }
+    100%{ transform: scale(1.06); opacity: 0; }
+  }
+  @keyframes levelUpGradient{
+    0%{ background-position: 0% 50%; }
+    100%{ background-position: 100% 50%; }
+  }
+  @keyframes levelUpTextPulse{
+    0%{ filter: drop-shadow(0 0 0 rgba(255,215,0,0)); transform: scale(1); }
+    50%{ filter: drop-shadow(0 0 18px rgba(255,215,0,0.22)); transform: scale(1.015); }
+    100%{ filter: drop-shadow(0 0 0 rgba(255,215,0,0)); transform: scale(1); }
+  }
+
 
   /* Stage preview a bit larger */
   .stage{ overflow: hidden; }
@@ -644,14 +760,6 @@ window.showLevelUpFx = function showLevelUpFx(payload){
   }
 
   fx.classList.add("active");
-};
-
-window.closeLevelUpFx = function closeLevelUpFx(){
-  const fx = q("#levelUpFx");
-  if(!fx) return;
-  fx.classList.remove("active");
-  const rangeEl = q("#levelUpRange");
-  if(rangeEl) rangeEl.textContent = "";
 };
 
 
