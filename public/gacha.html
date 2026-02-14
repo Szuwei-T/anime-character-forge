@@ -9,20 +9,17 @@
     body{
       margin:0;
       min-height:100vh;
-      overflow-x: hidden;
       background: radial-gradient(circle at top, #1b1f2a, #0b0d12);
       color:#fff;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, "Noto Sans TC", sans-serif;
     }
     .wrap{
-      width: 100%;
-      max-width: none;
-      margin: 0;
-      padding: 0;
-    }
+  width: min(1400px, 100%);
+  margin: 0 auto;
+  padding: 0;
+}
     h1{
-      margin:0;
-      padding: 18px 20px 14px;
+      margin:0 0 18px;
       font-size: 28px;
       letter-spacing: 0.6px;
       opacity: 0.92;
@@ -30,19 +27,33 @@
     }
 
     .heroGrid{
-      display:grid;
-      grid-template-columns: 1fr 340px;
-      gap: 18px;
-      align-items:start;
-      padding: 0 20px 20px;
-      min-height: calc(100vh - 64px);
-    }
+  display:grid;
+  grid-template-columns: 1.65fr 1fr;
+  gap: 18px;
+  align-items: stretch;
+  min-height: 100vh;
+  padding: 16px 16px 18px;
+}
     @media (max-width: 940px){
-      .heroGrid{ grid-template-columns: 1fr; }
+      .heroGrid{
+  display:grid;
+  grid-template-columns: 1.65fr 1fr;
+  gap: 18px;
+  align-items: stretch;
+  min-height: 100vh;
+  padding: 16px 16px 18px;
+}
     }
     @media (min-width: 941px){
       /* 右側抽指定素材區塊往左疊到 video 上 */
-      .heroGrid{ position: relative; }
+      .heroGrid{
+  display:grid;
+  grid-template-columns: 1.65fr 1fr;
+  gap: 18px;
+  align-items: stretch;
+  min-height: 100vh;
+  padding: 16px 16px 18px;
+}
       .rightPanel{
         margin-left: -140px;
         margin-top: 28px;
@@ -56,8 +67,7 @@
       flex-direction:column;
       align-items:center;
       gap:12px;
-      margin: 0;
-      height: 100%;
+      margin-bottom: 14px;
     }
     .featured .badge{
       display:flex;
@@ -69,15 +79,13 @@
     }
     .featureStage{
   width: 100%;
-  max-width: none;
-  height: calc(100vh - 64px);
-  min-height: 100vh;
+  height: 100vh;
   border-radius: 0;
   background: transparent;
   border: none;
   box-shadow: none;
   display:flex;
-  align-items:stretch;
+  align-items:center;
   justify-content:center;
   overflow:hidden;
   position:relative;
@@ -106,17 +114,7 @@
   pointer-events:none;
 }
 
-    .featureStage:before{
-      content:"";
-      position:absolute;
-      inset:-40%;
-      background: radial-gradient(circle at 30% 25%, rgba(255,255,255,0.12), transparent 55%),
-                  radial-gradient(circle at 70% 80%, rgba(121,215,255,0.10), transparent 55%),
-                  radial-gradient(circle at 40% 70%, rgba(255,198,106,0.10), transparent 60%);
-      filter: blur(10px);
-      transform: rotate(15deg);
-      pointer-events:none;
-    }
+    .featureStage:before{ content:none; }
     @keyframes floaty{
       0%{ transform: translateY(0) scale(1); }
       50%{ transform: translateY(-10px) scale(1.01); }
@@ -155,14 +153,6 @@
   text-shadow: 0 10px 30px rgba(0,0,0,0.75);
   white-space: nowrap;
 }
-.promoBoom{
-  margin-top: 2px;
-  font-weight: 1000;
-  font-size: 28px;
-  letter-spacing: 2px;
-  text-shadow: 0 14px 38px rgba(0,0,0,0.85);
-}
-
 .gachaOverlay{
   position:absolute;
   left:14px;
@@ -177,8 +167,7 @@
 @media (max-width: 860px){
   .gachaOverlay{ grid-template-columns: 1fr; }
   .promoBig{ font-size: 16px; }
-  .promoBoom{ font-size: 26px; }
-}
+  }
 
 .gachaCard{
   background: rgba(0,0,0,0.58);
@@ -1257,7 +1246,134 @@
       #sharePreview{ width: 100%; height: 180px; }
     }
 
-  </style>
+  
+    .featuredCorner{
+      position:absolute;
+      top: 14px;
+      left: 14px;
+      z-index: 6;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      pointer-events:none;
+    }
+    .featuredPill{
+      display:inline-flex;
+      align-items:center;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.35);
+      border: 1px solid rgba(255,255,255,0.18);
+      backdrop-filter: blur(10px);
+      font-weight: 900;
+      letter-spacing: 0.4px;
+      opacity: 0.95;
+    }
+
+    /* 爆款樣式 但不顯示「爆款」字樣 */
+    .promoTag{
+      position:absolute;
+      top: 14px;
+      right: 14px;
+      z-index: 6;
+      pointer-events:none;
+    }
+    .promoBig{
+      position: relative;
+      font-weight: 1000;
+      font-size: 18px;
+      letter-spacing: 0.8px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(255,165,0,0.22), rgba(255,90,0,0.16));
+      border: 1px solid rgba(255,200,120,0.35);
+      box-shadow: 0 18px 50px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,160,60,0.10) inset;
+      text-shadow: 0 12px 34px rgba(0,0,0,0.85);
+      overflow:hidden;
+      white-space: nowrap;
+    }
+    .promoBig:before{
+      content:"";
+      position:absolute;
+      inset:-60%;
+      background: radial-gradient(circle at 20% 30%, rgba(255,255,255,0.45), transparent 55%),
+                  radial-gradient(circle at 70% 65%, rgba(255,210,140,0.28), transparent 60%);
+      transform: rotate(18deg);
+      filter: blur(2px);
+      opacity: 0.85;
+    }
+    .promoBig:after{
+      content:"";
+      position:absolute;
+      top:-30%;
+      left:-40%;
+      width: 60%;
+      height: 200%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+      transform: rotate(18deg);
+      animation: promoShine 2.2s linear infinite;
+      opacity: 0.55;
+    }
+    @keyframes promoShine{
+      0%{ transform: translateX(-40%) rotate(18deg); }
+      100%{ transform: translateX(220%) rotate(18deg); }
+    }
+
+    /* 右側 Shop 引導 */
+    .shopPromo{
+      display:block;
+      text-decoration:none;
+      color:#fff;
+      margin-bottom: 12px;
+    }
+    .shopPromoInner{
+      border-radius: 18px;
+      padding: 14px 14px 12px;
+      background: linear-gradient(135deg, rgba(255,165,0,0.16), rgba(90,170,255,0.10));
+      border: 1px solid rgba(255,255,255,0.18);
+      box-shadow: 0 18px 50px rgba(0,0,0,0.45);
+      backdrop-filter: blur(10px);
+    }
+    .shopPromoTitle{
+      font-weight: 1000;
+      font-size: 16px;
+      letter-spacing: 0.4px;
+      margin-bottom: 4px;
+    }
+    .shopPromoSub{
+      opacity: 0.9;
+      font-weight: 700;
+      font-size: 13px;
+      line-height: 1.3;
+      margin-bottom: 10px;
+    }
+    .shopPromoCta{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(0,0,0,0.35);
+      border: 1px solid rgba(255,255,255,0.18);
+      font-weight: 900;
+      letter-spacing: 0.6px;
+    }
+    .shopPromo:hover .shopPromoInner{
+      transform: translateY(-1px);
+      transition: transform 120ms ease;
+    }
+
+    /* 讓 overlay 底部更融入背景 */
+    .gachaOverlay{
+      left: 16px;
+      right: 16px;
+      bottom: 16px;
+    }
+    .gachaCard{
+      background: rgba(0,0,0,0.42);
+    }
+
+    </style>
 </head>
 <body>
   <div class="packFlash" id="packFlash"></div>
@@ -1266,15 +1382,12 @@
     <div class="heroGrid">
       <div>
         <div class="featured">
-          <div class="badge">
-            <span style="opacity:0.8">本期 Featured 角色</span>
-          </div>
-
-          <div class="featureStage">
-            <div class="promoTag" aria-hidden="true">
-              <div class="promoBig">素材獲得機率+300%</div>
-              <div class="promoBoom">爆款</div>
+<div class="featureStage">
+            <div class="featuredCorner">
+              <span class="featuredPill">本期 Featured 角色</span>
             </div>
+
+            <div class="promoTag" aria-hidden="true"><div class="promoBig">素材獲得機率+300%</div></div>
 
             <video id="featuredVideoBg" class="bgVideo" muted autoplay loop playsinline></video>
             <video id="featuredVideo" class="fgVideo" muted autoplay loop playsinline></video>
@@ -1330,6 +1443,14 @@
       </div>
 
       <div class="side">
+
+        <a class="shopPromo" href="Shop.html">
+          <div class="shopPromoInner">
+            <div class="shopPromoTitle">去商店補給</div>
+            <div class="shopPromoSub">買 Gold 與 Gem 抽卡更爽 立即充值</div>
+            <div class="shopPromoCta">前往 Shop</div>
+          </div>
+        </a>
         <div class="sideCard">
           <div class="title"><span>抽角色</span><span style="opacity:0.7;font-weight:800">head</span></div>
           <div class="miniRow">
@@ -1698,8 +1819,6 @@ async function loadPityStatus(){
   }catch(_){}
 }
 window.loadPityStatus = loadPityStatus;
-}
-
     function assetThumb(a){
       if(!a) return "/assets/placeholder.png";
       if(a.thumb) return a.thumb;
