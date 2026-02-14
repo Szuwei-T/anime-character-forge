@@ -9,17 +9,20 @@
     body{
       margin:0;
       min-height:100vh;
+      overflow-x: hidden;
       background: radial-gradient(circle at top, #1b1f2a, #0b0d12);
       color:#fff;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, "Noto Sans TC", sans-serif;
     }
     .wrap{
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 56px 20px 88px;
+      width: 100%;
+      max-width: none;
+      margin: 0;
+      padding: 0;
     }
     h1{
-      margin:0 0 18px;
+      margin:0;
+      padding: 18px 20px 14px;
       font-size: 28px;
       letter-spacing: 0.6px;
       opacity: 0.92;
@@ -31,6 +34,8 @@
       grid-template-columns: 1fr 340px;
       gap: 18px;
       align-items:start;
+      padding: 0 20px 20px;
+      min-height: calc(100vh - 64px);
     }
     @media (max-width: 940px){
       .heroGrid{ grid-template-columns: 1fr; }
@@ -51,7 +56,8 @@
       flex-direction:column;
       align-items:center;
       gap:12px;
-      margin-bottom: 14px;
+      margin: 0;
+      height: 100%;
     }
     .featured .badge{
       display:flex;
@@ -63,14 +69,15 @@
     }
     .featureStage{
   width: 100%;
-  max-width: 1200px;
-  height: clamp(420px, 62vh, 760px);
-  border-radius: 28px;
+  max-width: none;
+  height: calc(100vh - 64px);
+  min-height: 100vh;
+  border-radius: 0;
   background: transparent;
   border: none;
   box-shadow: none;
   display:flex;
-  align-items:center;
+  align-items:stretch;
   justify-content:center;
   overflow:hidden;
   position:relative;
@@ -1255,13 +1262,12 @@
 <body>
   <div class="packFlash" id="packFlash"></div>
   <div class="wrap">
-    <h1>本期 Featured 角色</h1>
 
     <div class="heroGrid">
       <div>
         <div class="featured">
           <div class="badge">
-            <span style="opacity:0.8">feature</span>
+            <span style="opacity:0.8">本期 Featured 角色</span>
           </div>
 
           <div class="featureStage">
