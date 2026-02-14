@@ -127,6 +127,13 @@
       .podiumGrid{grid-template-columns:1fr}
       .entryThumb{width:92px;flex-basis:92px}
     }
+  
+    .sectionTitle{margin:10px 0 10px;font-size:13px;opacity:.9;font-weight:700;letter-spacing:.3px}
+    .podiumWrap{margin:8px 0 14px}
+    .podiumGrid{display:flex;justify-content:center;align-items:flex-end;gap:14px}
+    .podiumCard{width:240px;max-width:44vw}
+    @media (max-width:640px){ .podiumCard{width:86vw;max-width:86vw} .podiumGrid{flex-direction:column;align-items:stretch} }
+
   </style>
 </head>
 <body>
@@ -167,6 +174,8 @@
 
     <div class="error" id="errorBox"></div>
 
+    <div class="sectionTitle" id="podiumTitle">🏆 本期頒獎台</div>
+
     <div class="podiumWrap" id="podiumWrap">
       <div class="podiumGrid" id="podiumGrid"></div>
     </div>
@@ -174,7 +183,7 @@
     <div class="recWrap" id="recWrap">
       <div class="recTitle">
         <div class="h">🔥 本期推薦</div>
-        <div class="sub" id="recSub">推薦次數 > 1 · 依推薦次數排序</div>
+        <div class="sub" id="recSub">推薦次數 ≥ 1 · 依推薦次數排序</div>
       </div>
       <div class="recGrid" id="recGrid"></div>
     </div>
@@ -477,13 +486,23 @@ function showError(msg){
   }
 }  function renderPodium(items){
     podiumGrid.innerHTML = "";
+    const wrap = document.getElementById("podiumWrap");
+    const titleEl = document.getElementById("podiumTitle");
     const top3 = (items||[]).slice(0,3);
 
     // Visual order: #2 (left), #1 (center), #3 (right)
     const ordered = [];
+    if(wrap) wrap.style.display = "block";
+    if(titleEl) titleEl.style.display = "block";
     if(top3.length === 1) ordered.push({ s: top3[0], rank: 1 });
     if(top3.length === 2) ordered.push({ s: top3[1], rank: 2 }, { s: top3[0], rank: 1 });
     if(top3.length >= 3) ordered.push({ s: top3[1], rank: 2 }, { s: top3[0], rank: 1 }, { s: top3[2], rank: 3 });
+
+    if(ordered.length === 0){
+      if(wrap) wrap.style.display = "none";
+      if(titleEl) titleEl.style.display = "none";
+      return;
+    }
 
     ordered.forEach(({s, rank})=>{
       const card = document.createElement("div");
@@ -545,15 +564,16 @@ function showError(msg){
 
     grid.innerHTML = "";
     recGrid.innerHTML = "";
-    recWrap.style.display = "block";
+    recWrap.style.display = "none";
     recGrid.innerHTML = "";
 
     const recItems = (items||[])
-      .filter(x => Number(x.recommends || 0) > 1)
+      .filter(x => Number(x.recommends || 0) > 0)
       .slice()
       .sort((a,b)=> Number(b.recommends||0) - Number(a.recommends||0));
 
     if(recItems.length > 0){
+      recWrap.style.display = "block";
       recItems.forEach((s)=>{
         const card = document.createElement("div");
         card.className = "recCard";
@@ -589,16 +609,6 @@ function showError(msg){
         };
         recGrid.appendChild(card);
       });
-    }else{
-      const empty = document.createElement("div");
-      empty.style.padding = "10px 12px";
-      empty.style.borderRadius = "14px";
-      empty.style.background = "rgba(255,255,255,.05)";
-      empty.style.border = "1px solid rgba(255,255,255,.10)";
-      empty.style.color = "rgba(255,255,255,.70)";
-      empty.style.fontSize = "12px";
-      empty.textContent = "目前還沒有推薦次數 > 1 的作品";
-      recGrid.appendChild(empty);
     }
 
 
