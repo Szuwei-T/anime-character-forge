@@ -1834,7 +1834,7 @@ function assetFullUrl(a){
           _shareState.ready = !!blob;
           _shareState.caption = `我在 ${gameName} 抽到了 ${rName} ${_shareState.assetId} \n${location.origin}`;
           if(sharePreview && dataUrl) sharePreview.src = dataUrl;
-          setShareHint("分享完成後點領取獎勵，每天最多 5 次");
+          setShareHint("點一鍵分享即可，系統會自動發放獎勵（每天最多 5 次）");
         }catch(e){
           console.warn("share build failed", e);
           setShareHint("分享圖生成失敗，仍可繼續抽卡");
@@ -1967,7 +1967,7 @@ function assetFullUrl(a){
           if(navigator.share){
             const data = { title:"Gacha Pull", text:_shareState.caption || "", files:[file] };
             await navigator.share(data);
-            setShareHint("分享完成後點領取獎勵");
+            setShareHint("分享完成，獎勵發放中...");
             return;
           }
           downloadShare();
@@ -2015,11 +2015,24 @@ function assetFullUrl(a){
         }
       };
 
-      if(shareDownload) shareDownload.onclick = downloadShare;
-      if(shareCopy) shareCopy.onclick = copyCaption;
-      if(shareShare) shareShare.onclick = systemShare;
-      if(shareReddit) shareReddit.onclick = openReddit;
-      if(shareClaim) shareClaim.onclick = claimReward;
+            // One-click share:
+      // - On mobile: uses native share sheet (Facebook/IG/Discord/Reddit/等，如果已安裝 app)
+      // - On desktop: falls back to auto-download + copy caption (平台限制無法自動發文上傳圖片)
+      const oneClickShare = async ()=>{
+        try{ await copyCaption(); }catch(_){}
+        try{ await systemShare(); }catch(_){}
+        // We can't reliably verify posting success across platforms, so reward is granted per-shareId with daily cap.
+        await claimReward();
+      };
+
+      // Hide advanced buttons (keep DOM ids for backward compatibility)
+      if(shareDownload) shareDownload.style.display = "none";
+      if(shareCopy) shareCopy.style.display = "none";
+      if(shareReddit) shareReddit.style.display = "none";
+      if(shareClaim) shareClaim.style.display = "none";
+
+      if(shareShare) shareShare.onclick = oneClickShare;
+
 
 
       // Close behavior
@@ -2435,7 +2448,7 @@ function renderGridDecoys(list){
           <div class="shareBtns">
             <button class="shareBtn" id="shareDownload" type="button">下載圖片</button>
             <button class="shareBtn" id="shareCopy" type="button">複製文案</button>
-            <button class="shareBtn" id="shareShare" type="button">系統分享</button>
+            <button class="shareBtn" id="shareShare" type="button">一鍵分享</button>
             <button class="shareBtn" id="shareReddit" type="button">Reddit</button>
             <button class="shareBtn shareClaim" id="shareClaim" type="button">領取獎勵</button>
           </div>
