@@ -261,7 +261,7 @@
     align-items:center;
     justify-content:center;
     z-index: 10000;
-    pointer-events:none;
+    pointer-events:auto;
     background: rgba(0,0,0,0.25);
     backdrop-filter: blur(2px);
   }
@@ -285,6 +285,17 @@
     opacity: 0.85;
     letter-spacing: 0.3px;
     text-align:center;
+  }
+
+  .levelUpCardWrap{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:12px;
+    pointer-events:auto;
+  }
+  #levelUpConfirm{
+    margin-top: 6px;
   }
   @keyframes levelUpPop{
     0%{ transform: translateY(10px) scale(0.92); opacity: 0; }
@@ -593,13 +604,49 @@ function bestThumb(url){
 const TRANSPARENT_GIF = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
 
 
-window.showLevelUpFx = function showLevelUpFx(){
+
+window.showLevelUpFx = function showLevelUpFx(payload){
   const fx = q("#levelUpFx");
   if(!fx) return;
+
+  const rangeEl = q("#levelUpRange");
+  const cardEl = fx.querySelector(".levelUpCard");
+
+  if(cardEl) cardEl.textContent = "NEW COMBINATION UNLOCKED!";
+
+  const RARITY_LABEL = {1:"C",2:"R",3:"SR",4:"SSR",5:"UR"};
+
+  let fromLabel = "";
+  let toLabel = "";
+
+  if(payload && typeof payload === "object"){
+    fromLabel = String(payload.from || payload.oldMaxLabel || payload.oldMax || payload.x || "");
+    toLabel = String(payload.to || payload.newMaxLabel || payload.newMax || payload.y || "");
+    const baseRarity = Number(payload.baseRarity || payload.base || 0);
+    const oldStars = Number(payload.oldStars || payload.beforeStars || 0);
+    const newStars = Number(payload.newStars || payload.afterStars || 0);
+
+    if((!fromLabel || !toLabel) && baseRarity && oldStars && newStars){
+      const clampStars = (n)=>{
+        let s = Number(n || 0);
+        if(!Number.isFinite(s) || s < 1) s = 1;
+        if(s > 5) s = 5;
+        return s;
+      };
+      const oldMax = Math.min(5, baseRarity + (clampStars(oldStars) - 1));
+      const newMax = Math.min(5, baseRarity + (clampStars(newStars) - 1));
+      fromLabel = RARITY_LABEL[oldMax] || "";
+      toLabel = RARITY_LABEL[newMax] || "";
+    }
+  }
+
+  if(rangeEl){
+    rangeEl.textContent = (fromLabel && toLabel) ? (fromLabel + " => " + toLabel) : "";
+  }
+
   fx.classList.add("active");
-  clearTimeout(fx._t);
-  fx._t = setTimeout(()=>{ fx.classList.remove("active"); }, 1050);
 };
+
 
 
 
@@ -1361,9 +1408,26 @@ async function doUpgrade(assetId){
   }).then(r=>r.json());
 
   if(res.ok){
-    if(window.showLevelUpFx) window.showLevelUpFx();
+    const baseRarity = Number(res.baseRarity || res.base || 0);
+    const oldStars = Number(res.oldStars || res.beforeStars || 0);
+    const newStars = Number(res.newStars || res.afterStars || 0);
+
+    const fromLabel = String(res.from || res.oldMaxLabel || res.oldMax || "");
+    const toLabel = String(res.to || res.newMaxLabel || res.newMax || "");
+
+    if(window.showLevelUpFx){
+      window.showLevelUpFx({
+        from: fromLabel,
+        to: toLabel,
+        baseRarity,
+        oldStars,
+        newStars
+      });
+    }
+
     await reloadInventory();
-  }else{
+  }
+  else{
     alert(res.error || "upgrade failed");
   }
 
@@ -1374,9 +1438,10 @@ async function doUpgrade(assetId){
 <div id="hoverPreview"><img alt="preview"/></div>
 
 <div id="levelUpFx">
-  <div>
-    <div class="levelUpCard">NEW LEVEL UNLOCKED</div>
-    <div class="levelUpSub">Upgrade successful</div>
+  <div class="levelUpCardWrap">
+    <div class="levelUpCard">NEW COMBINATION UNLOCKED!</div>
+    <div class="levelUpSub" id="levelUpRange"></div>
+    <button id="levelUpConfirm" class="unlock-confirm" type="button">CONFIRM</button>
   </div>
 </div>
 
@@ -1480,5 +1545,24 @@ async function doUpgrade(assetId){
   });
 })();
 </script>
+
+<script>
+(function(){
+  function bind(){
+    const fx = document.getElementById("levelUpFx");
+    const btn = document.getElementById("levelUpConfirm");
+    if(!fx || !btn) return;
+    btn.addEventListener("click", ()=>{
+      fx.classList.remove("active");
+    });
+  }
+  if(document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded", bind);
+  }else{
+    bind();
+  }
+})();
+</script>
+
 </body>
 </html>

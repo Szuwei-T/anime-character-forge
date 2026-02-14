@@ -1036,7 +1036,75 @@
   width:100%;
 }
 
-</style>
+
+    /* ===== Share Card ===== */
+    .sharePanel{
+      margin-top: 12px;
+      width: min(520px, 92vw);
+      border-radius: 18px;
+      padding: 12px;
+      background: rgba(0,0,0,0.35);
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: 0 18px 60px rgba(0,0,0,0.50);
+    }
+    .shareTitle{
+      font-weight: 1000;
+      letter-spacing: 0.4px;
+      opacity: 0.92;
+      margin-bottom: 10px;
+      text-align: left;
+    }
+    .shareBody{
+      display:flex;
+      gap: 12px;
+      align-items: stretch;
+    }
+    #sharePreview{
+      width: 150px;
+      height: 150px;
+      border-radius: 14px;
+      object-fit: cover;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      flex: 0 0 auto;
+    }
+    .shareBtns{
+      display:flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-content: flex-start;
+    }
+    .shareBtn{
+      border: 0;
+      border-radius: 999px;
+      padding: 10px 12px;
+      font-size: 13px;
+      font-weight: 900;
+      cursor: pointer;
+      background: rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.92);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.35);
+      user-select:none;
+    }
+    .shareBtn:hover{ background: rgba(255,255,255,0.16); }
+    .shareBtn:active{ transform: translateY(1px); }
+    .shareBtn.shareClaim{
+      background: linear-gradient(135deg, rgba(255,198,106,0.98), rgba(255,159,47,0.98));
+      color: #0a0f18;
+    }
+    .shareHint{
+      margin-top: 10px;
+      font-size: 12px;
+      opacity: 0.80;
+      line-height: 1.35;
+      text-align: left;
+    }
+    @media (max-width: 520px){
+      .shareBody{ flex-direction: column; }
+      #sharePreview{ width: 100%; height: 180px; }
+    }
+
+  </style>
 </head>
 <body>
   <div class="packFlash" id="packFlash"></div>
@@ -1510,6 +1578,230 @@ function assetFullUrl(a){
       const cineTenGrid = document.getElementById("cineTenGrid");
       const cineOk = document.getElementById("cineOk");
       const cineCta = document.getElementById("cineCta");
+      const sharePanel = document.getElementById("sharePanel");
+      const shareCanvas = document.getElementById("shareCanvas");
+      const sharePreview = document.getElementById("sharePreview");
+      const shareDownload = document.getElementById("shareDownload");
+      const shareCopy = document.getElementById("shareCopy");
+      const shareShare = document.getElementById("shareShare");
+      const shareReddit = document.getElementById("shareReddit");
+      const shareClaim = document.getElementById("shareClaim");
+      const shareHint = document.getElementById("shareHint");
+
+      let _shareState = { ready:false, blob:null, dataUrl:"", caption:"", shareId:"", rarity:0, assetId:"" };
+
+      function buildUidHeaders(){
+        const headers = { "content-type": "application/json" };
+        const uidCandidates = [
+          window.USER_ID,
+          window.userId,
+          window.uid,
+          (typeof window.getUserId === "function" ? window.getUserId() : ""),
+          (typeof window.getUid === "function" ? window.getUid() : ""),
+          localStorage.getItem("uid"),
+          localStorage.getItem("userId"),
+          localStorage.getItem("USER_ID"),
+        ];
+        for (const v of uidCandidates) {
+          const s = String(v || "").trim();
+          if (s && s !== "null" && s !== "undefined") { headers["x-user-id"] = s; break; }
+        }
+        return headers;
+      }
+
+      async function getMyAccount(){
+        try{
+          const apiFetch = (url, fetchOpts) => {
+            if (typeof window.api === "function") return window.api(url, fetchOpts);
+            return fetch(url, fetchOpts);
+          };
+          const res = await apiFetch("/api/me/account", { method:"GET", headers: buildUidHeaders() });
+          if(res && typeof res.json === "function"){
+            if(!res.ok) return null;
+            return await res.json();
+          }
+          if(res && typeof res === "object") return res;
+        }catch(_){}
+        return null;
+      }
+
+      function initialsFromName(name){
+        const s = String(name || "").trim();
+        if(!s) return "P";
+        const parts = s.split(/\s+/).filter(Boolean);
+        if(parts.length === 1) return parts[0].slice(0,2).toUpperCase();
+        return (parts[0].slice(0,1) + parts[parts.length-1].slice(0,1)).toUpperCase();
+      }
+
+      function rarityBg(ctx, r){
+        if(r === 5){
+          const g = ctx.createLinearGradient(0,0,1080,1080);
+          g.addColorStop(0, "rgba(255,60,60,1)");
+          g.addColorStop(1, "rgba(120,20,20,1)");
+          return g;
+        }
+        if(r === 4){
+          const g = ctx.createLinearGradient(0,0,1080,1080);
+          g.addColorStop(0, "rgba(255,185,95,1)");
+          g.addColorStop(1, "rgba(155,82,20,1)");
+          return g;
+        }
+        const g = ctx.createLinearGradient(0,0,1080,1080);
+        g.addColorStop(0, "rgba(70,80,120,1)");
+        g.addColorStop(1, "rgba(20,25,40,1)");
+        return g;
+      }
+
+      async function loadImage(url){
+        return await new Promise((resolve, reject)=>{
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+          img.onload = ()=>resolve(img);
+          img.onerror = ()=>reject(new Error("img_load_failed"));
+          img.src = url;
+        });
+      }
+
+      function drawRoundRect(ctx, x,y,w,h,r){
+        const rr = Math.max(0, Math.min(r, Math.min(w,h)/2));
+        ctx.beginPath();
+        ctx.moveTo(x+rr, y);
+        ctx.arcTo(x+w, y, x+w, y+h, rr);
+        ctx.arcTo(x+w, y+h, x, y+h, rr);
+        ctx.arcTo(x, y+h, x, y, rr);
+        ctx.arcTo(x, y, x+w, y, rr);
+        ctx.closePath();
+      }
+
+      async function buildShareCardImage(opts){
+        if(!shareCanvas) throw new Error("no_canvas");
+        const c = shareCanvas;
+        const ctx = c.getContext("2d");
+        if(!ctx) throw new Error("no_ctx");
+
+        const r = Number(opts.rarity || 1);
+        const rName = RARITY_NAME[r] || ("R" + r);
+        const assetId = String(opts.assetId || "");
+        const gameName = String(opts.gameName || "Player");
+        const avatarText = initialsFromName(gameName);
+
+        ctx.clearRect(0,0,c.width,c.height);
+
+        ctx.fillStyle = rarityBg(ctx, r);
+        ctx.fillRect(0,0,c.width,c.height);
+
+        // soft vignette
+        const vg = ctx.createRadialGradient(540, 420, 60, 540, 540, 700);
+        vg.addColorStop(0, "rgba(255,255,255,0.10)");
+        vg.addColorStop(1, "rgba(0,0,0,0.55)");
+        ctx.fillStyle = vg;
+        ctx.fillRect(0,0,c.width,c.height);
+
+        // title
+        ctx.fillStyle = "rgba(255,255,255,0.92)";
+        ctx.font = "900 54px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+        ctx.textAlign = "left";
+        ctx.fillText("Gacha Pull", 64, 98);
+
+        // rarity badge
+        const badgeW = 210, badgeH = 78;
+        const bx = 64, by = 126;
+        ctx.fillStyle = "rgba(0,0,0,0.35)";
+        drawRoundRect(ctx, bx, by, badgeW, badgeH, 22);
+        ctx.fill();
+        ctx.strokeStyle = "rgba(255,255,255,0.20)";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.fillStyle = "rgba(255,255,255,0.96)";
+        ctx.font = "1000 40px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+        ctx.fillText(rName, bx + 24, by + 54);
+
+        // player badge
+        const px = 64, py = 224;
+        ctx.fillStyle = "rgba(0,0,0,0.32)";
+        drawRoundRect(ctx, px, py, 520, 90, 26);
+        ctx.fill();
+        ctx.strokeStyle = "rgba(255,255,255,0.16)";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // avatar circle
+        ctx.fillStyle = "rgba(255,255,255,0.14)";
+        ctx.beginPath();
+        ctx.arc(px + 52, py + 45, 30, 0, Math.PI*2);
+        ctx.fill();
+
+        ctx.fillStyle = "rgba(255,255,255,0.92)";
+        ctx.font = "900 26px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(avatarText, px + 52, py + 54);
+
+        ctx.textAlign = "left";
+        ctx.font = "900 30px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+        ctx.fillText(gameName, px + 98, py + 57);
+
+        ctx.font = "700 22px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+        ctx.fillStyle = "rgba(255,255,255,0.78)";
+        ctx.fillText(assetId, px + 98, py + 84);
+
+        // card image
+        const img = await loadImage(opts.cardUrl);
+        const cardX = 170, cardY = 330, cardW = 740, cardH = 740;
+
+        // card shadow
+        ctx.save();
+        ctx.globalAlpha = 0.55;
+        ctx.fillStyle = "rgba(0,0,0,1)";
+        drawRoundRect(ctx, cardX + 18, cardY + 22, cardW, cardH, 44);
+        ctx.fill();
+        ctx.restore();
+
+        // card frame
+        ctx.fillStyle = "rgba(0,0,0,0.24)";
+        drawRoundRect(ctx, cardX, cardY, cardW, cardH, 44);
+        ctx.fill();
+        ctx.strokeStyle = "rgba(255,255,255,0.22)";
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        // draw image inside
+        const pad = 22;
+        const ix = cardX + pad, iy = cardY + pad, iw = cardW - pad*2, ih = cardH - pad*2;
+
+        // contain
+        const s = Math.min(iw / img.width, ih / img.height);
+        const dw = img.width * s;
+        const dh = img.height * s;
+        const dx = ix + (iw - dw)/2;
+        const dy = iy + (ih - dh)/2;
+
+        ctx.save();
+        drawRoundRect(ctx, ix, iy, iw, ih, 34);
+        ctx.clip();
+        ctx.drawImage(img, dx, dy, dw, dh);
+        ctx.restore();
+
+        // footer
+        ctx.fillStyle = "rgba(255,255,255,0.78)";
+        ctx.font = "700 20px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+        ctx.textAlign = "left";
+        const urlText = String(location.origin || "");
+        ctx.fillText(urlText, 64, 1036);
+
+        return await new Promise((resolve)=>{
+          c.toBlob((blob)=>{
+            if(!blob) return resolve({ blob:null, dataUrl:"" });
+            const fr = new FileReader();
+            fr.onload = ()=>resolve({ blob, dataUrl: String(fr.result||"") });
+            fr.readAsDataURL(blob);
+          }, "image/png", 0.95);
+        });
+      }
+
+      function setShareHint(msg){
+        if(shareHint) shareHint.textContent = msg;
+      }
+
       if(!cinematic || !cineImg || !cineOk) return;
 
       const arr = Array.isArray(winners) ? winners.filter(Boolean) : [];
@@ -1526,6 +1818,29 @@ function assetFullUrl(a){
 
       const r = Math.max(1, Math.min(5, Number(focus?.rarity || 1)));
       const rName = RARITY_NAME[r] || `R${r}`;
+
+      // Share panel only for SSR/UR
+      if(sharePanel) sharePanel.style.display = (r >= 4 ? "" : "none");
+      _shareState = { ready:false, blob:null, dataUrl:"", caption:"", shareId: crypto.randomUUID(), rarity:r, assetId: String(focus?.assetId || focus?.id || "") };
+
+      if(r >= 4){
+        try{
+          const acc = await getMyAccount();
+          const gameName = (acc && (acc.account?.userName || acc.userName || acc.account?.name)) ? String(acc.account?.userName || acc.userName || acc.account?.name) : "Player";
+          const cardUrl = String(focus?.imageUrl || focus?.thumb || "");
+          const { blob, dataUrl } = await buildShareCardImage({ rarity:r, assetId:_shareState.assetId, gameName, cardUrl });
+          _shareState.blob = blob;
+          _shareState.dataUrl = dataUrl;
+          _shareState.ready = !!blob;
+          _shareState.caption = `我在 ${gameName} 抽到了 ${rName} ${_shareState.assetId} \n${location.origin}`;
+          if(sharePreview && dataUrl) sharePreview.src = dataUrl;
+          setShareHint("分享完成後點領取獎勵，每天最多 5 次");
+        }catch(e){
+          console.warn("share build failed", e);
+          setShareHint("分享圖生成失敗，仍可繼續抽卡");
+          if(sharePanel) sharePanel.style.display = "none";
+        }
+      }
 
       cinematic.className = `cinematic show r${r}`;
       cinematic.setAttribute("aria-hidden","false");
@@ -1624,6 +1939,88 @@ function assetFullUrl(a){
         test.onerror = ()=>{};
         test.src = fullSrc;
       }
+
+
+      // Share actions
+      const downloadShare = ()=>{
+        if(!_shareState.ready || !_shareState.dataUrl) return setShareHint("分享圖還沒準備好");
+        const a = document.createElement("a");
+        a.href = _shareState.dataUrl;
+        a.download = `gacha_${(_shareState.assetId||"card")}_${RARITY_NAME[_shareState.rarity]||_shareState.rarity}.png`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setShareHint("已下載圖片，分享到 Discord Reddit 朋友圈後點領取獎勵");
+      };
+      const copyCaption = async ()=>{
+        try{
+          await navigator.clipboard.writeText(_shareState.caption || "");
+          setShareHint("已複製文案，貼到 Discord Reddit 朋友圈後點領取獎勵");
+        }catch(_){
+          setShareHint("複製失敗，你可以直接截圖或下載圖片分享");
+        }
+      };
+      const systemShare = async ()=>{
+        try{
+          if(!_shareState.ready || !_shareState.blob) return setShareHint("分享圖還沒準備好");
+          const file = new File([_shareState.blob], "gacha.png", { type:"image/png" });
+          if(navigator.share){
+            const data = { title:"Gacha Pull", text:_shareState.caption || "", files:[file] };
+            await navigator.share(data);
+            setShareHint("分享完成後點領取獎勵");
+            return;
+          }
+          downloadShare();
+        }catch(e){
+          console.warn("share failed", e);
+          downloadShare();
+        }
+      };
+      const openReddit = ()=>{
+        const title = encodeURIComponent((_shareState.caption || "Gacha Pull").split("\n")[0]);
+        const url = encodeURIComponent(String(location.origin || ""));
+        const link = `https://www.reddit.com/submit?title=${title}&url=${url}`;
+        window.open(link, "_blank", "noopener,noreferrer");
+        setShareHint("Reddit 已開啟，貼上圖片後點領取獎勵");
+      };
+      const claimReward = async ()=>{
+        try{
+          if(!_shareState.ready) return setShareHint("分享圖還沒準備好");
+          const apiFetch = (url, fetchOpts) => {
+            if (typeof window.api === "function") return window.api(url, fetchOpts);
+            return fetch(url, fetchOpts);
+          };
+          const res = await apiFetch("/api/share/reward", {
+            method:"POST",
+            headers: buildUidHeaders(),
+            body: JSON.stringify({ shareId:_shareState.shareId, rarity:_shareState.rarity, assetId:_shareState.assetId }),
+          });
+          const data = (res && typeof res.json === "function") ? await res.json() : res;
+          if(!data || !data.ok){
+            const err = (data && (data.error || data.message)) ? String(data.error || data.message) : "claim_failed";
+            if(err === "daily_limit") return setShareHint(`今天已領取 ${data.used || 0} 次，最多 ${data.maxPerDay || 5} 次`);
+            if(err === "duplicate") return setShareHint("這張分享圖已領過獎勵");
+            return setShareHint("領取失敗");
+          }
+          if(data.already){
+            setShareHint("這張分享圖已領過獎勵");
+          }else{
+            const g = Number(data.reward?.gem || 0);
+            const v = Number(data.reward?.vote || 0);
+            setShareHint(`已領取獎勵 +${g} GEM +${v} 票 目前 GEM ${data.balances?.userGem ?? ""} 票 ${data.balances?.userVote ?? ""}`);
+          }
+        }catch(e){
+          console.warn("claim failed", e);
+          setShareHint("領取失敗");
+        }
+      };
+
+      if(shareDownload) shareDownload.onclick = downloadShare;
+      if(shareCopy) shareCopy.onclick = copyCaption;
+      if(shareShare) shareShare.onclick = systemShare;
+      if(shareReddit) shareReddit.onclick = openReddit;
+      if(shareClaim) shareClaim.onclick = claimReward;
+
 
       // Close behavior
       const close = () => {
@@ -2030,9 +2427,27 @@ function renderGridDecoys(list){
       </div>
 
       <button class="cine-ok" id="cineOk" type="button">確認</button>
+
+      <div class="sharePanel" id="sharePanel" style="display:none;">
+        <div class="shareTitle">分享抽卡結果</div>
+        <div class="shareBody">
+          <img id="sharePreview" alt="share preview" />
+          <div class="shareBtns">
+            <button class="shareBtn" id="shareDownload" type="button">下載圖片</button>
+            <button class="shareBtn" id="shareCopy" type="button">複製文案</button>
+            <button class="shareBtn" id="shareShare" type="button">系統分享</button>
+            <button class="shareBtn" id="shareReddit" type="button">Reddit</button>
+            <button class="shareBtn shareClaim" id="shareClaim" type="button">領取獎勵</button>
+          </div>
+        </div>
+        <div class="shareHint" id="shareHint">抽到 SSR 或 UR 才會出現分享圖，分享到 Discord Reddit 朋友圈後再點領取獎勵，每天最多 5 次</div>
+      </div>
+
       <div class="cine-cta" id="cineCta">點擊確認繼續</div>
     </div>
   </div>
+
+  <canvas id="shareCanvas" width="1080" height="1080" style="display:none;"></canvas>
 
 </body>
 </html>
