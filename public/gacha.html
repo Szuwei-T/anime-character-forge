@@ -52,18 +52,19 @@
       letter-spacing:0.3px;
     }
     .featureStage{
-      width:min(520px, 92vw);
-      aspect-ratio: 1 / 1;
-      border-radius: 26px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.10);
-      box-shadow: 0 28px 90px rgba(0,0,0,0.60);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      overflow:hidden;
-      position:relative;
-    }
+  width: 100%;
+  max-width: 980px;
+  aspect-ratio: 16 / 9;
+  border-radius: 26px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  position:relative;
+}
     .featureStage:before{
       content:"";
       position:absolute;
@@ -81,16 +82,127 @@
       100%{ transform: translateY(0) scale(1); }
     }
     .featureStage img, .featureStage video{
-      width: 96%;
-      height: 96%;
-      object-fit: contain;
-      display:block;
-      animation: floaty 3.2s ease-in-out infinite;
-      position:relative;
-      z-index:1;
-    }
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display:block;
+  position:absolute;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+}
 
-    .side{
+    
+
+.promoTag{
+  position:absolute;
+  top:14px;
+  right:14px;
+  z-index:3;
+  padding:10px 12px;
+  border-radius: 14px;
+  background: rgba(0,0,0,0.55);
+  border: 1px solid rgba(255,255,255,0.18);
+  backdrop-filter: blur(10px);
+  text-align:right;
+  pointer-events:none;
+}
+.promoBig{
+  font-weight: 950;
+  font-size: 18px;
+  letter-spacing: 0.4px;
+  text-shadow: 0 10px 30px rgba(0,0,0,0.75);
+  white-space: nowrap;
+}
+.promoBoom{
+  margin-top: 2px;
+  font-weight: 1000;
+  font-size: 28px;
+  letter-spacing: 2px;
+  text-shadow: 0 14px 38px rgba(0,0,0,0.85);
+}
+
+.gachaOverlay{
+  position:absolute;
+  left:14px;
+  right:14px;
+  bottom:14px;
+  z-index:4;
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-items: stretch;
+}
+@media (max-width: 860px){
+  .gachaOverlay{ grid-template-columns: 1fr; }
+  .promoBig{ font-size: 16px; }
+  .promoBoom{ font-size: 26px; }
+}
+
+.gachaCard{
+  background: rgba(0,0,0,0.58);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 18px;
+  padding: 12px 12px 10px;
+  backdrop-filter: blur(10px);
+}
+.gachaHead{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.gachaName{
+  font-weight: 950;
+  font-size: 16px;
+  letter-spacing: 0.2px;
+}
+.gachaDesc{
+  opacity: 0.85;
+  font-weight: 800;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.drawRow{
+  display:flex;
+  gap: 10px;
+  align-items:flex-start;
+  justify-content: space-between;
+}
+.drawCol{
+  flex: 1;
+  display:flex;
+  flex-direction: column;
+  align-items:center;
+  gap: 4px;
+}
+.btn.small{
+  padding: 9px 12px;
+  border-radius: 12px;
+  font-size: 14px;
+  min-width: 92px;
+}
+.cost{
+  font-size: 12px;
+  opacity: 0.92;
+  font-weight: 850;
+  letter-spacing: 0.2px;
+}
+.guarantee{
+  font-size: 12px;
+  opacity: 0.88;
+  font-weight: 850;
+}
+.pity{
+  margin-top: 8px;
+  font-size: 12px;
+  opacity: 0.92;
+  font-weight: 900;
+  text-align:center;
+}
+.side{
       display:flex;
       flex-direction:column;
       gap: 12px;
@@ -1117,36 +1229,62 @@
           <div class="badge">
             <span style="opacity:0.8">feature</span>
           </div>
+
           <div class="featureStage">
-  <video id="featuredVideo" muted autoplay loop playsinline></video>
-  <img id="featuredFallback" src="/assets/feature_character.png" alt="" style="display:none;">
-</div>
-        </div>
-
-        <div class="bottomGrid">
-          <div class="sectionCard">
-            <div class="head">
-              <div class="name">普通抽卡</div>
-              <div class="desc">單次 或 10 連抽</div>
+            <div class="promoTag" aria-hidden="true">
+              <div class="promoBig">素材獲得機率+300%</div>
+              <div class="promoBoom">爆款</div>
             </div>
-            <div class="btnRow">
-              <button class="btn orange" id="btnNormal1">1次</button>
-              <button class="btn orange" id="btnNormal10">10次</button>
+
+            <video id="featuredVideo" muted autoplay loop playsinline></video>
+            <img id="featuredFallback" src="/assets/feature_character.png" alt="" style="display:none;">
+
+            <div class="gachaOverlay">
+              <div class="gachaCard">
+                <div class="gachaHead">
+                  <div class="gachaName">普通抽卡</div>
+                  <div class="gachaDesc">單次 或 10 連抽</div>
+                </div>
+
+                <div class="drawRow">
+                  <div class="drawCol">
+                    <button class="btn orange small" id="btnNormal1">1次</button>
+                    <div class="cost">cost 100gold</div>
+                  </div>
+                  <div class="drawCol">
+                    <button class="btn orange small" id="btnNormal10">10次</button>
+                    <div class="cost">cost 1000gold</div>
+                    <div class="guarantee">必出SR以上</div>
+                  </div>
+                </div>
+
+                <div class="pity" id="pityNormal">再抽200次 必出SSR</div>
+              </div>
+
+              <div class="gachaCard">
+                <div class="gachaHead">
+                  <div class="gachaName">高級抽卡</div>
+                  <div class="gachaDesc">單次 或 10 連抽</div>
+                </div>
+
+                <div class="drawRow">
+                  <div class="drawCol">
+                    <button class="btn blue small" id="btnPremium1">1次</button>
+                    <div class="cost">cost 10gem</div>
+                  </div>
+                  <div class="drawCol">
+                    <button class="btn blue small" id="btnPremium10">10次</button>
+                    <div class="cost">cost 100gem</div>
+                    <div class="guarantee">必出SSR以上</div>
+                  </div>
+                </div>
+
+                <div class="pity" id="pityPremium">再抽200次 必出UR</div>
+              </div>
             </div>
           </div>
-
-          <div class="sectionCard">
-            <div class="head">
-              <div class="name">高級抽卡</div>
-              <div class="desc">單次 或 10 連抽</div>
-            </div>
-            <div class="btnRow">
-              <button class="btn blue" id="btnPremium1">1次</button>
-              <button class="btn blue" id="btnPremium10">10次</button>
-              <a class="btn gray" href="hub.html" style="text-decoration:none;display:inline-flex;align-items:center;">返回</a>
-            </div>
-          </div>
         </div>
+
       </div>
 
       <div class="side">
@@ -1443,14 +1581,22 @@ async function onlineGacha(opts = {}) {
   // Some wrappers may return JSON directly instead of a Response.
   const isResponseLike = resp && typeof resp === "object" && ("ok" in resp) && typeof resp.json === "function";
   if (isResponseLike) {
-    if (!resp.ok) throw new Error(`gacha_http_${resp.status}`);
+    if (!resp.ok) {
+      let err = null;
+      try{ err = await resp.json(); }catch(_){ }
+      const code = err && err.error ? String(err.error) : `gacha_http_${resp.status}`;
+      const need = err && (err.need || err.costGold || err.costGem) ? Number(err.need || err.costGold || err.costGem) : null;
+      const have = err && (err.have || err.userGold || err.userGem) ? Number(err.have || err.userGold || err.userGem) : null;
+      const msg = (need !== null && have !== null) ? `${code} (need ${need}, have ${have})` : code;
+      throw new Error(msg);
+    }
     const data = await resp.json();
     if (!data || !data.ok || !Array.isArray(data.pulled)) throw new Error("gacha_failed");
     if (opts.type) {
       const want = String(requestType(opts.type)).toLowerCase();
       data.pulled = data.pulled.filter((a) => String(a?.type || "").toLowerCase() === want);
     }
-    return data.pulled;
+    return data;
   } else {
     const data = resp; // already JSON
     if (!data || !data.ok || !Array.isArray(data.pulled)) throw new Error("gacha_failed");
@@ -1458,9 +1604,53 @@ async function onlineGacha(opts = {}) {
       const want = String(requestType(opts.type)).toLowerCase();
       data.pulled = data.pulled.filter((a) => String(a?.type || "").toLowerCase() === want);
     }
-    return data.pulled;
+    return data;
   }
+
+
+function setPityText(el, remaining, label){
+  if(!el) return;
+  const x = Math.max(1, Number(remaining || 0));
+  el.textContent = `再抽${x}次 必出${label}`;
 }
+
+function updatePityUI(data){
+  if(!data) return;
+  const n = data.pityNormalRemaining;
+  const p = data.pityPremiumRemaining;
+  setPityText(document.getElementById("pityNormal"), n, "SSR");
+  setPityText(document.getElementById("pityPremium"), p, "UR");
+}
+
+async function loadPityStatus(){
+  const apiFetch = (url, fetchOpts) => {
+    if (typeof window.api === "function") return window.api(url, fetchOpts);
+    return fetch(url, fetchOpts);
+  };
+
+  const headers = {};
+  const uidCandidates = [
+    window.USER_ID,
+    window.userId,
+    window.uid,
+    (typeof window.getUserId === "function" ? window.getUserId() : ""),
+    (typeof window.getUid === "function" ? window.getUid() : ""),
+    localStorage.getItem("uid"),
+    localStorage.getItem("userId"),
+    localStorage.getItem("USER_ID"),
+  ];
+  for (const v of uidCandidates) {
+    const s = String(v || "").trim();
+    if (s && s !== "null" && s !== "undefined") { headers["x-user-id"] = s; break; }
+  }
+
+  try{
+    const resp = await apiFetch("/api/gacha/pity", { method:"GET", headers });
+    const isResponseLike = resp && typeof resp === "object" && ("ok" in resp) && typeof resp.json === "function";
+    const data = isResponseLike ? await resp.json() : resp;
+    if(data && data.ok) updatePityUI(data);
+  }catch(_){}
+}}
 
     function assetThumb(a){
       if(!a) return "/assets/placeholder.png";
@@ -2332,8 +2522,8 @@ function renderGridDecoys(list){
 
     async function prepareGridStage(opts={}){
       // Backward-compatible wrapper (not used by the new flow)
-      const pulled = await onlineGacha(opts);
-      return buildGridWithPulled(pulled, opts);
+      const data = await onlineGacha(opts);
+      return buildGridWithPulled(data.pulled, opts);
     }
 
     async function startGacha(opts={}){
@@ -2353,8 +2543,10 @@ function renderGridDecoys(list){
         if(rollSub) rollSub.style.display = "none";
         if(rollSub) rollSub.textContent = "";
         
-        const pulled = await onlineGacha(opts);
+        const data = await onlineGacha(opts);
+        const pulled = data && Array.isArray(data.pulled) ? data.pulled : [];
         if(!pulled || pulled.length === 0) throw new Error("empty");
+        try{ updatePityUI(data); }catch(_){ }
 
         // 2) Build the 30-card grid BEFORE animation:
         //    30 cards include the 1/10 real rewards, plus decoys (from /api/assets) for visuals only
@@ -2395,6 +2587,7 @@ function renderGridDecoys(list){
       }
     }
     loadFeaturedVideo();
+    loadPityStatus();
 
     btnNormal1.addEventListener("click", () => startGacha({ count: 1, premium: false }));
     btnNormal10.addEventListener("click", () => startGacha({ count: 10, premium: false }));
