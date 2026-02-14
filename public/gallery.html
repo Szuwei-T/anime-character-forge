@@ -41,32 +41,7 @@
     .statPill{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);font-size:12px;opacity:.92;white-space:nowrap}
     .statPill strong{opacity:.95}
 
-    .podiumGrid{display:flex;align-items:flex-end;justify-content:center;gap:18px;flex-wrap:nowrap}
-    .podiumItem{display:flex;flex-direction:column;align-items:center;gap:10px;min-width:0}
-    .podiumTop{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px}
-    .podiumLeft{display:flex;align-items:center;gap:8px;min-width:0}
-    .rankIcon{width:18px;height:18px;opacity:.95}
-    .rankLabel{font-size:12px;font-weight:800;letter-spacing:.2px}
-    .rankLabel.rank1{color:rgba(255,210,80,.98)}
-    .rankLabel.rank2{color:rgba(220,230,245,.92)}
-    .rankLabel.rank3{color:rgba(235,170,110,.92)}
-    .podiumAuthor{display:flex;align-items:center;gap:8px;min-width:0;text-decoration:none;color:inherit}
-    .avMini{width:26px;height:26px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);overflow:hidden;display:grid;place-items:center;font-size:11px}
-    .authorName{font-size:12px;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px}
-    .podiumVotes{font-size:12px;opacity:.7;white-space:nowrap}
-    .podiumFrame{position:relative;border-radius:22px;overflow:hidden;background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.16);box-shadow:0 10px 35px rgba(0,0,0,.25)}
-    .podiumFrame.rank1{border-color:rgba(255,200,70,.75);box-shadow:0 0 0 2px rgba(255,200,70,.18), 0 18px 55px rgba(0,0,0,.35)}
-    .podiumFrame.rank2{border-color:rgba(210,220,235,.55)}
-    .podiumFrame.rank3{border-color:rgba(220,160,105,.55)}
-    .podiumFrameInner{position:relative}
-    .podiumFrame.rank1 .podThumb{width:320px;max-width:34vw;aspect-ratio:3/4;position:relative;border-radius:22px;overflow:hidden;background:rgba(0,0,0,.16)}
-    .podiumFrame.rank2 .podThumb{width:288px;max-width:30vw}
-    .podiumFrame.rank3 .podThumb{width:256px;max-width:27vw}
-    .podiumFrame.rank2{transform:translateY(16px)}
-    .podiumFrame.rank3{transform:translateY(28px)}
-    .spark{position:absolute;inset:-30%;background:radial-gradient(circle at 30% 30%, rgba(255,220,120,.25), transparent 55%),radial-gradient(circle at 70% 40%, rgba(120,220,255,.14), transparent 55%),radial-gradient(circle at 40% 70%, rgba(255,120,220,.10), transparent 60%);filter:blur(10px);animation:spin 6s linear infinite;pointer-events:none;mix-blend-mode:screen;opacity:.9}
-    @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-    
+    .podiumGrid{align-items:end}
     .rankBadge{position:absolute;left:10px;top:10px;padding:6px 10px;border-radius:999px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.18);font-size:12px;backdrop-filter: blur(4px)}
     .podiumCard{transform-origin:bottom center}
     .podiumCard.rank1{grid-column:2;transform:scale(1);border:2px solid rgba(255,205,60,.75);box-shadow:0 0 0 1px rgba(255,205,60,.18), 0 16px 40px rgba(0,0,0,.25)}
@@ -79,54 +54,29 @@
     .select{padding:10px 12px;border-radius:999px;background:rgba(0,0,0,.20);border:1px solid rgba(255,255,255,.14);color:var(--txt)}
     .status{font-size:12px;color:var(--mut)}
     .error{margin:10px 0;padding:12px 14px;border-radius:14px;background:rgba(255,0,70,.10);border:1px solid rgba(255,0,70,.25);color:rgba(255,210,220,.95);display:none}
-    .podiumWrap{margin:12px 0 14px}
-    .podiumTitle{display:flex;align-items:center;gap:10px;margin:6px 0 10px}
-    .podiumTitle .h{font-size:14px;opacity:.92}
-    .podiumTitle .sub{font-size:12px;opacity:.68}
+    .podiumWrap{margin:10px 0 12px}
+    .podiumGrid{display:flex;justify-content:center;align-items:flex-end;gap:14px}
+    .podiumCard{border-radius:18px;overflow:hidden;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);cursor:pointer;transform-origin:center bottom}
+    .podiumCard.rank1{transform:scale(1)}
+    .podiumCard.rank2{transform:scale(.9)}
+    .podiumCard.rank3{transform:scale(.8)}
+    .podThumb{aspect-ratio:3/4;background:rgba(0,0,0,.16);position:relative}
+    .podTop{position:absolute;left:10px;right:10px;top:10px;display:flex;flex-direction:column;gap:6px;z-index:80}
+    .podTopRow{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .rankBadge{padding:6px 10px;border-radius:999px;font-size:12px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(6px);white-space:nowrap}
+    .podTitle{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.95}
+    .podVotes{font-size:12px;opacity:.80;white-space:nowrap}
+    .podiumCard.rank1{border-color:rgba(255,215,0,.55);box-shadow:0 0 0 1px rgba(255,215,0,.25), 0 18px 40px rgba(255,215,0,.10)}
+    .podiumCard.rank2{border-color:rgba(210,210,210,.55);box-shadow:0 0 0 1px rgba(210,210,210,.22), 0 18px 40px rgba(210,210,210,.08)}
+    .podiumCard.rank3{border-color:rgba(205,127,50,.55);box-shadow:0 0 0 1px rgba(205,127,50,.22), 0 18px 40px rgba(205,127,50,.08)}
 
-    .podiumGrid{display:flex;justify-content:center;align-items:flex-end;gap:18px;flex-wrap:nowrap}
-    .podiumItem{display:flex;flex-direction:column;align-items:center;gap:8px;transform-origin:center bottom;min-width:0}
-    .podiumItem.rank1{transform:scale(1.15)}
-    .podiumItem.rank2{transform:scale(1.00)}
-    .podiumItem.rank3{transform:scale(.92)}
-
-    .podiumTop{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 4px}
-    .podiumLeft{display:flex;align-items:center;gap:8px;min-width:0}
-    .rankIcon{width:18px;height:18px;display:block;opacity:.95}
-    .rankLabel{font-size:13px;font-weight:800;letter-spacing:.3px;white-space:nowrap}
-    .rankLabel.rank1{color:rgba(255,214,90,.98)}
-    .rankLabel.rank2{color:rgba(215,220,235,.98)}
-    .rankLabel.rank3{color:rgba(211,154,106,.98)}
-
-    .podiumAuthor{display:flex;align-items:center;gap:8px;min-width:0;text-decoration:none;color:inherit}
-    .podiumAuthor:hover{opacity:.92}
-    .podiumAuthor .avMini{width:26px;height:26px;border-radius:999px;overflow:hidden;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);display:grid;place-items:center;font-size:11px}
-    .podiumAuthor .authorName{font-size:12px;opacity:.92;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}
-
-    .podiumVotes{font-size:12px;opacity:.75;white-space:nowrap}
-
-    .podiumFrame{border-radius:24px;overflow:hidden;position:relative;background:rgba(255,255,255,.06);cursor:pointer;border:1px solid rgba(255,255,255,.14)}
-    .podiumFrameInner{position:relative}
-    .podiumFrame.rank1{box-shadow:0 0 0 2px rgba(255,214,90,.75), 0 0 26px rgba(255,190,60,.25)}
-    .podiumFrame.rank2{box-shadow:0 0 0 2px rgba(215,220,235,.55)}
-    .podiumFrame.rank3{box-shadow:0 0 0 2px rgba(211,154,106,.45)}
-
-    .spark{position:absolute;inset:-30%;pointer-events:none;background:radial-gradient(circle at 30% 30%, rgba(255,220,120,.35), transparent 45%),radial-gradient(circle at 70% 60%, rgba(255,170,60,.22), transparent 50%);filter:blur(0px);animation:sparkMove 2.8s linear infinite}
-    @keyframes sparkMove{0%{transform:translate(-2%,0%) rotate(0deg)}100%{transform:translate(2%,-2%) rotate(360deg)}}
-
-    @media (max-width:780px){
-      .podiumGrid{flex-wrap:wrap}
-      .podiumItem.rank1{transform:scale(1.06)}
-      .podiumItem.rank2{transform:scale(1.00)}
-      .podiumItem.rank3{transform:scale(.96)}
-    }
 
 
     .recWrap{margin:12px 0 10px;display:none}
     .recTitle{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:6px 0 10px}
     .recTitle .h{font-size:14px;opacity:.92}
     .recTitle .sub{font-size:12px;opacity:.68}
-    .recGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+    .recGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
     .recCard{border-radius:18px;overflow:hidden;background:var(--card);border:1px solid var(--bd);cursor:pointer;transition:.15s}
     .recCard:hover{background:rgba(255,255,255,.08)}
     .recThumb{aspect-ratio:3/4;background:rgba(0,0,0,.16);position:relative}
@@ -227,10 +177,6 @@
     <div class="sectionTitle" id="podiumTitle">🏆 本期頒獎台</div>
 
     <div class="podiumWrap" id="podiumWrap">
-      <div class="podiumTitleRow" id="podiumTitleRow">
-        <div class="h">🏆 本期頒獎台</div>
-        <div class="sub">依票數排序 · 第 1 名中間</div>
-      </div>
       <div class="podiumGrid" id="podiumGrid"></div>
     </div>
 
@@ -541,7 +487,7 @@ function showError(msg){
 }  function renderPodium(items){
     podiumGrid.innerHTML = "";
     const wrap = document.getElementById("podiumWrap");
-    const titleEl = document.getElementById("podiumTitleRow");
+    const titleEl = document.getElementById("podiumTitle");
     const top3 = (items||[]).slice(0,3);
 
     // Visual order: #2 (left), #1 (center), #3 (right)
@@ -558,21 +504,9 @@ function showError(msg){
       return;
     }
 
-    const ICON_CROWN = `<svg class="rankIcon" viewBox="0 0 24 24" fill="none"><path d="M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M6 18l-2-9 6 4 2-7 2 7 6-4-2 9" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M7 18v2h10v-2" stroke="currentColor" stroke-width="2"/></svg>`;
-    const ICON_MEDAL = `<svg class="rankIcon" viewBox="0 0 24 24" fill="none"><path d="M8 3h8l-2 5h-4l-2-5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12 21a6 6 0 1 0 0-12 6 6 0 0 0 0 12Z" stroke="currentColor" stroke-width="2"/><path d="M12 12v3l2 1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
-    const iconFor = (rank)=> rank === 1 ? ICON_CROWN : ICON_MEDAL;
-
-    const u = (id)=> id ? ("/assets/" + id + ".png") : "";
-
     ordered.forEach(({s, rank})=>{
-      const item = document.createElement("div");
-      item.className = "podiumItem rank" + String(rank);
-
-      const frame = document.createElement("div");
-      frame.className = "podiumFrame rank" + String(rank);
-
-      const inner = document.createElement("div");
-      inner.className = "podiumFrameInner";
+      const card = document.createElement("div");
+      card.className = "podiumCard rank" + String(rank);
 
       const th = document.createElement("div");
       th.className = "podThumb";
@@ -585,70 +519,35 @@ function showError(msg){
         { url: s.addon1Url, z:50 },
       ]);
 
-      inner.appendChild(th);
-
-      if(rank === 1){
-        const sp = document.createElement("div");
-        sp.className = "spark";
-        inner.appendChild(sp);
-      }
-
-      frame.appendChild(inner);
-
       const top = document.createElement("div");
-      top.className = "podiumTop";
+      top.className = "podTop";
 
-      const left = document.createElement("div");
-      left.className = "podiumLeft";
-      const lab = document.createElement("div");
-      lab.className = "rankLabel rank" + String(rank);
-      lab.textContent = "第 " + String(rank) + " 名";
-      left.innerHTML = iconFor(rank);
-      left.appendChild(lab);
+      const row = document.createElement("div");
+      row.className = "podTopRow";
 
-      const authorLink = document.createElement("a");
-      authorLink.className = "podiumAuthor";
-      authorLink.href = "/user?uid=" + encodeURIComponent(String(s.userId || ""));
-      authorLink.onclick = (e)=>{ e.stopPropagation(); };
+      const badge = document.createElement("div");
+      badge.className = "rankBadge";
+      badge.textContent = "#" + String(rank);
 
-      const av = document.createElement("div");
-      av.className = "avMini";
+      const votes = document.createElement("div");
+      votes.className = "podVotes";
+      votes.textContent = "票數 " + String(Number(s.votes || 0));
 
-      const authorName = String(s.authorName || "").trim();
-      const hasAvatar = !!(s.authorAvatarHeadId || s.authorAvatarBodyId || s.authorAvatarBgId || s.authorAvatarAddon1Id || s.authorAvatarAddon2Id);
+      row.appendChild(badge);
+      row.appendChild(votes);
 
-      if(hasAvatar){
-        makeStackThumb(av, [
-          { url: u(s.authorAvatarBgId), z:10 },
-          { url: u(s.authorAvatarAddon2Id), z:20 },
-          { url: u(s.authorAvatarHeadId), z:30 },
-          { url: u(s.authorAvatarBodyId), z:40 },
-          { url: u(s.authorAvatarAddon1Id), z:50 },
-        ]);
-      }else{
-        av.textContent = initials(authorName || String(s.userId || ""));
-      }
+      const title = document.createElement("div");
+      title.className = "podTitle";
+      title.textContent = (s.title && String(s.title).trim()) ? String(s.title).trim() : "未命名作品";
 
-      const nm = document.createElement("div");
-      nm.className = "authorName";
-      nm.textContent = authorName || String(s.userId || "").slice(0, 8);
+      top.appendChild(row);
+      top.appendChild(title);
 
-      authorLink.appendChild(av);
-      authorLink.appendChild(nm);
+      th.appendChild(top);
+      card.appendChild(th);
 
-      const vote = document.createElement("div");
-      vote.className = "podiumVotes";
-      vote.textContent = "票數 " + String(Number(s.votes || 0));
-
-      top.appendChild(left);
-      top.appendChild(authorLink);
-      top.appendChild(vote);
-
-      item.appendChild(top);
-      item.appendChild(frame);
-
-      frame.onclick = ()=>{
-        openModal("作品", "票數 " + String(Number(s.votes||0)) + " · " + fmtTime(s.createdAt), [
+      card.onclick = ()=>{
+        openModal(title.textContent, "票數 " + String(Number(s.votes||0)) + " · " + fmtTime(s.createdAt), [
           { url: s.bgUrl, z:10 },
           { url: s.addon2Url, z:20 },
           { url: s.headUrl, z:30 },
@@ -657,7 +556,7 @@ function showError(msg){
         ]);
       };
 
-      podiumGrid.appendChild(item);
+      podiumGrid.appendChild(card);
     });
   }
 
@@ -678,7 +577,6 @@ function showError(msg){
       recItems.forEach((s)=>{
         const card = document.createElement("div");
         card.className = "recCard";
-
         const th = document.createElement("div");
         th.className = "recThumb";
         makeStackThumb(th, [
@@ -688,59 +586,20 @@ function showError(msg){
           { url: s.bodyUrl, z:40 },
           { url: s.addon1Url, z:50 },
         ]);
-
         const meta = document.createElement("div");
         meta.className = "recMeta";
-
-        const left = document.createElement("div");
-        left.style.display = "flex";
-        left.style.alignItems = "center";
-        left.style.gap = "10px";
-        left.style.minWidth = "0";
-
-        const authorLink = document.createElement("a");
-        authorLink.className = "authorMini";
-        authorLink.href = "/user?uid=" + encodeURIComponent(String(s.userId || ""));
-        authorLink.onclick = (e)=>{ e.stopPropagation(); };
-
-        const av = document.createElement("div");
-        av.className = "av";
-        const authorName = String(s.authorName || "").trim();
-        const u = (id)=> id ? ("/assets/" + id + ".png") : "";
-        const hasAvatar = !!(s.authorAvatarHeadId || s.authorAvatarBodyId || s.authorAvatarBgId || s.authorAvatarAddon1Id || s.authorAvatarAddon2Id);
-        if(hasAvatar){
-          makeStackThumb(av, [
-            { url: u(s.authorAvatarBgId), z:10 },
-            { url: u(s.authorAvatarAddon2Id), z:20 },
-            { url: u(s.authorAvatarHeadId), z:30 },
-            { url: u(s.authorAvatarBodyId), z:40 },
-            { url: u(s.authorAvatarAddon1Id), z:50 },
-          ]);
-        }else{
-          av.textContent = initials(authorName || String(s.userId || ""));
-        }
-
-        const nm = document.createElement("div");
-        nm.className = "nm";
-        nm.textContent = authorName || String(s.userId || "").slice(0, 8);
-
-        authorLink.appendChild(av);
-        authorLink.appendChild(nm);
-
+        const t = document.createElement("div");
+        t.className = "t";
+        t.textContent = (s.title && String(s.title).trim()) ? String(s.title).trim() : "未命名作品";
         const b = document.createElement("div");
         b.className = "recBadge";
         b.textContent = "推薦 " + String(Number(s.recommends||0));
-
-        left.appendChild(authorLink);
-
-        meta.appendChild(left);
+        meta.appendChild(t);
         meta.appendChild(b);
-
         card.appendChild(th);
         card.appendChild(meta);
-
         card.onclick = ()=>{
-          openModal("作品", "推薦 " + String(Number(s.recommends||0)) + " · 票數 " + String(Number(s.votes||0)) + " · " + fmtTime(s.createdAt), [
+          openModal(t.textContent, "推薦 " + String(Number(s.recommends||0)) + " · 票數 " + String(Number(s.votes||0)) + " · " + fmtTime(s.createdAt), [
             { url: s.bgUrl, z:10 },
             { url: s.addon2Url, z:20 },
             { url: s.headUrl, z:30 },
@@ -748,7 +607,6 @@ function showError(msg){
             { url: s.addon1Url, z:50 },
           ]);
         };
-
         recGrid.appendChild(card);
       });
     }
