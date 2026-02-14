@@ -1698,6 +1698,8 @@ async function onlineGacha(opts = {}) {
   }
 
 
+}
+
 function setPityText(el, remaining, label){
   if(!el) return;
   const x = Math.max(1, Number(remaining || 0));
@@ -1742,7 +1744,6 @@ async function loadPityStatus(){
   }catch(_){}
 }
 window.loadPityStatus = loadPityStatus;
-}
 
     function assetThumb(a){
       if(!a) return "/assets/placeholder.png";
