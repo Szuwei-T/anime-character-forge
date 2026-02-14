@@ -374,7 +374,7 @@
     recWrap.style.display = "none";
 
     const recItems = (items||[])
-      .filter(x => Number(x.recommends || 0) > 1)
+      .filter(x => Number(x.recommends ?? 0) > 1)
       .slice()
       .sort((a,b)=> Number(b.recommends||0) - Number(a.recommends||0));
 
@@ -447,7 +447,7 @@
       kv.className = "kv";
       const votes = Number(s.votes || 0);
       const favs = Number(s.favorites || 0);
-      const recs = Number(s.recommends || 0);
+      const recs = Number(s.recommends ?? 0);
 
       const p1 = document.createElement("div");
       p1.className = "pill2";

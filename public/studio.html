@@ -605,43 +605,61 @@ const TRANSPARENT_GIF = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACA
 
 
 
-window.showLevelUpFx = function showLevelUpFx(payload){
+window.showLevelUpFx = function showLevelUpFx(assetIdOrPayload, oldStarsMaybe, newStarsMaybe){
   const fx = q("#levelUpFx");
   if(!fx) return;
 
   const rangeEl = q("#levelUpRange");
   const cardEl = fx.querySelector(".levelUpCard");
-
   if(cardEl) cardEl.textContent = "NEW COMBINATION UNLOCKED!";
 
   const RARITY_LABEL = {1:"C",2:"R",3:"SR",4:"SSR",5:"UR"};
 
+  const clamp = (n)=>{
+    let s = Number(n || 0);
+    if(!Number.isFinite(s) || s < 1) s = 1;
+    if(s > 5) s = 5;
+    return s;
+  };
+
+  const getMaxTier = (assetId, stars)=>{
+    const base = (window.__getBaseRarityById ? (window.__getBaseRarityById(assetId) || 1) : 1);
+    return Math.min(5, base + (clamp(stars) - 1));
+  };
+
   let fromLabel = "";
   let toLabel = "";
 
-  if(payload && typeof payload === "object"){
-    fromLabel = String(payload.from || payload.oldMaxLabel || payload.oldMax || payload.x || "");
-    toLabel = String(payload.to || payload.newMaxLabel || payload.newMax || payload.y || "");
-    const baseRarity = Number(payload.baseRarity || payload.base || 0);
-    const oldStars = Number(payload.oldStars || payload.beforeStars || 0);
-    const newStars = Number(payload.newStars || payload.afterStars || 0);
+  // Support both call styles:
+  // 1) showLevelUpFx(assetId, oldStars, newStars)
+  // 2) showLevelUpFx({ assetId, baseRarity, oldStars, newStars, from, to })
+  if(assetIdOrPayload && typeof assetIdOrPayload === "object"){
+    const p = assetIdOrPayload;
+    const aid = String(p.assetId || "");
+    const oldS = clamp(p.oldStars || p.beforeStars || 0);
+    const newS = clamp(p.newStars || p.afterStars || 0);
 
-    if((!fromLabel || !toLabel) && baseRarity && oldStars && newStars){
-      const clampStars = (n)=>{
-        let s = Number(n || 0);
-        if(!Number.isFinite(s) || s < 1) s = 1;
-        if(s > 5) s = 5;
-        return s;
-      };
-      const oldMax = Math.min(5, baseRarity + (clampStars(oldStars) - 1));
-      const newMax = Math.min(5, baseRarity + (clampStars(newStars) - 1));
-      fromLabel = RARITY_LABEL[oldMax] || "";
-      toLabel = RARITY_LABEL[newMax] || "";
+    fromLabel = String(p.from || p.oldMaxLabel || p.x || "");
+    toLabel   = String(p.to   || p.newMaxLabel || p.y || "");
+
+    if((!fromLabel || !toLabel) && aid && oldS && newS){
+      fromLabel = RARITY_LABEL[getMaxTier(aid, oldS)] || "";
+      toLabel   = RARITY_LABEL[getMaxTier(aid, newS)] || "";
+    }
+  }else{
+    const aid = String(assetIdOrPayload || "");
+    const oldS = clamp(oldStarsMaybe);
+    const newS = clamp(newStarsMaybe);
+
+    if(aid){
+      fromLabel = RARITY_LABEL[getMaxTier(aid, oldS)] || "";
+      toLabel   = RARITY_LABEL[getMaxTier(aid, newS)] || "";
     }
   }
 
   if(rangeEl){
     rangeEl.textContent = (fromLabel && toLabel) ? (fromLabel + " => " + toLabel) : "";
+    rangeEl.style.display = (rangeEl.textContent ? "block" : "none");
   }
 
   fx.classList.add("active");
@@ -902,6 +920,11 @@ for(const key of Object.keys(db.unlocks || {})){
 function invStars(assetId){
   return Number(db.userStars?.[`${APP.uid}:${assetId}`] ?? 0);
 }
+
+// expose for upgrade handler outside this closure
+window.__invStars = invStars;
+window.__clampStars = clampStars;
+window.__getBaseRarityById = getBaseRarityById;
 
 const RARITY_LABEL = {1:"C",2:"R",3:"SR",4:"SSR",5:"UR"};
 
@@ -1401,6 +1424,16 @@ async function doUpgrade(assetId){
   const card = document.querySelector(`[data-asset-id='${assetId}']`);
   if(card) card.classList.add("upgrading");
 
+  // compute stars before upgrade from in-memory inventory
+  const clamp = (n)=>{
+    let s = Number(n || 0);
+    if(!Number.isFinite(s) || s < 1) s = 1;
+    if(s > 5) s = 5;
+    return s;
+  };
+
+  const oldStars = clamp((window.__invStars ? window.__invStars(assetId) : 1));
+
   const res = await fetch(WORKER_BASE + "/api/upgrade", {
     method:"POST",
     headers:{ "content-type":"application/json", "x-user-id": uid },
@@ -1408,26 +1441,13 @@ async function doUpgrade(assetId){
   }).then(r=>r.json());
 
   if(res.ok){
-    const baseRarity = Number(res.baseRarity || res.base || 0);
-    const oldStars = Number(res.oldStars || res.beforeStars || 0);
-    const newStars = Number(res.newStars || res.afterStars || 0);
-
-    const fromLabel = String(res.from || res.oldMaxLabel || res.oldMax || "");
-    const toLabel = String(res.to || res.newMaxLabel || res.newMax || "");
-
-    if(window.showLevelUpFx){
-      window.showLevelUpFx({
-        from: fromLabel,
-        to: toLabel,
-        baseRarity,
-        oldStars,
-        newStars
-      });
-    }
-
+    // refresh inventory first so we can read the new stars from DB
     await reloadInventory();
-  }
-  else{
+
+    const newStars = clamp((window.__invStars ? window.__invStars(assetId) : (oldStars + 1)));
+
+    if(window.showLevelUpFx) window.showLevelUpFx(assetId, oldStars, newStars);
+  }else{
     alert(res.error || "upgrade failed");
   }
 
@@ -1445,6 +1465,19 @@ async function doUpgrade(assetId){
   </div>
 </div>
 
+<script>
+  (function(){
+    function closeLevelUp(){
+      const fx = document.getElementById('levelUpFx');
+      if(fx) fx.classList.remove('active');
+    }
+    document.addEventListener('DOMContentLoaded', ()=>{
+      const btn = document.getElementById('levelUpConfirm');
+      if(btn) btn.addEventListener('click', closeLevelUp);
+      window.closeLevelUpFx = closeLevelUp;
+    });
+  })();
+</script>
 
 <div id="collectionFx">
   <div>
