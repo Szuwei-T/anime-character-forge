@@ -1295,6 +1295,172 @@
       #sharePreview{ width: 100%; height: 180px; }
     }
 
+    /* ===== MasterPage Account Panel ===== */
+    .masterPage{
+      width: min(1180px, 96vw);
+      margin: 18px auto 30px auto;
+    }
+    .mpCard{
+      border-radius: 18px;
+      background: rgba(0,0,0,0.38);
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: 0 18px 60px rgba(0,0,0,0.45);
+      overflow: hidden;
+    }
+    .mpHeader{
+      display:flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 14px;
+      font-weight: 1000;
+      letter-spacing: 0.3px;
+      background: rgba(255,255,255,0.06);
+      border-bottom: 1px solid rgba(255,255,255,0.10);
+    }
+    .mpHeader small{
+      opacity: 0.70;
+      font-weight: 800;
+      font-size: 12px;
+    }
+    .mpBody{
+      display:flex;
+      gap: 14px;
+      padding: 14px;
+      align-items: stretch;
+      flex-wrap: wrap;
+    }
+    .mpAvatar{
+      width: 140px;
+      min-width: 140px;
+      height: 140px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      position: relative;
+      overflow: hidden;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .mpAvatarStack{
+      position:absolute;
+      inset:0;
+    }
+    .mpAvatarStack img{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      object-fit: cover;
+      image-rendering: auto;
+    }
+    .mpAvatarInitials{
+      position:relative;
+      z-index: 3;
+      width: 86px;
+      height: 86px;
+      border-radius: 999px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight: 1100;
+      font-size: 30px;
+      letter-spacing: 1px;
+      color: rgba(255,255,255,0.95);
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.14);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+      user-select:none;
+    }
+    .mpInfo{
+      flex: 1 1 520px;
+      min-width: 280px;
+      display:flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .mpRow{
+      display:flex;
+      gap: 10px;
+      align-items:center;
+      flex-wrap: wrap;
+    }
+    .mpLabel{
+      opacity: 0.80;
+      font-weight: 900;
+      min-width: 62px;
+    }
+    .mpNameInput{
+      flex: 1 1 220px;
+      min-width: 180px;
+      border-radius: 12px;
+      padding: 10px 12px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(0,0,0,0.22);
+      color: rgba(255,255,255,0.92);
+      font-weight: 900;
+      outline: none;
+    }
+    .mpBtn{
+      border: 0;
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 1000;
+      cursor: pointer;
+      background: rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.92);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.35);
+      user-select:none;
+    }
+    .mpBtn:hover{ background: rgba(255,255,255,0.16); }
+    .mpBtn:active{ transform: translateY(1px); }
+    .mpBtn.primary{
+      background: linear-gradient(135deg, rgba(255,198,106,0.98), rgba(255,159,47,0.98));
+      color: #0a0f18;
+    }
+    .mpHint{
+      font-size: 12px;
+      opacity: 0.78;
+      line-height: 1.35;
+    }
+    .mpGrid{
+      display:grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .mpStat{
+      border-radius: 14px;
+      padding: 10px 10px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      text-align: left;
+      min-height: 56px;
+      display:flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 4px;
+    }
+    .mpStat .k{
+      font-size: 11px;
+      opacity: 0.72;
+      font-weight: 900;
+      letter-spacing: 0.2px;
+    }
+    .mpStat .v{
+      font-size: 16px;
+      font-weight: 1100;
+    }
+    @media (max-width: 980px){
+      .mpGrid{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    @media (max-width: 520px){
+      .mpAvatar{ width: 120px; min-width: 120px; height: 120px; }
+      .mpGrid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+
+  </style>
   </style>
 </head>
 <body>
@@ -1662,40 +1828,33 @@ async function onlineGacha(opts = {}) {
     if (s && s !== "null" && s !== "undefined") { headers["x-user-id"] = s; break; }
   }
 
-  const resp = await apiFetch("/api/gacha", {
+  // IMPORTANT: do NOT use apiFetch for gacha, because apiFetch returns null on HTTP 4xx/5xx.
+  // We must parse JSON even when status is 400 so we can show the real reason (insufficient gold/gem etc.).
+  const base = (typeof WORKER_BASE === "string") ? WORKER_BASE : (
+    (location.hostname === "127.0.0.1" || location.hostname === "localhost") ? "" : "https://acf-api.dream-league-baseball.workers.dev"
+  );
+  const res = await fetch(base + "/api/gacha", {
     method: "POST",
     headers,
     body: JSON.stringify(payload),
   });
+  let data = null;
+  try{ data = await res.json(); }catch(_){ data = null; }
 
-  // Some wrappers may return JSON directly instead of a Response.
-  const isResponseLike = resp && typeof resp === "object" && ("ok" in resp) && typeof resp.json === "function";
-  if (isResponseLike) {
-    if (!resp.ok) {
-      let err = null;
-      try{ err = await resp.json(); }catch(_){ }
-      const code = err && err.error ? String(err.error) : `gacha_http_${resp.status}`;
-      const need = err && (err.need || err.costGold || err.costGem) ? Number(err.need || err.costGold || err.costGem) : null;
-      const have = err && (err.have || err.userGold || err.userGem) ? Number(err.have || err.userGold || err.userGem) : null;
-      const msg = (need !== null && have !== null) ? `${code} (need ${need}, have ${have})` : code;
-      throw new Error(msg);
-    }
-    const data = await resp.json();
-    if (!data || !data.ok || !Array.isArray(data.pulled)) throw new Error("gacha_failed");
-    if (opts.type) {
-      const want = String(requestType(opts.type)).toLowerCase();
-      data.pulled = data.pulled.filter((a) => String(a?.type || "").toLowerCase() === want);
-    }
-    return data;
-  } else {
-    const data = resp; // already JSON
-    if (!data || !data.ok || !Array.isArray(data.pulled)) throw new Error("gacha_failed");
-    if (opts.type) {
-      const want = String(requestType(opts.type)).toLowerCase();
-      data.pulled = data.pulled.filter((a) => String(a?.type || "").toLowerCase() === want);
-    }
-    return data;
+  // Normalize error for UI
+  if (!data || data.ok !== true || !Array.isArray(data.pulled)) {
+    const code = data && data.error ? String(data.error) : `gacha_http_${res.status || 0}`;
+    const need = data && (data.need ?? data.costGold ?? data.costGem);
+    const have = data && (data.have ?? data.userGold ?? data.userGem);
+    const msg = (need != null && have != null) ? `${code} (need ${need}, have ${have})` : code;
+    throw new Error(msg);
   }
+
+  if (opts.type) {
+    const want = String(requestType(opts.type)).toLowerCase();
+    data.pulled = data.pulled.filter((a) => String(a?.type || "").toLowerCase() === want);
+  }
+  return data;
 
 
 }
@@ -2671,8 +2830,19 @@ function renderGridDecoys(list){
         console.error(e);
         hideLoad();
         if(rollingText) rollingText.style.display = "none";
-        if(rollSub){ rollSub.style.display = ""; rollSub.textContent = "抽卡失敗"; }
-        toast("抽卡失敗");
+        const raw = String(e?.message || e || "");
+        const nice = (function(msg){
+          // backend errors: insufficient_gold / insufficient_gem / unauthorized
+          if(msg.includes("insufficient_gold")) return "Gold 不足";
+          if(msg.includes("insufficient_gem")) return "Gem 不足";
+          if(msg.includes("unauthorized")) return "尚未登入，請重新整理";
+          if(msg.includes("not_found")) return "API 不存在，請檢查 worker";
+          // keep short
+          if(msg.startsWith("gacha_http_")) return "抽卡失敗";
+          return msg ? `抽卡失敗：${msg}` : "抽卡失敗";
+        })(raw);
+        if(rollSub){ rollSub.style.display = ""; rollSub.textContent = nice; }
+        toast(nice);
         if(actionBar){ actionBar.classList.add("mode-done"); actionBar.classList.remove("mode-loading"); }
         confirmBtn.style.opacity = "1";
         confirmBtn.style.pointerEvents = "auto";
@@ -2702,7 +2872,282 @@ function renderGridDecoys(list){
 
     btnAddon21.addEventListener("click", () => startGacha({ count: 1, premium: false, type: "addon2" }));
     btnAddon210.addEventListener("click", () => startGacha({ count: 10, premium: false, type: "addon2" }));
+
+
+// ===== MasterPage account info =====
+function mpBuildUidHeaders(){
+  const headers = { "content-type": "application/json" };
+  const uidCandidates = [
+    window.USER_ID,
+    window.userId,
+    window.uid,
+    (typeof window.getUserId === "function" ? window.getUserId() : ""),
+    (typeof window.getUid === "function" ? window.getUid() : ""),
+    (typeof window.getOrCreateUid === "function" ? window.getOrCreateUid() : ""),
+    localStorage.getItem("acf_uid"),
+    localStorage.getItem("uid"),
+    localStorage.getItem("userId"),
+    localStorage.getItem("USER_ID"),
+  ];
+  for(const v of uidCandidates){
+    const s = String(v || "").trim();
+    if(s && s !== "null" && s !== "undefined"){ headers["x-user-id"] = s; break; }
+  }
+  return headers;
+}
+
+async function mpFetch(path, opts={}){
+  try{
+    if(typeof window.api === "function"){
+      const res = await window.api(path, { ...opts, headers: { ...(opts.headers || {}), ...mpBuildUidHeaders() } });
+      return res;
+    }
+    const base = (typeof WORKER_BASE !== "undefined" ? WORKER_BASE : "");
+    const res = await fetch(base + path, { ...opts, headers: { ...(opts.headers || {}), ...mpBuildUidHeaders() } });
+    return res;
+  }catch(e){
+    return null;
+  }
+}
+
+function mpInitialsFromName(name){
+  const s = String(name || "").trim();
+  if(!s) return "P";
+  const parts = s.split(/\s+/).filter(Boolean);
+  if(parts.length === 1) return parts[0].slice(0,2).toUpperCase();
+  return (parts[0].slice(0,1) + parts[parts.length-1].slice(0,1)).toUpperCase();
+}
+
+function mpSetStatus(text){
+  const el = document.getElementById("mpStatus");
+  if(el) el.textContent = text;
+}
+
+function mpClearAvatar(){
+  const stack = document.getElementById("mpAvatarStack");
+  if(stack) stack.innerHTML = "";
+  const initials = document.getElementById("mpAvatarInitials");
+  if(initials) initials.style.display = "";
+}
+
+function mpRenderAvatarFromSave(avatarSave){
+  const stack = document.getElementById("mpAvatarStack");
+  const initials = document.getElementById("mpAvatarInitials");
+  if(!stack) return;
+
+  stack.innerHTML = "";
+
+  if(!avatarSave){
+    if(initials) initials.style.display = "";
+    return;
+  }
+
+  const ids = {
+    bg: avatarSave.bgId || "",
+    addon2: avatarSave.addon2Id || "",
+    head: avatarSave.headId || "",
+    body: avatarSave.bodyId || "",
+    addon1: avatarSave.addon1Id || "",
+  };
+
+  // layer order: addon1 top, body, head, addon2, bg bottom
+  const order = ["bg","addon2","head","body","addon1"];
+
+  for(const k of order){
+    const id = String(ids[k] || "").trim();
+    if(!id) continue;
+    const img = document.createElement("img");
+    let src = `/assets/${id}.png`;
+    if((k === "head" || k === "body") && !src.includes("_thumb")){
+      src = src.replace(/\.(png|webp|jpg|jpeg)$/i, "_thumb.$1");
+    }
+    img.src = src;
+    img.alt = id;
+    stack.appendChild(img);
+  }
+
+  if(initials) initials.style.display = "none";
+}
+
+function mpSetText(id, v){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.textContent = (v === null || v === undefined) ? "" : String(v);
+}
+
+function mpSetNameHint(count){
+  const el = document.getElementById("mpNameHint");
+  if(!el) return;
+  const n = Number(count || 0);
+  if(n >= 1) el.textContent = "本次改名消耗 10 Gem";
+  else el.textContent = "首次改名免費，之後每次改名消耗 10 Gem";
+}
+
+async function mpLoadAccount(){
+  mpSetStatus("讀取中");
+  const res = await mpFetch("/api/me/account", { method:"GET" });
+  if(!res){
+    mpSetStatus("離線");
+    return null;
+  }
+
+  let data = null;
+
+  // window.api returns JSON directly in this project
+  if(res && typeof res.json !== "function" && typeof res === "object"){
+    data = res;
+  }else{
+    if(!res.ok){
+      mpSetStatus(`錯誤 ${res.status}`);
+      try{ data = await res.json(); }catch(_){}
+      return data;
+    }
+    data = await res.json();
+  }
+
+  if(!data || !data.ok){
+    mpSetStatus("失敗");
+    return data;
+  }
+
+  const acc = data.account || {};
+  const stats = data.stats || {};
+
+  const name = acc.userName || "Player";
+  const uid = acc.userId || (mpBuildUidHeaders()["x-user-id"] || "");
+
+  const nameInput = document.getElementById("mpNameInput");
+  if(nameInput) nameInput.value = name;
+
+  const initials = document.getElementById("mpAvatarInitials");
+  if(initials) initials.textContent = mpInitialsFromName(name);
+
+  mpSetText("mpGold", Number(acc.userGold || 0));
+  mpSetText("mpGem", Number(acc.userGem || 0));
+  mpSetText("mpVote", Number(acc.userVote || 0));
+  mpSetText("mpLevel", Number(acc.level || 1));
+  mpSetText("mpExp", Number(acc.exp || 0));
+  mpSetText("mpRegion", (acc.userRegion || "").trim() || " ");
+
+  mpSetText("mpSaves", Number(stats.saves || 0));
+  mpSetText("mpFollowers", Number(stats.followers || 0));
+  mpSetText("mpFollowing", Number(stats.following || 0));
+  mpSetText("mpLikes", Number(stats.likes || 0));
+  mpSetText("mpCollections", Number(stats.collectionsUnlocked || 0));
+  mpSetText("mpUid", uid);
+
+  mpSetNameHint(acc.nameChangeCount || 0);
+
+  mpRenderAvatarFromSave(data.avatarSave);
+
+  mpSetStatus("已更新");
+  return data;
+}
+
+async function mpSaveName(){
+  const input = document.getElementById("mpNameInput");
+  const newName = String(input?.value || "").trim();
+  if(!newName){
+    toast("請輸入遊戲名");
+    return;
+  }
+
+  mpSetStatus("保存中");
+
+  const res = await mpFetch("/api/me/account", {
+    method:"POST",
+    body: JSON.stringify({ userName: newName })
+  });
+
+  if(!res){
+    mpSetStatus("離線");
+    toast("保存失敗");
+    return;
+  }
+
+  let data = null;
+  if(res && typeof res.json !== "function" && typeof res === "object"){
+    data = res;
+  }else{
+    try{ data = await res.json(); }catch(_){ data = null; }
+  }
+
+  if(!data || !data.ok){
+    const err = String(data?.error || "");
+    if(err === "not_enough_gem"){
+      toast(`Gem 不足 需要 ${Number(data.need||0)} 你有 ${Number(data.have||0)}`);
+    }else{
+      toast(err ? `保存失敗：${err}` : "保存失敗");
+    }
+    mpSetStatus("保存失敗");
+    await mpLoadAccount();
+    return;
+  }
+
+  toast("已保存");
+  await mpLoadAccount();
+}
+
+function mpInit(){
+  const btnSave = document.getElementById("mpNameSave");
+  const btnRef = document.getElementById("mpRefresh");
+  if(btnSave) btnSave.addEventListener("click", mpSaveName);
+  if(btnRef) btnRef.addEventListener("click", mpLoadAccount);
+
+  mpLoadAccount();
+
+  // light auto refresh after gacha closes
+  const confirm = document.getElementById("confirmBtn");
+  if(confirm){
+    confirm.addEventListener("click", ()=>{ setTimeout(mpLoadAccount, 250); });
+  }
+}
+
   </script>
+
+
+  <!-- MasterPage account info -->
+  <div class="masterPage" id="masterPage">
+    <div class="mpCard">
+      <div class="mpHeader">
+        <div>帳號資訊</div>
+        <small id="mpStatus">連線中</small>
+      </div>
+      <div class="mpBody">
+        <div class="mpAvatar" title="你的頭像">
+          <div class="mpAvatarStack" id="mpAvatarStack"></div>
+          <div class="mpAvatarInitials" id="mpAvatarInitials">P</div>
+        </div>
+
+        <div class="mpInfo">
+          <div class="mpRow">
+            <div class="mpLabel">遊戲名</div>
+            <input class="mpNameInput" id="mpNameInput" maxlength="24" placeholder="Player" />
+            <button class="mpBtn primary" id="mpNameSave" type="button">保存</button>
+            <button class="mpBtn" id="mpRefresh" type="button">刷新</button>
+          </div>
+          <div class="mpHint" id="mpNameHint">首次改名免費，之後每次改名消耗 10 Gem</div>
+
+          <div class="mpGrid" id="mpGrid">
+            <div class="mpStat"><div class="k">Gold</div><div class="v" id="mpGold">0</div></div>
+            <div class="mpStat"><div class="k">Gem</div><div class="v" id="mpGem">0</div></div>
+            <div class="mpStat"><div class="k">票數</div><div class="v" id="mpVote">0</div></div>
+            <div class="mpStat"><div class="k">等級</div><div class="v" id="mpLevel">1</div></div>
+            <div class="mpStat"><div class="k">EXP</div><div class="v" id="mpExp">0</div></div>
+            <div class="mpStat"><div class="k">成品</div><div class="v" id="mpSaves">0</div></div>
+
+            <div class="mpStat"><div class="k">Followers</div><div class="v" id="mpFollowers">0</div></div>
+            <div class="mpStat"><div class="k">Following</div><div class="v" id="mpFollowing">0</div></div>
+            <div class="mpStat"><div class="k">Likes</div><div class="v" id="mpLikes">0</div></div>
+            <div class="mpStat"><div class="k">Collections</div><div class="v" id="mpCollections">0</div></div>
+            <div class="mpStat"><div class="k">地區</div><div class="v" id="mpRegion"> </div></div>
+            <div class="mpStat"><div class="k">UID</div><div class="v" id="mpUid" style="font-size:12px;line-height:1.2;word-break:break-all;font-weight:900;"> </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 
   <!-- V2 cinematic rarity reveal (fixed layer, never blocks clicks) -->
   <div class="cinematic" id="cinematic" aria-hidden="true">
