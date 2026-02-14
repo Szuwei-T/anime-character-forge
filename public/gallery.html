@@ -215,33 +215,6 @@
     .recAuthorName{font-size:12px;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
     .recTitleLine{font-weight:700;font-size:13px;line-height:1.2;opacity:.95;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   
-  
-    .boardsWrap{margin:12px 0 6px;display:flex;flex-direction:column;gap:14px}
-    .boardBlock{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.10);border-radius:18px;padding:12px}
-    .boardHead{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:10px}
-    .boardHead .h{font-size:14px;opacity:.92}
-    .boardHead .sub{font-size:12px;opacity:.68}
-    .boardGrid{display:flex;gap:10px;overflow:auto;padding-bottom:6px}
-    .boardCard{min-width:122px;max-width:122px;border-radius:16px;overflow:hidden;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);cursor:pointer}
-    .boardThumb{width:122px;aspect-ratio:3/4;background:rgba(0,0,0,.18);position:relative}
-    .boardTop{position:absolute;left:8px;right:8px;top:8px;display:flex;flex-direction:column;gap:6px;z-index:50}
-    .boardTopRow{display:flex;align-items:center;justify-content:space-between;gap:8px}
-    .boardRank{font-weight:900;font-size:12px;padding:4px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.22)}
-    .boardMeta{font-size:12px;opacity:.92;padding:4px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.18);white-space:nowrap}
-    .boardBottom{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px}
-    .boardAuthor{display:flex;align-items:center;gap:8px;min-width:0}
-    .boardAuthor .name{font-size:12px;opacity:.90;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .miniAv{width:24px;height:24px;border-radius:999px;border:1px solid rgba(255,255,255,.18);overflow:hidden;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;opacity:.92}
-    .miniAv .stack{width:100%;height:100%}
-    .boardBtns{display:flex;align-items:center;gap:6px}
-    .boardBtn{width:30px;height:30px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:rgba(255,255,255,.90);display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
-    .boardBtn:hover{background:rgba(255,255,255,.10)}
-    .authorGrid{display:flex;gap:10px;overflow:auto;padding-bottom:6px}
-    .authorChip{min-width:110px;border-radius:16px;overflow:hidden;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);padding:10px;display:flex;align-items:center;gap:10px;cursor:pointer}
-    .authorChip .info{min-width:0}
-    .authorChip .n{font-size:12px;opacity:.92;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .authorChip .f{font-size:12px;opacity:.70;margin-top:2px}
-
   </style>
 </head>
 <body>
@@ -296,33 +269,6 @@
       <div class="recGrid" id="recGrid"></div>
     </div>
 
-
-    <div class="boardsWrap" id="boardsWrap">
-      <div class="boardBlock">
-        <div class="boardHead">
-          <div class="h">💎 收藏榜</div>
-          <div class="sub">被收藏數排名 · 不限賽季</div>
-        </div>
-        <div class="boardGrid" id="favBoardGrid"></div>
-      </div>
-
-      <div class="boardBlock">
-        <div class="boardHead">
-          <div class="h">🌱 新人榜</div>
-          <div class="sub">近 1 個月註冊玩家作品 · 依被收藏數排名</div>
-        </div>
-        <div class="boardGrid" id="newBoardGrid"></div>
-      </div>
-
-      <div class="boardBlock">
-        <div class="boardHead">
-          <div class="h">🔥 熱門作者榜</div>
-          <div class="sub">依被關注數量排名</div>
-        </div>
-        <div class="authorGrid" id="authorBoardGrid"></div>
-      </div>
-    </div>
-
     <div class="entries" id="grid"></div>
   </div>
 
@@ -349,9 +295,6 @@
   const recWrap = document.getElementById("recWrap");
   const recGrid = document.getElementById("recGrid");
   const podiumGrid = document.getElementById("podiumGrid");
-  const favBoardGrid = document.getElementById("favBoardGrid");
-  const newBoardGrid = document.getElementById("newBoardGrid");
-  const authorBoardGrid = document.getElementById("authorBoardGrid");
   const errorBox = document.getElementById("errorBox");
   const statusLine = document.getElementById("statusLine");
   const sortSel = document.getElementById("sortSel");
@@ -1108,194 +1051,12 @@ function showError(msg){
     });
   }
 
-  
-  function authorAvatarLayersFromRow(r){
-    // author board rows return avatar asset urls already joined from user_saves
-    if(r && (r.bgUrl || r.addon1Url || r.addon2Url || r.headUrl || r.bodyUrl)){
-      return [
-        { url: r.bgUrl, z:10 },
-        { url: r.addon2Url, z:20 },
-        { url: r.headUrl, z:30 },
-        { url: r.bodyUrl, z:40 },
-        { url: r.addon1Url, z:50 },
-      ];
-    }
-    return null;
-  }
-
-  function makeMiniAvatar(el, rowOrShow){
-    el.innerHTML = "";
-    const layers = authorAvatarLayersFromRow(rowOrShow) || avatarLayersFromShow(rowOrShow);
-    if(layers){
-      const stack = document.createElement("div");
-      stack.className = "stack";
-      makeStackThumb(stack, layers);
-      el.appendChild(stack);
-    }else{
-      const nm = String((rowOrShow && (rowOrShow.authorName || rowOrShow.userName || rowOrShow.author || "")) || "");
-      el.textContent = initialsFromName(nm || "P");
-    }
-  }
-
-  function renderWorkBoard(gridEl, items, kind){
-    gridEl.innerHTML = "";
-    const top = (items || []).slice(0, 12);
-    top.forEach((s, i)=>{
-      const card = document.createElement("div");
-      card.className = "boardCard";
-
-      const th = document.createElement("div");
-      th.className = "boardThumb";
-
-      const topBox = document.createElement("div");
-      topBox.className = "boardTop";
-
-      const row1 = document.createElement("div");
-      row1.className = "boardTopRow";
-
-      const rank = document.createElement("div");
-      rank.className = "boardRank";
-      rank.textContent = "#" + String(i + 1);
-
-      const meta = document.createElement("div");
-      meta.className = "boardMeta";
-      const favs = Number(s.favorites || 0);
-      meta.textContent = "收藏 " + String(favs);
-
-      row1.appendChild(rank);
-      row1.appendChild(meta);
-      topBox.appendChild(row1);
-      th.appendChild(topBox);
-
-      makeStackThumb(th, [
-        { url: s.bgUrl, z:10 },
-        { url: s.addon2Url, z:20 },
-        { url: s.headUrl, z:30 },
-        { url: s.bodyUrl, z:40 },
-        { url: s.addon1Url, z:50 },
-      ]);
-
-      const bottom = document.createElement("div");
-      bottom.className = "boardBottom";
-
-      const author = document.createElement("div");
-      author.className = "boardAuthor";
-
-      const av = document.createElement("div");
-      av.className = "miniAv";
-      makeMiniAvatar(av, s);
-
-      const nm = document.createElement("div");
-      nm.className = "name";
-      nm.textContent = String(s.authorName || "Player");
-
-      author.appendChild(av);
-      author.appendChild(nm);
-
-      const btns = document.createElement("div");
-      btns.className = "boardBtns";
-
-      const vbtn = document.createElement("button");
-      vbtn.className = "boardBtn";
-      vbtn.title = "投票";
-      vbtn.innerHTML = svgVote();
-      vbtn.onclick = async (e)=>{
-        e.stopPropagation();
-        await vote(s.showcaseId, s.seasonId);
-      };
-
-      const fbtn = document.createElement("button");
-      fbtn.className = "boardBtn";
-      fbtn.title = "收藏";
-      fbtn.innerHTML = svgHeart(isFav(s.showcaseId));
-      fbtn.onclick = async (e)=>{
-        e.stopPropagation();
-        await toggleFav(s.showcaseId);
-        fbtn.innerHTML = svgHeart(isFav(s.showcaseId));
-      };
-
-      btns.appendChild(vbtn);
-      btns.appendChild(fbtn);
-
-      bottom.appendChild(author);
-      bottom.appendChild(btns);
-
-      card.appendChild(th);
-      card.appendChild(bottom);
-
-      card.onclick = ()=>{
-        openModal("作品", "收藏 " + String(Number(s.favorites||0)) + " · 票數 " + String(Number(s.votes||0)) + " · " + fmtTime(s.createdAt), [
-          { url: s.bgUrl, z:10 },
-          { url: s.addon2Url, z:20 },
-          { url: s.headUrl, z:30 },
-          { url: s.bodyUrl, z:40 },
-          { url: s.addon1Url, z:50 },
-        ]);
-      };
-
-      av.onclick = (e)=>{ e.stopPropagation(); gotoUserProfile(s.userId); };
-      nm.onclick = (e)=>{ e.stopPropagation(); gotoUserProfile(s.userId); };
-
-      gridEl.appendChild(card);
-    });
-  }
-
-  function renderAuthorBoard(gridEl, items){
-    gridEl.innerHTML = "";
-    const top = (items || []).slice(0, 24);
-    top.forEach((r, i)=>{
-      const chip = document.createElement("div");
-      chip.className = "authorChip";
-
-      const av = document.createElement("div");
-      av.className = "miniAv";
-      makeMiniAvatar(av, { ...r, authorName: r.authorName || r.userName });
-
-      const info = document.createElement("div");
-      info.className = "info";
-
-      const n = document.createElement("div");
-      n.className = "n";
-      n.textContent = String(r.authorName || "Player");
-
-      const f = document.createElement("div");
-      f.className = "f";
-      f.textContent = "關注 " + String(Number(r.followers || 0));
-
-      info.appendChild(n);
-      info.appendChild(f);
-
-      chip.appendChild(av);
-      chip.appendChild(info);
-
-      chip.onclick = ()=> gotoUserProfile(r.userId);
-
-      gridEl.appendChild(chip);
-    });
-  }
-
-  async function loadBoards(){
-    try{
-      const [fav, neu, aut] = await Promise.all([
-        api("/api/board/favorites?limit=12", { method:"GET" }),
-        api("/api/board/newcomers?limit=12", { method:"GET" }),
-        api("/api/board/authors?limit=24", { method:"GET" }),
-      ]);
-      renderWorkBoard(favBoardGrid, fav.items || [], "fav");
-      renderWorkBoard(newBoardGrid, neu.items || [], "new");
-      renderAuthorBoard(authorBoardGrid, aut.items || []);
-    }catch(e){
-      // ignore, boards are optional
-    }
-  }
-
-async function load(){
+  async function load(){
     clearError();
     statusLine.textContent = "讀取中";
     try{
       await loadMe();
       await loadFavorites();
-      await loadBoards();
 
       const seasonId = String(seasonSel.value||"").trim();
       const qs = seasonId ? ("?seasonId=" + encodeURIComponent(seasonId)) : "";
