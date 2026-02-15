@@ -41,8 +41,10 @@
 .preview .layer{background-size:contain}
 
 </style>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <div id="acfMasterMount"></div>
   <div class="wrap">
     <div class="topbar">
       <div style="display:flex;gap:10px;align-items:center">
@@ -121,10 +123,6 @@
     error.style.display="none";
     error.textContent = "";
   }
-
-  // Tiny DOM helpers (some pages also have these in app.js, but user page must work standalone)
-  function q(sel, root=document){ return root.querySelector(sel); }
-  function qa(sel, root=document){ return Array.from(root.querySelectorAll(sel)); }
 
   function api(path, opts={}){
     const method = (opts.method || "GET").toUpperCase();
@@ -337,5 +335,6 @@ if(modalClose) modalClose.onclick = closeModal;
   })();
 })();
 </script>
+  <script src="app.js"></script>
 </body>
 </html>

@@ -233,3 +233,177 @@ window.normalizeAccessoryIds = normalizeAccessoryIds;
 window.sameSet = sameSet;
 window.setName = setName;
 window.getName = getName;
+
+
+/* === ACF MASTER HEADER === */
+
+(function(){
+  function el(tag, cls){
+    const e = document.createElement(tag);
+    if(cls) e.className = cls;
+    return e;
+  }
+
+  function initials(name){
+    const s = String(name||"").trim();
+    if(!s) return "?";
+    const parts = s.split(/\s+/).filter(Boolean);
+    const a = (parts[0] && parts[0][0]) ? parts[0][0] : (s[0] || "?");
+    const b = (parts.length>1 ? parts[parts.length-1][0] : (s.length>1 ? s[1] : "")) || "";
+    return (a+b).toUpperCase();
+  }
+
+  function makeStackThumb(container, layers){
+    container.innerHTML = "";
+    const wrap = el("div","acf-layer");
+    for(const l of (layers||[])){
+      if(!l || !l.url) continue;
+      const img = new Image();
+      img.src = l.url;
+      img.style.zIndex = String(l.z || 0);
+      wrap.appendChild(img);
+    }
+    container.appendChild(wrap);
+  }
+
+  async function fetchMeAccount(){
+    if(typeof apiFetch === "function"){
+      return await apiFetch("/api/me/account", { method:"GET" });
+    }
+    const DEFAULT_WORKER = "https://acf-api.dream-league-baseball.workers.dev";
+    const WORKER = window.WORKER_BASE || localStorage.getItem("acf_worker_base") || DEFAULT_WORKER;
+    const me = localStorage.getItem("acf_uid") || "";
+    const res = await fetch(WORKER + "/api/me/account", {
+      method:"GET",
+      headers: { "content-type":"application/json", "x-user-id": me }
+    });
+    const t = await res.text();
+    let data = {};
+    try{ data = JSON.parse(t||"{}"); }catch(_){ data = { ok:false, error:t }; }
+    if(!res.ok || data.ok===false) throw data;
+    return data;
+  }
+
+  function buildHeaderDom(){
+    const fixed = el("div","acf-master-fixed");
+    fixed.id = "acfMasterHeader";
+
+    const bar = el("div","acf-master");
+    const left = el("div","acf-masterLeft");
+    const avatar = el("div","acf-masterAvatar");
+    avatar.id = "acfMasterAvatar";
+    const txt = el("div","acf-masterTxt");
+    const name = el("div","acf-masterName");
+    name.id = "acfMasterName";
+    const sub = el("div","acf-masterSub");
+    sub.id = "acfMasterSub";
+    txt.appendChild(name);
+    txt.appendChild(sub);
+    left.appendChild(avatar);
+    left.appendChild(txt);
+
+    const stats = el("div","acf-masterStats");
+    stats.id = "acfMasterStats";
+
+    bar.appendChild(left);
+    bar.appendChild(stats);
+    fixed.appendChild(bar);
+    return fixed;
+  }
+
+  function setBodyOffset(){
+    const fixed = document.getElementById("acfMasterHeader");
+    if(!fixed) return;
+    const h = fixed.getBoundingClientRect().height || 0;
+    document.documentElement.style.setProperty("--acf-master-h", h + "px");
+    const cur = parseFloat(getComputedStyle(document.body).paddingTop || "0") || 0;
+    if(cur < h) document.body.style.paddingTop = h + "px";
+  }
+
+  function renderMaster(me){
+    const box = document.getElementById("acfMasterHeader");
+    if(!box) return;
+
+    const nameEl = document.getElementById("acfMasterName");
+    const subEl = document.getElementById("acfMasterSub");
+    const avEl = document.getElementById("acfMasterAvatar");
+    const statsEl = document.getElementById("acfMasterStats");
+
+    if(!me || !me.account){
+      box.style.display = "none";
+      setBodyOffset();
+      return;
+    }
+
+    const acc = me.account || {};
+    const st = me.stats || {};
+
+    box.style.display = "block";
+    nameEl.textContent = String(acc.userName || "Player");
+    subEl.textContent = "Lv " + String(Number(acc.level || 1)) + (acc.userRegion ? (" · " + String(acc.userRegion)) : "");
+
+    avEl.innerHTML = "";
+    if(me.avatarSave){
+      makeStackThumb(avEl, [
+        { url: me.avatarSave.bgId ? ("/assets/" + me.avatarSave.bgId + ".png") : "", z:10 },
+        { url: me.avatarSave.addon2Id ? ("/assets/" + me.avatarSave.addon2Id + ".png") : "", z:20 },
+        { url: me.avatarSave.headId ? ("/assets/" + me.avatarSave.headId + ".png") : "", z:30 },
+        { url: me.avatarSave.bodyId ? ("/assets/" + me.avatarSave.bodyId + ".png") : "", z:40 },
+        { url: me.avatarSave.addon1Id ? ("/assets/" + me.avatarSave.addon1Id + ".png") : "", z:50 },
+      ]);
+    }else{
+      const d = el("div","acf-initials");
+      d.textContent = initials(acc.userName || "Player");
+      avEl.appendChild(d);
+    }
+
+    const pills = [];
+    const add = (k,v)=> pills.push('<div class="acf-statPill"><strong>' + k + '</strong> ' + String(v) + '</div>');
+    add("Gold", Number(acc.userGold||0));
+    add("GEM", Number(acc.userGem||0));
+    add("票", Number(acc.userVote||0));
+    add("Like", Number(st.likes||0));
+    add("成品", Number(st.saves||0));
+    add("Follower", Number(st.followers||0));
+    add("收藏", Number(st.collectionsUnlocked||0));
+    statsEl.innerHTML = pills.join("");
+
+    setBodyOffset();
+  }
+
+  async function initMasterHeader(){
+    if(window.ACF_DISABLE_MASTER) return;
+    if(document.getElementById("acfMasterHeader")) return;
+
+    const legacy = document.getElementById("masterBox");
+    if(legacy) legacy.style.display = "none";
+
+    let mount = document.getElementById("acfMasterMount");
+    if(!mount){
+      mount = el("div");
+      mount.id = "acfMasterMount";
+      document.body.insertBefore(mount, document.body.firstChild);
+    }
+
+    const dom = buildHeaderDom();
+    mount.appendChild(dom);
+    setBodyOffset();
+
+    try{
+      const me = await fetchMeAccount();
+      renderMaster(me);
+    }catch(_e){
+      renderMaster(null);
+    }
+
+    window.addEventListener("resize", ()=>setBodyOffset(), { passive:true });
+  }
+
+  window.ACF_initMasterHeader = initMasterHeader;
+
+  if(document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded", initMasterHeader);
+  }else{
+    initMasterHeader();
+  }
+})();
