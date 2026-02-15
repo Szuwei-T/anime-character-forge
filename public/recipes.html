@@ -99,6 +99,7 @@
       --ui-main-bg: url('/ui/bg/main_bg.webp');
       --ui-noise: url('/ui/bg/noise.png');
       --ui-vignette: url('/ui/bg/vignette.png');
+      --ui-vignette-bg: url('/ui/bg/vignette_bg.webp');
       --ui-particles: url('/ui/effect/particles.webp');
       --ui-panel: url('/ui/frame/panel.webp');
       --ui-card-frame: url('/ui/frame/card_frame.webp');
@@ -117,12 +118,28 @@
 
     body{
       background:
+        var(--ui-vignette-bg),
         var(--ui-vignette),
         var(--ui-noise),
         var(--ui-main-bg);
-      background-size: cover, 300px 300px, cover;
-      background-position: center, center, center;
-      background-attachment: fixed, fixed, fixed;
+
+      background-size:
+        cover,
+        cover,
+        300px 300px,
+        cover;
+
+      background-position:
+        center,
+        center,
+        center,
+        center;
+
+      background-attachment:
+        fixed,
+        fixed,
+        fixed,
+        fixed;
     }
 
     body::before{
@@ -133,6 +150,18 @@
       background: var(--ui-particles) center/cover no-repeat;
       opacity:.12;
       mix-blend-mode: screen;
+      z-index:0;
+    }
+
+
+    body::after{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      background: var(--ui-vignette-bg) center/cover no-repeat;
+      opacity:.55;
+      mix-blend-mode: multiply;
       z-index:0;
     }
 
@@ -197,6 +226,118 @@
       transform: translateY(-2px);
       filter: drop-shadow(0 0 18px rgba(255,220,120,.12));
     }
+
+    /* Commercial UI polish */
+    .tabs{
+      margin: 10px 0 16px;
+      gap: 12px;
+    }
+
+    .statusline{
+      font-size: 13px;
+      letter-spacing: .4px;
+      text-shadow: 0 2px 10px rgba(0,0,0,.45);
+    }
+
+    .grid{
+      padding-bottom: 10px;
+    }
+
+    .card{
+      transform: translateY(0);
+      will-change: transform, filter, opacity;
+    }
+
+    /* Card entrance animation, JS will add .in */
+    .card{
+      opacity: 0;
+      transform: translateY(18px);
+    }
+    .card.in{
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity .28s ease, transform .28s ease, filter .15s ease;
+    }
+
+    /* Subtle floating for premium feel */
+    @media (prefers-reduced-motion: no-preference){
+      .card.in{
+        animation: floatCard 7s ease-in-out infinite;
+      }
+    }
+    @keyframes floatCard{
+      0%{ transform: translateY(0); }
+      50%{ transform: translateY(-6px); }
+      100%{ transform: translateY(0); }
+    }
+
+    /* Hover light sweep */
+    .card::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      z-index:3;
+      background:
+        radial-gradient(circle at 50% 15%,
+          rgba(255,255,255,.28),
+          rgba(255,255,255,0) 62%);
+      opacity:0;
+      transition: opacity .22s ease;
+    }
+    .card:hover::after{
+      opacity:.45;
+    }
+
+    /* Premium rim glow on hover */
+    .card:hover{
+      filter: drop-shadow(0 0 22px rgba(255,220,120,.16));
+    }
+
+    /* Optional rarity glow hooks if your API provides r.rarity or s.rarity */
+    .card.rarity-ssr{
+      filter: drop-shadow(0 0 22px rgba(255,150,60,.22));
+    }
+    .card.rarity-ur{
+      filter: drop-shadow(0 0 26px rgba(255,70,70,.26));
+    }
+
+    /* Buttons look like real game buttons */
+    .tabbtn, .showBtn{
+      text-shadow: 0 2px 8px rgba(0,0,0,.65);
+      letter-spacing: .8px;
+      font-weight: 700;
+    }
+    .tabbtn.active{
+      filter: drop-shadow(0 0 16px rgba(255,210,120,.22));
+    }
+    .showBtn{
+      background-image: var(--ui-btn-gold);
+    }
+    .showBtn:hover{
+      background-image: var(--ui-btn-primary-hover);
+    }
+    .showBtn:active{
+      background-image: var(--ui-btn-primary-pressed);
+    }
+    .showBtn.disabled{
+      background-image: var(--ui-btn-primary);
+      filter: saturate(.55) brightness(.9);
+    }
+
+    /* Meta readability */
+    .meta .time{
+      text-shadow: 0 2px 8px rgba(0,0,0,.55);
+    }
+    .meta .parts{
+      opacity: .72;
+    }
+
+    /* Modal polish */
+    .modalbox{
+      box-shadow: 0 24px 80px rgba(0,0,0,.55);
+    }
+
 </style>
 </head>
 <body>
@@ -351,6 +492,13 @@
     return assetUrl || "";
   }
 
+
+  function markCardIn(card){
+    const delay = Math.min(240, (markCardIn._i = (markCardIn._i || 0) + 1) * 18);
+    card.style.transitionDelay = delay + "ms";
+    requestAnimationFrame(() => card.classList.add("in"));
+  }
+
   function makeStackThumb(container, layers){
     // layers: [{url, z, preferThumb}]
     container.innerHTML = "";
@@ -425,6 +573,12 @@
       saves.forEach((s) => {
         const card = document.createElement("div");
         card.className = "card";
+
+        if (s && s.rarity){
+          const rr = String(s.rarity).toLowerCase();
+          if (rr === "ssr") card.classList.add("rarity-ssr");
+          if (rr === "ur") card.classList.add("rarity-ur");
+        }
 
         const th = document.createElement("div");
         th.className = "thumb";
@@ -531,6 +685,7 @@ if (curItem){
         };
 
         gridSaves.appendChild(card);
+        markCardIn(card);
       });
 
     } catch(e){
@@ -555,6 +710,12 @@ if (curItem){
 
       const card = document.createElement("div");
       card.className = "card" + (unlocked ? "" : " locked");
+
+      if (r && r.rarity){
+        const rr = String(r.rarity).toLowerCase();
+        if (rr === "ssr") card.classList.add("rarity-ssr");
+        if (rr === "ur") card.classList.add("rarity-ur");
+      }
 
       const th = document.createElement("div");
       th.className = "thumb";
@@ -594,6 +755,7 @@ if (curItem){
       };
 
       gridRecipes.appendChild(card);
+      markCardIn(card);
     });
   }
 
