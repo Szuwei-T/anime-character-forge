@@ -182,7 +182,6 @@ async function apiFetch(path, options={}){
     return null;
   }
 }
-}
 
 async function initSession(){
   APP.uid = getOrCreateUid();
