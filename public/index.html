@@ -21,9 +21,7 @@
       margin: 0;
       min-height: 100vh;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background:
-        linear-gradient(var(--bg1), var(--bg2)),
-        url("bg.jpg") center center / cover no-repeat fixed;
+      
       color: var(--text);
       display: flex;
       align-items: center;
@@ -220,9 +218,10 @@
     }
   </style>
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="ui_fx.css" />
 </head>
 <body>
-  <div id="acfMasterMount"></div>
+  <div class="acf-page ui-panel"><div id="acfMasterMount"></div>
   <div class="card">
     <div class="head">
       <div class="logo"></div>
@@ -310,24 +309,16 @@
       signOut
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-    
+    const firebaseConfig = {
+      apiKey: "AIzaSyDlLsWifxvzjvQSHgsXrSqyUWLO9i_0QN4",
+      authDomain: "web-games-3ac52.firebaseapp.com",
+      projectId: "web-games-3ac52",
+      storageBucket: "web-games-3ac52.firebasestorage.app",
+      messagingSenderId: "231657073406",
+      appId: "1:231657073406:web:adf54f58dbb7d664d453af",
+      measurementId: "G-HWDB4W9GYJ"
+    };
 
-// Keep API base consistent with app.js (local uses same-origin, production uses the Worker domain)
-const API_BASE = (location.hostname === "localhost" || location.hostname === "127.0.0.1")
-  ? ""
-  : "https://acf-api.dream-league-baseball.workers.dev";
-
-// Firebase config is loaded at runtime from the backend so it is not committed to source control.
-// Note: Firebase Web API keys are not "secret", but should be restricted in Google Cloud Console.
-async function loadFirebaseConfig() {
-  const r = await fetch(API_BASE + "/api/public-config", { method: "GET" });
-  if (!r.ok) throw new Error("Failed to load config");
-  const data = await r.json();
-  if (!data || !data.firebaseConfig || !data.firebaseConfig.apiKey) throw new Error("Invalid config payload");
-  return data.firebaseConfig;
-}
-
-    const firebaseConfig = await loadFirebaseConfig();
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
@@ -496,5 +487,6 @@ async function loadFirebaseConfig() {
       window.location.href = "hub.html";
     };
   </script>
+  </div>
 </body>
 </html>

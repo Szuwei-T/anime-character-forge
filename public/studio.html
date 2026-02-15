@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>工作室 - 進階版</title>
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="ui_fx.css" />
 <style id="thumbStyle">
   .picker-section{margin-bottom:14px; display: none;}
   .picker-section.active{display: block;}
@@ -655,7 +656,7 @@
 </style>
 </head>
 <body>
-  <div id="acfMasterMount"></div>
+  <div class="acf-page ui-panel"><div id="acfMasterMount"></div>
   <div class="container">
     <div class="topbar">
       <a class="brand" href="index.html">
@@ -1745,5 +1746,6 @@ async function doUpgrade(assetId){
 })();
 </script>
 
+  </div>
 </body>
 </html>

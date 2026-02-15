@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Gacha</title>
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="ui_fx.css" />
   <style>
 
     /* ===== Local Game Fonts (drop .ttf into /fonts) ===== */
@@ -1470,7 +1471,7 @@ body{
   </style>
 </head>
 <body>
-  <div id="acfMasterMount"></div>
+  <div class="acf-page ui-panel"><div id="acfMasterMount"></div>
   <div class="packFlash" id="packFlash"></div>
   <div class="vignette"></div>
   <div class="particles"></div>
@@ -1838,26 +1839,6 @@ async function onlineGacha(opts = {}) {
     const s = String(v || "").trim();
     if (s && s !== "null" && s !== "undefined") { headers["x-user-id"] = s; break; }
   }
-
-  // If still missing, create/migrate a uid so server-side currency matches the UI everywhere
-  if(!headers["x-user-id"]){
-    let uid = String(
-      localStorage.getItem("acf_uid") ||
-      localStorage.getItem("uid") ||
-      localStorage.getItem("userId") ||
-      localStorage.getItem("USER_ID") ||
-      ""
-    ).trim();
-    if(!uid){
-      uid = crypto.randomUUID();
-    }
-    localStorage.setItem("acf_uid", uid);
-    localStorage.setItem("uid", uid);
-    localStorage.setItem("userId", uid);
-    localStorage.setItem("USER_ID", uid);
-    headers["x-user-id"] = uid;
-  }
-
 
   // IMPORTANT: do NOT use apiFetch for gacha, because apiFetch returns null on HTTP 4xx/5xx.
   // We must parse JSON even when status is 400 so we can show the real reason (insufficient gold/gem etc.).
@@ -2956,5 +2937,6 @@ function renderGridDecoys(list){
 
   <canvas id="shareCanvas" width="1080" height="1080" style="display:none;"></canvas>
 
+  </div>
 </body>
 </html>
