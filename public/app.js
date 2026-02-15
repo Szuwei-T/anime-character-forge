@@ -306,29 +306,42 @@ window.getName = getName;
 
       .acf-master{
         pointer-events: auto;
-        height: 72px;
-        background: url("/ui/frame/top_bar.webp") center / 100% 100% no-repeat;
+        width: 100%;
+        padding: 10px 0;
+        box-sizing: border-box;
+        display: flex;
+        justify-content: center;
+      }
+
+      .acf-masterInner{
+        width: min(1240px, calc(100% - 20px));
+        height: 92px;
+        background: url("/ui/frame/account_top_frame.webp") center / 100% 100% no-repeat;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0 20px;
+        padding: 0 22px;
         box-sizing: border-box;
+        gap: 16px;
       }
 
       .acf-masterLeft{
         display: flex;
         align-items: center;
         gap: 12px;
-        min-width: 260px;
+        min-width: 280px;
       }
 
       .acf-masterAvatar{
-        width: 52px;
-        height: 52px;
-        border-radius: 12px;
+        width: 64px;
+        height: 64px;
+        border-radius: 999px;
         overflow: hidden;
         position: relative;
         flex: 0 0 auto;
+        box-shadow: 0 8px 18px rgba(0,0,0,0.35);
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.14);
       }
 
       .acf-layer{
@@ -357,67 +370,100 @@ window.getName = getName;
         font-weight: 900;
         color: white;
         background: rgba(255,255,255,0.08);
-        border: 1px solid rgba(255,255,255,0.14);
-        border-radius: 12px;
       }
 
       .acf-masterTxt{
         display: flex;
         flex-direction: column;
         line-height: 1.1;
+        min-width: 0;
       }
 
       .acf-masterName{
-        font-size: 16px;
-        font-weight: 800;
-        color: white;
+        font-size: 18px;
+        font-weight: 900;
+        color: rgba(255,255,255,0.98);
+        text-shadow: 0 2px 10px rgba(0,0,0,0.35);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 320px;
       }
 
       .acf-masterSub{
-        margin-top: 2px;
+        margin-top: 4px;
         font-size: 12px;
-        color: rgba(255,255,255,0.72);
+        font-weight: 700;
+        color: rgba(226,232,240,0.78);
+      }
+
+      .acf-masterNet{
+        margin-top: 6px;
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: 0.2px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .acf-masterNet::before{
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: rgba(148,163,184,0.95);
+        box-shadow: 0 0 10px rgba(148,163,184,0.25);
       }
 
       .acf-masterStats{
         display: flex;
-        gap: 14px;
+        gap: 10px;
         align-items: center;
+        flex-wrap: nowrap;
       }
 
-      .acf-statIcon{
-        display: flex;
+      .acf-statPill{
+        display: inline-flex;
         align-items: center;
-        gap: 6px;
-        font-weight: 800;
-        color: white;
+        gap: 8px;
+        padding: 8px 10px;
+        border-radius: 999px;
+        background: rgba(2,6,23,0.28);
+        border: 1px solid rgba(148,163,184,0.22);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.22);
+        font-weight: 900;
+        color: rgba(255,255,255,0.98);
         font-size: 14px;
-        text-shadow: 0 1px 0 rgba(0,0,0,0.35);
         white-space: nowrap;
       }
 
-      .acf-statIcon img{
-        width: 20px;
-        height: 20px;
+      .acf-statPill img{
+        width: 18px;
+        height: 18px;
         display: block;
+        filter: drop-shadow(0 2px 6px rgba(0,0,0,0.35));
       }
 
-      @media (max-width: 860px){
-        .acf-master{ padding: 0 12px; height: 64px; }
-        .acf-masterAvatar{ width: 44px; height: 44px; border-radius: 10px; }
-        .acf-masterName{ font-size: 14px; }
-        .acf-statIcon{ font-size: 13px; }
-        .acf-statIcon img{ width: 18px; height: 18px; }
-        .acf-masterStats{ gap: 10px; }
+      @media (max-width: 980px){
+        .acf-masterInner{ height: 84px; padding: 0 16px; }
+        .acf-masterAvatar{ width: 56px; height: 56px; }
+        .acf-masterName{ font-size: 16px; max-width: 240px; }
+        .acf-statPill{ padding: 7px 9px; font-size: 13px; }
       }
 
-      @media (max-width: 680px){
-        .acf-masterSub, .acf-masterNet{ display: none; }
+      @media (max-width: 760px){
+        .acf-masterSub{ display: none; }
+        .acf-masterNet{ display: none; }
         .acf-masterLeft{ min-width: 0; }
-        .acf-statIcon{ font-size: 12px; }
-        .acf-statIcon img{ width: 16px; height: 16px; }
+        .acf-statPill{ font-size: 12px; padding: 6px 8px; }
+        .acf-statPill img{ width: 16px; height: 16px; }
       }
-    `;
+
+      @media (max-width: 560px){
+        .acf-statPill:nth-child(n+4){ display: none; }
+      }
+`;
     document.head.appendChild(s);
   }
 
@@ -468,6 +514,7 @@ window.getName = getName;
     fixed.id = "acfMasterHeader";
 
     const bar = el("div","acf-master");
+    const inner = el("div","acf-masterInner");
     const left = el("div","acf-masterLeft");
 
     const avatar = el("div","acf-masterAvatar");
@@ -495,8 +542,9 @@ window.getName = getName;
     const stats = el("div","acf-masterStats");
     stats.id = "acfMasterStats";
 
-    bar.appendChild(left);
-    bar.appendChild(stats);
+    inner.appendChild(left);
+    inner.appendChild(stats);
+    bar.appendChild(inner);
     fixed.appendChild(bar);
 
     return fixed;
@@ -518,17 +566,14 @@ window.getName = getName;
     const s = document.createElement("style");
     s.id = "acfMasterNetStyle";
     s.textContent = `
-      .acf-masterNet{
-        margin-top: 2px;
-        font-size: 12px;
-        font-weight: 800;
-        letter-spacing: 0.2px;
-        opacity: 0.92;
-        color: rgba(148,163,184,0.95);
-      }
       .acf-masterNet.net-connecting{ color: rgba(148,163,184,0.95); }
+      .acf-masterNet.net-connecting::before{ background: rgba(148,163,184,0.95); box-shadow: 0 0 10px rgba(148,163,184,0.25); }
+
       .acf-masterNet.net-online{ color: rgba(34,197,94,0.98); text-shadow: 0 0 10px rgba(34,197,94,0.25); }
+      .acf-masterNet.net-online::before{ background: rgba(34,197,94,0.98); box-shadow: 0 0 10px rgba(34,197,94,0.35); }
+
       .acf-masterNet.net-offline{ color: rgba(239,68,68,0.98); text-shadow: 0 0 10px rgba(239,68,68,0.18); }
+      .acf-masterNet.net-offline::before{ background: rgba(239,68,68,0.98); box-shadow: 0 0 10px rgba(239,68,68,0.25); }
     `;
     document.head.appendChild(s);
   }
@@ -564,7 +609,7 @@ window.getName = getName;
 
   function statIcon(path, value){
     return `
-      <div class="acf-statIcon">
+      <div class="acf-statPill">
         <img src="${path}" alt="">
         ${Number(value || 0)}
       </div>

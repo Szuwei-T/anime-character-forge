@@ -38,115 +38,47 @@ body{
       color:#fff;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, "Noto Sans TC", sans-serif;
     }
-    .wrap{
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 56px 20px 88px;
-    }
-    h1{
-
-      font-family: \"GameFont\";
-      margin:0 0 18px;
-      font-size: 28px;
-      letter-spacing: 0.6px;
-      opacity: 0.92;
-      text-align:center;
-    }
-
     
-.pageTitle{ display:none; }
-
-.featuredTitleOverlay{
-  position:absolute;
-  top:12px;
-  left:12px;
-  z-index:5;
-  font-weight: 900;
-  font-size: 16px;
-  letter-spacing: 0.3px;
-  text-shadow: 0 10px 30px rgba(0,0,0,0.85);
-  padding: 6px 10px;
-  border-radius: 12px;
-  background: rgba(0,0,0,0.28);
-  border: 1px solid rgba(255,255,255,0.14);
-  backdrop-filter: blur(8px);
-  pointer-events:none;
-  white-space: nowrap;
+/* ===== Layout: full-height video with overlay panels ===== */
+.wrap{
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px 24px;
 }
-.heroGrid{
-      display:grid;
-      grid-template-columns: 1fr 340px;
-      gap: 18px;
-      align-items:start;
-    }
-    @media (max-width: 940px){
-      .heroGrid{ grid-template-columns: 1fr; }
-    }
-    @media (min-width: 941px){
-      /* 右側抽指定素材區塊往左疊到 video 上 */
-      .heroGrid{ position: relative; }
-      .rightPanel{
-        margin-left: -140px;
-        margin-top: 28px;
-        z-index: 6;
-      }
-    }
-
-
-    .featured{
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      gap:12px;
-      margin-bottom: 14px;
-    }
-    .featured .badge{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      opacity:0.85;
-      font-weight:800;
-      letter-spacing:0.3px;
-    }
-    .featureStage{
+.heroStage{
+  position: relative;
   width: 100%;
-  max-width: none;
-  height: 100vh;
-  min-height: 100vh;
-  border-radius: 0;
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  overflow:hidden;
-  position:relative;
+  height: calc(100vh - var(--masterH, 0px));
+  min-height: calc(100vh - var(--masterH, 0px));
 }
-/* 背景鋪滿的模糊層 讓 video 像本頁背景一樣 */
-.featureStage .bgVideo{
-  position:absolute;
-  inset:-2%;
-  width:104%;
-  height:104%;
-  object-fit: cover;
-  object-position: center 25%;
-  filter: blur(18px) brightness(0.72) saturate(1.2);
-  transform: scale(1.06);
-  z-index:0;
-  pointer-events:none;
-}
-/* 前景保留完整畫面 不再被裁切 */
-.featureStage .fgVideo{
-  position:absolute;
-  inset:0;
-  width:100%;
-  height:100%;
-  object-fit: contain;
-  z-index:1;
-  pointer-events:none;
+@media (max-width: 1100px){
+  .heroStage{
+    height: auto;
+    min-height: 0;
+  }
 }
 
+.leftOverlay, .rightOverlay{
+  position: absolute;
+  top: 18px;
+  width: 340px;
+  z-index: 12;
+  display:flex;
+  flex-direction:column;
+  gap: 12px;
+}
+.leftOverlay{ left: 18px; }
+.rightOverlay{ right: 18px; }
+
+@media (max-width: 1100px){
+  .leftOverlay, .rightOverlay{
+    position: static;
+    width: auto;
+    margin-top: 12px;
+  }
+}
+
+/* video stage becomes the background canvas */
     .featureStage:before{ content:""; display:none; }
     @keyframes floaty{
       0%{ transform: translateY(0) scale(1); }
@@ -194,23 +126,6 @@ body{
   text-shadow: 0 10px 26px rgba(0,0,0,0.35);
   white-space: nowrap;
 }
-.gachaOverlay{
-  position:absolute;
-  left:14px;
-  right:14px;
-  bottom:14px;
-  z-index:4;
-  display:grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  align-items: stretch;
-}
-@media (max-width: 860px){
-  .gachaOverlay{ grid-template-columns: 1fr; }
-  .promoBig{ font-size: 16px; }
-  .promoBoom{ font-size: 26px; }
-}
-
 .gachaCard{
   background: rgba(0,0,0,0.58);
   border: 1px solid rgba(255,255,255,0.18);
@@ -1468,106 +1383,7 @@ body{
       100%{ transform: scale(1.08); opacity:0.0; }
     }
 
-  
-/* ===== Layout Fix: Full-height featured video + overlay panels ===== */
-:root{ --master-h: 86px; }
-
-.wrap{ position: relative; }
-
-.heroGrid{
-  position: relative;
-  height: calc(100vh - var(--master-h));
-  min-height: 820px;
-  overflow: visible;
-  margin-top: 10px;
-}
-
-.featured{ margin: 0; }
-.featureStage{
-  height: 100%;
-  min-height: 100%;
-  overflow: hidden; /* keep video clean */
-  border-radius: 18px;
-}
-
-#featuredVideoBg, #featuredVideo, #featuredFallbackBg, #featuredFallback{
-  display: block;
-}
-
-.side{
-  position:absolute;
-  inset:0;
-  z-index: 20;
-  pointer-events:none;
-}
-.sideCol{
-  position:absolute;
-  top: 110px;
-  width: 420px;
-  display:flex;
-  flex-direction:column;
-  gap: 14px;
-  pointer-events:none;
-}
-.sideCol .sideCard{ pointer-events:auto; width:100%; }
-.leftCol{ left: 22px; }
-.rightCol{ right: 22px; }
-
-.shopCta, .shopCtaBody{ width:100%; }
-
-.gachaOverlayOverlay{
-  position:absolute;
-  left:50%;
-  bottom: 22px;
-  transform: translateX(-50%);
-  z-index: 25;
-  pointer-events:none;
-}
-.gachaOverlayFloat{
-  pointer-events:auto;
-}
-
-.gachaOverlay{
-  display:flex;
-  gap: 14px;
-  align-items: stretch;
-  justify-content: center;
-}
-
-/* Make gacha cards narrower so they don't get cut on smaller screens */
-.gachaCard{ max-width: 420px; }
-
-/* Responsive */
-@media (max-width: 1200px){
-  .sideCol{ width: 360px; }
-  .gachaCard{ max-width: 360px; }
-}
-@media (max-width: 980px){
-  .heroGrid{ min-height: 760px; }
-  .sideCol{ width: 320px; top: 96px; }
-  .gachaOverlayOverlay{ bottom: 16px; }
-}
-@media (max-width: 820px){
-  .sideCol{ position: static; width: auto; }
-  .side{
-    position: static;
-    inset: auto;
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 12px;
-    margin: 12px 0 0;
-    pointer-events:auto;
-  }
-  .gachaOverlayOverlay{
-    position: static;
-    transform: none;
-    margin: 12px 0 0;
-    pointer-events:auto;
-  }
-  .featureStage{ border-radius: 18px; }
-}
-
-</style>
+  </style>
 </head>
 <body>
   <div class="acf-page ui-panel"><div id="acfMasterMount"></div>
@@ -1576,31 +1392,89 @@ body{
   <div class="particles"></div>
   <div class="wrap">
 
-    <div class="heroGrid">
-      <div>
-        <div class="featured">
-          <div class="featureStage">
-            <div class="featuredTitleOverlay">本期 Featured 角色</div>
+    <div class="heroStage" id="heroStage">
+  <div class="featureStage" id="featureStage">
+    <div class="featuredTitleOverlay">本期 Featured 角色</div>
             <div class="promoTag" aria-hidden="true">
               <div class="promoBig">素材獲得機率+300%</div>
 </div>
 
             <video id="featuredVideoBg" class="bgVideo" muted autoplay loop playsinline></video>
             <video id="featuredVideo" class="fgVideo" muted autoplay loop playsinline></video>
-            <img id="featuredFallbackBg" class="bgVideo" src="/assets/feature_character.png" alt="">
-            <img id="featuredFallback" src="/assets/feature_character.png" alt="" style="position:absolute; inset:0; width:100%; height:100%; object-fit:contain; z-index:1;">
+            <img id="featuredFallbackBg" class="bgVideo" src="/assets/feature_character.png" alt="" style="display:none;">
+            <img id="featuredFallback" src="/assets/feature_character.png" alt="" style="display:none; position:absolute; inset:0; width:100%; height:100%; object-fit:contain; z-index:1;">
 
-            
+            <div class="gachaOverlay">
+              <div class="gachaCard">
+                <div class="gachaHead">
+                  <div class="gachaName">普通抽卡</div>
+                  <div class="gachaDesc">單次 或 10 連抽</div>
+                </div>
+
+                <div class="drawRow">
+                  <div class="drawCol">
+                    <button class="btn orange small" id="btnNormal1">1次</button>
+                    <div class="cost">cost 100gold</div>
+                  </div>
+                  <div class="drawCol">
+                    <button class="btn orange small" id="btnNormal10">10次</button>
+                    <div class="cost">cost 1000gold</div>
+                    <div class="guarantee">必出SR以上</div>
+                  </div>
+                </div>
+
+                <div class="pity" id="pityNormal">再抽200次 必出SSR</div>
+              </div>
+
+              <div class="gachaCard">
+                <div class="gachaHead">
+                  <div class="gachaName">高級抽卡</div>
+                  <div class="gachaDesc">單次 或 10 連抽</div>
+                </div>
+
+                <div class="drawRow">
+                  <div class="drawCol">
+                    <button class="btn blue small" id="btnPremium1">1次</button>
+                    <div class="cost">cost 10gem</div>
+                  </div>
+                  <div class="drawCol">
+                    <button class="btn blue small" id="btnPremium10">10次</button>
+                    <div class="cost">cost 100gem</div>
+                    <div class="guarantee">必出SSR以上</div>
+                  </div>
+                </div>
+
+                <div class="pity" id="pityPremium">再抽200次 必出UR</div>
+              </div>
+  </div>
+
+  <div class="leftOverlay side" id="leftOverlay">
+<div class="sideCard">
+          <div class="title"><span>抽角色</span><span style="opacity:0.7;font-weight:800">head</span></div>
+          <div class="miniRow">
+            <button class="btn gray small" id="btnHead1">1次</button>
+            <button class="btn gray small" id="btnHead10">10次</button>
           </div>
         </div>
 
-      </div>
+<div class="sideCard">
+          <div class="title"><span>抽服裝</span><span style="opacity:0.7;font-weight:800">body</span></div>
+          <div class="miniRow">
+            <button class="btn gray small" id="btnBody1">1次</button>
+            <button class="btn gray small" id="btnBody10">10次</button>
+          </div>
+        </div>
 
-      <div class="side">
+<div class="sideCard">
+          <div class="title"><span>抽背景</span><span style="opacity:0.7;font-weight:800">background</span></div>
+          <div class="miniRow">
+            <button class="btn gray small" id="btnBg1">1次</button>
+            <button class="btn gray small" id="btnBg10">10次</button>
+          </div>
+        </div>
+  </div>
 
-      </div>
-
-      <div class="side">
+  <div class="rightOverlay side" id="rightOverlay">
 <div class="sideCard shopCta">
   <div class="title">
     <span>想抽更爽</span>
@@ -1611,31 +1485,8 @@ body{
     <a class="shopBtn" href="shop.html">前往 Shop</a>
   </div>
 </div>
-        <div class="sideCard">
-          <div class="title"><span>抽角色</span><span style="opacity:0.7;font-weight:800">head</span></div>
-          <div class="miniRow">
-            <button class="btn gray small" id="btnHead1">1次</button>
-            <button class="btn gray small" id="btnHead10">10次</button>
-          </div>
-        </div>
 
-        <div class="sideCard">
-          <div class="title"><span>抽服裝</span><span style="opacity:0.7;font-weight:800">body</span></div>
-          <div class="miniRow">
-            <button class="btn gray small" id="btnBody1">1次</button>
-            <button class="btn gray small" id="btnBody10">10次</button>
-          </div>
-        </div>
-
-        <div class="sideCard">
-          <div class="title"><span>抽背景</span><span style="opacity:0.7;font-weight:800">background</span></div>
-          <div class="miniRow">
-            <button class="btn gray small" id="btnBg1">1次</button>
-            <button class="btn gray small" id="btnBg10">10次</button>
-          </div>
-        </div>
-
-        <div class="sideCard">
+<div class="sideCard">
           <div class="title"><span>抽特效1</span><span style="opacity:0.7;font-weight:800">addon1</span></div>
           <div class="miniRow">
             <button class="btn gray small" id="btnAddon11">1次</button>
@@ -1643,17 +1494,16 @@ body{
           </div>
         </div>
 
-        <div class="sideCard">
+<div class="sideCard">
           <div class="title"><span>抽特效2</span><span style="opacity:0.7;font-weight:800">addon2</span></div>
           <div class="miniRow">
             <button class="btn gray small" id="btnAddon21">1次</button>
             <button class="btn gray small" id="btnAddon210">10次</button>
           </div>
         </div>
-      </div>
-    </div>
   </div>
-
+</div>
+</div>
   <div class="overlay" id="overlay">
     <div class="panel">
             <div class="gacha-stage">
@@ -1674,6 +1524,17 @@ body{
 
   <script src="app.js"></script>
   <script>
+
+    // Keep featured video exactly from masterpage bottom to viewport bottom
+    function updateMasterHeight(){
+      const m = document.getElementById("acfMasterMount");
+      const h = m ? Math.ceil(m.getBoundingClientRect().height) : 0;
+      document.documentElement.style.setProperty("--masterH", h + "px");
+    }
+    window.addEventListener("resize", updateMasterHeight);
+    // Run once after masterpage renders
+    setTimeout(updateMasterHeight, 0);
+    setTimeout(updateMasterHeight, 250);
 
     // featured video: load from DB season featured table
     
@@ -2999,20 +2860,5 @@ function renderGridDecoys(list){
   <canvas id="shareCanvas" width="1080" height="1080" style="display:none;"></canvas>
 
   </div>
-
-<script>
-(function(){
-  function setMasterH(){
-    const host = document.getElementById("acfMasterMount");
-    const bar = document.querySelector(".topbar") || document.querySelector(".masterpage") || document.querySelector(".acf-master") || host;
-    const h = bar ? Math.max(64, Math.min(140, Math.round(bar.getBoundingClientRect().height||86))) : 86;
-    document.documentElement.style.setProperty("--master-h", h + "px");
-  }
-  window.addEventListener("load", setMasterH);
-  window.addEventListener("resize", setMasterH);
-  setMasterH();
-})();
-</script>
-
 </body>
 </html>
