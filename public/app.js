@@ -27,6 +27,7 @@ function toast(msg){
   el.classList.remove("hidden");
   clearTimeout(el._t);
   el._t = setTimeout(()=>el.classList.add("hidden"), 2400);
+}
 
 function syncUidAliases(uid){
   try{
@@ -44,16 +45,26 @@ function syncUidAliases(uid){
   }catch(_){}
 }
 
-
-}
-
 function getOrCreateUid(){
-  const k = "acf_uid";
-  let uid = localStorage.getItem(k);
+  const primary = "acf_uid";
+  let uid = localStorage.getItem(primary);
+
+  // Migrate legacy keys if present so we keep the SAME account across pages
+  if(!uid){
+    uid =
+      localStorage.getItem("uid") ||
+      localStorage.getItem("userId") ||
+      localStorage.getItem("USER_ID") ||
+      "";
+    uid = String(uid || "").trim();
+    if(uid) localStorage.setItem(primary, uid);
+  }
+
   if(!uid){
     uid = crypto.randomUUID();
-    localStorage.setItem(k, uid);
+    localStorage.setItem(primary, uid);
   }
+
   syncUidAliases(uid);
   return uid;
 }
@@ -155,19 +166,22 @@ async function apiFetch(path, options={}){
   // Always attach uid header (required by /api/me/account and other per-user endpoints)
   const uid = getOrCreateUid();
 
-  // Merge headers case-insensitively, but keep a simple object for fetch()
-  const headers = Object.assign({}, options.headers || {});
-  // Don't force JSON header for GET without body. Only set when we actually send a body.
-  const hasBody = options.body !== undefined && options.body !== null;
-  if(hasBody){
-    // If caller didn't provide content-type, default to JSON
-    const ct = headers["content-type"] || headers["Content-Type"] || "";
-    if(!ct) headers["content-type"] = "application/json";
-  }
-  // Inject x-user-id unless caller explicitly set it
-  if(!(headers["x-user-id"] || headers["X-User-Id"] || headers["X-USER-ID"])) headers["x-user-id"] = uid;
+  const headers = Object.assign({}, (options && options.headers) ? options.headers : {});
+  if(uid) headers["x-user-id"] = headers["x-user-id"] || headers["X-User-Id"] || headers["X-USER-ID"] || uid;
 
-  const opts = Object.assign({}, options, { headers });
+  const hasBody = options && options.body !== undefined && options.body !== null;
+
+  // If sending an object as body, auto JSON encode it
+  let body = hasBody ? options.body : undefined;
+  const ct = String(headers["content-type"] || headers["Content-Type"] || "");
+  const wantsJson = ct.includes("application/json") || (!ct && typeof body === "object" && !(body instanceof FormData));
+
+  if(hasBody && wantsJson){
+    headers["content-type"] = "application/json";
+    if(typeof body !== "string") body = JSON.stringify(body);
+  }
+
+  const opts = Object.assign({}, options, { headers, body });
 
   try{
     const res = await fetch(url, opts);
@@ -182,6 +196,7 @@ async function apiFetch(path, options={}){
     return null;
   }
 }
+
 
 async function initSession(){
   APP.uid = getOrCreateUid();
@@ -247,14 +262,7 @@ async function api(path, opts){
   return await res.json();
 }
 
-function getOrCreateUid(){
-  let uid = localStorage.getItem("acf_uid");
-  if(!uid){
-    uid = crypto.randomUUID();
-    localStorage.setItem("acf_uid", uid);
-  }
-  return uid;
-}
+
 
 window.APP = APP;
 window.q = q;

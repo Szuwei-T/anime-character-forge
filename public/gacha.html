@@ -1839,6 +1839,26 @@ async function onlineGacha(opts = {}) {
     if (s && s !== "null" && s !== "undefined") { headers["x-user-id"] = s; break; }
   }
 
+  // If still missing, create/migrate a uid so server-side currency matches the UI everywhere
+  if(!headers["x-user-id"]){
+    let uid = String(
+      localStorage.getItem("acf_uid") ||
+      localStorage.getItem("uid") ||
+      localStorage.getItem("userId") ||
+      localStorage.getItem("USER_ID") ||
+      ""
+    ).trim();
+    if(!uid){
+      uid = crypto.randomUUID();
+    }
+    localStorage.setItem("acf_uid", uid);
+    localStorage.setItem("uid", uid);
+    localStorage.setItem("userId", uid);
+    localStorage.setItem("USER_ID", uid);
+    headers["x-user-id"] = uid;
+  }
+
+
   // IMPORTANT: do NOT use apiFetch for gacha, because apiFetch returns null on HTTP 4xx/5xx.
   // We must parse JSON even when status is 400 so we can show the real reason (insufficient gold/gem etc.).
   const base = (typeof WORKER_BASE === "string") ? WORKER_BASE : (
