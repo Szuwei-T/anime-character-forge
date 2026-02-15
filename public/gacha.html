@@ -39,9 +39,8 @@ body{
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, "Noto Sans TC", sans-serif;
     }
     .wrap{
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 18px 20px 88px;
+      padding: 8px 16px 18px;
+      max-width: none;
     }
     #acfMasterMount{ margin-bottom: 0; }
     h1{
@@ -75,15 +74,35 @@ body{
   white-space: nowrap;
 }
 .heroGrid{
-      display:grid;
-      grid-template-columns: 340px 1fr 340px;
-      grid-template-areas: "left center right";
-      gap: 18px;
-      align-items:start;
+      position: relative;
+      height: calc(100vh - var(--master-h));
+      min-height: calc(100vh - var(--master-h));
+      width: 100%;
     }
-.leftPanel{ grid-area: left; }
-.centerPanel{ grid-area: center; }
-.rightPanel{ grid-area: right; }
+.leftPanel{
+      position:absolute;
+      left: 18px;
+      top: 18px;
+      width: 340px;
+      z-index: 30;
+      pointer-events:auto;
+    }
+.centerPanel{
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:stretch;
+      justify-content:center;
+      pointer-events:none;
+    }
+.rightPanel{
+      position:absolute;
+      right: 18px;
+      top: 18px;
+      width: 340px;
+      z-index: 30;
+      pointer-events:auto;
+    }
 
 /* Mobile and small screens: show video first, then left blocks, then right blocks */
 @media (max-width: 1100px){
@@ -96,10 +115,13 @@ body{
   }
 }
 .rightPanel{
-        margin-left: -140px;
-        margin-top: 28px;
-        z-index: 6;
-      }
+      position:absolute;
+      right: 18px;
+      top: 18px;
+      width: 340px;
+      z-index: 30;
+      pointer-events:auto;
+    }
     }
 
 
@@ -120,9 +142,8 @@ body{
     }
     .featureStage{
   width: 100%;
-  max-width: none;
-  height: 100vh;
-  min-height: 100vh;
+  height: calc(100vh - var(--master-h));
+  min-height: calc(100vh - var(--master-h));
   border-radius: 0;
   background: transparent;
   border: none;
@@ -130,8 +151,9 @@ body{
   display:flex;
   align-items:center;
   justify-content:center;
-  overflow:hidden;
+  overflow: visible;
   position:relative;
+  pointer-events:auto;
 }
 /* 背景鋪滿的模糊層 讓 video 像本頁背景一樣 */
 .featureStage .bgVideo{
@@ -206,17 +228,31 @@ body{
 }
 .gachaOverlay{
   position:absolute;
-  left:14px;
-  right:14px;
-  bottom:14px;
-  z-index:4;
-  display:grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  align-items: stretch;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  display:flex;
+  gap: 14px;
+  align-items:flex-end;
+  justify-content:center;
+  width: min(920px, 96vw);
+  z-index: 40;
+  pointer-events:auto;
 }
 @media (max-width: 860px){
-  .gachaOverlay{ grid-template-columns: 1fr; }
+  .gachaOverlay{
+  position:absolute;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  display:flex;
+  gap: 14px;
+  align-items:flex-end;
+  justify-content:center;
+  width: min(920px, 96vw);
+  z-index: 40;
+  pointer-events:auto;
+}
   .promoBig{ font-size: 16px; }
   .promoBoom{ font-size: 26px; }
 }
@@ -290,6 +326,7 @@ body{
       gap: 12px;
     }
     .sideCard{
+      width: 100%;
       border-radius: 18px;
       background: rgba(255,255,255,0.06);
       border: 1px solid rgba(255,255,255,0.10);
@@ -526,9 +563,13 @@ body{
       --cardH: 140px;
       --cardW: 93px; /* 約 2:3 */
       --gridGap: 10px;
+    
+      --master-h: 140px;
     }
     @media (max-width: 940px){
-      :root{ --cardH: 120px; --cardW: 80px; }
+      :root{ --cardH: 120px; --cardW: 80px; 
+      --master-h: 140px;
+    }
     }
     .grid32{
       position:relative;
@@ -1478,7 +1519,26 @@ body{
       100%{ transform: scale(1.08); opacity:0.0; }
     }
 
-  </style>
+  
+    /* --overlayResponsive */
+    @media (max-width: 1100px){
+      .leftPanel,.rightPanel{width: 300px}
+      .rightPanel{top: 18px}
+    }
+    @media (max-width: 920px){
+      .leftPanel,.rightPanel{
+        position: static;
+        width: 100%;
+        max-width: 520px;
+        margin: 0 auto 12px;
+      }
+      .heroGrid{height:auto;min-height:0}
+      .centerPanel{position:relative;inset:auto;pointer-events:auto}
+      .featureStage{height: min(680px, 70vh); min-height: 420px;}
+      .gachaOverlay{position:relative;left:auto;bottom:auto;transform:none;margin-top:12px;width:100%;}
+    }
+
+</style>
 </head>
 <body>
   <div class="acf-page ui-panel"><div id="acfMasterMount"></div>
@@ -1621,7 +1681,29 @@ body{
 
   </div>
 
-  <script src="app.js"></script>
+  
+<script>
+(function(){
+  function apply(){
+    const m = document.getElementById("acfMasterMount");
+    if(!m) return false;
+    const h = m.getBoundingClientRect().height;
+    if(h && h > 30){
+      document.documentElement.style.setProperty("--master-h", Math.round(h) + "px");
+      return true;
+    }
+    return false;
+  }
+  let tries = 0;
+  const t = setInterval(()=>{
+    tries++;
+    if(apply() || tries > 80) clearInterval(t);
+  }, 100);
+  window.addEventListener("resize", ()=>{ apply(); });
+})();
+</script>
+
+<script src="app.js"></script>
   <script>
 
     // featured video: load from DB season featured table
