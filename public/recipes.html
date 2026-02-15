@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>成品庫</title>
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="ui_fx.css" />
   <style>
     .page-wrap{max-width:1180px;margin:0 auto;padding:22px 18px 44px;}
     .topbar{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:16px;}
@@ -220,7 +221,7 @@
 </style>
 </head>
 <body>
-  <div id="acfMasterMount"></div>
+  <div class="acf-page ui-panel"><div id="acfMasterMount"></div>
   <div class="page-wrap">
     <div class="topbar">
       <div class="title">
@@ -668,5 +669,6 @@ if (curItem){
 })();
 </script>
   <script src="app.js"></script>
+  </div>
 </body>
 </html>
