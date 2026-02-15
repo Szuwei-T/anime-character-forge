@@ -132,18 +132,37 @@ function saveOfflineDb(db){
 
 async function apiFetch(path, options={}){
   const url = (WORKER_BASE || "") + path;
-  const headers = Object.assign({ "Content-Type":"application/json" }, options.headers || {});
+
+  // Always attach uid header (required by /api/me/account and other per-user endpoints)
+  const uid = getOrCreateUid();
+
+  // Merge headers case-insensitively, but keep a simple object for fetch()
+  const headers = Object.assign({}, options.headers || {});
+  // Don't force JSON header for GET without body. Only set when we actually send a body.
+  const hasBody = options.body !== undefined && options.body !== null;
+  if(hasBody){
+    // If caller didn't provide content-type, default to JSON
+    const ct = headers["content-type"] || headers["Content-Type"] || "";
+    if(!ct) headers["content-type"] = "application/json";
+  }
+  // Inject x-user-id unless caller explicitly set it
+  if(!(headers["x-user-id"] || headers["X-User-Id"] || headers["X-USER-ID"])) headers["x-user-id"] = uid;
+
   const opts = Object.assign({}, options, { headers });
+
   try{
     const res = await fetch(url, opts);
+    const text = await res.text();
+    let data = null;
+    try{ data = text ? JSON.parse(text) : null; }catch(_){ data = { ok:false, error:text || `HTTP ${res.status}` }; }
     if(!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
     APP.offline = false;
     return data;
   }catch(e){
     APP.offline = true;
     return null;
   }
+}
 }
 
 async function initSession(){
