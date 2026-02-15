@@ -25,6 +25,7 @@
     .card{border-radius:18px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10);overflow:hidden;cursor:pointer;transition:.15s;position:relative}
     .card:hover{background:rgba(255,255,255,.07)}
     .thumb{aspect-ratio:3/4;background:rgba(0,0,0,.15);position:relative}
+    .thumb img{width:100%;height:100%;object-fit:cover;display:block}
     .thumb .layer{position:absolute;inset:0}
     .thumb .layer img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block}
     .meta{padding:10px 12px}
@@ -45,6 +46,7 @@
     }
     .showBtn:hover{background:rgba(255,255,255,.12)}
     .showBtn:active{transform:translateY(1px)}
+
     .showBtn.disabled{
       opacity:.5;
       cursor:not-allowed;
@@ -52,25 +54,37 @@
       background:rgba(255,255,255,.04);
     }
 
+
     /* Locked recipe cards */
     .locked .thumb{filter:blur(12px) brightness(.5) saturate(.2) contrast(.75);transform:scale(1.08)}
-    /* Locked overlay */
+    /* Locked overlay: keep 🔒 always on top, never affected by blur/filter */
     .lockmask{
       position:absolute;
       inset:0;
-      z-index:999;
+      z-index:999; /* always above any layers */
       background:rgba(0,0,0,.40);
       display:flex;
       align-items:center;
       justify-content:center;
       gap:10px;
       flex-direction:column;
+
+      /* ensure it never inherits blur/filter/backdrop */
       filter:none !important;
       backdrop-filter:none !important;
+
+      /* prevent any weird stacking interactions */
       isolation:isolate;
+
+      /* allow clicks to fall through if you want the card to handle click */
       pointer-events:none;
     }
-    .lockmask .lock{font-size:28px;line-height:1;position:relative;z-index:1000}
+    .lockmask .lock{
+      font-size:28px;
+      line-height:1;
+      position:relative;
+      z-index:1000;
+    }
     .lockmask .txt{font-size:13px;opacity:.95}
 
     .modal{position:fixed;inset:0;background:rgba(0,0,0,.60);display:none;align-items:center;justify-content:center;padding:18px;z-index:9999}
@@ -86,7 +100,124 @@
     .bigwrap img.single{width:100%;height:auto;display:block}
     .footnote{margin-top:10px;font-size:12px;opacity:.75}
     .empty{opacity:.75;padding:14px 0}
-  </style>
+  
+    :root{
+      --ui-main-bg: url('/ui/bg/main_bg.webp');
+      --ui-noise: url('/ui/bg/noise.png');
+      --ui-vignette: url('/ui/bg/vignette.png');
+      --ui-particles: url('/ui/effect/particles.webp');
+      --ui-panel: url('/ui/frame/panel.webp');
+      --ui-card-frame: url('/ui/frame/card_frame.webp');
+      --ui-topbar: url('/ui/frame/top_bar.webp');
+
+      --ui-btn-primary: url('/ui/button/btn_primary.webp');
+      --ui-btn-primary-hover: url('/ui/button/btn_primary_hover.webp');
+      --ui-btn-primary-pressed: url('/ui/button/btn_primary_pressed.webp');
+      --ui-btn-gold: url('/ui/button/btn_gold.webp');
+      --ui-btn-gem: url('/ui/button/btn_gem.webp');
+
+      --ui-glow-ssr: url('/ui/glow/glow_ssr.webp');
+      --ui-glow-ur: url('/ui/glow/glow_ur.webp');
+      --ui-starburst: url('/ui/effect/starburst.webp');
+    }
+
+    body{
+      background:
+        var(--ui-vignette),
+        var(--ui-noise),
+        var(--ui-main-bg);
+      background-size: cover, 300px 300px, cover;
+      background-position: center, center, center;
+      background-attachment: fixed, fixed, fixed;
+    }
+
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      background: var(--ui-particles) center/cover no-repeat;
+      opacity:.12;
+      mix-blend-mode: screen;
+      z-index:0;
+    }
+
+    .page-wrap{position:relative; z-index:1;}
+
+    .page-wrap::before{
+      content:"";
+      position:absolute;
+      inset:10px 6px;
+      background: var(--ui-panel) center/100% 100% no-repeat;
+      opacity:.90;
+      pointer-events:none;
+      z-index:-1;
+      filter: drop-shadow(0 18px 40px rgba(0,0,0,.35));
+    }
+
+    .topbar{
+      padding:14px 16px;
+      border-radius:18px;
+      background: var(--ui-topbar) center/100% 100% no-repeat;
+      border:none;
+    }
+    .badge{
+      background:rgba(0,0,0,.18);
+      border:1px solid rgba(255,255,255,.10);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+    }
+
+    .btn, .tabbtn, .showBtn{
+      border:none;
+      background: var(--ui-btn-primary) center/100% 100% no-repeat;
+      padding:12px 18px;
+      box-shadow: 0 10px 20px rgba(0,0,0,.25);
+    }
+    .btn:hover, .tabbtn:hover, .showBtn:hover{
+      background-image: var(--ui-btn-primary-hover);
+    }
+    .btn:active, .tabbtn:active, .showBtn:active{
+      background-image: var(--ui-btn-primary-pressed);
+      transform: translateY(1px);
+    }
+    .tabbtn.active{
+      background-image: var(--ui-btn-gold);
+      opacity:1;
+    }
+
+    .showBtn.disabled{
+      background-image: var(--ui-btn-primary);
+      opacity:.55;
+      cursor:not-allowed;
+      pointer-events:none;
+      box-shadow:none;
+      filter:saturate(.6);
+    }
+
+    .card{
+      background: rgba(255,255,255,.04);
+      border:none;
+      box-shadow: 0 16px 40px rgba(0,0,0,.30);
+    }
+    .card::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background: var(--ui-card-frame) center/100% 100% no-repeat;
+      pointer-events:none;
+      z-index:2;
+      opacity:.95;
+    }
+    .thumb{border-radius:18px; overflow:hidden;}
+    .meta{position:relative; z-index:3;}
+    .thumb{position:relative; z-index:1;}
+    .card:hover{
+      transform: translateY(-2px);
+      filter: drop-shadow(0 0 18px rgba(255,220,120,.12));
+    }
+
+    .title h1{ text-shadow: 0 2px 10px rgba(0,0,0,.45); }
+</style>
 </head>
 <body>
   <div class="page-wrap">
@@ -153,8 +284,6 @@
 
   uidBadge.textContent = uid ? uid : "未登入";
 
-  let avatarSavedOn = 0;
-
   document.getElementById("btnStudio").onclick = () => location.href = "/studio";
   document.getElementById("btnGacha").onclick = () => location.href = "/gacha";
   document.getElementById("btnHome").onclick = () => location.href = "/";
@@ -211,6 +340,7 @@
     });
   }
 
+
   function fmtTime(ts){
     if (!ts) return "";
     try{
@@ -225,6 +355,7 @@
     modalMeta.textContent = metaText || "";
     bigwrap.innerHTML = "";
 
+    // layers: [{url, z}]
     layers.forEach((l) => {
       if (!l.url) return;
       const div = document.createElement("div");
@@ -244,6 +375,7 @@
     modalTitle.textContent = title || "預覽";
     modalMeta.textContent = metaText || "";
     bigwrap.innerHTML = "";
+    // For single image, keep aspect-ratio container but allow scroll in modalbody to see full if needed
     const img = document.createElement("img");
     img.className = "single";
     img.loading = "lazy";
@@ -256,7 +388,13 @@
   modal.onclick = (e) => { if (e.target === modal) modal.classList.remove("show"); };
   window.addEventListener("keydown", (e) => { if (e.key === "Escape") modal.classList.remove("show"); });
 
+  function thumbUrl(assetUrl){
+    // thumbs disabled: always use original
+    return assetUrl || "";
+  }
+
   function makeStackThumb(container, layers){
+    // layers: [{url, z, preferThumb}]
     container.innerHTML = "";
     layers.forEach((l) => {
       if (!l.url) return;
@@ -294,50 +432,31 @@
   tabSaves.onclick = () => setTab("saves");
   tabRecipes.onclick = () => setTab("recipes");
 
-  async function loadAvatarSavedOn(){
-    avatarSavedOn = 0;
-    if(!uid) return 0;
-    try{
-      const a = await api("/api/me/account");
-      // backend may return avatarSave or account.avatarSaveOn
-      if(a && a.avatarSave && a.avatarSave.savedOn){
-        avatarSavedOn = Number(a.avatarSave.savedOn||0);
-      }else if(a && a.account && a.account.avatarSaveOn){
-        avatarSavedOn = Number(a.account.avatarSaveOn||0);
-      }else if(a && a.account && a.account.avatarSavedOn){
-        avatarSavedOn = Number(a.account.avatarSavedOn||0);
-      }
-    }catch(e){
-      console.warn("loadAvatarSavedOn failed", e);
-    }
-    return avatarSavedOn;
-  }
-
   async function loadSaves(){
     gridSaves.innerHTML = "";
     try{
       const res = await api("/api/me/saves");
       setNet(true);
 
-      const comboKey = (headId, bodyId, bgId, addon1Id, addon2Id) => {
-        const a = [String(addon1Id || ""), String(addon2Id || "")].sort();
-        return [String(headId || ""), String(bodyId || ""), String(bgId || ""), a[0], a[1]].join("|");
-      };
+    const comboKey = (headId, bodyId, bgId, addon1Id, addon2Id) => {
+      const a = [String(addon1Id || ""), String(addon2Id || "")].sort();
+      return [String(headId || ""), String(bodyId || ""), String(bgId || ""), a[0], a[1]].join("|");
+    };
 
-      let showcaseComboSet = new Set();
-      try{
-        const all = await api("/api/me/showcases?seasonId=S1");
-        const list = all.showcases || [];
-        list.forEach((x) => {
-          showcaseComboSet.add(comboKey(x.headId, x.bodyId, x.bgId, x.addon1Id, x.addon2Id));
-        });
-      }catch(e){
-        console.warn("load showcases failed", e);
-        showError("讀取展示資料失敗，請確認已更新 Worker 並且 WORKER_BASE 指向同一個資料庫");
-      }
+    let showcaseComboSet = new Set();
+    try{
+      const all = await api("/api/me/showcases?seasonId=S1");
+      const list = all.showcases || [];
+      list.forEach((x) => {
+        showcaseComboSet.add(comboKey(x.headId, x.bodyId, x.bgId, x.addon1Id, x.addon2Id));
+      });
+    }catch(e){
+      // If this fails, we should NOT silently ignore it, otherwise users can't tell why "展示中" never appears.
+      console.warn("load showcases failed", e);
+      showError("讀取展示資料失敗，請確認已更新 Worker 並且 WORKER_BASE 指向同一個資料庫");
+    }
 
       const saves = res.saves || [];
-      await loadAvatarSavedOn();
       statusLine.textContent = "共 " + saves.length + " 個成品";
 
       if (saves.length === 0){
@@ -352,14 +471,14 @@
         const th = document.createElement("div");
         th.className = "thumb";
 
-        // 正確 Layer (由上到下):
-        // addon1, head, body, addon2, bg
+        // Layer order (top->bottom):
+        // addon1 top, body 2, head 3, addon2 4, bg bottom
         const layersThumb = [
-          { url: s.bgUrl, z: 10 },
-          { url: s.addon2Url, z: 20 },
-          { url: s.bodyUrl, z: 30 },
-          { url: s.headUrl, z: 40 },
-          { url: s.addon1Url, z: 50 },
+          { url: s.bgUrl, z: 10, preferThumb:false },
+          { url: s.addon2Url, z: 20, preferThumb:false },
+          { url: s.headUrl, z: 30, preferThumb:false },
+          { url: s.bodyUrl, z: 40, preferThumb:false },
+          { url: s.addon1Url, z: 50, preferThumb:false },
         ];
         makeStackThumb(th, layersThumb);
 
@@ -373,35 +492,15 @@
         time.className = "time";
         time.textContent = fmtTime(s.savedOn);
 
-        const btnAvatar = document.createElement("div");
-        btnAvatar.className = "showBtn";
-        const isAvatar = Number(s.savedOn||0) && Number(s.savedOn||0) === Number(avatarSavedOn||0);
-        btnAvatar.textContent = isAvatar ? "目前頭像" : "設為頭像";
-        if (isAvatar) btnAvatar.classList.add("disabled");
-        btnAvatar.onclick = async (ev) => {
-          if (btnAvatar.classList.contains("disabled")) return;
-          ev.stopPropagation();
-          clearError();
-          if (!uid){
-            showError("請先登入後再設定頭像");
-            return;
-          }
-          try{
-            await apiReq("POST", "/api/me/avatar", { savedOn: Number(s.savedOn||0) });
-            // refresh state and UI
-            await loadAvatarSavedOn();
-            loadSaves();
-          }catch(e){
-            showError("設定頭像失敗：" + (e && e.message ? e.message : String(e)));
-          }
-        };
-
         const btnShow = document.createElement("div");
         btnShow.className = "showBtn";
-
+        
         let isShowing = showcaseComboSet.has(comboKey(s.headId, s.bodyId, s.bgId, s.addon1Id, s.addon2Id));
         btnShow.textContent = isShowing ? "展示中" : "展示";
-        if (isShowing) btnShow.classList.add("disabled");
+        if (isShowing){
+          btnShow.classList.add("disabled");
+        }
+
 
         btnShow.onclick = async (ev) => {
           if (btnShow.classList.contains("disabled")) return;
@@ -431,13 +530,14 @@
           try{
             const cur = await api("/api/me/showcase?seasonId=S1");
             const curItem = cur.showcase || cur.item || cur.current || null;
-            if (curItem){
+if (curItem){
               const ok = window.confirm("本期已經有作品正在展示中。上傳新作品後，原有的票數將歸零並重新計票。是否確認？");
               if (!ok) return;
             }
 
             await apiReq("POST", "/api/me/showcase", { ...payload, seasonId:"S1", overwrite: !!curItem });
 
+            // Immediately reflect UI state
             showcaseComboSet.add(comboKey(payload.headId, payload.bodyId, payload.bgId, payload.addon1Id, payload.addon2Id));
             btnShow.textContent = "展示中";
             btnShow.classList.add("disabled");
@@ -449,7 +549,6 @@
         };
 
         row.appendChild(time);
-        row.appendChild(btnAvatar);
         row.appendChild(btnShow);
 
         const parts = document.createElement("div");
@@ -466,8 +565,8 @@
           const layersBig = [
             { url: s.bgUrl, z: 10 },
             { url: s.addon2Url, z: 20 },
-            { url: s.bodyUrl, z: 30 },
-            { url: s.headUrl, z: 40 },
+            { url: s.headUrl, z: 30 },
+            { url: s.bodyUrl, z: 40 },
             { url: s.addon1Url, z: 50 },
           ];
           openModalLayers("我的成品", fmtTime(s.savedOn), layersBig);
@@ -503,11 +602,6 @@
       th.className = "thumb";
       const img = document.createElement("img");
       img.loading = "lazy";
-      img.style.position = "absolute";
-      img.style.inset = "0";
-      img.style.width = "100%";
-      img.style.height = "100%";
-      img.style.objectFit = "cover";
       img.src = r.imageUrl;
       th.appendChild(img);
 
@@ -522,7 +616,7 @@
       meta.className = "meta";
       const time = document.createElement("div");
       time.className = "time";
-      time.textContent = "Recipe " + r.recipeId;
+      time.textContent = "Recipe #" + r.recipeId;
       const parts = document.createElement("div");
       parts.className = "parts";
       parts.textContent = unlocked ? "已解鎖，可查看原圖" : "未解鎖";
@@ -538,7 +632,7 @@
           return;
         }
         clearError();
-        openModalSingle("Recipe " + r.recipeId, "已解鎖", r.imageUrl);
+        openModalSingle("Recipe #" + r.recipeId, "已解鎖", r.imageUrl);
       };
 
       gridRecipes.appendChild(card);
@@ -568,6 +662,7 @@
     }
   }
 
+  // initial
   setTab("saves");
 })();
 </script>
