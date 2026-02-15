@@ -6,10 +6,34 @@
   <title>Gacha</title>
   <link rel="stylesheet" href="style.css" />
   <style>
-    body{
+
+    /* ===== Local Game Fonts (drop .ttf into /fonts) ===== */
+    @font-face{
+      font-family: "GameFont", "GameFontCN", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      src: url("/fonts/Cinzel-Bold.ttf") format("truetype");
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face{
+      font-family: "GameFontSciFi";
+      src: url("/fonts/Orbitron-Bold.ttf") format("truetype");
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face{
+      font-family: "GameFontCN";
+      src: url("/fonts/NotoSansTC-Bold.ttf") format("truetype");
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+
+body{
       margin:0;
       min-height:100vh;
-      background: radial-gradient(circle at top, #1b1f2a, #0b0d12);
+      background: url("/ui/bg/main_bg.webp") center/cover no-repeat fixed;
       color:#fff;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, "Noto Sans TC", sans-serif;
     }
@@ -20,6 +44,7 @@
     }
     h1{
 
+      font-family: \"GameFont\";
       margin:0 0 18px;
       font-size: 28px;
       letter-spacing: 0.6px;
@@ -350,6 +375,7 @@
     }
 
     .btn{
+      font-family: \"GameFontSciFi\";
       border:0;
       border-radius: 999px;
       padding: 12px 18px;
@@ -398,7 +424,9 @@
       flex-direction:column;
       max-height: 92vh;
       border-radius:26px;
-      background: rgba(18,22,32,0.92);
+      background:
+        url("/ui/frame/gacha_panel.webp") center/contain no-repeat,
+        rgba(18,22,32,0.78);
       border: 1px solid rgba(255,255,255,0.10);
       box-shadow: 0 30px 120px rgba(0,0,0,0.65);
       padding: 22px 22px 18px;
@@ -1296,157 +1324,155 @@
     }
 
   
-    /* UI cleanup: make layout feel like a commercial game */
-    body{
-      background: url("/ui/bg/main_bg.webp") center/cover no-repeat fixed;
-    }
-    body::before{
-      content:"";
+    .vignette{
       position:fixed;
       inset:0;
-      background: rgba(0,0,0,0.45);
+      background:url("/ui/bg/vignette.webp") center/cover no-repeat;
       pointer-events:none;
-      z-index:0;
+      z-index:4;
+      mix-blend-mode:multiply;
+      opacity:0.95;
     }
-    body::after{
-      content:"";
+
+
+    
+
+    .particles{
       position:fixed;
-      inset:0;
-      background: url("/ui/bg/vignette.webp") center/cover no-repeat;
-      opacity:0.85;
+      inset:-10%;
+      background: url("/ui/bg/particles.png") center/auto repeat;
+      opacity:0.38;
       pointer-events:none;
-      z-index:0;
+      z-index:3;
+      filter: blur(0.2px);
+      animation: particlesDrift 18s linear infinite;
     }
-    .wrap{ position:relative; z-index:2; max-width: 1320px; padding: 32px 18px 40px; }
-
-    .heroGrid{
-      grid-template-columns: 1fr 380px;
-      gap: 16px;
-    }
-    @media (max-width: 940px){
-      .heroGrid{ grid-template-columns: 1fr; }
-      .side{ order: 2; }
-    }
-    @media (min-width: 941px){
-      .rightPanel{ margin-left: 0; margin-top: 0; }
+    @keyframes particlesDrift{
+      0%{ transform: translate3d(0,0,0); }
+      100%{ transform: translate3d(-120px, 80px, 0); }
     }
 
-    .featureStage{
-      height: 520px;
-      min-height: 520px;
-      border-radius: 22px;
-      overflow:hidden;
-      box-shadow: 0 18px 60px rgba(0,0,0,0.55);
-      border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(0,0,0,0.18);
-      backdrop-filter: blur(8px);
+/* ===== Commercial UI asset integration ===== */
+    .btn.orange, .btn.blue, .confirm, .shopBtn{
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
     }
-
-    /* move gacha cards below the featured stage */
-    .gachaOverlay{
-      position: static !important;
-      left: auto !important;
-      right: auto !important;
-      bottom: auto !important;
-      margin-top: 14px;
-      padding: 0;
-      gap: 14px;
-    }
-    .gachaCard{
-      border-radius: 18px;
-      background:
-        linear-gradient(180deg, rgba(18,22,32,0.88), rgba(10,12,18,0.82));
-      border: 1px solid rgba(255,255,255,0.14);
-      box-shadow: 0 14px 40px rgba(0,0,0,0.55);
-      backdrop-filter: blur(10px);
-    }
-    .gachaHead{ padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.10); }
-
-    /* buttons feel consistent */
-    .btn.orange.small, .btn.blue.small{
-      width: 150px;
-      height: 56px;
+    .btn.orange{
+      background-image: url("/ui/button/btn_gold.webp");
+      color:#fff;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.85);
+      box-shadow: none;
       border-radius: 14px;
+      padding: 0;
+      width: 140px;
+      height: 54px;
     }
-    .btn.orange.small{
-      background: url("/ui/button/btn_gold.webp") center/contain no-repeat;
-      border: none;
+    .btn.blue{
+      background-image: url("/ui/button/btn_gem.webp");
+      color:#fff;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.85);
+      box-shadow: none;
+      border-radius: 14px;
+      padding: 0;
+      width: 140px;
+      height: 54px;
     }
-    .btn.blue.small{
-      background: url("/ui/button/btn_gem.webp") center/contain no-repeat;
-      border: none;
+    .btn.gray{
+      box-shadow: none;
     }
-    .btn.orange.small, .btn.blue.small{ color:#fff; text-shadow: 0 2px 10px rgba(0,0,0,0.75); }
-    .btn.orange.small:hover, .btn.blue.small:hover{ transform: translateY(-1px); filter: brightness(1.06); }
+    .btn.small{
+      min-width: 140px;
+    }
 
-    /* side panel stronger contrast */
-    .sideCard{
-      background: rgba(10,12,18,0.72) !important;
-      border: 1px solid rgba(255,255,255,0.12) !important;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 14px 40px rgba(0,0,0,0.55);
+    .confirm{
+      background-image: url("/ui/button/btn_confirm.webp");
+      background-color: transparent;
+      color:#fff;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.85);
+      box-shadow: none;
+      width: 240px;
+      height: 80px;
+      padding: 0;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      border-radius: 18px;
     }
     .shopBtn{
-      background: url("/ui/button/btn_shop.webp") center/contain no-repeat !important;
-      border: none !important;
-      color:#fff !important;
-      text-shadow: 0 2px 10px rgba(0,0,0,0.75);
-    }
-
-    /* confirm button background image, keep text for multi language */
-    .modal .confirmBtn{
-      background: url("/ui/button/btn_confirm.webp") center/contain no-repeat;
-      border: none;
+      background-image: url("/ui/button/btn_shop.webp");
+      background-color: transparent;
       color:#fff;
-      text-shadow: 0 2px 10px rgba(0,0,0,0.75);
-      min-width: 240px;
-      min-height: 74px;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.85);
+      box-shadow: none;
+      border-radius: 18px;
+      padding: 0;
+      height: 72px;
     }
 
-    /* cinematic effects */
-    .cine-card{ position:relative; overflow:hidden; }
+    /* Featured stage frame overlay (optional, if file exists later) */
+    .featureStage::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      z-index:3;
+      opacity:0.0;
+      background: url("/ui/frame/featured_frame.webp") center/contain no-repeat;
+    }
+
+    /* Cinematic FX layers */
     .cine-card .fx{
       position:absolute;
-      inset:-10%;
+      inset:-12%;
       pointer-events:none;
       background-repeat:no-repeat;
       background-position:center;
       background-size:contain;
       opacity:0;
-      mix-blend-mode:screen;
+      mix-blend-mode: screen;
+      z-index:2;
     }
-    .cine-card .fx-ray{ background-image:url("/ui/effect/light_ray.webp"); }
     .cine-card .fx-spark{ background-image:url("/ui/effect/spark.webp"); }
     .cine-card .fx-burst{ background-image:url("/ui/effect/starburst.webp"); }
+    .cine-card .fx-ray{ background-image:url("/ui/effect/light_ray.webp"); }
 
-    .cinematic.r4 .cine-card .fx{ opacity:0.85; }
-    .cinematic.r5 .cine-card .fx{ opacity:0.95; }
+    .cinematic.r4 .cine-card .fx-spark,
+    .cinematic.r4 .cine-card .fx-burst{ opacity:0.92; }
 
-    .cinematic.r5 .cine-card .fx-ray{ animation: fxRay 1.15s ease-out infinite; }
-    .cinematic.r5 .cine-card .fx-spark{ animation: fxSpark 1.55s ease-in-out infinite; }
-    .cinematic.r4 .cine-card .fx-burst,
-    .cinematic.r5 .cine-card .fx-burst{ animation: fxBurst 1.45s ease-out infinite; }
+    .cinematic.r5 .cine-card .fx-ray{ opacity:0.95; }
+    .cinematic.r5 .cine-card .fx-spark{ opacity:0.95; }
+    .cinematic.r5 .cine-card .fx-burst{ opacity:0.95; }
+
+    .cinematic.r4 .cine-card .fx-spark{ animation: fxSpark 1.6s ease-in-out infinite; }
+    .cinematic.r4 .cine-card .fx-burst{ animation: fxBurst 1.8s ease-out infinite; }
+
+    .cinematic.r5 .cine-card .fx-ray{ animation: fxRay 1.2s ease-out infinite; }
+    .cinematic.r5 .cine-card .fx-spark{ animation: fxSpark 1.4s ease-in-out infinite; }
+    .cinematic.r5 .cine-card .fx-burst{ animation: fxBurst 1.6s ease-out infinite; }
 
     @keyframes fxRay{
       0%{ transform: scale(0.92); opacity:0.0; }
-      20%{ opacity:0.9; }
-      100%{ transform: scale(1.06); opacity:0.0; }
+      20%{ opacity:1.0; }
+      100%{ transform: scale(1.05); opacity:0.0; }
     }
     @keyframes fxSpark{
       0%{ transform: scale(0.96) rotate(0deg); opacity:0.0; }
-      35%{ opacity:0.9; }
+      35%{ opacity:1.0; }
       100%{ transform: scale(1.03) rotate(10deg); opacity:0.0; }
     }
     @keyframes fxBurst{
-      0%{ transform: scale(0.86); opacity:0.0; }
+      0%{ transform: scale(0.85); opacity:0.0; }
       25%{ opacity:1.0; }
-      100%{ transform: scale(1.10); opacity:0.0; }
+      100%{ transform: scale(1.08); opacity:0.0; }
     }
 
   </style>
 </head>
 <body>
   <div class="packFlash" id="packFlash"></div>
+  <div class="vignette"></div>
+  <div class="particles"></div>
   <div class="wrap">
 
     <div class="heroGrid">
@@ -1463,51 +1489,51 @@
             <img id="featuredFallbackBg" class="bgVideo" src="/assets/feature_character.png" alt="" style="display:none;">
             <img id="featuredFallback" src="/assets/feature_character.png" alt="" style="display:none; position:absolute; inset:0; width:100%; height:100%; object-fit:contain; z-index:1;">
 
-                      </div>
-          <div class="gachaOverlay">
-                        <div class="gachaCard">
-                          <div class="gachaHead">
-                            <div class="gachaName">普通抽卡</div>
-                            <div class="gachaDesc">單次 或 10 連抽</div>
-                          </div>
+            <div class="gachaOverlay">
+              <div class="gachaCard">
+                <div class="gachaHead">
+                  <div class="gachaName">普通抽卡</div>
+                  <div class="gachaDesc">單次 或 10 連抽</div>
+                </div>
 
-                          <div class="drawRow">
-                            <div class="drawCol">
-                              <button class="btn orange small" id="btnNormal1">1次</button>
-                              <div class="cost">cost 100gold</div>
-                            </div>
-                            <div class="drawCol">
-                              <button class="btn orange small" id="btnNormal10">10次</button>
-                              <div class="cost">cost 1000gold</div>
-                              <div class="guarantee">必出SR以上</div>
-                            </div>
-                          </div>
+                <div class="drawRow">
+                  <div class="drawCol">
+                    <button class="btn orange small" id="btnNormal1">1次</button>
+                    <div class="cost">cost 100gold</div>
+                  </div>
+                  <div class="drawCol">
+                    <button class="btn orange small" id="btnNormal10">10次</button>
+                    <div class="cost">cost 1000gold</div>
+                    <div class="guarantee">必出SR以上</div>
+                  </div>
+                </div>
 
-                          <div class="pity" id="pityNormal">再抽200次 必出SSR</div>
-                        </div>
+                <div class="pity" id="pityNormal">再抽200次 必出SSR</div>
+              </div>
 
-                        <div class="gachaCard">
-                          <div class="gachaHead">
-                            <div class="gachaName">高級抽卡</div>
-                            <div class="gachaDesc">單次 或 10 連抽</div>
-                          </div>
+              <div class="gachaCard">
+                <div class="gachaHead">
+                  <div class="gachaName">高級抽卡</div>
+                  <div class="gachaDesc">單次 或 10 連抽</div>
+                </div>
 
-                          <div class="drawRow">
-                            <div class="drawCol">
-                              <button class="btn blue small" id="btnPremium1">1次</button>
-                              <div class="cost">cost 10gem</div>
-                            </div>
-                            <div class="drawCol">
-                              <button class="btn blue small" id="btnPremium10">10次</button>
-                              <div class="cost">cost 100gem</div>
-                              <div class="guarantee">必出SSR以上</div>
-                            </div>
-                          </div>
+                <div class="drawRow">
+                  <div class="drawCol">
+                    <button class="btn blue small" id="btnPremium1">1次</button>
+                    <div class="cost">cost 10gem</div>
+                  </div>
+                  <div class="drawCol">
+                    <button class="btn blue small" id="btnPremium10">10次</button>
+                    <div class="cost">cost 100gem</div>
+                    <div class="guarantee">必出SSR以上</div>
+                  </div>
+                </div>
 
-                          <div class="pity" id="pityPremium">再抽200次 必出UR</div>
-                        </div>
-                      </div>
-        </div
+                <div class="pity" id="pityPremium">再抽200次 必出UR</div>
+              </div>
+            </div>
+          </div>
+        </div>
 
       </div>
 
@@ -1810,41 +1836,36 @@ async function onlineGacha(opts = {}) {
     if (s && s !== "null" && s !== "undefined") { headers["x-user-id"] = s; break; }
   }
 
-  const resp = await apiFetch("/api/gacha", {
+  // IMPORTANT: do NOT use apiFetch for gacha, because apiFetch returns null on HTTP 4xx/5xx.
+  // We must parse JSON even when status is 400 so we can show the real reason (insufficient gold/gem etc.).
+  const base = (typeof WORKER_BASE === "string") ? WORKER_BASE : (
+    (location.hostname === "127.0.0.1" || location.hostname === "localhost") ? "" : "https://acf-api.dream-league-baseball.workers.dev"
+  );
+  const res = await fetch(base + "/api/gacha", {
     method: "POST",
     headers,
     body: JSON.stringify(payload),
   });
+  let data = null;
+  try{ data = await res.json(); }catch(_){ data = null; }
 
-  // Some wrappers may return JSON directly instead of a Response.
-  const isResponseLike = resp && typeof resp === "object" && ("ok" in resp) && typeof resp.json === "function";
-  if (isResponseLike) {
-    if (!resp.ok) {
-      let err = null;
-      try{ err = await resp.json(); }catch(_){ }
-      const code = err && err.error ? String(err.error) : `gacha_http_${resp.status}`;
-      const need = err && (err.need || err.costGold || err.costGem) ? Number(err.need || err.costGold || err.costGem) : null;
-      const have = err && (err.have || err.userGold || err.userGem) ? Number(err.have || err.userGold || err.userGem) : null;
-      const msg = (need !== null && have !== null) ? `${code} (need ${need}, have ${have})` : code;
-      throw new Error(msg);
-    }
-    const data = await resp.json();
-    if (!data || !data.ok || !Array.isArray(data.pulled)) throw new Error("gacha_failed");
-    if (opts.type) {
-      const want = String(requestType(opts.type)).toLowerCase();
-      data.pulled = data.pulled.filter((a) => String(a?.type || "").toLowerCase() === want);
-    }
-    return data;
-  } else {
-    const data = resp; // already JSON
-    if (!data || !data.ok || !Array.isArray(data.pulled)) throw new Error("gacha_failed");
-    if (opts.type) {
-      const want = String(requestType(opts.type)).toLowerCase();
-      data.pulled = data.pulled.filter((a) => String(a?.type || "").toLowerCase() === want);
-    }
-    return data;
+  // Normalize error for UI
+  if (!data || data.ok !== true || !Array.isArray(data.pulled)) {
+    const code = data && data.error ? String(data.error) : `gacha_http_${res.status || 0}`;
+    const need = data && (data.need ?? data.costGold ?? data.costGem);
+    const have = data && (data.have ?? data.userGold ?? data.userGem);
+    const msg = (need != null && have != null) ? `${code} (need ${need}, have ${have})` : code;
+    throw new Error(msg);
   }
 
+  if (opts.type) {
+    const want = String(requestType(opts.type)).toLowerCase();
+    data.pulled = data.pulled.filter((a) => String(a?.type || "").toLowerCase() === want);
+  }
+  return data;
+
+
+}
 
 function setPityText(el, remaining, label){
   if(!el) return;
@@ -1890,7 +1911,6 @@ async function loadPityStatus(){
   }catch(_){}
 }
 window.loadPityStatus = loadPityStatus;
-}
 
     function assetThumb(a){
       if(!a) return "/assets/placeholder.png";
@@ -2818,8 +2838,19 @@ function renderGridDecoys(list){
         console.error(e);
         hideLoad();
         if(rollingText) rollingText.style.display = "none";
-        if(rollSub){ rollSub.style.display = ""; rollSub.textContent = "抽卡失敗"; }
-        toast("抽卡失敗");
+        const raw = String(e?.message || e || "");
+        const nice = (function(msg){
+          // backend errors: insufficient_gold / insufficient_gem / unauthorized
+          if(msg.includes("insufficient_gold")) return "Gold 不足";
+          if(msg.includes("insufficient_gem")) return "Gem 不足";
+          if(msg.includes("unauthorized")) return "尚未登入，請重新整理";
+          if(msg.includes("not_found")) return "API 不存在，請檢查 worker";
+          // keep short
+          if(msg.startsWith("gacha_http_")) return "抽卡失敗";
+          return msg ? `抽卡失敗：${msg}` : "抽卡失敗";
+        })(raw);
+        if(rollSub){ rollSub.style.display = ""; rollSub.textContent = nice; }
+        toast(nice);
         if(actionBar){ actionBar.classList.add("mode-done"); actionBar.classList.remove("mode-loading"); }
         confirmBtn.style.opacity = "1";
         confirmBtn.style.pointerEvents = "auto";
