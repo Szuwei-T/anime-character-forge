@@ -1831,7 +1831,9 @@ async function onlineGacha(opts = {}) {
     localStorage.getItem("uid"),
     localStorage.getItem("userId"),
     localStorage.getItem("USER_ID"),
-  ];
+          localStorage.getItem("acf_uid"),
+    localStorage.getItem("acf_uid"),
+        ];
   for (const v of uidCandidates) {
     const s = String(v || "").trim();
     if (s && s !== "null" && s !== "undefined") { headers["x-user-id"] = s; break; }
@@ -1898,6 +1900,7 @@ async function loadPityStatus(){
     localStorage.getItem("uid"),
     localStorage.getItem("userId"),
     localStorage.getItem("USER_ID"),
+          localStorage.getItem("acf_uid"),
   ];
   for (const v of uidCandidates) {
     const s = String(v || "").trim();
@@ -2052,6 +2055,7 @@ function assetFullUrl(a){
           localStorage.getItem("uid"),
           localStorage.getItem("userId"),
           localStorage.getItem("USER_ID"),
+          localStorage.getItem("acf_uid"),
         ];
         for (const v of uidCandidates) {
           const s = String(v || "").trim();

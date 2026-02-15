@@ -27,6 +27,24 @@ function toast(msg){
   el.classList.remove("hidden");
   clearTimeout(el._t);
   el._t = setTimeout(()=>el.classList.add("hidden"), 2400);
+
+function syncUidAliases(uid){
+  try{
+    const id = String(uid || "").trim();
+    if(!id) return;
+    // Keep legacy keys in sync so every page sends the SAME x-user-id
+    localStorage.setItem("uid", id);
+    localStorage.setItem("userId", id);
+    localStorage.setItem("USER_ID", id);
+    window.uid = id;
+    window.userId = id;
+    window.USER_ID = id;
+    window.getUid = () => id;
+    window.getUserId = () => id;
+  }catch(_){}
+}
+
+
 }
 
 function getOrCreateUid(){
@@ -36,6 +54,7 @@ function getOrCreateUid(){
     uid = crypto.randomUUID();
     localStorage.setItem(k, uid);
   }
+  syncUidAliases(uid);
   return uid;
 }
 
@@ -163,10 +182,13 @@ async function apiFetch(path, options={}){
     return null;
   }
 }
+}
 
 async function initSession(){
   APP.uid = getOrCreateUid();
-  APP.name = getName();
+  
+  syncUidAliases(APP.uid);
+APP.name = getName();
   const data = await apiFetch("/api/session/init", {
     method:"POST",
     body: JSON.stringify({ uid: APP.uid, displayName: APP.name })
