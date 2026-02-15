@@ -9,7 +9,7 @@
     body{
       margin:0;
       min-height:100vh;
-      background: radial-gradient(circle at top, #1b1f2a, #0b0d12);
+      background: url("/ui/bg/main_bg.webp") center/cover no-repeat fixed;
       color:#fff;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, "Noto Sans TC", sans-serif;
     }
@@ -398,7 +398,9 @@
       flex-direction:column;
       max-height: 92vh;
       border-radius:26px;
-      background: rgba(18,22,32,0.92);
+      background:
+        url("/ui/frame/gacha_panel.webp") center/contain no-repeat,
+        rgba(18,22,32,0.78);
       border: 1px solid rgba(255,255,255,0.10);
       box-shadow: 0 30px 120px rgba(0,0,0,0.65);
       padding: 22px 22px 18px;
@@ -1295,10 +1297,138 @@
       #sharePreview{ width: 100%; height: 180px; }
     }
 
+  
+    .vignette{
+      position:fixed;
+      inset:0;
+      background:url("/ui/bg/vignette.webp") center/cover no-repeat;
+      pointer-events:none;
+      z-index:4;
+      mix-blend-mode:multiply;
+      opacity:0.95;
+    }
+
+
+    /* ===== Commercial UI asset integration ===== */
+    .btn.orange, .btn.blue, .confirm, .shopBtn{
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+    .btn.orange{
+      background-image: url("/ui/button/btn_gold.webp");
+      color:#fff;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.85);
+      box-shadow: none;
+      border-radius: 14px;
+      padding: 0;
+      width: 140px;
+      height: 54px;
+    }
+    .btn.blue{
+      background-image: url("/ui/button/btn_gem.webp");
+      color:#fff;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.85);
+      box-shadow: none;
+      border-radius: 14px;
+      padding: 0;
+      width: 140px;
+      height: 54px;
+    }
+    .btn.gray{
+      box-shadow: none;
+    }
+    .btn.small{
+      min-width: 140px;
+    }
+
+    .confirm{
+      background-image: url("/ui/button/btn_confirm.webp");
+      background-color: transparent;
+      color:#fff;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.85);
+      box-shadow: none;
+      width: 240px;
+      height: 80px;
+      padding: 0;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      border-radius: 18px;
+    }
+    .shopBtn{
+      background-image: url("/ui/button/btn_shop.webp");
+      background-color: transparent;
+      color:#fff;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.85);
+      box-shadow: none;
+      border-radius: 18px;
+      padding: 0;
+      height: 72px;
+    }
+
+    /* Featured stage frame overlay (optional, if file exists later) */
+    .featureStage::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      z-index:3;
+      opacity:0.0;
+      background: url("/ui/frame/featured_frame.webp") center/contain no-repeat;
+    }
+
+    /* Cinematic FX layers */
+    .cine-card .fx{
+      position:absolute;
+      inset:-12%;
+      pointer-events:none;
+      background-repeat:no-repeat;
+      background-position:center;
+      background-size:contain;
+      opacity:0;
+      mix-blend-mode: screen;
+      z-index:2;
+    }
+    .cine-card .fx-spark{ background-image:url("/ui/effect/spark.webp"); }
+    .cine-card .fx-burst{ background-image:url("/ui/effect/starburst.webp"); }
+    .cine-card .fx-ray{ background-image:url("/ui/effect/light_ray.webp"); }
+
+    .cinematic.r4 .cine-card .fx-spark,
+    .cinematic.r4 .cine-card .fx-burst{ opacity:0.92; }
+
+    .cinematic.r5 .cine-card .fx-ray{ opacity:0.95; }
+    .cinematic.r5 .cine-card .fx-spark{ opacity:0.95; }
+    .cinematic.r5 .cine-card .fx-burst{ opacity:0.95; }
+
+    .cinematic.r4 .cine-card .fx-spark{ animation: fxSpark 1.6s ease-in-out infinite; }
+    .cinematic.r4 .cine-card .fx-burst{ animation: fxBurst 1.8s ease-out infinite; }
+
+    .cinematic.r5 .cine-card .fx-ray{ animation: fxRay 1.2s ease-out infinite; }
+    .cinematic.r5 .cine-card .fx-spark{ animation: fxSpark 1.4s ease-in-out infinite; }
+    .cinematic.r5 .cine-card .fx-burst{ animation: fxBurst 1.6s ease-out infinite; }
+
+    @keyframes fxRay{
+      0%{ transform: scale(0.92); opacity:0.0; }
+      20%{ opacity:1.0; }
+      100%{ transform: scale(1.05); opacity:0.0; }
+    }
+    @keyframes fxSpark{
+      0%{ transform: scale(0.96) rotate(0deg); opacity:0.0; }
+      35%{ opacity:1.0; }
+      100%{ transform: scale(1.03) rotate(10deg); opacity:0.0; }
+    }
+    @keyframes fxBurst{
+      0%{ transform: scale(0.85); opacity:0.0; }
+      25%{ opacity:1.0; }
+      100%{ transform: scale(1.08); opacity:0.0; }
+    }
+
   </style>
 </head>
 <body>
   <div class="packFlash" id="packFlash"></div>
+  <div class="vignette"></div>
   <div class="wrap">
 
     <div class="heroGrid">
@@ -2719,7 +2849,12 @@ function renderGridDecoys(list){
       <div class="cine-rarity" id="cineRarity">UR</div>
       <div class="cine-sub" id="cineSub">恭喜獲得</div>
 
-      <div class="cine-card"><img id="cineImg" alt="reward" /></div>
+      <div class="cine-card">
+        <div class="fx fx-ray"></div>
+        <div class="fx fx-spark"></div>
+        <div class="fx fx-burst"></div>
+        <img id="cineImg" alt="reward" />
+      </div>
 
       <div class="cine-ten" id="cineTen">
         <div class="cine-ten-title" id="cineTenTitle">10連抽結果</div>
