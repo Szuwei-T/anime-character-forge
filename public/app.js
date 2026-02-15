@@ -197,12 +197,11 @@ async function apiFetch(path, options={}){
   }
 }
 
-
 async function initSession(){
   APP.uid = getOrCreateUid();
-  
   syncUidAliases(APP.uid);
-APP.name = getName();
+  APP.name = getName();
+
   const data = await apiFetch("/api/session/init", {
     method:"POST",
     body: JSON.stringify({ uid: APP.uid, displayName: APP.name })
@@ -262,8 +261,6 @@ async function api(path, opts){
   return await res.json();
 }
 
-
-
 window.APP = APP;
 window.q = q;
 window.qa = qa;
@@ -282,13 +279,146 @@ window.setName = setName;
 window.getName = getName;
 
 
-/* === ACF MASTER HEADER === */
+/* === ACF MASTER HEADER (top_bar.webp + icon stats) === */
 
 (function(){
   function el(tag, cls){
     const e = document.createElement(tag);
     if(cls) e.className = cls;
     return e;
+  }
+
+  function ensureMasterStyles(){
+    if(document.getElementById("acfMasterStyle")) return;
+    const s = document.createElement("style");
+    s.id = "acfMasterStyle";
+    s.textContent = `
+      :root{ --acf-master-h: 0px; }
+
+      .acf-master-fixed{
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 9999;
+        pointer-events: none;
+      }
+
+      .acf-master{
+        pointer-events: auto;
+        height: 72px;
+        background: url("/ui/frame/top_bar.webp") center / 100% 100% no-repeat;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 20px;
+        box-sizing: border-box;
+      }
+
+      .acf-masterLeft{
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 260px;
+      }
+
+      .acf-masterAvatar{
+        width: 52px;
+        height: 52px;
+        border-radius: 12px;
+        overflow: hidden;
+        position: relative;
+        flex: 0 0 auto;
+      }
+
+      .acf-layer{
+        position: relative;
+        width: 100%;
+        height: 100%;
+      }
+
+      .acf-layer img{
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        image-rendering: auto;
+        pointer-events: none;
+        user-select: none;
+      }
+
+      .acf-initials{
+        width: 100%;
+        height: 100%;
+        display: grid;
+        place-items: center;
+        font-weight: 900;
+        color: white;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.14);
+        border-radius: 12px;
+      }
+
+      .acf-masterTxt{
+        display: flex;
+        flex-direction: column;
+        line-height: 1.1;
+      }
+
+      .acf-masterName{
+        font-size: 16px;
+        font-weight: 800;
+        color: white;
+      }
+
+      .acf-masterSub{
+        margin-top: 2px;
+        font-size: 12px;
+        color: rgba(255,255,255,0.72);
+      }
+
+      .acf-masterStats{
+        display: flex;
+        gap: 14px;
+        align-items: center;
+      }
+
+      .acf-statIcon{
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-weight: 800;
+        color: white;
+        font-size: 14px;
+        text-shadow: 0 1px 0 rgba(0,0,0,0.35);
+        white-space: nowrap;
+      }
+
+      .acf-statIcon img{
+        width: 20px;
+        height: 20px;
+        display: block;
+      }
+
+      @media (max-width: 860px){
+        .acf-master{ padding: 0 12px; height: 64px; }
+        .acf-masterAvatar{ width: 44px; height: 44px; border-radius: 10px; }
+        .acf-masterName{ font-size: 14px; }
+        .acf-statIcon{ font-size: 13px; }
+        .acf-statIcon img{ width: 18px; height: 18px; }
+        .acf-masterStats{ gap: 10px; }
+      }
+
+      @media (max-width: 680px){
+        .acf-masterSub, .acf-masterNet{ display: none; }
+        .acf-masterLeft{ min-width: 0; }
+        .acf-statIcon{ font-size: 12px; }
+        .acf-statIcon img{ width: 16px; height: 16px; }
+      }
+    `;
+    document.head.appendChild(s);
   }
 
   function initials(name){
@@ -332,24 +462,33 @@ window.getName = getName;
   }
 
   function buildHeaderDom(){
+    ensureMasterStyles();
+
     const fixed = el("div","acf-master-fixed");
     fixed.id = "acfMasterHeader";
 
     const bar = el("div","acf-master");
     const left = el("div","acf-masterLeft");
+
     const avatar = el("div","acf-masterAvatar");
     avatar.id = "acfMasterAvatar";
+
     const txt = el("div","acf-masterTxt");
+
     const name = el("div","acf-masterName");
     name.id = "acfMasterName";
+
     const sub = el("div","acf-masterSub");
     sub.id = "acfMasterSub";
+
     const net = el("div","acf-masterNet");
     net.id = "acfMasterNet";
     net.textContent = "Connecting";
+
     txt.appendChild(name);
     txt.appendChild(sub);
     txt.appendChild(net);
+
     left.appendChild(avatar);
     left.appendChild(txt);
 
@@ -359,6 +498,7 @@ window.getName = getName;
     bar.appendChild(left);
     bar.appendChild(stats);
     fixed.appendChild(bar);
+
     return fixed;
   }
 
@@ -371,58 +511,65 @@ window.getName = getName;
     if(cur < h) document.body.style.paddingTop = h + "px";
   }
 
+  let _lastNetState = null;
 
+  function injectMasterNetStyles(){
+    if(document.getElementById("acfMasterNetStyle")) return;
+    const s = document.createElement("style");
+    s.id = "acfMasterNetStyle";
+    s.textContent = `
+      .acf-masterNet{
+        margin-top: 2px;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.2px;
+        opacity: 0.92;
+        color: rgba(148,163,184,0.95);
+      }
+      .acf-masterNet.net-connecting{ color: rgba(148,163,184,0.95); }
+      .acf-masterNet.net-online{ color: rgba(34,197,94,0.98); text-shadow: 0 0 10px rgba(34,197,94,0.25); }
+      .acf-masterNet.net-offline{ color: rgba(239,68,68,0.98); text-shadow: 0 0 10px rgba(239,68,68,0.18); }
+    `;
+    document.head.appendChild(s);
+  }
 
-let _lastNetState = null;
-
-function injectMasterNetStyles(){
-  if(document.getElementById("acfMasterNetStyle")) return;
-  const s = document.createElement("style");
-  s.id = "acfMasterNetStyle";
-  s.textContent = `
-    .acf-masterNet{
-      margin-top: 2px;
-      font-size: 12px;
-      font-weight: 800;
-      letter-spacing: 0.2px;
-      opacity: 0.92;
+  function setNetBadge(state){
+    const n = document.getElementById("acfMasterNet");
+    if(!n) return;
+    injectMasterNetStyles();
+    const s = String(state || "").toLowerCase();
+    let label = "Connecting";
+    let cls = "net-connecting";
+    if(s === "online"){
+      label = "Online";
+      cls = "net-online";
+    }else if(s === "offline"){
+      label = "Offline";
+      cls = "net-offline";
     }
-    .acf-masterNet.net-connecting{ color: rgba(148,163,184,0.95); }
-    .acf-masterNet.net-online{ color: rgba(34,197,94,0.98); text-shadow: 0 0 10px rgba(34,197,94,0.25); }
-    .acf-masterNet.net-offline{ color: rgba(239,68,68,0.98); text-shadow: 0 0 10px rgba(239,68,68,0.18); }
-  `;
-  document.head.appendChild(s);
-}
-
-function setNetBadge(state){
-  const el = document.getElementById("acfMasterNet");
-  if(!el) return;
-  injectMasterNetStyles();
-  const s = String(state || "").toLowerCase();
-  let label = "Connecting";
-  let cls = "net-connecting";
-  if(s === "online"){
-    label = "Online";
-    cls = "net-online";
-  }else if(s === "offline"){
-    label = "Offline";
-    cls = "net-offline";
+    n.textContent = label;
+    n.classList.remove("net-connecting","net-online","net-offline");
+    n.classList.add(cls);
+    _lastNetState = label;
   }
-  el.textContent = label;
-  el.classList.remove("net-connecting","net-online","net-offline");
-  el.classList.add(cls);
-  _lastNetState = label;
-}
 
-function refreshNetBadge(){
-  // Use APP.offline as the source of truth (apiFetch updates it)
-  if(!window.APP) { setNetBadge("connecting"); return; }
-  const desired = window.APP.offline ? "offline" : "online";
-  const desiredLabel = desired === "offline" ? "Offline" : "Online";
-  if(_lastNetState !== desiredLabel){
-    setNetBadge(desired);
+  function refreshNetBadge(){
+    if(!window.APP) { setNetBadge("connecting"); return; }
+    const desired = window.APP.offline ? "offline" : "online";
+    const desiredLabel = desired === "offline" ? "Offline" : "Online";
+    if(_lastNetState !== desiredLabel){
+      setNetBadge(desired);
+    }
   }
-}
+
+  function statIcon(path, value){
+    return `
+      <div class="acf-statIcon">
+        <img src="${path}" alt="">
+        ${Number(value || 0)}
+      </div>
+    `;
+  }
 
   function renderMaster(me){
     const box = document.getElementById("acfMasterHeader");
@@ -461,16 +608,14 @@ function refreshNetBadge(){
       avEl.appendChild(d);
     }
 
-    const pills = [];
-    const add = (k,v)=> pills.push('<div class="acf-statPill"><strong>' + k + '</strong> ' + String(v) + '</div>');
-    add("Gold", Number(acc.userGold||0));
-    add("GEM", Number(acc.userGem||0));
-    add("票", Number(acc.userVote||0));
-    add("Like", Number(st.likes||0));
-    add("成品", Number(st.saves||0));
-    add("Follower", Number(st.followers||0));
-    add("收藏", Number(st.collectionsUnlocked||0));
-    statsEl.innerHTML = pills.join("");
+    const html = [];
+    html.push(statIcon("/ui/icon/gold.webp", acc.userGold));
+    html.push(statIcon("/ui/icon/gem.webp", acc.userGem));
+    html.push(statIcon("/ui/icon/ticket.webp", acc.userVote));
+    html.push(statIcon("/ui/icon/like.webp", st.likes));
+    html.push(statIcon("/ui/icon/follow.webp", st.followers));
+    html.push(statIcon("/ui/icon/favorite.webp", st.collectionsUnlocked));
+    statsEl.innerHTML = html.join("");
 
     setBodyOffset();
   }
@@ -493,14 +638,11 @@ function refreshNetBadge(){
     mount.appendChild(dom);
     setBodyOffset();
 
-    // Net badge starts as Connecting; then follows APP.offline
     setNetBadge("connecting");
-    // Poll for APP.offline changes (covers all pages without touching page scripts)
     clearInterval(window.__acfNetPoll);
     window.__acfNetPoll = setInterval(refreshNetBadge, 800);
     window.addEventListener("online", refreshNetBadge, { passive:true });
     window.addEventListener("offline", refreshNetBadge, { passive:true });
-
 
     try{
       const me = await fetchMeAccount();
