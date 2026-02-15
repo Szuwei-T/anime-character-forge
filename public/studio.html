@@ -658,16 +658,6 @@
 <body>
   <div class="acf-page ui-panel"><div id="acfMasterMount"></div>
   <div class="container">
-    <div class="topbar">
-      <a class="brand" href="index.html">
-        <div class="logo"></div>
-        <h1>Anime Character Forge</h1>
-      </a>
-      <div class="right">
-        <div class="badge" id="netBadge">Connecting</div>
-        <a class="badge" href="profile.html">My</a>
-      </div>
-    </div>
 
     <div class="card">
       <div class="cardHeader">
@@ -734,8 +724,6 @@
   function q(sel){ return document.querySelector(sel); }
 (async function(){
     await initSession();
-    q("#netBadge").textContent = APP.offline ? "Offline" : "Online";
-
     // --- Tab Logic ---
     const tabBtns = document.querySelectorAll('.tab-btn');
     const sections = document.querySelectorAll('.picker-section');

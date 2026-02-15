@@ -344,8 +344,12 @@ window.getName = getName;
     name.id = "acfMasterName";
     const sub = el("div","acf-masterSub");
     sub.id = "acfMasterSub";
+    const net = el("div","acf-masterNet");
+    net.id = "acfMasterNet";
+    net.textContent = "Connecting";
     txt.appendChild(name);
     txt.appendChild(sub);
+    txt.appendChild(net);
     left.appendChild(avatar);
     left.appendChild(txt);
 
@@ -366,6 +370,59 @@ window.getName = getName;
     const cur = parseFloat(getComputedStyle(document.body).paddingTop || "0") || 0;
     if(cur < h) document.body.style.paddingTop = h + "px";
   }
+
+
+
+let _lastNetState = null;
+
+function injectMasterNetStyles(){
+  if(document.getElementById("acfMasterNetStyle")) return;
+  const s = document.createElement("style");
+  s.id = "acfMasterNetStyle";
+  s.textContent = `
+    .acf-masterNet{
+      margin-top: 2px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.2px;
+      opacity: 0.92;
+    }
+    .acf-masterNet.net-connecting{ color: rgba(148,163,184,0.95); }
+    .acf-masterNet.net-online{ color: rgba(34,197,94,0.98); text-shadow: 0 0 10px rgba(34,197,94,0.25); }
+    .acf-masterNet.net-offline{ color: rgba(239,68,68,0.98); text-shadow: 0 0 10px rgba(239,68,68,0.18); }
+  `;
+  document.head.appendChild(s);
+}
+
+function setNetBadge(state){
+  const el = document.getElementById("acfMasterNet");
+  if(!el) return;
+  injectMasterNetStyles();
+  const s = String(state || "").toLowerCase();
+  let label = "Connecting";
+  let cls = "net-connecting";
+  if(s === "online"){
+    label = "Online";
+    cls = "net-online";
+  }else if(s === "offline"){
+    label = "Offline";
+    cls = "net-offline";
+  }
+  el.textContent = label;
+  el.classList.remove("net-connecting","net-online","net-offline");
+  el.classList.add(cls);
+  _lastNetState = label;
+}
+
+function refreshNetBadge(){
+  // Use APP.offline as the source of truth (apiFetch updates it)
+  if(!window.APP) { setNetBadge("connecting"); return; }
+  const desired = window.APP.offline ? "offline" : "online";
+  const desiredLabel = desired === "offline" ? "Offline" : "Online";
+  if(_lastNetState !== desiredLabel){
+    setNetBadge(desired);
+  }
+}
 
   function renderMaster(me){
     const box = document.getElementById("acfMasterHeader");
@@ -436,11 +493,22 @@ window.getName = getName;
     mount.appendChild(dom);
     setBodyOffset();
 
+    // Net badge starts as Connecting; then follows APP.offline
+    setNetBadge("connecting");
+    // Poll for APP.offline changes (covers all pages without touching page scripts)
+    clearInterval(window.__acfNetPoll);
+    window.__acfNetPoll = setInterval(refreshNetBadge, 800);
+    window.addEventListener("online", refreshNetBadge, { passive:true });
+    window.addEventListener("offline", refreshNetBadge, { passive:true });
+
+
     try{
       const me = await fetchMeAccount();
       renderMaster(me);
+      refreshNetBadge();
     }catch(_e){
       renderMaster(null);
+      refreshNetBadge();
     }
 
     window.addEventListener("resize", ()=>setBodyOffset(), { passive:true });
