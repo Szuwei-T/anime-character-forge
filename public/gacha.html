@@ -41,8 +41,9 @@ body{
     .wrap{
       max-width: 1200px;
       margin: 0 auto;
-      padding: 56px 20px 88px;
+      padding: 18px 20px 88px;
     }
+    #acfMasterMount{ margin-bottom: 0; }
     h1{
 
       font-family: \"GameFont\";
@@ -75,17 +76,26 @@ body{
 }
 .heroGrid{
       display:grid;
-      grid-template-columns: 1fr 340px;
+      grid-template-columns: 340px 1fr 340px;
+      grid-template-areas: "left center right";
       gap: 18px;
       align-items:start;
     }
-    @media (max-width: 940px){
-      .heroGrid{ grid-template-columns: 1fr; }
-    }
-    @media (min-width: 941px){
-      /* 右側抽指定素材區塊往左疊到 video 上 */
-      .heroGrid{ position: relative; }
-      .rightPanel{
+.leftPanel{ grid-area: left; }
+.centerPanel{ grid-area: center; }
+.rightPanel{ grid-area: right; }
+
+/* Mobile and small screens: show video first, then left blocks, then right blocks */
+@media (max-width: 1100px){
+  .heroGrid{
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "center"
+      "left"
+      "right";
+  }
+}
+.rightPanel{
         margin-left: -140px;
         margin-top: 28px;
         z-index: 6;
@@ -98,7 +108,7 @@ body{
       flex-direction:column;
       align-items:center;
       gap:12px;
-      margin-bottom: 14px;
+      margin-bottom: 6px;
     }
     .featured .badge{
       display:flex;
@@ -1478,8 +1488,34 @@ body{
   <div class="wrap">
 
     <div class="heroGrid">
-      <div>
-        <div class="featured">
+<div class="leftPanel side">
+<div class="sideCard">
+          <div class="title"><span>抽角色</span><span style="opacity:0.7;font-weight:800">head</span></div>
+          <div class="miniRow">
+            <button class="btn gray small" id="btnHead1">1次</button>
+            <button class="btn gray small" id="btnHead10">10次</button>
+          </div>
+        </div>
+
+<div class="sideCard">
+          <div class="title"><span>抽服裝</span><span style="opacity:0.7;font-weight:800">body</span></div>
+          <div class="miniRow">
+            <button class="btn gray small" id="btnBody1">1次</button>
+            <button class="btn gray small" id="btnBody10">10次</button>
+          </div>
+        </div>
+
+<div class="sideCard">
+          <div class="title"><span>抽背景</span><span style="opacity:0.7;font-weight:800">background</span></div>
+          <div class="miniRow">
+            <button class="btn gray small" id="btnBg1">1次</button>
+            <button class="btn gray small" id="btnBg10">10次</button>
+          </div>
+        </div>
+</div>
+
+<div class="centerPanel">
+<div class="featured">
           <div class="featureStage">
             <div class="featuredTitleOverlay">本期 Featured 角色</div>
             <div class="promoTag" aria-hidden="true">
@@ -1536,10 +1572,9 @@ body{
             </div>
           </div>
         </div>
+</div>
 
-      </div>
-
-      <div class="side">
+<div class="rightPanel side">
 <div class="sideCard shopCta">
   <div class="title">
     <span>想抽更爽</span>
@@ -1550,31 +1585,8 @@ body{
     <a class="shopBtn" href="shop.html">前往 Shop</a>
   </div>
 </div>
-        <div class="sideCard">
-          <div class="title"><span>抽角色</span><span style="opacity:0.7;font-weight:800">head</span></div>
-          <div class="miniRow">
-            <button class="btn gray small" id="btnHead1">1次</button>
-            <button class="btn gray small" id="btnHead10">10次</button>
-          </div>
-        </div>
 
-        <div class="sideCard">
-          <div class="title"><span>抽服裝</span><span style="opacity:0.7;font-weight:800">body</span></div>
-          <div class="miniRow">
-            <button class="btn gray small" id="btnBody1">1次</button>
-            <button class="btn gray small" id="btnBody10">10次</button>
-          </div>
-        </div>
-
-        <div class="sideCard">
-          <div class="title"><span>抽背景</span><span style="opacity:0.7;font-weight:800">background</span></div>
-          <div class="miniRow">
-            <button class="btn gray small" id="btnBg1">1次</button>
-            <button class="btn gray small" id="btnBg10">10次</button>
-          </div>
-        </div>
-
-        <div class="sideCard">
+<div class="sideCard">
           <div class="title"><span>抽特效1</span><span style="opacity:0.7;font-weight:800">addon1</span></div>
           <div class="miniRow">
             <button class="btn gray small" id="btnAddon11">1次</button>
@@ -1582,17 +1594,15 @@ body{
           </div>
         </div>
 
-        <div class="sideCard">
+<div class="sideCard">
           <div class="title"><span>抽特效2</span><span style="opacity:0.7;font-weight:800">addon2</span></div>
           <div class="miniRow">
             <button class="btn gray small" id="btnAddon21">1次</button>
             <button class="btn gray small" id="btnAddon210">10次</button>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
-
+</div>
+</div>
   <div class="overlay" id="overlay">
     <div class="panel">
             <div class="gacha-stage">
