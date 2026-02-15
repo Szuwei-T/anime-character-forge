@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Gallery</title>
+
   <style>
     :root{
       --bg1:#0b1020;
@@ -20,31 +21,10 @@
       margin:0;
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", Arial, sans-serif;
       color:var(--txt);
-      
       min-height:100vh;
     }
-    .wrap{max-width:1100px;margin:0 auto;padding:18px 16px 40px}
-    .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:4px 0 10px}
-    .title{font-size:18px;font-weight:700;letter-spacing:.5px}
-    .btnRow{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
-    .pill{padding:10px 14px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);color:var(--txt);cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:8px}
-    .pill:hover{background:rgba(255,255,255,.10)}
-    
-    .master{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:10px 0 14px;padding:10px 12px;border-radius:18px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12)}
-    .masterLeft{display:flex;align-items:center;gap:12px;min-width:0}
-    .masterAvatar{width:46px;height:46px;border-radius:14px;background:rgba(0,0,0,.20);border:1px solid rgba(255,255,255,.14);overflow:hidden;position:relative;flex:0 0 46px;display:grid;place-items:center}
-    .masterName{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}
-    .masterSub{font-size:12px;opacity:.65;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}
-    .masterStats{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-    .statPill{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);font-size:12px;opacity:.92;white-space:nowrap}
-    .statPill strong{opacity:.95}
 
-    .podiumGrid{align-items:end}
-    .rankBadge{position:absolute;left:10px;top:10px;padding:6px 10px;border-radius:999px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.18);font-size:12px;backdrop-filter: blur(4px)}
-    .podiumCard{transform-origin:bottom center}
-    .podiumCard.rank1{grid-column:2;transform:scale(1);border:2px solid rgba(255,205,60,.75);box-shadow:0 0 0 1px rgba(255,205,60,.18), 0 16px 40px rgba(0,0,0,.25)}
-    .podiumCard.rank2{grid-column:1;transform:scale(.90);border:2px solid rgba(210,215,225,.70);box-shadow:0 0 0 1px rgba(210,215,225,.16), 0 14px 34px rgba(0,0,0,.22)}
-    .podiumCard.rank3{grid-column:3;transform:scale(.80);border:2px solid rgba(205,140,85,.75);box-shadow:0 0 0 1px rgba(205,140,85,.16), 0 12px 28px rgba(0,0,0,.20)}
+    .wrap{max-width:1100px;margin:0 auto;padding:18px 16px 40px}
 
     .toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:12px 0 14px}
     .seg{display:flex;gap:8px;flex-wrap:wrap}
@@ -52,89 +32,12 @@
     .select{padding:10px 12px;border-radius:999px;background:rgba(0,0,0,.20);border:1px solid rgba(255,255,255,.14);color:var(--txt)}
     .status{font-size:12px;color:var(--mut)}
     .error{margin:10px 0;padding:12px 14px;border-radius:14px;background:rgba(255,0,70,.10);border:1px solid rgba(255,0,70,.25);color:rgba(255,210,220,.95);display:none}
-    .podiumWrap{margin:10px 0 12px}
-    .podiumGrid{display:flex;justify-content:center;align-items:flex-end;gap:14px}
-    .podiumCard{border-radius:18px;overflow:hidden;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);cursor:pointer;transform-origin:center bottom}
-    .podiumCard.rank1{transform:scale(1)}
-    .podiumCard.rank2{transform:scale(.9)}
-    .podiumCard.rank3{transform:scale(.8)}
-    .podThumb{aspect-ratio:3/4;background:rgba(0,0,0,.16);position:relative}
-    .podTop{position:absolute;left:10px;right:10px;top:10px;display:flex;flex-direction:column;gap:6px;z-index:80}
-    .podTopRow{display:flex;align-items:center;justify-content:space-between;gap:10px}
-    .rankBadge{padding:6px 10px;border-radius:999px;font-size:12px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(6px);white-space:nowrap}
-    .podTitle{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.95}
-    .podVotes{font-size:12px;opacity:.80;white-space:nowrap}
-    .podiumCard.rank1{border-color:rgba(255,215,0,.55);box-shadow:0 0 0 1px rgba(255,215,0,.25), 0 18px 40px rgba(255,215,0,.10)}
-    .podiumCard.rank2{border-color:rgba(210,210,210,.55);box-shadow:0 0 0 1px rgba(210,210,210,.22), 0 18px 40px rgba(210,210,210,.08)}
-    .podiumCard.rank3{border-color:rgba(205,127,50,.55);box-shadow:0 0 0 1px rgba(205,127,50,.22), 0 18px 40px rgba(205,127,50,.08)}
 
-
-
-    .recWrap{margin:12px 0 10px;display:none}
-    .recTitle{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:6px 0 10px}
-    .recTitle .h{font-size:14px;opacity:.92}
-    .recTitle .sub{font-size:12px;opacity:.68}
-    .recGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
-    .recCard{display:flex;align-items:stretch;gap:0;border-radius:18px;overflow:hidden;background:var(--card);border:1px solid var(--bd);cursor:pointer;transition:.15s}
-    .recCard:hover{background:rgba(255,255,255,.08)}
-    .recThumb{width:140px;flex:0 0 140px;aspect-ratio:3/4;background:rgba(0,0,0,.16);position:relative}
-    .recMeta{padding:10px 12px;display:flex;flex-direction:column;gap:8px;flex:1}
-    .recBadge{padding:6px 10px;border-radius:999px;background:rgba(255,165,0,.10);border:1px solid rgba(255,165,0,.22);font-size:12px;white-space:nowrap}
-
-    .entries{display:flex;flex-direction:column;gap:10px;margin-top:10px}
-    .entry{display:flex;gap:12px;align-items:stretch;border-radius:18px;background:var(--card2);border:1px solid var(--bd2);overflow:hidden;cursor:pointer;transition:.15s}
-    .entry:hover{background:rgba(255,255,255,.07)}
-    .entryThumb{width:104px;flex:0 0 104px;aspect-ratio:3/4;background:rgba(0,0,0,.16);position:relative}
-    .layer{position:absolute;inset:0}
-    .layer img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block}
-    .entryBody{flex:1;min-width:0;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
-    .entryHeader{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}
-    .entryTitle{font-size:13px;opacity:.92;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:560px}
-    .kv{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-    .pill2{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);font-size:12px;opacity:.9}
-
-    .authorRow{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-    .authorMini{display:flex;align-items:center;gap:10px;min-width:0}
-    .av{width:30px;height:30px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);display:grid;place-items:center;overflow:hidden;font-size:12px}
-    .nm{font-size:12px;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px}
-    .lv{font-size:12px;opacity:.65}
-    .iconRow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-    .iconBtn{display:flex;align-items:center;gap:6px;padding:8px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);cursor:pointer;color:inherit;font-size:12px;transition:.15s}
-    .iconBtn:hover{background:rgba(255,255,255,.10)}
-    .iconBtn.on{background:rgba(120,255,200,.08);border-color:rgba(120,255,200,.20)}
-    .iconBtn.warn{background:rgba(255,165,0,.10);border-color:rgba(255,165,0,.22)}
-.iconBtn.busy{opacity:.7;pointer-events:none}
-    .iconBtn.busy .spin{width:12px;height:12px;border-radius:999px;border:2px solid rgba(255,255,255,.35);border-top-color:rgba(255,255,255,.90);display:inline-block;animation:spin 0.8s linear infinite}
-    @keyframes spin{to{transform:rotate(360deg)}}
-    .icon{width:16px;height:16px;display:block;opacity:.9}
-    .metaLine{font-size:12px;opacity:.65;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-
-    .modal{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;padding:18px;z-index:9999}
-    .panel{max-width:720px;width:100%;border-radius:18px;background:rgba(10,14,24,.92);border:1px solid rgba(255,255,255,.14);overflow:hidden}
-    .panelHead{padding:12px 14px;display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
-    .panelHead .t{font-size:14px;font-weight:700}
-    .panelHead .s{font-size:12px;opacity:.7;margin-top:2px}
-    .close{padding:10px 12px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);cursor:pointer}
-    .big{padding:0 14px 16px}
-    .bigThumb{width:100%;max-height:70vh;aspect-ratio:3/4;background:rgba(0,0,0,.16);border-radius:18px;overflow:hidden;position:relative;margin-top:8px}
-
-    .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:rgba(15,18,26,.92);border:1px solid rgba(255,255,255,.14);padding:10px 12px;border-radius:999px;font-size:12px;opacity:0;pointer-events:none;transition:.2s;z-index:99999}
-    .toast.show{opacity:1}
-
-    @media (max-width:640px){
-      .podiumGrid{grid-template-columns:1fr}
-      .entryThumb{width:92px;flex-basis:92px}
-    }
-  
     .sectionTitle{margin:10px 0 10px;font-size:13px;opacity:.9;font-weight:700;letter-spacing:.3px}
-    .podiumWrap{margin:8px 0 14px}
-    .podiumGrid{display:flex;justify-content:center;align-items:flex-end;gap:14px}
-    .podiumCard{width:240px;max-width:44vw}
-    @media (max-width:640px){ .podiumCard{width:86vw;max-width:86vw} .podiumGrid{flex-direction:column;align-items:stretch} }
 
-  
-    /* ===== Podium v2 (meta outside + author link + effects) ===== */
-    .podiumGrid{gap:18px}
+    /* Podium v2 */
+    .podiumWrap{margin:8px 0 14px}
+    .podiumGrid{display:flex;justify-content:center;align-items:flex-end;gap:18px}
     .podiumOuter{display:flex;flex-direction:column;gap:10px;align-items:stretch}
     .podMetaTop{height:56px;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:0 2px}
     .podLeft{display:flex;flex-direction:column;gap:6px;min-width:0}
@@ -149,17 +52,14 @@
     .podAuthor:hover .podAuthorName{text-decoration:underline}
     .podAuthorAv{width:28px;height:28px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);overflow:hidden;display:grid;place-items:center;font-size:11px;flex:0 0 28px}
     .podAuthorName{font-size:12px;opacity:.92;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px}
-    .podiumCard{width:auto;overflow:hidden}
+    .podiumCard{border-radius:18px;overflow:hidden;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);cursor:pointer;transform-origin:center bottom;width:auto}
     .podiumOuter.rank1{width:320px}
     .podiumOuter.rank2{width:290px}
     .podiumOuter.rank3{width:260px}
-    @media (max-width:640px){
-      .podiumOuter.rank1,.podiumOuter.rank2,.podiumOuter.rank3{width:86vw}
-      .podMetaTop{height:auto}
-    }
 
-    /* Remove old in-thumb overlays for podium */
-    .podTop{display:none!important}
+    .podThumb{aspect-ratio:3/4;background:rgba(0,0,0,.16);position:relative}
+    .layer{position:absolute;inset:0}
+    .layer img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block}
 
     /* Rank effects */
     .podiumCard.rank1 .podThumb::before{
@@ -193,8 +93,9 @@
       0%,100%{opacity:.40;filter:blur(.2px)}
       50%{opacity:.85;filter:blur(.6px)}
     }
-    .podiumCard.rank1{box-shadow:0 0 0 1px rgba(255,215,0,.28), 0 18px 44px rgba(255,215,0,.16)}
-    .podiumCard.rank2{box-shadow:0 0 0 1px rgba(210,215,225,.22), 0 18px 40px rgba(210,215,225,.10)}
+    .podiumCard.rank1{border-color:rgba(255,215,0,.55);box-shadow:0 0 0 1px rgba(255,215,0,.25), 0 18px 40px rgba(255,215,0,.10)}
+    .podiumCard.rank2{border-color:rgba(210,210,210,.55);box-shadow:0 0 0 1px rgba(210,210,210,.22), 0 18px 40px rgba(210,210,210,.08)}
+    .podiumCard.rank3{border-color:rgba(205,127,50,.55);box-shadow:0 0 0 1px rgba(205,127,50,.22), 0 18px 40px rgba(205,127,50,.08)}
     .podiumCard.rank2 .podThumb{box-shadow:inset 0 0 0 1px rgba(255,255,255,.10)}
     .podiumCard.rank2 .podThumb::after{
       content:"";
@@ -204,1138 +105,1080 @@
       opacity:.8;
     }
 
-    /* Recommended cards author */
+    /* Recommended and rankings */
+    .recWrap{margin:12px 0 10px;display:none}
+    .recTitle{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:6px 0 10px}
+    .recTitle .h{font-size:14px;opacity:.92}
+    .recTitle .sub{font-size:12px;opacity:.68}
+    .recGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
+    .recCard{display:flex;align-items:stretch;gap:0;border-radius:18px;overflow:hidden;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);cursor:pointer;transition:.15s}
+    .recCard:hover{background:rgba(255,255,255,.08)}
+    .recThumb{width:140px;flex:0 0 140px;aspect-ratio:3/4;background:rgba(0,0,0,.16);position:relative}
     .recMeta{padding:10px 12px;display:flex;flex-direction:column;gap:8px;flex:1}
     .recMetaTop{display:flex;align-items:center;justify-content:space-between;gap:10px}
     .recAuthor{display:flex;align-items:center;gap:8px;min-width:0;cursor:pointer}
     .recAuthor:hover .recAuthorName{text-decoration:underline}
     .recAuthorAv{width:26px;height:26px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);overflow:hidden;display:grid;place-items:center;font-size:11px;flex:0 0 26px}
     .recAuthorName{font-size:12px;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
+    .recBadge{padding:6px 10px;border-radius:999px;background:rgba(255,165,0,.10);border:1px solid rgba(255,165,0,.22);font-size:12px;white-space:nowrap}
     .recTitleLine{font-weight:700;font-size:13px;line-height:1.2;opacity:.95;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  
-  
 
-    /* ===== Rankings ===== */
     .authorGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
-    .authorCard{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 12px;border-radius:18px;background:var(--card);border:1px solid var(--bd);cursor:pointer;transition:.15s}
+    .authorCard{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 12px;border-radius:18px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);cursor:pointer;transition:.15s}
     .authorCard:hover{background:rgba(255,255,255,.08)}
     .authorLeft{display:flex;align-items:center;gap:10px;min-width:0}
     .authorAvBig{width:40px;height:40px;border-radius:14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);overflow:hidden;display:grid;place-items:center;font-size:12px;flex:0 0 40px}
     .authorNameBig{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;opacity:.95}
     .authorSub{font-size:12px;opacity:.68;white-space:nowrap}
-</style>
+
+    /* Entries */
+    .entries{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+    .entry{display:flex;gap:12px;align-items:stretch;border-radius:18px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10);overflow:hidden;cursor:pointer;transition:.15s}
+    .entry:hover{background:rgba(255,255,255,.07)}
+    .entryThumb{width:104px;flex:0 0 104px;aspect-ratio:3/4;background:rgba(0,0,0,.16);position:relative}
+    .entryBody{flex:1;min-width:0;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+    .entryHeader{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}
+    .entryTitle{font-size:13px;opacity:.92;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:560px}
+    .kv{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .pill2{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);font-size:12px;opacity:.9}
+
+    .authorRow{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+    .authorMini{display:flex;align-items:center;gap:10px;min-width:0}
+    .av{width:30px;height:30px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);display:grid;place-items:center;overflow:hidden;font-size:12px}
+    .nm{font-size:12px;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px}
+    .lv{font-size:12px;opacity:.65}
+    .iconRow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+    .iconBtn{display:flex;align-items:center;gap:6px;padding:8px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);cursor:pointer;color:inherit;font-size:12px;transition:.15s}
+    .iconBtn:hover{background:rgba(255,255,255,.10)}
+    .iconBtn.on{background:rgba(120,255,200,.08);border-color:rgba(120,255,200,.20)}
+    .iconBtn.warn{background:rgba(255,165,0,.10);border-color:rgba(255,165,0,.22)}
+    .iconBtn.busy{opacity:.7;pointer-events:none}
+    .iconBtn.busy .spin{width:12px;height:12px;border-radius:999px;border:2px solid rgba(255,255,255,.35);border-top-color:rgba(255,255,255,.90);display:inline-block;animation:spin 0.8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .icon{width:16px;height:16px;display:block;opacity:.9}
+    .metaLine{font-size:12px;opacity:.65;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+    /* Modal and toast */
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;padding:18px;z-index:9999}
+    .panel{max-width:720px;width:100%;border-radius:18px;background:rgba(10,14,24,.92);border:1px solid rgba(255,255,255,.14);overflow:hidden}
+    .panelHead{padding:12px 14px;display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+    .panelHead .t{font-size:14px;font-weight:700}
+    .panelHead .s{font-size:12px;opacity:.7;margin-top:2px}
+    .close{padding:10px 12px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);cursor:pointer}
+    .big{padding:0 14px 16px}
+    .bigThumb{width:100%;max-height:70vh;aspect-ratio:3/4;background:rgba(0,0,0,.16);border-radius:18px;overflow:hidden;position:relative;margin-top:8px}
+
+    .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:rgba(15,18,26,.92);border:1px solid rgba(255,255,255,.14);padding:10px 12px;border-radius:999px;font-size:12px;opacity:0;pointer-events:none;transition:.2s;z-index:99999}
+    .toast.show{opacity:1}
+
+    @media (max-width:640px){
+      .entryThumb{width:92px;flex-basis:92px}
+      .podiumOuter.rank1,.podiumOuter.rank2,.podiumOuter.rank3{width:86vw}
+      .podiumGrid{flex-direction:column;align-items:stretch}
+      .podMetaTop{height:auto}
+    }
+  </style>
+
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="ui_fx.css" />
 </head>
+
 <body>
-  <div class="acf-page ui-panel"><div id="acfMasterMount"></div>
-  <div class="wrap">
-    <div class="topbar">
-      <div class="title">作品展示</div>
-      <div class="btnRow">
-        <a class="pill" href="/maker">回工作室</a>
-        <a class="pill" href="/recipes">成品庫</a>
-        <a class="pill" href="/">首頁</a>
+  <div class="acf-page ui-panel">
+    <div id="acfMasterMount"></div>
+
+    <div class="wrap">
+      <div class="toolbar">
+        <div class="seg">
+          <select id="sortSel" class="select">
+            <option value="new">最新</option>
+            <option value="top">最高分</option>
+          </select>
+          <select id="seasonSel" class="select">
+            <option value="">全部 Season</option>
+          </select>
+        </div>
+        <div class="status" id="statusLine">讀取中</div>
       </div>
+
+      <div class="error" id="errorBox"></div>
+
+      <div class="sectionTitle" id="podiumTitle">🏆 本期頒獎台</div>
+      <div class="podiumWrap" id="podiumWrap">
+        <div class="podiumGrid" id="podiumGrid"></div>
+      </div>
+
+      <div class="recWrap" id="recWrap">
+        <div class="recTitle">
+          <div class="h">🔥 本期推薦</div>
+          <div class="sub" id="recSub">推薦次數 ≥ 1 · 依推薦次數排序</div>
+        </div>
+        <div class="recGrid" id="recGrid"></div>
+      </div>
+
+      <div class="recWrap" id="favRankWrap">
+        <div class="recTitle">
+          <div class="h">💖 收藏榜</div>
+          <div class="sub">不限賽季 · 依被收藏數排序</div>
+        </div>
+        <div class="recGrid" id="favRankGrid"></div>
+      </div>
+
+      <div class="recWrap" id="newRankWrap">
+        <div class="recTitle">
+          <div class="h">🆕 新人榜</div>
+          <div class="sub">註冊 1 個月內 · 依被收藏數排序</div>
+        </div>
+        <div class="recGrid" id="newRankGrid"></div>
+      </div>
+
+      <div class="recWrap" id="authorRankWrap">
+        <div class="recTitle">
+          <div class="h">👑 熱門作者榜</div>
+          <div class="sub">不限賽季 · 依被關注數排序</div>
+        </div>
+        <div class="authorGrid" id="authorRankGrid"></div>
+      </div>
+
+      <div class="entries" id="grid"></div>
     </div>
 
+    <div class="toast" id="toast"></div>
 
-    <div class="master" id="masterBox" style="display:none">
-      <div class="masterLeft">
-        <div class="masterAvatar" id="masterAvatar"></div>
-        <div class="masterTxt">
-          <div class="masterName" id="masterName">Player</div>
-          <div class="masterSub" id="masterSub"></div>
+    <div class="modal" id="modal">
+      <div class="panel">
+        <div class="panelHead">
+          <div>
+            <div class="t" id="mTitle">作品</div>
+            <div class="s" id="mSub"></div>
+          </div>
+          <button class="close" id="mClose">關閉</button>
+        </div>
+        <div class="big">
+          <div class="bigThumb" id="mThumb"></div>
         </div>
       </div>
-      <div class="masterStats" id="masterStats"></div>
     </div>
 
-    <div class="toolbar">
-      <div class="seg">
-        <select id="sortSel" class="select">
-          <option value="new">最新</option>
-          <option value="top">最高分</option>
-        </select>
-        <select id="seasonSel" class="select">
-          <option value="">全部 Season</option>
-        </select>
-      </div>
-      <div class="status" id="statusLine">讀取中</div>
-    </div>
-
-    <div class="error" id="errorBox"></div>
-
-    <div class="sectionTitle" id="podiumTitle">🏆 本期頒獎台</div>
-
-    <div class="podiumWrap" id="podiumWrap">
-      <div class="podiumGrid" id="podiumGrid"></div>
-    </div>
-
-    <div class="recWrap" id="recWrap">
-      <div class="recTitle">
-        <div class="h">🔥 本期推薦</div>
-        <div class="sub" id="recSub">推薦次數 ≥ 1 · 依推薦次數排序</div>
-      </div>
-      <div class="recGrid" id="recGrid"></div>
-    </div>
-
-
-    <div class="recWrap" id="favRankWrap">
-      <div class="recTitle">
-        <div class="h">💖 收藏榜</div>
-        <div class="sub">不限賽季 · 依被收藏數排序</div>
-      </div>
-      <div class="recGrid" id="favRankGrid"></div>
-    </div>
-
-    <div class="recWrap" id="newRankWrap">
-      <div class="recTitle">
-        <div class="h">🆕 新人榜</div>
-        <div class="sub">註冊 1 個月內 · 依被收藏數排序</div>
-      </div>
-      <div class="recGrid" id="newRankGrid"></div>
-    </div>
-
-    <div class="recWrap" id="authorRankWrap">
-      <div class="recTitle">
-        <div class="h">👑 熱門作者榜</div>
-        <div class="sub">不限賽季 · 依被關注數排序</div>
-      </div>
-      <div class="authorGrid" id="authorRankGrid"></div>
-    </div>
-
-
-
-    <div class="entries" id="grid"></div>
-  </div>
-
-  <div class="toast" id="toast"></div>
-
-  <div class="modal" id="modal">
-    <div class="panel">
-      <div class="panelHead">
-        <div>
-          <div class="t" id="mTitle">作品</div>
-          <div class="s" id="mSub"></div>
-        </div>
-        <button class="close" id="mClose">關閉</button>
-      </div>
-      <div class="big">
-        <div class="bigThumb" id="mThumb"></div>
-      </div>
-    </div>
-  </div>
-
-<script>
-(function(){
-  const grid = document.getElementById("grid");
-  const recWrap = document.getElementById("recWrap");
-  const recGrid = document.getElementById("recGrid");
-  const favRankWrap = document.getElementById("favRankWrap");
-  const favRankGrid = document.getElementById("favRankGrid");
-  const newRankWrap = document.getElementById("newRankWrap");
-  const newRankGrid = document.getElementById("newRankGrid");
-  const authorRankWrap = document.getElementById("authorRankWrap");
-  const authorRankGrid = document.getElementById("authorRankGrid");
-  const podiumGrid = document.getElementById("podiumGrid");
-  const errorBox = document.getElementById("errorBox");
-  const statusLine = document.getElementById("statusLine");
-  const sortSel = document.getElementById("sortSel");
-  const seasonSel = document.getElementById("seasonSel");
-  const toast = document.getElementById("toast");
-
-  const masterBox = document.getElementById("masterBox");
-  const masterAvatar = document.getElementById("masterAvatar");
-  const masterName = document.getElementById("masterName");
-  const masterSub = document.getElementById("masterSub");
-  const masterStats = document.getElementById("masterStats");
-
-  const modal = document.getElementById("modal");
-  const mClose = document.getElementById("mClose");
-  const mTitle = document.getElementById("mTitle");
-  const mSub = document.getElementById("mSub");
-  const mThumb = document.getElementById("mThumb");
-
-    const WORKER_BASE =
-    (location.hostname === "127.0.0.1" || location.hostname === "localhost")
-      ? ""
-      : "https://acf-api.dream-league-baseball.workers.dev";
-
-  function getOrCreateUid(){
-    const k = "acf_uid";
-    let id = localStorage.getItem(k);
-    if(!id){
-      id = crypto.randomUUID();
-      localStorage.setItem(k, id);
-    }
-    return id;
-  }
-
-  let uid = (localStorage.getItem("acf_uid") || localStorage.getItem("uid") || localStorage.getItem("userId") || localStorage.getItem("userid") || "").trim();
-  if(!uid) uid = getOrCreateUid();
-  // allow overriding via ?uid=
-  try{ const u = new URL(location.href).searchParams.get("uid"); if(u) uid = String(u).trim(); }catch(_){ }
-  let userVote = 0;
-  let userGem = 0;
-  let favoriteSet = new Set();
-  let seasonOptionsLoaded = false;
-
-  const ICON_VOTE = `<svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M7 10h10v10H7V10Z" stroke="currentColor" stroke-width="2"/><path d="M9 10V6h6v4" stroke="currentColor" stroke-width="2"/><path d="M10 14l2 2 3-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-  const ICON_HEART = `<svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-4.35-9.33-8.28C.7 9.25 2.3 6 6 6c2 0 3.1 1.1 4 2.2C10.9 7.1 12 6 14 6c3.7 0 5.3 3.25 3.33 6.72C19 16.65 12 21 12 21Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>`;
-  const ICON_FIRE = `<svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M13 3s1 3-1 5-1 4 2 5 4 6 0 8-4 1-6-1-2-4-2-6c0-4 3-5 3-8 0-2-1-3-1-3s4 1 5 3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>`;
-
-  function showToast(msg){
-    toast.textContent = msg;
-    toast.classList.add("show");
-    clearTimeout(showToast._t);
-    showToast._t = setTimeout(()=>toast.classList.remove("show"), 1400);
-  }
-  
-  function setBtnBusy(btn, label){
-    if(!btn) return ()=>{};
-    const span = btn.querySelector("span");
-    const oldText = span ? span.textContent : "";
-    btn.classList.add("busy");
-    btn.disabled = true;
-    if(span) span.textContent = label;
-    // add tiny spinner if not exists
-    if(!btn.querySelector(".spin")){
-      const sp = document.createElement("i");
-      sp.className = "spin";
-      btn.insertBefore(sp, span || null);
-    }
-    return ()=>{
-      const sp = btn.querySelector(".spin");
-      if(sp) sp.remove();
-      btn.classList.remove("busy");
-      btn.disabled = false;
-      if(span) span.textContent = oldText;
-    };
-  }
-function showError(msg){
-    errorBox.style.display="block";
-    errorBox.textContent = msg;
-  }
-  function clearError(){
-    errorBox.style.display="none";
-    errorBox.textContent="";
-  }
-
-  function fmtTime(ms){
-    if(!ms) return "";
-    const d = new Date(Number(ms));
-    const y = d.getFullYear();
-    const m = String(d.getMonth()+1).padStart(2,"0");
-    const da = String(d.getDate()).padStart(2,"0");
-    return y + "-" + m + "-" + da;
-  }
-
-  function initials(name){
-    const s = String(name||"").trim();
-    if(!s) return "?";
-    const parts = s.split(/\s+/).filter(Boolean);
-    const a = parts[0]?.[0] || s[0];
-    const b = parts.length>1 ? parts[parts.length-1][0] : (s[1]||"");
-    return (a + b).toUpperCase();
-  }
-
-
-  function gotoUserProfile(userId){
-    const id = String(userId || "").trim();
-    if(!id) return;
-    // site uses clean routes (e.g. /recipes, /maker), so follow the same pattern
-    location.href = "/user?uid=" + encodeURIComponent(id);
-  }
-
-  function avatarLayersFromShow(s){
-    // prefer author avatar (user_saves) if present, else fallback to initials
-    const bg = String(s.authorAvatarBgId || "").trim();
-    const a2 = String(s.authorAvatarAddon2Id || "").trim();
-    const head = String(s.authorAvatarHeadId || "").trim();
-    const body = String(s.authorAvatarBodyId || "").trim();
-    const a1 = String(s.authorAvatarAddon1Id || "").trim();
-    const mk = (id)=> id ? ("/assets/" + id + ".png") : "";
-    const layers = [
-      { url: mk(bg), z:10 },
-      { url: mk(a2), z:20 },
-      { url: mk(head), z:30 },
-      { url: mk(body), z:40 },
-      { url: mk(a1), z:50 },
-    ];
-    return layers.filter(x => x.url);
-  }
-
-  function renderAvatarInto(el, show, fallbackName){
-    el.innerHTML = "";
-    const layers = avatarLayersFromShow(show || {});
-    if(layers.length){
-      makeStackThumb(el, layers);
-      const layer = el.querySelector(".layer");
-      if(layer) layer.style.position = "absolute";
-      el.style.position = "relative";
-    }else{
-      el.style.position = "relative";
-      const d = document.createElement("div");
-      d.textContent = initials(fallbackName || "Player");
-      el.appendChild(d);
-    }
-  }
-
-
-  async function api(url, opts){
-    const o = opts || {};
-    const headers = Object.assign({}, o.headers || {});
-    if(uid) headers["x-user-id"] = uid;
-
-    const hasBody = o.body !== undefined && o.body !== null;
-    // Only set JSON header when we actually send JSON
-    if(hasBody) headers["content-type"] = "application/json";
-
-    const fullUrl = (WORKER_BASE || "") + url;
-
-    const res = await fetch(fullUrl, Object.assign({}, o, {
-      headers,
-      cache: "no-store",
-      body: hasBody ? JSON.stringify(o.body) : undefined
-    }));
-
-    const text = await res.text();
-    let data;
-    try{ data = JSON.parse(text); }
-    catch(e){ data = { ok:false, error:text || ("HTTP " + res.status) }; }
-
-    if(!res.ok || data.ok === false) throw data;
-    return data;
-  }
-
-
-  function makeStackThumb(container, layers){
-    container.innerHTML = "";
-    const wrap = document.createElement("div");
-    wrap.className = "layer";
-    layers.forEach((l)=>{
-      if(!l.url) return;
-      const img = document.createElement("img");
-      img.src = l.url;
-      img.style.zIndex = String(l.z || 0);
-      wrap.appendChild(img);
-    });
-    container.appendChild(wrap);
-  }
-
-
-  function renderMaster(me){
-    if(!masterBox) return;
-    if(!me || !me.account){
-      masterBox.style.display = "none";
-      return;
-    }
-    const acc = me.account || {};
-    const st = me.stats || {};
-    masterBox.style.display = "flex";
-
-    masterName.textContent = String(acc.userName || "Player");
-    masterSub.textContent = "Lv " + String(Number(acc.level || 1)) + (acc.userRegion ? (" · " + String(acc.userRegion)) : "");
-
-    // avatar
-    masterAvatar.innerHTML = "";
-    if(me.avatarSave){
-      makeStackThumb(masterAvatar, [
-        { url: me.avatarSave.bgId ? ("/assets/" + me.avatarSave.bgId + ".png") : "", z:10 },
-        { url: me.avatarSave.addon2Id ? ("/assets/" + me.avatarSave.addon2Id + ".png") : "", z:20 },
-        { url: me.avatarSave.headId ? ("/assets/" + me.avatarSave.headId + ".png") : "", z:30 },
-        { url: me.avatarSave.bodyId ? ("/assets/" + me.avatarSave.bodyId + ".png") : "", z:40 },
-        { url: me.avatarSave.addon1Id ? ("/assets/" + me.avatarSave.addon1Id + ".png") : "", z:50 },
-      ]);
-    }else{
-      const d = document.createElement("div");
-      d.style.fontSize = "12px";
-      d.style.opacity = ".9";
-      d.textContent = initials(acc.userName || "Player");
-      masterAvatar.appendChild(d);
-    }
-
-    const pills = [];
-    const add = (k,v)=> pills.push('<div class="statPill"><strong>' + k + '</strong> ' + String(v) + '</div>');
-    add("Gold", Number(acc.userGold||0));
-    add("GEM", Number(acc.userGem||0));
-    add("票", Number(acc.userVote||0));
-    add("Like", Number(st.likes||0));
-    add("成品", Number(st.saves||0));
-    add("Follower", Number(st.followers||0));
-    add("收藏", Number(st.collectionsUnlocked||0));
-
-    masterStats.innerHTML = pills.join("");
-  }
-
-  function openModal(title, sub, layers){
-    mTitle.textContent = title;
-    mSub.textContent = sub || "";
-    mThumb.innerHTML = "";
-    makeStackThumb(mThumb, layers);
-    modal.style.display = "flex";
-  }
-
-  mClose.onclick = ()=> modal.style.display="none";
-  modal.onclick = (e)=>{ if(e.target === modal) modal.style.display="none"; };
-
-  async function loadMe(){
-    try{
-      const me = await api("/api/me/account", { method:"GET" });
-      const acc = me.account || {};
-      const st = me.stats || {};
-      userVote = Number(acc.userVote || 0);
-      userGem = Number(acc.userGem || 0);
-      renderMaster(me);
-    }catch(e){
-      userVote = 0;
-      userGem = 0;
-      renderMaster(null);
-    }
-  }
-
-  async function loadFavorites(){
-    favoriteSet = new Set();
-    if(!uid) return;
-    try{
-      const r = await api("/api/me/favorites", { method:"GET" });
-      const arr = Array.isArray(r.items) ? r.items : [];
-      arr.forEach(x => {
-        const sid = String(x.showcaseId || x.showcase_id || x.id || "");
-        if(sid) favoriteSet.add(sid);
-      });
-    }catch(e){}
-  }
-
-  async function vote(showcaseId){
-    if(!uid) return showError("請先登入");
-    if(userVote <= 0) return showError("票數不足");
-    try{
-      await api("/api/vote", { method:"POST", body:{ showcaseId } });
-      showToast("已投票");
-      await loadMe();
-    }catch(e){
-      showError(String(e.error || e.message || "投票失敗"));
-    }
-  }
-
-  async function toggleFav(showcaseId){
-    if(!uid) return showError("請先登入");
-    try{
-      if(favoriteSet.has(showcaseId)){
-        await api("/api/favorite", { method:"DELETE", body:{ showcaseId } });
-        favoriteSet.delete(showcaseId);
-        showToast("已取消收藏");
-      }else{
-        await api("/api/favorite", { method:"POST", body:{ showcaseId } });
-        favoriteSet.add(showcaseId);
-        showToast("已收藏");
-      }
-    }catch(e){
-      showError(String(e.error || e.message || "收藏失敗"));
-    }
-  }
-
-  async function recommend(showcaseId){
-  if(!uid) return showError("請先登入");
-  if(userGem < 50) return showError("GEM 不足");
-  try{
-    await api("/api/recommend", { method:"POST", body:{ showcaseId } });
-    showToast("已推薦 1 次 (花費 50 GEM)");
-    await loadMe();
-    // caller will refresh list
-  }catch(e){
-    const code = String(e.error || e.code || "");
-    if(code === "max_per_showcase_reached" || code === "recommend_limit") return showError("同一作品同一賽季最多推薦 5 次");
-    if(code === "insufficient_gem" || code === "no_gem") return showError("GEM 不足");
-    if(code === "unauthorized") return showError("請先登入");
-    showError(String(e.error || e.message || "推薦失敗"));
-  }
-}  
-  function renderPodium(items){
-    podiumGrid.innerHTML = "";
-    const wrap = document.getElementById("podiumWrap");
-    const titleEl = document.getElementById("podiumTitle");
-    const top3 = (items||[]).slice(0,3);
-
-    // Visual order: #2 (left), #1 (center), #3 (right)
-    const ordered = [];
-    if(wrap) wrap.style.display = "block";
-    if(titleEl) titleEl.style.display = "block";
-    if(top3.length === 1) ordered.push({ s: top3[0], rank: 1 });
-    if(top3.length === 2) ordered.push({ s: top3[1], rank: 2 }, { s: top3[0], rank: 1 });
-    if(top3.length >= 3) ordered.push({ s: top3[1], rank: 2 }, { s: top3[0], rank: 1 }, { s: top3[2], rank: 3 });
-
-    if(ordered.length === 0){
-      if(wrap) wrap.style.display = "none";
-      if(titleEl) titleEl.style.display = "none";
-      return;
-    }
-
-    const rankColorClass = (rank)=> rank===1 ? "gold" : (rank===2 ? "silver" : "bronze");
-    const rankIconSvg = (rank)=>{
-      if(rank===1){
-        return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="M7 4h10l-1 6-4 3-4-3-1-6Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 20h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M10 13v7M14 13v7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
-      }
-      if(rank===2){
-        return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="M8 5h8l-1 6-3 2-3-2-1-6Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 20h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M12 13v7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
-      }
-      return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="M9 6h6l-1 6-2 2-2-2-1-6Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M10 20h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
-    };
-
-    ordered.forEach(({s, rank})=>{
-      const outer = document.createElement("div");
-      outer.className = "podiumOuter rank" + String(rank);
-
-      const metaTop = document.createElement("div");
-      metaTop.className = "podMetaTop";
-
-      const left = document.createElement("div");
-      left.className = "podLeft";
-
-      const rankLine = document.createElement("div");
-      rankLine.className = "podRankLine";
-
-      const icon = document.createElement("div");
-      icon.className = "rankIcon";
-      icon.innerHTML = rankIconSvg(rank);
-
-      const rankText = document.createElement("div");
-      rankText.className = "rankText " + rankColorClass(rank);
-      rankText.textContent = (rank===1 ? "第一名" : (rank===2 ? "第二名" : "第三名"));
-
-      rankLine.appendChild(icon);
-      rankLine.appendChild(rankText);
-
-      const author = document.createElement("div");
-      author.className = "podAuthor";
-      const authorName = String(s.authorName || s.userName || s.userId || "").trim() || "Player";
-
-      const av = document.createElement("div");
-      av.className = "podAuthorAv";
-      renderAvatarInto(av, s, authorName);
-
-      const nm = document.createElement("div");
-      nm.className = "podAuthorName";
-      nm.textContent = authorName;
-
-      author.appendChild(av);
-      author.appendChild(nm);
-
-      author.onclick = (e)=>{
-        e.stopPropagation();
-        gotoUserProfile(s.userId);
-      };
-
-      left.appendChild(rankLine);
-      left.appendChild(author);
-
-      const right = document.createElement("div");
-      right.className = "podVotesTop";
-      right.textContent = "票數 " + String(Number(s.votes || 0));
-
-      metaTop.appendChild(left);
-      metaTop.appendChild(right);
-
-      const card = document.createElement("div");
-      card.className = "podiumCard rank" + String(rank);
-
-      const th = document.createElement("div");
-      th.className = "podThumb";
-
-      makeStackThumb(th, [
-        { url: s.bgUrl, z:10 },
-        { url: s.addon2Url, z:20 },
-        { url: s.headUrl, z:30 },
-        { url: s.bodyUrl, z:40 },
-        { url: s.addon1Url, z:50 },
-      ]);
-
-      card.appendChild(th);
-      outer.appendChild(metaTop);
-      outer.appendChild(card);
-
-      outer.onclick = ()=>{
-        openModal("作品", "票數 " + String(Number(s.votes||0)) + " · " + fmtTime(s.createdAt), [
-          { url: s.bgUrl, z:10 },
-          { url: s.addon2Url, z:20 },
-          { url: s.headUrl, z:30 },
-          { url: s.bodyUrl, z:40 },
-          { url: s.addon1Url, z:50 },
-        ]);
-      };
-
-      podiumGrid.appendChild(outer);
-    });
-  }
-
-
-  function render(items){
-
-    grid.innerHTML = "";
-    recGrid.innerHTML = "";
-    recWrap.style.display = "none";
-    recGrid.innerHTML = "";
-
-    const recItems = (items||[])
-      .filter(x => Number(x.recommends || 0) > 0)
-      .slice()
-      .sort((a,b)=> Number(b.recommends||0) - Number(a.recommends||0));
-
-    if(recItems.length > 0){
-      recWrap.style.display = "block";
-      recItems.forEach((s)=>{
-        const card = document.createElement("div");
-        card.className = "recCard";
-        const th = document.createElement("div");
-        th.className = "recThumb";
-        makeStackThumb(th, [
-          { url: s.bgUrl, z:10 },
-          { url: s.addon2Url, z:20 },
-          { url: s.headUrl, z:30 },
-          { url: s.bodyUrl, z:40 },
-          { url: s.addon1Url, z:50 },
-        ]);
-        const meta = document.createElement("div");
-        meta.className = "recMeta";
-
-        const topRow = document.createElement("div");
-        topRow.className = "recMetaTop";
-
-        const author = document.createElement("div");
-        author.className = "recAuthor";
-        const authorName = String(s.authorName || s.userName || s.userId || "").trim() || "Player";
-
-        const av = document.createElement("div");
-        av.className = "recAuthorAv";
-        renderAvatarInto(av, s, authorName);
-
-        const nm = document.createElement("div");
-        nm.className = "recAuthorName";
-        nm.textContent = authorName;
-
-        author.appendChild(av);
-        author.appendChild(nm);
-
-        author.onclick = (e)=>{
-          e.stopPropagation();
-          gotoUserProfile(s.userId);
-        };
-
-        const b = document.createElement("div");
-        b.className = "recBadge";
-        b.textContent = "推薦 " + String(Number(s.recommends||0));
-
-        topRow.appendChild(author);
-        topRow.appendChild(b);
-
-        const t = document.createElement("div");
-        t.className = "recTitleLine";
-        t.textContent = (s.title && String(s.title).trim()) ? String(s.title).trim() : "未命名作品";
-
-        const actions = document.createElement("div");
-        actions.className = "iconRow";
-
-        const voteBtn = document.createElement("button");
-        voteBtn.className = "iconBtn";
-        voteBtn.type = "button";
-        voteBtn.innerHTML = ICON_VOTE + "<span>投票</span>";
-        if((!uid) || userVote <= 0) voteBtn.style.opacity = ".6";
-        voteBtn.onclick = async (e)=>{
-          e.stopPropagation();
-          clearError();
-          if(!uid){
-            showToast("請先登入");
-            return showError("請先登入");
+    <script>
+      (function(){
+        const grid = document.getElementById("grid");
+        const recWrap = document.getElementById("recWrap");
+        const recGrid = document.getElementById("recGrid");
+        const favRankWrap = document.getElementById("favRankWrap");
+        const favRankGrid = document.getElementById("favRankGrid");
+        const newRankWrap = document.getElementById("newRankWrap");
+        const newRankGrid = document.getElementById("newRankGrid");
+        const authorRankWrap = document.getElementById("authorRankWrap");
+        const authorRankGrid = document.getElementById("authorRankGrid");
+        const podiumGrid = document.getElementById("podiumGrid");
+        const errorBox = document.getElementById("errorBox");
+        const statusLine = document.getElementById("statusLine");
+        const sortSel = document.getElementById("sortSel");
+        const seasonSel = document.getElementById("seasonSel");
+        const toast = document.getElementById("toast");
+
+        const modal = document.getElementById("modal");
+        const mClose = document.getElementById("mClose");
+        const mTitle = document.getElementById("mTitle");
+        const mSub = document.getElementById("mSub");
+        const mThumb = document.getElementById("mThumb");
+
+        const WORKER_BASE =
+          (location.hostname === "127.0.0.1" || location.hostname === "localhost")
+            ? ""
+            : "https://acf-api.dream-league-baseball.workers.dev";
+
+        function getOrCreateUid(){
+          const k = "acf_uid";
+          let id = localStorage.getItem(k);
+          if(!id){
+            id = crypto.randomUUID();
+            localStorage.setItem(k, id);
           }
-          if(userVote <= 0){
-            showToast("票數已投滿");
-            return showError("票數已投滿");
+          return id;
+        }
+
+        let uid = (localStorage.getItem("acf_uid") || localStorage.getItem("uid") || localStorage.getItem("userId") || localStorage.getItem("userid") || "").trim();
+        if(!uid) uid = getOrCreateUid();
+        try{ const u = new URL(location.href).searchParams.get("uid"); if(u) uid = String(u).trim(); }catch(_){}
+
+        let userVote = 0;
+        let userGem = 0;
+        let favoriteSet = new Set();
+        let seasonOptionsLoaded = false;
+
+        const ICON_VOTE = `<svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M7 10h10v10H7V10Z" stroke="currentColor" stroke-width="2"/><path d="M9 10V6h6v4" stroke="currentColor" stroke-width="2"/><path d="M10 14l2 2 3-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+        const ICON_HEART = `<svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-4.35-9.33-8.28C.7 9.25 2.3 6 6 6c2 0 3.1 1.1 4 2.2C10.9 7.1 12 6 14 6c3.7 0 5.3 3.25 3.33 6.72C19 16.65 12 21 12 21Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>`;
+        const ICON_FIRE = `<svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M13 3s1 3-1 5-1 4 2 5 4 6 0 8-4 1-6-1-2-4-2-6c0-4 3-5 3-8 0-2-1-3-1-3s4 1 5 3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>`;
+
+        function showToast(msg){
+          toast.textContent = msg;
+          toast.classList.add("show");
+          clearTimeout(showToast._t);
+          showToast._t = setTimeout(()=>toast.classList.remove("show"), 1400);
+        }
+
+        function setBtnBusy(btn, label){
+          if(!btn) return ()=>{};
+          const span = btn.querySelector("span");
+          const oldText = span ? span.textContent : "";
+          btn.classList.add("busy");
+          btn.disabled = true;
+          if(span) span.textContent = label;
+          if(!btn.querySelector(".spin")){
+            const sp = document.createElement("i");
+            sp.className = "spin";
+            btn.insertBefore(sp, span || null);
           }
-          const done = setBtnBusy(voteBtn, "投票中");
-          showToast("投票中");
+          return ()=>{
+            const sp = btn.querySelector(".spin");
+            if(sp) sp.remove();
+            btn.classList.remove("busy");
+            btn.disabled = false;
+            if(span) span.textContent = oldText;
+          };
+        }
+
+        function showError(msg){
+          errorBox.style.display = "block";
+          errorBox.textContent = msg;
+        }
+        function clearError(){
+          errorBox.style.display = "none";
+          errorBox.textContent = "";
+        }
+
+        function fmtTime(ms){
+          if(!ms) return "";
+          const d = new Date(Number(ms));
+          const y = d.getFullYear();
+          const m = String(d.getMonth()+1).padStart(2,"0");
+          const da = String(d.getDate()).padStart(2,"0");
+          return y + "-" + m + "-" + da;
+        }
+
+        function initials(name){
+          const s = String(name||"").trim();
+          if(!s) return "?";
+          const parts = s.split(/\s+/).filter(Boolean);
+          const a = parts[0]?.[0] || s[0];
+          const b = parts.length>1 ? parts[parts.length-1][0] : (s[1]||"");
+          return (a + b).toUpperCase();
+        }
+
+        function gotoUserProfile(userId){
+          const id = String(userId || "").trim();
+          if(!id) return;
+          location.href = "/user?uid=" + encodeURIComponent(id);
+        }
+
+        function avatarLayersFromShow(s){
+          const bg = String(s.authorAvatarBgId || "").trim();
+          const a2 = String(s.authorAvatarAddon2Id || "").trim();
+          const head = String(s.authorAvatarHeadId || "").trim();
+          const body = String(s.authorAvatarBodyId || "").trim();
+          const a1 = String(s.authorAvatarAddon1Id || "").trim();
+          const mk = (id)=> id ? ("/assets/" + id + ".png") : "";
+          const layers = [
+            { url: mk(bg), z:10 },
+            { url: mk(a2), z:20 },
+            { url: mk(head), z:30 },
+            { url: mk(body), z:40 },
+            { url: mk(a1), z:50 },
+          ];
+          return layers.filter(x => x.url);
+        }
+
+        function makeStackThumb(container, layers){
+          container.innerHTML = "";
+          const wrap = document.createElement("div");
+          wrap.className = "layer";
+          layers.forEach((l)=>{
+            if(!l.url) return;
+            const img = document.createElement("img");
+            img.src = l.url;
+            img.style.zIndex = String(l.z || 0);
+            wrap.appendChild(img);
+          });
+          container.appendChild(wrap);
+        }
+
+        function renderAvatarInto(el, show, fallbackName){
+          el.innerHTML = "";
+          const layers = avatarLayersFromShow(show || {});
+          if(layers.length){
+            makeStackThumb(el, layers);
+            const layer = el.querySelector(".layer");
+            if(layer) layer.style.position = "absolute";
+            el.style.position = "relative";
+          }else{
+            el.style.position = "relative";
+            const d = document.createElement("div");
+            d.textContent = initials(fallbackName || "Player");
+            el.appendChild(d);
+          }
+        }
+
+        async function api(url, opts){
+          const o = opts || {};
+          const headers = Object.assign({}, o.headers || {});
+          if(uid) headers["x-user-id"] = uid;
+
+          const hasBody = o.body !== undefined && o.body !== null;
+          if(hasBody) headers["content-type"] = "application/json";
+
+          const fullUrl = (WORKER_BASE || "") + url;
+
+          const res = await fetch(fullUrl, Object.assign({}, o, {
+            headers,
+            cache: "no-store",
+            body: hasBody ? JSON.stringify(o.body) : undefined
+          }));
+
+          const text = await res.text();
+          let data;
+          try{ data = JSON.parse(text); }
+          catch(e){ data = { ok:false, error:text || ("HTTP " + res.status) }; }
+
+          if(!res.ok || data.ok === false) throw data;
+          return data;
+        }
+
+        function openModal(title, sub, layers){
+          mTitle.textContent = title;
+          mSub.textContent = sub || "";
+          mThumb.innerHTML = "";
+          makeStackThumb(mThumb, layers);
+          modal.style.display = "flex";
+        }
+
+        mClose.onclick = ()=> modal.style.display = "none";
+        modal.onclick = (e)=>{ if(e.target === modal) modal.style.display = "none"; };
+
+        async function loadMeLight(){
           try{
-            await vote(String(s.showcaseId || s.id || ""));
-          }finally{
-            done();
+            const me = await api("/api/me/account", { method:"GET" });
+            const acc = me.account || {};
+            userVote = Number(acc.userVote || 0);
+            userGem = Number(acc.userGem || 0);
+          }catch(e){
+            userVote = 0;
+            userGem = 0;
           }
-          await load();
-        };
+        }
 
-        const favBtn = document.createElement("button");
-        favBtn.className = "iconBtn";
-        favBtn.type = "button";
-        const sid2 = String(s.showcaseId || s.id || "");
-        const isFav2 = favoriteSet.has(sid2);
-        if(isFav2) favBtn.classList.add("on");
-        favBtn.innerHTML = ICON_HEART + "<span>" + (isFav2 ? "已收藏" : "收藏") + "</span>";
-        favBtn.onclick = async (e)=>{
-          e.stopPropagation();
-          clearError();
-          const done = setBtnBusy(favBtn, isFav2 ? "取消中" : "收藏中");
+        async function loadFavorites(){
+          favoriteSet = new Set();
+          if(!uid) return;
           try{
-            await toggleFav(sid2);
-          }finally{
-            done();
+            const r = await api("/api/me/favorites", { method:"GET" });
+            const arr = Array.isArray(r.items) ? r.items : [];
+            arr.forEach(x => {
+              const sid = String(x.showcaseId || x.showcase_id || x.id || "");
+              if(sid) favoriteSet.add(sid);
+            });
+          }catch(e){}
+        }
+
+        async function vote(showcaseId){
+          if(!uid) return showError("請先登入");
+          if(userVote <= 0) return showError("票數不足");
+          try{
+            await api("/api/vote", { method:"POST", body:{ showcaseId } });
+            showToast("已投票");
+            await loadMeLight();
+          }catch(e){
+            showError(String(e.error || e.message || "投票失敗"));
           }
-          await load();
-        };
-
-        actions.appendChild(voteBtn);
-        actions.appendChild(favBtn);
-
-        meta.appendChild(topRow);
-        meta.appendChild(t);
-        meta.appendChild(actions);
-
-        card.appendChild(th);
-        card.appendChild(meta);
-        card.onclick = ()=>{
-          openModal(t.textContent, "推薦 " + String(Number(s.recommends||0)) + " · 票數 " + String(Number(s.votes||0)) + " · " + fmtTime(s.createdAt), [
-            { url: s.bgUrl, z:10 },
-            { url: s.addon2Url, z:20 },
-            { url: s.headUrl, z:30 },
-            { url: s.bodyUrl, z:40 },
-            { url: s.addon1Url, z:50 },
-          ]);
-        };
-        recGrid.appendChild(card);
-      });
-    }
-
-
-    items.forEach((s)=>{
-      const sid = String(s.showcaseId || s.id || "");
-      const entry = document.createElement("div");
-      entry.className = "entry";
-
-      const th = document.createElement("div");
-      th.className = "entryThumb";
-      makeStackThumb(th, [
-        { url: s.bgUrl, z:10 },
-        { url: s.addon2Url, z:20 },
-        { url: s.headUrl, z:30 },
-        { url: s.bodyUrl, z:40 },
-        { url: s.addon1Url, z:50 },
-      ]);
-
-      const body = document.createElement("div");
-      body.className = "entryBody";
-
-      const header = document.createElement("div");
-      header.className = "entryHeader";
-
-      const title = (s.title && String(s.title).trim()) ? String(s.title).trim() : "未命名作品";
-      const titleEl = document.createElement("div");
-      titleEl.className = "entryTitle";
-      titleEl.textContent = title;
-
-      const kv = document.createElement("div");
-      kv.className = "kv";
-      const votes = Number(s.votes || 0);
-      const favs = Number(s.favorites || 0);
-      const recs = Number(s.recommends || 0);
-
-      const p1 = document.createElement("div");
-      p1.className = "pill2";
-      p1.textContent = "票數 " + String(votes);
-
-      const p2 = document.createElement("div");
-      p2.className = "pill2";
-      p2.textContent = "收藏 " + String(favs);
-
-      kv.appendChild(p1);
-      kv.appendChild(p2);
-
-      if(recs > 0){
-        const p3 = document.createElement("div");
-        p3.className = "pill2";
-        p3.textContent = "推薦 " + String(recs);
-        kv.appendChild(p3);
-      }
-
-      header.appendChild(titleEl);
-      header.appendChild(kv);
-
-      const authorRow = document.createElement("div");
-      authorRow.className = "authorRow";
-
-      const authorMini = document.createElement("div");
-      authorMini.className = "authorMini";
-
-      const name = String(s.authorName || s.userName || s.userId || "").trim() || "Player";
-      const lv = Number(s.authorLevel || 1);
-
-      const av = document.createElement("div");
-      av.className = "av";
-      renderAvatarInto(av, s, name);
-
-      const nmWrap = document.createElement("div");
-      nmWrap.style.minWidth = "0";
-
-      const nm = document.createElement("div");
-      nm.className = "nm";
-      nm.textContent = name;
-
-      const lvEl = document.createElement("div");
-      lvEl.className = "lv";
-      lvEl.textContent = "Lv." + String(lv);
-
-      nmWrap.appendChild(nm);
-      nmWrap.appendChild(lvEl);
-
-      authorMini.appendChild(av);
-      authorMini.appendChild(nmWrap);
-      authorMini.style.cursor = "pointer";
-      authorMini.onclick = (e)=>{ e.stopPropagation(); gotoUserProfile(s.userId); };
-
-      const iconRow = document.createElement("div");
-      iconRow.className = "iconRow";
-
-      const voteBtn = document.createElement("button");
-      voteBtn.className = "iconBtn";
-      voteBtn.type = "button";
-      voteBtn.innerHTML = ICON_VOTE + "<span>投票</span>";
-      voteBtn.disabled = false;
-      if((!uid) || userVote <= 0) voteBtn.style.opacity = ".6";
-      voteBtn.onclick = async (e)=>{
-        e.stopPropagation();
-        clearError();
-        if(!uid){
-          showToast("請先登入");
-          return showError("請先登入");
         }
-        if(userVote <= 0){
-          showToast("票數已投滿");
-          return showError("票數已投滿");
+
+        async function toggleFav(showcaseId){
+          if(!uid) return showError("請先登入");
+          try{
+            if(favoriteSet.has(showcaseId)){
+              await api("/api/favorite", { method:"DELETE", body:{ showcaseId } });
+              favoriteSet.delete(showcaseId);
+              showToast("已取消收藏");
+            }else{
+              await api("/api/favorite", { method:"POST", body:{ showcaseId } });
+              favoriteSet.add(showcaseId);
+              showToast("已收藏");
+            }
+          }catch(e){
+            showError(String(e.error || e.message || "收藏失敗"));
+          }
         }
-        const done = setBtnBusy(voteBtn, "投票中");
-        showToast("投票中");
-        try{
-          await vote(sid);
-        }finally{
-          done();
+
+        async function recommend(showcaseId){
+          if(!uid) return showError("請先登入");
+          if(userGem < 50) return showError("GEM 不足");
+          try{
+            await api("/api/recommend", { method:"POST", body:{ showcaseId } });
+            showToast("已推薦 1 次 (花費 50 GEM)");
+            await loadMeLight();
+          }catch(e){
+            const code = String(e.error || e.code || "");
+            if(code === "max_per_showcase_reached" || code === "recommend_limit") return showError("同一作品同一賽季最多推薦 5 次");
+            if(code === "insufficient_gem" || code === "no_gem") return showError("GEM 不足");
+            if(code === "unauthorized") return showError("請先登入");
+            showError(String(e.error || e.message || "推薦失敗"));
+          }
         }
-        await load(); // includes loadMe + refresh counts
-      };
 
-      const favBtn = document.createElement("button");
-      favBtn.className = "iconBtn";
-      favBtn.type = "button";
-      const isFav = favoriteSet.has(sid);
-      if(isFav) favBtn.classList.add("on");
-      favBtn.innerHTML = ICON_HEART + "<span>" + (isFav ? "已收藏" : "收藏") + "</span>";
-      favBtn.onclick = async (e)=>{
-        e.stopPropagation();
-        clearError();
-        const done = setBtnBusy(favBtn, isFav ? "取消中" : "收藏中");
-        try{
-          await toggleFav(sid);
-        }finally{
-          done();
+        function renderPodium(items){
+          podiumGrid.innerHTML = "";
+          const wrap = document.getElementById("podiumWrap");
+          const titleEl = document.getElementById("podiumTitle");
+          const top3 = (items||[]).slice(0,3);
+
+          if(wrap) wrap.style.display = "block";
+          if(titleEl) titleEl.style.display = "block";
+
+          const ordered = [];
+          if(top3.length === 1) ordered.push({ s: top3[0], rank: 1 });
+          if(top3.length === 2) ordered.push({ s: top3[1], rank: 2 }, { s: top3[0], rank: 1 });
+          if(top3.length >= 3) ordered.push({ s: top3[1], rank: 2 }, { s: top3[0], rank: 1 }, { s: top3[2], rank: 3 });
+
+          if(ordered.length === 0){
+            if(wrap) wrap.style.display = "none";
+            if(titleEl) titleEl.style.display = "none";
+            return;
+          }
+
+          const rankColorClass = (rank)=> rank===1 ? "gold" : (rank===2 ? "silver" : "bronze");
+          const rankIconSvg = (rank)=>{
+            if(rank===1){
+              return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="M7 4h10l-1 6-4 3-4-3-1-6Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 20h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M10 13v7M14 13v7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
+            }
+            if(rank===2){
+              return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="M8 5h8l-1 6-3 2-3-2-1-6Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 20h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M12 13v7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
+            }
+            return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="M9 6h6l-1 6-2 2-2-2-1-6Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M10 20h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
+          };
+
+          ordered.forEach(({s, rank})=>{
+            const outer = document.createElement("div");
+            outer.className = "podiumOuter rank" + String(rank);
+
+            const metaTop = document.createElement("div");
+            metaTop.className = "podMetaTop";
+
+            const left = document.createElement("div");
+            left.className = "podLeft";
+
+            const rankLine = document.createElement("div");
+            rankLine.className = "podRankLine";
+
+            const icon = document.createElement("div");
+            icon.className = "rankIcon";
+            icon.innerHTML = rankIconSvg(rank);
+
+            const rankText = document.createElement("div");
+            rankText.className = "rankText " + rankColorClass(rank);
+            rankText.textContent = (rank===1 ? "第一名" : (rank===2 ? "第二名" : "第三名"));
+
+            rankLine.appendChild(icon);
+            rankLine.appendChild(rankText);
+
+            const author = document.createElement("div");
+            author.className = "podAuthor";
+            const authorName = String(s.authorName || s.userName || s.userId || "").trim() || "Player";
+
+            const av = document.createElement("div");
+            av.className = "podAuthorAv";
+            renderAvatarInto(av, s, authorName);
+
+            const nm = document.createElement("div");
+            nm.className = "podAuthorName";
+            nm.textContent = authorName;
+
+            author.appendChild(av);
+            author.appendChild(nm);
+
+            author.onclick = (e)=>{
+              e.stopPropagation();
+              gotoUserProfile(s.userId);
+            };
+
+            left.appendChild(rankLine);
+            left.appendChild(author);
+
+            const right = document.createElement("div");
+            right.className = "podVotesTop";
+            right.textContent = "票數 " + String(Number(s.votes || 0));
+
+            metaTop.appendChild(left);
+            metaTop.appendChild(right);
+
+            const card = document.createElement("div");
+            card.className = "podiumCard rank" + String(rank);
+
+            const th = document.createElement("div");
+            th.className = "podThumb";
+
+            makeStackThumb(th, [
+              { url: s.bgUrl, z:10 },
+              { url: s.addon2Url, z:20 },
+              { url: s.headUrl, z:30 },
+              { url: s.bodyUrl, z:40 },
+              { url: s.addon1Url, z:50 },
+            ]);
+
+            card.appendChild(th);
+            outer.appendChild(metaTop);
+            outer.appendChild(card);
+
+            outer.onclick = ()=>{
+              openModal("作品", "票數 " + String(Number(s.votes||0)) + " · " + fmtTime(s.createdAt), [
+                { url: s.bgUrl, z:10 },
+                { url: s.addon2Url, z:20 },
+                { url: s.headUrl, z:30 },
+                { url: s.bodyUrl, z:40 },
+                { url: s.addon1Url, z:50 },
+              ]);
+            };
+
+            podiumGrid.appendChild(outer);
+          });
         }
-        await load();
-      };
 
-      const recBtn = document.createElement("button");
-      recBtn.className = "iconBtn warn";
-      recBtn.type = "button";
-      recBtn.innerHTML = ICON_FIRE + "<span>推薦 (" + String(recs) + ")</span>";
-      recBtn.onclick = async (e)=>{
-        e.stopPropagation();
-        clearError();
-        if(!uid){
-          showToast("請先登入");
-          return showError("請先登入");
+        function render(items){
+          grid.innerHTML = "";
+          recGrid.innerHTML = "";
+          recWrap.style.display = "none";
+
+          const recItems = (items||[])
+            .filter(x => Number(x.recommends || 0) > 0)
+            .slice()
+            .sort((a,b)=> Number(b.recommends||0) - Number(a.recommends||0));
+
+          if(recItems.length > 0){
+            recWrap.style.display = "block";
+            recItems.forEach((s)=>{
+              const card = document.createElement("div");
+              card.className = "recCard";
+
+              const th = document.createElement("div");
+              th.className = "recThumb";
+              makeStackThumb(th, [
+                { url: s.bgUrl, z:10 },
+                { url: s.addon2Url, z:20 },
+                { url: s.headUrl, z:30 },
+                { url: s.bodyUrl, z:40 },
+                { url: s.addon1Url, z:50 },
+              ]);
+
+              const meta = document.createElement("div");
+              meta.className = "recMeta";
+
+              const topRow = document.createElement("div");
+              topRow.className = "recMetaTop";
+
+              const author = document.createElement("div");
+              author.className = "recAuthor";
+              const authorName = String(s.authorName || s.userName || s.userId || "").trim() || "Player";
+
+              const av = document.createElement("div");
+              av.className = "recAuthorAv";
+              renderAvatarInto(av, s, authorName);
+
+              const nm = document.createElement("div");
+              nm.className = "recAuthorName";
+              nm.textContent = authorName;
+
+              author.appendChild(av);
+              author.appendChild(nm);
+
+              author.onclick = (e)=>{
+                e.stopPropagation();
+                gotoUserProfile(s.userId);
+              };
+
+              const b = document.createElement("div");
+              b.className = "recBadge";
+              b.textContent = "推薦 " + String(Number(s.recommends||0));
+
+              topRow.appendChild(author);
+              topRow.appendChild(b);
+
+              const t = document.createElement("div");
+              t.className = "recTitleLine";
+              t.textContent = (s.title && String(s.title).trim()) ? String(s.title).trim() : "未命名作品";
+
+              const actions = document.createElement("div");
+              actions.className = "iconRow";
+
+              const voteBtn = document.createElement("button");
+              voteBtn.className = "iconBtn";
+              voteBtn.type = "button";
+              voteBtn.innerHTML = ICON_VOTE + "<span>投票</span>";
+              if((!uid) || userVote <= 0) voteBtn.style.opacity = ".6";
+              voteBtn.onclick = async (e)=>{
+                e.stopPropagation();
+                clearError();
+                if(!uid){
+                  showToast("請先登入");
+                  return showError("請先登入");
+                }
+                if(userVote <= 0){
+                  showToast("票數已投滿");
+                  return showError("票數已投滿");
+                }
+                const done = setBtnBusy(voteBtn, "投票中");
+                showToast("投票中");
+                try{
+                  await vote(String(s.showcaseId || s.id || ""));
+                }finally{
+                  done();
+                }
+                await load();
+              };
+
+              const favBtn = document.createElement("button");
+              favBtn.className = "iconBtn";
+              favBtn.type = "button";
+              const sid2 = String(s.showcaseId || s.id || "");
+              const isFav2 = favoriteSet.has(sid2);
+              if(isFav2) favBtn.classList.add("on");
+              favBtn.innerHTML = ICON_HEART + "<span>" + (isFav2 ? "已收藏" : "收藏") + "</span>";
+              favBtn.onclick = async (e)=>{
+                e.stopPropagation();
+                clearError();
+                const done = setBtnBusy(favBtn, isFav2 ? "取消中" : "收藏中");
+                try{
+                  await toggleFav(sid2);
+                }finally{
+                  done();
+                }
+                await load();
+              };
+
+              actions.appendChild(voteBtn);
+              actions.appendChild(favBtn);
+
+              meta.appendChild(topRow);
+              meta.appendChild(t);
+              meta.appendChild(actions);
+
+              card.appendChild(th);
+              card.appendChild(meta);
+
+              card.onclick = ()=>{
+                openModal(t.textContent, "推薦 " + String(Number(s.recommends||0)) + " · 票數 " + String(Number(s.votes||0)) + " · " + fmtTime(s.createdAt), [
+                  { url: s.bgUrl, z:10 },
+                  { url: s.addon2Url, z:20 },
+                  { url: s.headUrl, z:30 },
+                  { url: s.bodyUrl, z:40 },
+                  { url: s.addon1Url, z:50 },
+                ]);
+              };
+
+              recGrid.appendChild(card);
+            });
+          }
+
+          items.forEach((s)=>{
+            const sid = String(s.showcaseId || s.id || "");
+            const entry = document.createElement("div");
+            entry.className = "entry";
+
+            const th = document.createElement("div");
+            th.className = "entryThumb";
+            makeStackThumb(th, [
+              { url: s.bgUrl, z:10 },
+              { url: s.addon2Url, z:20 },
+              { url: s.headUrl, z:30 },
+              { url: s.bodyUrl, z:40 },
+              { url: s.addon1Url, z:50 },
+            ]);
+
+            const body = document.createElement("div");
+            body.className = "entryBody";
+
+            const header = document.createElement("div");
+            header.className = "entryHeader";
+
+            const title = (s.title && String(s.title).trim()) ? String(s.title).trim() : "未命名作品";
+            const titleEl = document.createElement("div");
+            titleEl.className = "entryTitle";
+            titleEl.textContent = title;
+
+            const kv = document.createElement("div");
+            kv.className = "kv";
+            const votes = Number(s.votes || 0);
+            const favs = Number(s.favorites || 0);
+            const recs = Number(s.recommends || 0);
+
+            const p1 = document.createElement("div");
+            p1.className = "pill2";
+            p1.textContent = "票數 " + String(votes);
+
+            const p2 = document.createElement("div");
+            p2.className = "pill2";
+            p2.textContent = "收藏 " + String(favs);
+
+            kv.appendChild(p1);
+            kv.appendChild(p2);
+
+            if(recs > 0){
+              const p3 = document.createElement("div");
+              p3.className = "pill2";
+              p3.textContent = "推薦 " + String(recs);
+              kv.appendChild(p3);
+            }
+
+            header.appendChild(titleEl);
+            header.appendChild(kv);
+
+            const authorRow = document.createElement("div");
+            authorRow.className = "authorRow";
+
+            const authorMini = document.createElement("div");
+            authorMini.className = "authorMini";
+
+            const name = String(s.authorName || s.userName || s.userId || "").trim() || "Player";
+            const lv = Number(s.authorLevel || 1);
+
+            const av = document.createElement("div");
+            av.className = "av";
+            renderAvatarInto(av, s, name);
+
+            const nmWrap = document.createElement("div");
+            nmWrap.style.minWidth = "0";
+
+            const nm = document.createElement("div");
+            nm.className = "nm";
+            nm.textContent = name;
+
+            const lvEl = document.createElement("div");
+            lvEl.className = "lv";
+            lvEl.textContent = "Lv." + String(lv);
+
+            nmWrap.appendChild(nm);
+            nmWrap.appendChild(lvEl);
+
+            authorMini.appendChild(av);
+            authorMini.appendChild(nmWrap);
+            authorMini.style.cursor = "pointer";
+            authorMini.onclick = (e)=>{ e.stopPropagation(); gotoUserProfile(s.userId); };
+
+            const iconRow = document.createElement("div");
+            iconRow.className = "iconRow";
+
+            const voteBtn = document.createElement("button");
+            voteBtn.className = "iconBtn";
+            voteBtn.type = "button";
+            voteBtn.innerHTML = ICON_VOTE + "<span>投票</span>";
+            if((!uid) || userVote <= 0) voteBtn.style.opacity = ".6";
+            voteBtn.onclick = async (e)=>{
+              e.stopPropagation();
+              clearError();
+              if(!uid){
+                showToast("請先登入");
+                return showError("請先登入");
+              }
+              if(userVote <= 0){
+                showToast("票數已投滿");
+                return showError("票數已投滿");
+              }
+              const done = setBtnBusy(voteBtn, "投票中");
+              showToast("投票中");
+              try{
+                await vote(sid);
+              }finally{
+                done();
+              }
+              await load();
+            };
+
+            const favBtn = document.createElement("button");
+            favBtn.className = "iconBtn";
+            favBtn.type = "button";
+            const isFav = favoriteSet.has(sid);
+            if(isFav) favBtn.classList.add("on");
+            favBtn.innerHTML = ICON_HEART + "<span>" + (isFav ? "已收藏" : "收藏") + "</span>";
+            favBtn.onclick = async (e)=>{
+              e.stopPropagation();
+              clearError();
+              const done = setBtnBusy(favBtn, isFav ? "取消中" : "收藏中");
+              try{
+                await toggleFav(sid);
+              }finally{
+                done();
+              }
+              await load();
+            };
+
+            const recBtn = document.createElement("button");
+            recBtn.className = "iconBtn warn";
+            recBtn.type = "button";
+            recBtn.innerHTML = ICON_FIRE + "<span>推薦 (" + String(recs) + ")</span>";
+            recBtn.onclick = async (e)=>{
+              e.stopPropagation();
+              clearError();
+              if(!uid){
+                showToast("請先登入");
+                return showError("請先登入");
+              }
+              if(userGem < 50){
+                showToast("GEM 不足");
+                return showError("GEM 不足");
+              }
+              const done = setBtnBusy(recBtn, "推薦中");
+              showToast("推薦中");
+              try{
+                await recommend(sid);
+              }finally{
+                done();
+              }
+              await load();
+            };
+
+            iconRow.appendChild(voteBtn);
+            iconRow.appendChild(favBtn);
+            iconRow.appendChild(recBtn);
+
+            authorRow.appendChild(authorMini);
+            authorRow.appendChild(iconRow);
+
+            const metaLine = document.createElement("div");
+            metaLine.className = "metaLine";
+            metaLine.textContent = "@" + String(s.userId || "").slice(0,12) + " · " + fmtTime(s.createdAt) + (s.seasonId ? (" · " + s.seasonId) : "");
+
+            body.appendChild(header);
+            body.appendChild(authorRow);
+            body.appendChild(metaLine);
+
+            entry.appendChild(th);
+            entry.appendChild(body);
+
+            entry.onclick = ()=>{
+              openModal(title, "票數 " + String(votes) + " · 收藏 " + String(favs) + (recs ? (" · 推薦 " + String(recs)) : "") + " · " + fmtTime(s.createdAt), [
+                { url: s.bgUrl, z:10 },
+                { url: s.addon2Url, z:20 },
+                { url: s.headUrl, z:30 },
+                { url: s.bodyUrl, z:40 },
+                { url: s.addon1Url, z:50 },
+              ]);
+            };
+
+            grid.appendChild(entry);
+          });
         }
-        if(userGem < 50){
-          showToast("GEM 不足");
-          return showError("GEM 不足");
+
+        function clearRankings(){
+          if(favRankGrid) favRankGrid.innerHTML = "";
+          if(newRankGrid) newRankGrid.innerHTML = "";
+          if(authorRankGrid) authorRankGrid.innerHTML = "";
+          if(favRankWrap) favRankWrap.style.display = "none";
+          if(newRankWrap) newRankWrap.style.display = "none";
+          if(authorRankWrap) authorRankWrap.style.display = "none";
         }
-        const done = setBtnBusy(recBtn, "推薦中");
-        showToast("推薦中");
-        try{
-          await recommend(sid);
-        }finally{
-          done();
+
+        function renderRankShowcaseGrid(wrapEl, gridEl, items, badgeTextFn){
+          if(!wrapEl || !gridEl) return;
+          gridEl.innerHTML = "";
+          const list = (items||[]).filter(x => Number(x.favorites||0) > 0);
+          if(list.length === 0){
+            wrapEl.style.display = "none";
+            return;
+          }
+          wrapEl.style.display = "block";
+
+          list.forEach((s)=>{
+            const card = document.createElement("div");
+            card.className = "recCard";
+
+            const th = document.createElement("div");
+            th.className = "recThumb";
+            makeStackThumb(th, [
+              { url: s.bgUrl, z:10 },
+              { url: s.addon2Url, z:20 },
+              { url: s.headUrl, z:30 },
+              { url: s.bodyUrl, z:40 },
+              { url: s.addon1Url, z:50 },
+            ]);
+
+            const meta = document.createElement("div");
+            meta.className = "recMeta";
+
+            const topRow = document.createElement("div");
+            topRow.className = "recMetaTop";
+
+            const author = document.createElement("div");
+            author.className = "recAuthor";
+            const authorName = String(s.authorName || s.userName || s.userId || "").trim() || "Player";
+
+            const av = document.createElement("div");
+            av.className = "recAuthorAv";
+            renderAvatarInto(av, s, authorName);
+
+            const nm = document.createElement("div");
+            nm.className = "recAuthorName";
+            nm.textContent = authorName;
+
+            author.appendChild(av);
+            author.appendChild(nm);
+            author.onclick = (e)=>{ e.stopPropagation(); gotoUserProfile(s.userId); };
+
+            const b = document.createElement("div");
+            b.className = "recBadge";
+            b.textContent = badgeTextFn ? badgeTextFn(s) : ("收藏 " + String(Number(s.favorites||0)));
+
+            topRow.appendChild(author);
+            topRow.appendChild(b);
+
+            const t = document.createElement("div");
+            t.className = "recTitleLine";
+            t.textContent = (s.title && String(s.title).trim()) ? String(s.title).trim() : "未命名作品";
+
+            meta.appendChild(topRow);
+            meta.appendChild(t);
+
+            card.appendChild(th);
+            card.appendChild(meta);
+
+            card.onclick = ()=>{
+              openModal(t.textContent, "收藏 " + String(Number(s.favorites||0)) + " · 票數 " + String(Number(s.votes||0)) + (Number(s.recommends||0) ? (" · 推薦 " + String(Number(s.recommends||0))) : "") + " · " + fmtTime(s.createdAt), [
+                { url: s.bgUrl, z:10 },
+                { url: s.addon2Url, z:20 },
+                { url: s.headUrl, z:30 },
+                { url: s.bodyUrl, z:40 },
+                { url: s.addon1Url, z:50 },
+              ]);
+            };
+
+            gridEl.appendChild(card);
+          });
         }
-        await load();
-      };
 
-      iconRow.appendChild(voteBtn);
-      iconRow.appendChild(favBtn);
-      iconRow.appendChild(recBtn);
+        function renderAuthorRank(items){
+          if(!authorRankWrap || !authorRankGrid) return;
+          authorRankGrid.innerHTML = "";
+          const list = (items||[]).filter(x => Number(x.followers||0) > 0);
+          if(list.length === 0){
+            authorRankWrap.style.display = "none";
+            return;
+          }
+          authorRankWrap.style.display = "block";
 
-      authorRow.appendChild(authorMini);
-      authorRow.appendChild(iconRow);
+          list.forEach((a, idx)=>{
+            const card = document.createElement("div");
+            card.className = "authorCard";
 
-      const metaLine = document.createElement("div");
-      metaLine.className = "metaLine";
-      metaLine.textContent = "@" + String(s.userId || "").slice(0,12) + " · " + fmtTime(s.createdAt) + (s.seasonId ? (" · " + s.seasonId) : "");
+            const left = document.createElement("div");
+            left.className = "authorLeft";
 
-      body.appendChild(header);
-      body.appendChild(authorRow);
-      body.appendChild(metaLine);
+            const av = document.createElement("div");
+            av.className = "authorAvBig";
+            const fakeShow = {
+              authorAvatarBgId: a.authorAvatarBgId,
+              authorAvatarAddon2Id: a.authorAvatarAddon2Id,
+              authorAvatarHeadId: a.authorAvatarHeadId,
+              authorAvatarBodyId: a.authorAvatarBodyId,
+              authorAvatarAddon1Id: a.authorAvatarAddon1Id,
+            };
+            renderAvatarInto(av, fakeShow, a.userName || a.userId || "Player");
 
-      entry.appendChild(th);
-      entry.appendChild(body);
+            const txt = document.createElement("div");
+            txt.style.minWidth = "0";
 
-      entry.onclick = ()=>{
-        openModal(title, "票數 " + String(votes) + " · 收藏 " + String(favs) + (recs ? (" · 推薦 " + String(recs)) : "") + " · " + fmtTime(s.createdAt), [
-          { url: s.bgUrl, z:10 },
-          { url: s.addon2Url, z:20 },
-          { url: s.headUrl, z:30 },
-          { url: s.bodyUrl, z:40 },
-          { url: s.addon1Url, z:50 },
-        ]);
-      };
+            const nm = document.createElement("div");
+            nm.className = "authorNameBig";
+            nm.textContent = String(a.userName || "Player");
 
-      grid.appendChild(entry);
-    });
-  }
+            const sub = document.createElement("div");
+            sub.className = "authorSub";
+            sub.textContent = "關注 " + String(Number(a.followers||0)) + " · Lv." + String(Number(a.level||1));
 
+            txt.appendChild(nm);
+            txt.appendChild(sub);
 
-  function clearRankings(){
-    if(favRankGrid) favRankGrid.innerHTML = "";
-    if(newRankGrid) newRankGrid.innerHTML = "";
-    if(authorRankGrid) authorRankGrid.innerHTML = "";
-    if(favRankWrap) favRankWrap.style.display = "none";
-    if(newRankWrap) newRankWrap.style.display = "none";
-    if(authorRankWrap) authorRankWrap.style.display = "none";
-  }
+            left.appendChild(av);
+            left.appendChild(txt);
 
-  function renderRankShowcaseGrid(wrapEl, gridEl, items, badgeTextFn){
-    if(!wrapEl || !gridEl) return;
-    gridEl.innerHTML = "";
-    const list = (items||[]).filter(x => Number(x.favorites||0) > 0);
-    if(list.length === 0){
-      wrapEl.style.display = "none";
-      return;
-    }
-    wrapEl.style.display = "block";
+            const right = document.createElement("div");
+            right.className = "pill2";
+            right.textContent = "#" + String(idx + 1);
 
-    list.forEach((s)=>{
-      const card = document.createElement("div");
-      card.className = "recCard";
+            card.appendChild(left);
+            card.appendChild(right);
 
-      const th = document.createElement("div");
-      th.className = "recThumb";
-      makeStackThumb(th, [
-        { url: s.bgUrl, z:10 },
-        { url: s.addon2Url, z:20 },
-        { url: s.headUrl, z:30 },
-        { url: s.bodyUrl, z:40 },
-        { url: s.addon1Url, z:50 },
-      ]);
+            card.onclick = ()=> gotoUserProfile(a.userId);
 
-      const meta = document.createElement("div");
-      meta.className = "recMeta";
+            authorRankGrid.appendChild(card);
+          });
+        }
 
-      const topRow = document.createElement("div");
-      topRow.className = "recMetaTop";
+        async function loadRankings(){
+          clearRankings();
+          try{
+            const [favRes, newRes, authRes] = await Promise.all([
+              api("/api/rank/favorites?limit=24", { method:"GET" }),
+              api("/api/rank/newcomers?limit=24", { method:"GET" }),
+              api("/api/rank/authors?limit=30", { method:"GET" }),
+            ]);
 
-      const author = document.createElement("div");
-      author.className = "recAuthor";
-      const authorName = String(s.authorName || s.userName || s.userId || "").trim() || "Player";
+            if(favRes && favRes.ok) renderRankShowcaseGrid(favRankWrap, favRankGrid, favRes.items || [], (s)=>"收藏 " + String(Number(s.favorites||0)));
+            if(newRes && newRes.ok) renderRankShowcaseGrid(newRankWrap, newRankGrid, newRes.items || [], (s)=>"新人 · 收藏 " + String(Number(s.favorites||0)));
+            if(authRes && authRes.ok) renderAuthorRank(authRes.items || []);
+          }catch(e){
+            clearRankings();
+          }
+        }
 
-      const av = document.createElement("div");
-      av.className = "recAuthorAv";
-      renderAvatarInto(av, s, authorName);
+        async function load(){
+          clearError();
+          statusLine.textContent = "讀取中";
+          try{
+            await loadMeLight();
+            await loadFavorites();
+            await loadRankings();
 
-      const nm = document.createElement("div");
-      nm.className = "recAuthorName";
-      nm.textContent = authorName;
+            const seasonId = String(seasonSel.value||"").trim();
+            const qs = seasonId ? ("?seasonId=" + encodeURIComponent(seasonId)) : "";
+            const res = await api("/api/gallery" + qs, { method:"GET" });
+            let items = (res.items || []).slice();
 
-      author.appendChild(av);
-      author.appendChild(nm);
-      author.onclick = (e)=>{ e.stopPropagation(); gotoUserProfile(s.userId); };
+            const sortMode = String(sortSel.value || "new");
+            if(sortMode === "new"){
+              items.sort((a,b)=> Number(b.createdAt||0) - Number(a.createdAt||0));
+            }else if(sortMode === "top"){
+              items.sort((a,b)=> Number(b.votes||0) - Number(a.votes||0) || Number(b.createdAt||0) - Number(a.createdAt||0));
+            }
 
-      const b = document.createElement("div");
-      b.className = "recBadge";
-      b.textContent = badgeTextFn ? badgeTextFn(s) : ("收藏 " + String(Number(s.favorites||0)));
+            if(!seasonOptionsLoaded){
+              const set = new Set(items.map(x => x.seasonId).filter(Boolean));
+              const arr = Array.from(set).sort().reverse();
+              arr.forEach(sid=>{
+                const opt = document.createElement("option");
+                opt.value = sid;
+                opt.textContent = sid;
+                seasonSel.appendChild(opt);
+              });
+              seasonOptionsLoaded = true;
+            }
 
-      topRow.appendChild(author);
-      topRow.appendChild(b);
+            statusLine.textContent = "共 " + String(items.length) + " 個作品";
 
-      const t = document.createElement("div");
-      t.className = "recTitleLine";
-      t.textContent = (s.title && String(s.title).trim()) ? String(s.title).trim() : "未命名作品";
+            const podium = items.slice().sort((a,b)=> Number(b.votes||0) - Number(a.votes||0)).slice(0,3);
+            renderPodium(podium);
+            render(items);
+          }catch(e){
+            statusLine.textContent = "讀取失敗";
+            showError("讀取失敗，請確認後端已有 /api/gallery 且資料庫存在 showcases / votes_v2 / favorites / assets");
+            console.error(e);
+          }
+        }
 
-      meta.appendChild(topRow);
-      meta.appendChild(t);
+        sortSel.onchange = load;
+        seasonSel.onchange = load;
+        load();
+      })();
+    </script>
 
-      card.appendChild(th);
-      card.appendChild(meta);
-
-      card.onclick = ()=>{
-        openModal(t.textContent, "收藏 " + String(Number(s.favorites||0)) + " · 票數 " + String(Number(s.votes||0)) + (Number(s.recommends||0) ? (" · 推薦 " + String(Number(s.recommends||0))) : "") + " · " + fmtTime(s.createdAt), [
-          { url: s.bgUrl, z:10 },
-          { url: s.addon2Url, z:20 },
-          { url: s.headUrl, z:30 },
-          { url: s.bodyUrl, z:40 },
-          { url: s.addon1Url, z:50 },
-        ]);
-      };
-
-      gridEl.appendChild(card);
-    });
-  }
-
-  function renderAuthorRank(items){
-    if(!authorRankWrap || !authorRankGrid) return;
-    authorRankGrid.innerHTML = "";
-    const list = (items||[]).filter(x => Number(x.followers||0) > 0);
-    if(list.length === 0){
-      authorRankWrap.style.display = "none";
-      return;
-    }
-    authorRankWrap.style.display = "block";
-
-    list.forEach((a, idx)=>{
-      const card = document.createElement("div");
-      card.className = "authorCard";
-
-      const left = document.createElement("div");
-      left.className = "authorLeft";
-
-      const av = document.createElement("div");
-      av.className = "authorAvBig";
-      // Reuse avatar renderer with a compatible object shape
-      const fakeShow = {
-        authorAvatarBgId: a.authorAvatarBgId,
-        authorAvatarAddon2Id: a.authorAvatarAddon2Id,
-        authorAvatarHeadId: a.authorAvatarHeadId,
-        authorAvatarBodyId: a.authorAvatarBodyId,
-        authorAvatarAddon1Id: a.authorAvatarAddon1Id,
-      };
-      renderAvatarInto(av, fakeShow, a.userName || a.userId || "Player");
-
-      const txt = document.createElement("div");
-      txt.style.minWidth = "0";
-
-      const nm = document.createElement("div");
-      nm.className = "authorNameBig";
-      nm.textContent = String(a.userName || "Player");
-
-      const sub = document.createElement("div");
-      sub.className = "authorSub";
-      sub.textContent = "關注 " + String(Number(a.followers||0)) + " · Lv." + String(Number(a.level||1));
-
-      txt.appendChild(nm);
-      txt.appendChild(sub);
-
-      left.appendChild(av);
-      left.appendChild(txt);
-
-      const right = document.createElement("div");
-      right.className = "pill2";
-      right.textContent = "#" + String(idx + 1);
-
-      card.appendChild(left);
-      card.appendChild(right);
-
-      card.onclick = ()=> gotoUserProfile(a.userId);
-
-      authorRankGrid.appendChild(card);
-    });
-  }
-
-  async function loadRankings(){
-    clearRankings();
-    try{
-      const [favRes, newRes, authRes] = await Promise.all([
-        api("/api/rank/favorites?limit=24", { method:"GET" }),
-        api("/api/rank/newcomers?limit=24", { method:"GET" }),
-        api("/api/rank/authors?limit=30", { method:"GET" }),
-      ]);
-
-      if(favRes && favRes.ok) renderRankShowcaseGrid(favRankWrap, favRankGrid, favRes.items || [], (s)=>"收藏 " + String(Number(s.favorites||0)));
-      if(newRes && newRes.ok) renderRankShowcaseGrid(newRankWrap, newRankGrid, newRes.items || [], (s)=>"新人 · 收藏 " + String(Number(s.favorites||0)));
-      if(authRes && authRes.ok) renderAuthorRank(authRes.items || []);
-    }catch(e){
-      // rankings are optional; ignore failures
-      clearRankings();
-    }
-  }
-
-  async function load(){
-    clearError();
-    statusLine.textContent = "讀取中";
-    try{
-      await loadMe();
-      await loadFavorites();
-      await loadRankings();
-
-      const seasonId = String(seasonSel.value||"").trim();
-      const qs = seasonId ? ("?seasonId=" + encodeURIComponent(seasonId)) : "";
-      const res = await api("/api/gallery" + qs, { method:"GET" });
-      let items = (res.items || []).slice();
-
-      
-// Default ordering: recommended-first for "爆款版" feel
-items.sort((a,b)=>{
-  const ar = Number(a.recommends||0);
-  const br = Number(b.recommends||0);
-  if(br !== ar) return br - ar;
-  const av = Number(a.votes||0);
-  const bv = Number(b.votes||0);
-  if(bv !== av) return bv - av;
-  return Number(b.createdAt||0) - Number(a.createdAt||0);
-});
-
-// User-selected sort override
-const sortMode = String(sortSel.value || "new");
-if(sortMode === "new"){
-  items.sort((a,b)=> Number(b.createdAt||0) - Number(a.createdAt||0));
-}else if(sortMode === "top"){
-  items.sort((a,b)=> Number(b.votes||0) - Number(a.votes||0) || Number(b.createdAt||0) - Number(a.createdAt||0));
-}
-if(!seasonOptionsLoaded){
-        const set = new Set(items.map(x => x.seasonId).filter(Boolean));
-        const arr = Array.from(set).sort().reverse();
-        arr.forEach(sid=>{
-          const opt = document.createElement("option");
-          opt.value = sid;
-          opt.textContent = sid;
-          seasonSel.appendChild(opt);
-        });
-        seasonOptionsLoaded = true;
-      }
-
-      if(sortSel.value === "top"){
-        items.sort((a,b)=>{
-          const br = Number(b.recommends||0);
-          const ar = Number(a.recommends||0);
-          if(br !== ar) return br - ar;
-          const bv = Number(b.votes||0);
-          const av = Number(a.votes||0);
-          if(bv !== av) return bv - av;
-          return Number(b.createdAt||0) - Number(a.createdAt||0);
-        });
-      }else{
-        items.sort((a,b)=> Number(b.createdAt||0) - Number(a.createdAt||0));
-      }
-
-      statusLine.textContent = "共 " + String(items.length) + " 個作品";
-
-      // podium from current filtered items
-      const podium = items.slice().sort((a,b)=> Number(b.votes||0) - Number(a.votes||0)).slice(0,3);
-      renderPodium(podium);
-      render(items);
-    }catch(e){
-      statusLine.textContent = "讀取失敗";
-      showError("讀取失敗，請確認後端已有 /api/gallery 且資料庫存在 showcases / votes_v2 / favorites / assets");
-      console.error(e);
-    }
-  }
-
-  sortSel.onchange = load;
-  seasonSel.onchange = load;
-  load();
-})();
-</script>
-  <script src="app.js"></script>
+    <script src="app.js"></script>
   </div>
 </body>
 </html>
