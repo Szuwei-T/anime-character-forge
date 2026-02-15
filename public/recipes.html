@@ -8,13 +8,6 @@
   <link rel="stylesheet" href="ui_fx.css" />
   <style>
     .page-wrap{max-width:1180px;margin:0 auto;padding:22px 18px 44px;}
-    .topbar{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:16px;}
-    .title{display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
-    .title h1{font-size:22px;margin:0;letter-spacing:1px;}
-    .badge{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);font-size:12px;opacity:.95}
-    .actions{display:flex;gap:10px;flex-wrap:wrap}
-    .btn{cursor:pointer;user-select:none;padding:10px 14px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);font-size:13px;transition:.15s}
-    .btn:hover{background:rgba(255,255,255,.10)}
     .statusline{margin:10px 0 12px;opacity:.9}
     .errorbox{margin:10px 0 12px;padding:10px 12px;border-radius:12px;background:rgba(255,0,0,.10);border:1px solid rgba(255,0,0,.25);color:#ffb3b3}
 
@@ -156,28 +149,16 @@
       filter: drop-shadow(0 18px 40px rgba(0,0,0,.35));
     }
 
-    .topbar{
-      padding:14px 16px;
-      border-radius:18px;
-      background: var(--ui-topbar) center/100% 100% no-repeat;
-      border:none;
-    }
-    .badge{
-      background:rgba(0,0,0,.18);
-      border:1px solid rgba(255,255,255,.10);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
-    }
-
-    .btn, .tabbtn, .showBtn{
+    .tabbtn, .showBtn{
       border:none;
       background: var(--ui-btn-primary) center/100% 100% no-repeat;
       padding:12px 18px;
       box-shadow: 0 10px 20px rgba(0,0,0,.25);
     }
-    .btn:hover, .tabbtn:hover, .showBtn:hover{
+    .tabbtn:hover, .showBtn:hover{
       background-image: var(--ui-btn-primary-hover);
     }
-    .btn:active, .tabbtn:active, .showBtn:active{
+    .tabbtn:active, .showBtn:active{
       background-image: var(--ui-btn-primary-pressed);
       transform: translateY(1px);
     }
@@ -216,25 +197,11 @@
       transform: translateY(-2px);
       filter: drop-shadow(0 0 18px rgba(255,220,120,.12));
     }
-
-    .title h1{ text-shadow: 0 2px 10px rgba(0,0,0,.45); }
 </style>
 </head>
 <body>
   <div class="acf-page ui-panel"><div id="acfMasterMount"></div>
   <div class="page-wrap">
-    <div class="topbar">
-      <div class="title">
-        <h1>成品庫</h1>
-        <div class="badge">帳號 <span id="uidBadge">未登入</span></div>
-        <div class="badge">狀態 <span id="netBadge">檢查中</span></div>
-      </div>
-      <div class="actions">
-        <div class="btn" id="btnStudio">回工作室</div>
-        <div class="btn" id="btnGacha">去抽卡</div>
-        <div class="btn" id="btnHome">首頁</div>
-      </div>
-    </div>
 
     <div class="tabs">
       <div class="tabbtn active" id="tabSaves">我的成品</div>
@@ -267,8 +234,6 @@
   const WORKER_BASE = window.WORKER_BASE || localStorage.getItem("acf_worker_base") || DEFAULT_WORKER;
 
   const uid = localStorage.getItem("acf_uid") || "";
-  const uidBadge = document.getElementById("uidBadge");
-  const netBadge = document.getElementById("netBadge");
   const statusLine = document.getElementById("statusLine");
   const errorBox = document.getElementById("errorBox");
 
@@ -284,16 +249,7 @@
   const modalMeta = document.getElementById("modalMeta");
   const bigwrap = document.getElementById("bigwrap");
 
-  uidBadge.textContent = uid ? uid : "未登入";
-
-  document.getElementById("btnStudio").onclick = () => location.href = "/studio";
-  document.getElementById("btnGacha").onclick = () => location.href = "/gacha";
-  document.getElementById("btnHome").onclick = () => location.href = "/";
-
-  function setNet(ok){
-    netBadge.textContent = ok ? "Online" : "Offline";
-    netBadge.style.opacity = ok ? "1" : ".75";
-  }
+  function setNet(ok){ /* no header badge on this page */ }
   function showError(msg){
     errorBox.style.display = "block";
     errorBox.textContent = msg;
