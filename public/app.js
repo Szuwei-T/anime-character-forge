@@ -313,7 +313,7 @@ window.getName = getName;
         justify-content: space-between;
         padding: 0 28px;
         box-sizing: border-box;
-        background-image: url("/effect/top_light.webp"), url("/frame/account_top_frame.webp");
+        background-image: url("/effect/top_light.webp"), url("/ui/frame/account_top_frame.webp");
         background-repeat: no-repeat, no-repeat;
         background-position: center top, center center;
         background-size: 100% 100%, 100% 100%;
@@ -340,7 +340,7 @@ window.getName = getName;
         pointer-events: none;
         width: 100%;
         height: 8px;
-        background: url("/frame/top_bar_divider.webp") center / 100% 100% no-repeat;
+        background: url("/ui/frame/top_bar_divider.webp") center / 100% 100% no-repeat;
       }
 
       .acf-masterLeft{
@@ -445,11 +445,11 @@ window.getName = getName;
         white-space: nowrap;
       }
 
-      .acf-capGold{ background-image: url("/frame/account_gold.webp"); }
-      .acf-capGem{ background-image: url("/frame/account_gem.webp"); }
-      .acf-capTicket{ background-image: url("/frame/account_ticket.webp"); }
+      .acf-capGold{ background-image: url("/ui/frame/account_gold.webp"); }
+      .acf-capGem{ background-image: url("/ui/frame/account_gem.webp"); }
+      .acf-capTicket{ background-image: url("/ui/frame/account_ticket.webp"); }
       .acf-capGeneric{
-        background-image: url("/frame/account_capsule.webp");
+        background-image: url("/ui/frame/account_capsule.webp");
         justify-content: space-between;
         padding: 0 18px;
         gap: 10px;
