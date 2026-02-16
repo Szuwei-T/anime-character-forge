@@ -7,55 +7,334 @@
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="ui_fx.css" />
   <style>
-    .wrap{max-width:1100px;margin:28px auto;padding:0 14px}
-    h1{margin:0 0 6px;font-size:26px;letter-spacing:.2px}
-    .sub{opacity:.85;margin:0 0 16px;line-height:1.45}
-    .topbar{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;flex-wrap:wrap}
-    .links a{opacity:.9;margin-left:10px;text-decoration:none}
-    .links a:hover{opacity:1;text-decoration:underline}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-top:18px}
-    .card{border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.22);border-radius:16px;padding:14px;box-shadow:0 10px 24px rgba(0,0,0,.25);backdrop-filter:blur(4px)}
-    .card:hover{border-color:rgba(255,255,255,.18);transform:translateY(-1px)}
-    .title{font-size:22px;font-weight:800;margin-bottom:10px}
-    .line{margin:6px 0}
-    .promo{display:inline-block;margin-top:8px;padding:8px 10px;border-radius:12px;background:rgba(255,215,0,.10);border:1px solid rgba(255,215,0,.18)}
-    .buy{width:100%;margin-top:12px;padding:12px 12px;border-radius:14px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:#fff;cursor:pointer;font-weight:800}
-    .buy:hover{background:rgba(255,255,255,.12)}
-    .buy:active{transform:translateY(1px)}
-    .buy[disabled]{opacity:.6;cursor:not-allowed;transform:none}
-    .toast{margin-top:14px;border-radius:14px;padding:10px 12px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.20);backdrop-filter:blur(4px)}
-    .ok{color:#8dffa4}
-    .err{color:#ff9b9b;white-space:pre-wrap}
-    .muted{opacity:.75;font-size:12px;line-height:1.4;margin-top:10px}
+    body{
+      margin:0;
+      min-height:100vh;
+      color:#fff;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, "Noto Sans TC", sans-serif;
+      background: url("/ui/bg/main_bg.webp") center/cover no-repeat fixed;
+    }
+
+    #acfMasterMount{
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 9999;
+    }
+    body{ padding-top: var(--masterH, 0px); }
+
+    .wrap{
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px 24px;
+    }
+
+    .vignette{
+      position:fixed;
+      inset:0;
+      background:url("/ui/bg/vignette.webp") center/cover no-repeat;
+      pointer-events:none;
+      z-index:3;
+      mix-blend-mode:multiply;
+      opacity:0.95;
+    }
+    .particles{
+      position:fixed;
+      inset:-10%;
+      background: url("/ui/bg/particles.png") center/auto repeat;
+      opacity:0.35;
+      pointer-events:none;
+      z-index:2;
+      filter: blur(0.2px);
+      animation: particlesDrift 18s linear infinite;
+    }
+    @keyframes particlesDrift{
+      0%{ transform: translate3d(0,0,0); }
+      100%{ transform: translate3d(-120px, 80px, 0); }
+    }
+
+    .heroStage{
+      position: relative;
+      width: 100%;
+      height: calc(100vh - var(--masterH, 0px));
+      min-height: calc(100vh - var(--masterH, 0px));
+      overflow: hidden;
+    }
+    @media (max-width: 1100px){
+      .heroStage{
+        height: auto;
+        min-height: 0;
+        padding-bottom: 14px;
+      }
+    }
+
+    .featureStage{
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+      z-index: 1;
+    }
+    .bgVideo{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      object-fit: cover;
+      z-index:1;
+      filter: saturate(0.95) contrast(1.05);
+    }
+
+    .stageVideo{
+      position: relative;
+      height: calc(100vh - var(--masterH, 0px));
+      width: auto;
+      max-width: none;
+      aspect-ratio: 9 / 12;
+      object-fit: contain;
+      z-index: 3;
+      border-radius: 18px;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.55);
+    }
+
+    @media (max-width: 1100px){
+      .featureStage{
+        position: relative;
+        height: 82vh;
+      }
+      .stageVideo{
+        height: 100%;
+        max-width: 92vw;
+      }
+    }
+
+    .leftOverlay, .rightOverlay{
+      position: absolute;
+      top: 18px;
+      width: 360px;
+      z-index: 12;
+      display:flex;
+      flex-direction:column;
+      gap: 12px;
+      pointer-events: none;
+    }
+    .leftOverlay{ left: 18px; }
+    .rightOverlay{ right: 18px; }
+
+    @media (max-width: 1100px){
+      .leftOverlay, .rightOverlay{
+        position: static;
+        width: auto;
+        margin-top: 12px;
+        pointer-events: auto;
+      }
+    }
+
+    .panelCard{
+      pointer-events: auto;
+      border-radius: 18px;
+      background: rgba(0,0,0,0.58);
+      border: 1px solid rgba(255,255,255,0.16);
+      box-shadow: 0 18px 60px rgba(0,0,0,0.50);
+      padding: 12px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    .panelTitle{
+      display:flex;
+      align-items:baseline;
+      justify-content:space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .panelTitle .name{
+      font-weight: 950;
+      letter-spacing: 0.4px;
+      font-size: 18px;
+    }
+    .panelTitle .desc{
+      opacity: 0.78;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .panelText{
+      font-size: 13px;
+      opacity: 0.92;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
+    .packs{
+      display:flex;
+      flex-direction:column;
+      gap: 10px;
+      max-height: calc(100vh - var(--masterH, 0px) - 120px);
+      overflow: auto;
+      padding-right: 2px;
+    }
+    @media (max-width: 1100px){
+      .packs{ max-height: none; overflow: visible; }
+    }
+
+    .packItem{
+      border-radius: 16px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      padding: 10px 10px 10px;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.25);
+    }
+    .packTop{
+      display:flex;
+      align-items:baseline;
+      justify-content:space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .packPrice{
+      font-weight: 1000;
+      font-size: 18px;
+      letter-spacing: 0.3px;
+    }
+    .packTag{
+      font-size: 11px;
+      font-weight: 950;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,215,0,0.20);
+      background: rgba(255,215,0,0.10);
+      opacity: 0.95;
+      white-space: nowrap;
+    }
+    .packLines{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 10px;
+      margin-bottom: 10px;
+    }
+    .packLine{
+      font-size: 12px;
+      font-weight: 900;
+      opacity: 0.92;
+    }
+    .packLine b{ font-weight: 1000; }
+
+    .packBtn{
+      width: 100%;
+      border: 0;
+      cursor: pointer;
+      font-weight: 1000;
+      letter-spacing: 0.4px;
+      border-radius: 14px;
+      height: 56px;
+      color: #fff;
+      background: transparent;
+      background-image: url("/ui/button/btn_shop.webp");
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.85);
+      user-select:none;
+    }
+    .packBtn:hover{
+      filter: brightness(1.08) saturate(1.06);
+      transform: translateY(-1px);
+    }
+    .packBtn:active{
+      filter: brightness(0.95) saturate(1.02);
+      transform: translateY(0px) scale(0.99);
+    }
+    .packBtn[disabled]{
+      opacity: .6;
+      cursor: not-allowed;
+      transform:none;
+      filter:none;
+    }
+
+    .toast{
+      pointer-events:auto;
+      border-radius: 18px;
+      padding: 12px;
+      background: rgba(0,0,0,0.58);
+      border: 1px solid rgba(255,255,255,0.16);
+      box-shadow: 0 18px 60px rgba(0,0,0,0.50);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    .ok{ color:#8dffa4; font-weight: 900; }
+    .err{ color:#ff9b9b; font-weight: 900; white-space: pre-wrap; }
+    .muted{ opacity:.75; font-size:12px; line-height:1.4; margin-top:8px; font-weight:800; }
+
+    .miniLinks{
+      display:flex;
+      gap: 10px;
+      flex-wrap:wrap;
+      margin-top: 10px;
+    }
+    .miniLinks a{
+      font-size: 12px;
+      font-weight: 900;
+      opacity: 0.9;
+      color: rgba(255,255,255,0.92);
+      text-decoration:none;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      padding: 8px 10px;
+      border-radius: 999px;
+    }
+    .miniLinks a:hover{ opacity: 1; background: rgba(255,255,255,0.10); }
   </style>
 </head>
 <body>
   <div class="acf-page ui-panel">
     <div id="acfMasterMount"></div>
 
+    <div class="particles" aria-hidden="true"></div>
+    <div class="vignette" aria-hidden="true"></div>
+
     <div class="wrap">
-      <div class="topbar">
-        <div>
-          <h1>DREAM LEAGUE BASEBALL 商城</h1>
-          <div class="sub">付款完成後不會立刻入帳。後端收到 Stripe webhook 才入帳，避免前端作弊。</div>
+      <div class="heroStage" id="heroStage">
+        <div class="featureStage" id="featureStage">
+          <video id="featuredVideoBg" class="bgVideo" autoplay muted loop playsinline></video>
+          <video id="featuredVideo" class="stageVideo" autoplay muted loop playsinline></video>
+
+          <img id="featuredFallbackBg" class="bgVideo" src="/assets/feature_character.png" style="display:none;" alt="" />
+          <img id="featuredFallback" src="/assets/feature_character.png" style="display:none; position:absolute; inset:0; width:100%; height:100%; object-fit:contain; z-index:1;" alt="" />
         </div>
-        <div class="links">
-          <a href="./shop-success.html">Success</a>
-          <span> </span>
-          <a href="./shop-cancel.html">Cancel</a>
+
+        <div class="leftOverlay">
+          <div class="panelCard">
+            <div class="panelTitle">
+              <div class="name">商城</div>
+              <div class="desc">Stripe Checkout</div>
+            </div>
+            <div class="panelText">付款完成後不會立刻入帳。後端收到 Stripe webhook 才入帳，避免前端作弊。</div>
+            <div class="miniLinks">
+              <a href="./shop-success.html">Success</a>
+              <a href="./shop-cancel.html">Cancel</a>
+            </div>
+          </div>
+
+          <div id="okWrap" class="toast" style="display:none">
+            <div id="ok" class="ok"></div>
+            <div class="muted">如果沒有自動跳轉，請確認瀏覽器沒有阻擋重新導向。</div>
+          </div>
+
+          <div id="errWrap" class="toast" style="display:none">
+            <div id="err" class="err"></div>
+            <div class="muted">若你在本機離線模式，請用線上環境或確認 WORKER_BASE 已設定。</div>
+          </div>
         </div>
-      </div>
 
-      <div class="grid" id="grid"></div>
-
-      <div id="okWrap" class="toast" style="display:none">
-        <div id="ok" class="ok"></div>
-        <div class="muted">如果沒有自動跳轉，請確認瀏覽器沒有阻擋重新導向。</div>
-      </div>
-
-      <div id="errWrap" class="toast" style="display:none">
-        <div id="err" class="err"></div>
-        <div class="muted">若你在本機離線模式，請用線上環境或確認 WORKER_BASE 已設定。</div>
+        <div class="rightOverlay">
+          <div class="panelCard">
+            <div class="panelTitle">
+              <div class="name">充值方案</div>
+              <div class="desc">Gold / Gem</div>
+            </div>
+            <div class="packs" id="packs"></div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -65,7 +344,103 @@
         ? ""
         : "https://acf-api.dream-league-baseball.workers.dev");
     </script>
+
     <script>
+      function updateMasterHeight(){
+        const m = document.getElementById("acfMasterMount");
+        const h = m ? Math.ceil(m.getBoundingClientRect().height) : 0;
+        document.documentElement.style.setProperty("--masterH", h + "px");
+      }
+      window.addEventListener("resize", updateMasterHeight);
+      setTimeout(updateMasterHeight, 0);
+      setTimeout(updateMasterHeight, 250);
+
+      async function loadFeaturedVideo(){
+        const v = document.getElementById("featuredVideo");
+        const vbg = document.getElementById("featuredVideoBg");
+        const img = document.getElementById("featuredFallback");
+        const imgbg = document.getElementById("featuredFallbackBg");
+        if(!v) return;
+
+        v.muted = true;
+        v.autoplay = true;
+        v.loop = true;
+        v.playsInline = true;
+        v.setAttribute("playsinline", "");
+        v.preload = "auto";
+
+        const showFallback = ()=>{
+          try{ v.pause(); }catch(_){}
+          try{ v.removeAttribute("src"); }catch(_){}
+          try{ v.load(); }catch(_){}
+          v.style.display = "none";
+          if(vbg) vbg.style.display = "none";
+          if(img) img.style.display = "";
+          if(imgbg) imgbg.style.display = "";
+        };
+
+        const normalizeFeaturedList = (data)=>{
+          if(!data) return [];
+          if(Array.isArray(data)) return data;
+          if(Array.isArray(data.featured)) return data.featured;
+          if(Array.isArray(data.items)) return data.items;
+          if(Array.isArray(data.data)) return data.data;
+          return [];
+        };
+
+        const getJson = async (path)=>{
+          if(typeof window.api === "function"){
+            const r = await window.api(path, { method: "GET" });
+            if(r && typeof r === "object" && typeof r.json !== "function") return r;
+            if(r && typeof r.json === "function") return await r.json();
+          }
+          const res = await fetch(path, { cache: "no-store" });
+          if(!res.ok) throw new Error(`http_${res.status}`);
+          return await res.json();
+        };
+
+        try{
+          const seasonId = (window.SEASON_ID || "S1");
+          const data = await getJson(`/api/featured?seasonId=${encodeURIComponent(seasonId)}`);
+          const list = normalizeFeaturedList(data);
+          const first = list[0] || null;
+          const fid = first && (first.featuredId || first.id || first.assetId || first.featured_id);
+          if(!fid) throw new Error("no_featuredId");
+
+          let src = "";
+          const vurl = first && (first.videoUrl || first.video_url || first.mp4Url || first.mp4_url || first.url);
+          if(vurl) src = String(vurl);
+          if(!src) src = `/assets/${fid}.mp4`;
+
+          if(!/^https?:\/\//i.test(src)){
+            if(src.startsWith("assets/")) src = "/" + src;
+            if(!src.startsWith("/")) src = "/" + src;
+            src = `${location.origin}${src}`;
+          }
+
+          v.onerror = showFallback;
+          v.src = src;
+          v.style.display = "";
+          if(vbg){
+            vbg.onerror = ()=>{};
+            vbg.src = src;
+            vbg.style.display = "";
+          }
+          if(img) img.style.display = "none";
+          if(imgbg) imgbg.style.display = "none";
+
+          try{ v.load(); }catch(_){}
+          v.play().catch(()=>{});
+          if(vbg){
+            try{ vbg.load(); }catch(_){}
+            vbg.play().catch(()=>{});
+          }
+        }catch(e){
+          console.warn("featured video load failed", e);
+          showFallback();
+        }
+      }
+
       const PACKS = [
         { id: "pack_199",  priceUsd: "1.99",  coins: 1000000,  gems: 300,  bonusGems: 200 },
         { id: "pack_499",  priceUsd: "4.99",  coins: 3000000,  gems: 900,  bonusGems: 600 },
@@ -74,7 +449,7 @@
         { id: "pack_4999", priceUsd: "49.99", coins: 30000000, gems: 9000, bonusGems: 6000 }
       ];
 
-      const grid = document.getElementById("grid");
+      const packsEl = document.getElementById("packs");
       const okBox = document.getElementById("ok");
       const errBox = document.getElementById("err");
       const okWrap = document.getElementById("okWrap");
@@ -84,21 +459,16 @@
         okBox.textContent = msg || "";
         okWrap.style.display = msg ? "" : "none";
       }
-
       function showErr(msg){
         errBox.textContent = msg || "";
         errWrap.style.display = msg ? "" : "none";
       }
-
       function safeWorkerBase(){
-        // Prefer app.js WORKER_BASE if present, then fallback to last saved value.
         return (window.WORKER_BASE || "").trim() || (localStorage.getItem("dlb_api_base") || "").trim();
       }
-
       function getUid(){
         return (localStorage.getItem("acf_uid") || "").trim();
       }
-
       function ensureUid(){
         let uid = getUid();
         if(!uid){
@@ -108,21 +478,25 @@
         return uid;
       }
 
-      function cardHtml(p){
+      function packHtml(p){
         return `
-          <div class="card">
-            <div class="title">$${p.priceUsd}</div>
-            <div class="line">金幣 <b>${p.coins}</b></div>
-            <div class="line">鑽石 <b>${p.gems}</b></div>
-            <div class="promo">活動加送 <b>${p.bonusGems}</b> 鑽石</div>
-            <button class="buy" data-pack="${p.id}">立即購買</button>
+          <div class="packItem">
+            <div class="packTop">
+              <div class="packPrice">$${p.priceUsd}</div>
+              <div class="packTag">加送 ${p.bonusGems} Gem</div>
+            </div>
+            <div class="packLines">
+              <div class="packLine">Gold <b>${p.coins}</b></div>
+              <div class="packLine">Gem <b>${p.gems}</b></div>
+            </div>
+            <button class="packBtn" data-pack="${p.id}">立即購買</button>
           </div>
         `;
       }
 
-      function render(){
-        grid.innerHTML = PACKS.map(cardHtml).join("");
-        document.querySelectorAll("button.buy").forEach(btn=>{
+      function renderPacks(){
+        packsEl.innerHTML = PACKS.map(packHtml).join("");
+        packsEl.querySelectorAll(".packBtn").forEach(btn=>{
           btn.addEventListener("click", ()=>startCheckout(btn));
         });
       }
@@ -141,7 +515,6 @@
         }
 
         btn.disabled = true;
-        btn.textContent = "建立付款中";
 
         try{
           let data = null;
@@ -170,25 +543,24 @@
         }catch(e){
           showErr(String(e && e.message ? e.message : e));
           btn.disabled = false;
-          btn.textContent = "立即購買";
         }
       }
 
       async function boot(){
+        updateMasterHeight();
         const apiBase = safeWorkerBase();
         localStorage.setItem("dlb_api_base", apiBase || "");
 
-        // Make sure uid exists for store calls
         ensureUid();
 
-        // Make sure the user row exists in D1 (same as other pages)
         try{
           if(typeof window.initSession === "function") await window.initSession();
         }catch(e){
           console.warn(e);
         }
 
-        render();
+        renderPacks();
+        loadFeaturedVideo();
       }
 
       boot();
