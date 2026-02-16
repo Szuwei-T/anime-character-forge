@@ -1415,16 +1415,26 @@ body{ padding-top: var(--masterH, 0px); }
   z-index:1;
 }
 .stageVideo{
-  position:relative;
-  width: min(52vw, 680px);
+  position: relative;
+  /* keep the featured video fully visible */
+  height: min(calc(100% - 140px), 860px);
+  max-height: calc(100% - 140px);
+  width: auto;
+  max-width: min(46vw, 620px);
   aspect-ratio: 9 / 16;
   z-index: 3;
   border-radius: 18px;
   box-shadow: 0 30px 80px rgba(0,0,0,0.55);
+  /* nudge down a bit and slightly left to feel centered between side panels */
+  transform: translate(-36px, 44px);
 }
 @media (max-width: 1100px){
-  .featureStage{ position:relative; height: 70vh; }
-  .stageVideo{ width: 92vw; max-width: 520px; }
+  .featureStage{ position:relative; height: 72vh; }
+  .stageVideo{
+    transform: translate(0, 18px);
+    height: min(calc(100% - 70px), 820px);
+    max-width: 92vw;
+  }
 }
 
 /* compact gacha cards inside the right panel */
