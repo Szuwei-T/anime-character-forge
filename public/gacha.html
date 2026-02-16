@@ -985,7 +985,7 @@ opacity: 1;
     
     .cine-ten{
       width: 100%;
-      max-width: min(760px, 92vw);
+      max-width: 100%;
       display:none;
       flex-direction:column;
       gap:10px;
@@ -1612,10 +1612,65 @@ body{ padding-top: var(--masterH, 0px); }
 .cine-ten-grid::-webkit-scrollbar{
   height: 10px;
 }
+.results-bottom,
+.cine-ten-grid{
+  scrollbar-gutter: stable;
+}
+
 .results-bottom::-webkit-scrollbar-thumb,
 .cine-ten-grid::-webkit-scrollbar-thumb{
   background: rgba(255,214,102,0.35);
   border-radius: 999px;
+}
+
+
+/* ===== Scrollbar stability: stop page jumping ===== */
+html{
+  scrollbar-gutter: stable both-edges; /* keep gutter reserved even when overflow toggles */
+}
+body{
+  overflow-y: scroll;   /* always reserve vertical scrollbar space */
+  overflow-x: hidden;   /* never allow page-level horizontal scrollbar */
+}
+
+/* Prevent flex children from forcing page wider than viewport */
+.wrap, .heroStage, .featureStage, .panel, .cinematic, .cinematic .cine-core{
+  max-width: 100%;
+}
+
+/* Results rows must never create page-level overflow */
+.results-bottom,
+.results-grid,
+.results-row,
+.cine-ten-grid{
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* When we enable horizontal scrolling inside results rows, hide any accidental vertical overflow */
+.results-bottom,
+.results-grid,
+.results-row,
+.cine-ten-grid{
+  overflow-y: hidden !important;
+}
+
+/* Avoid hover/active transforms causing layout overflow */
+.results-bottom .result-card,
+.results-row .result-card,
+.cine-ten-grid .cine-ten-item{
+  transform: translateZ(0);
+}
+
+
+/* ===== Results overlay must be above masterpage ===== */
+#acfMasterMount{ z-index: 5000 !important; }
+.overlay{ position: fixed !important; inset: 0; z-index: 120000 !important; }
+.cinematic{ position: fixed !important; inset: 0; z-index: 130000 !important; isolation: isolate; }
+
+/* If any parent has transform, fixed layers can behave oddly; neutralize common wrappers */
+body, .wrap, .page, .acf-page, .container{
+  transform: none !important;
 }
 
 </style>
@@ -1746,8 +1801,14 @@ body{ padding-top: var(--masterH, 0px); }
     // Keep featured video exactly from masterpage bottom to viewport bottom
     function updateMasterHeight(){
       const m = document.getElementById("acfMasterMount");
-      const h = m ? Math.ceil(m.getBoundingClientRect().height) : 0;
-      document.documentElement.style.setProperty("--masterH", h + "px");
+      const hRaw = m ? m.getBoundingClientRect().height : 0;
+
+      // round to integer px and only update if meaningfully changed (prevents 1px oscillation)
+      const h = Math.max(0, Math.round(hRaw));
+      const cur = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--masterH")) || 0;
+      if(Math.abs(h - cur) >= 2){
+        document.documentElement.style.setProperty("--masterH", h + "px");
+      }
     }
     window.addEventListener("resize", updateMasterHeight);
     // Run once after masterpage renders
