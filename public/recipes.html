@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="ui_fx.css" />
   <style>
-    .page-wrap{max-width:1365px;margin:0 auto;padding:22px 18px 44px;}
+    .page-wrap{max-width:1180px;margin:0 auto;padding:22px 18px 44px;}
     .statusline{margin:10px 0 12px;opacity:.9}
     .errorbox{margin:10px 0 12px;padding:10px 12px;border-radius:12px;background:rgba(255,0,0,.10);border:1px solid rgba(255,0,0,.25);color:#ffb3b3}
 
@@ -340,180 +340,19 @@
       box-shadow: 0 24px 80px rgba(0,0,0,.55);
     }
 
-
-    /* Header strip and controls */
-    .headerStrip{
-      display:flex;
-      align-items:flex-end;
-      justify-content:space-between;
-      gap:16px;
-      padding:14px 14px 12px;
-      margin: 2px 0 14px;
-      border-radius:22px;
-      background: linear-gradient(180deg, rgba(12,14,20,.62), rgba(10,12,18,.42));
-      border: 1px solid rgba(255,255,255,.10);
-      box-shadow:
-        0 18px 50px rgba(0,0,0,.45),
-        inset 0 1px 0 rgba(255,255,255,.06);
-      backdrop-filter: blur(8px);
-    }
-    .headerLeft{display:flex;flex-direction:column;gap:8px;min-width:260px}
-    .headerRight{flex:1;display:flex;justify-content:flex-end}
-    .ctrlRow{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;justify-content:flex-end}
-    .ctrlGroup{display:flex;flex-direction:column;gap:6px}
-    .ctrlLabel{font-size:12px;opacity:.85;letter-spacing:.6px;text-shadow:0 2px 10px rgba(0,0,0,.45)}
-    .ctrlSelect,.ctrlInput{
-      height:40px;
-      border-radius:12px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(8,10,14,.45);
-      color: rgba(255,255,255,.92);
-      padding: 0 12px;
-      outline:none;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
-    }
-    .ctrlSelect:focus,.ctrlInput:focus{
-      border-color: rgba(160,210,255,.28);
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.06),
-        0 0 0 3px rgba(80,140,255,.10);
-    }
-    .searchGroup{min-width:260px}
-    .ctrlInput{width:100%}
-
-    /* Spinner */
-    .spinner{
-      width:14px;height:14px;border-radius:999px;
-      border:2px solid rgba(255,255,255,.25);
-      border-top-color: rgba(255,255,255,.75);
-      display:inline-block;
-      margin-right:8px;
-      animation: spin 1s linear infinite;
-      vertical-align:-2px;
-    }
-    @keyframes spin{to{transform:rotate(360deg);}}
-
-    /* Cleaner meta */
-    .meta{padding:12px 12px 12px}
-    .meta .parts{display:none}
-    .meta .sub{
-      margin-top:6px;
-      font-size:12px;
-      opacity:.75;
-      text-shadow: 0 2px 8px rgba(0,0,0,.55);
-    }
-
-    /* Better locked */
-    .locked .thumb{filter:blur(14px) brightness(.45) saturate(.15) contrast(.8);transform:scale(1.10)}
-    .lockmask{background: radial-gradient(circle at 50% 30%, rgba(0,0,0,.25), rgba(0,0,0,.55));}
-    .lockmask .lock{
-      font-size:30px;
-      filter: drop-shadow(0 0 16px rgba(140,200,255,.18));
-      animation: lockPulse 2.4s ease-in-out infinite;
-    }
-    @keyframes lockPulse{
-      0%{transform:translateY(0);opacity:.85}
-      50%{transform:translateY(-2px);opacity:1}
-      100%{transform:translateY(0);opacity:.85}
-    }
-    .lockmask::after{
-      content:"";
-      position:absolute;
-      inset:0;
-      pointer-events:none;
-      background:
-        radial-gradient(circle at 20% 15%, rgba(255,255,255,.10), rgba(255,255,255,0) 55%),
-        radial-gradient(circle at 80% 35%, rgba(120,180,255,.10), rgba(120,180,255,0) 60%);
-      opacity:.55;
-      mix-blend-mode: screen;
-      animation: shimmer 4.6s ease-in-out infinite;
-    }
-    @keyframes shimmer{
-      0%{transform:translateX(-2%);opacity:.35}
-      50%{transform:translateX(2%);opacity:.65}
-      100%{transform:translateX(-2%);opacity:.35}
-    }
-
-    /* Ripple */
-    .card:active{transform: translateY(-1px) scale(.99);}
-    .ripple{
-      position:absolute;
-      border-radius:999px;
-      transform: scale(0);
-      animation: ripple .55s ease-out;
-      background: rgba(255,255,255,.22);
-      pointer-events:none;
-      z-index:4;
-    }
-    @keyframes ripple{to{ transform: scale(3.2); opacity:0; }}
-
-    /* Modal actions */
-    .modalActions{display:flex;gap:10px;align-items:center;}
-    .miniBtn{
-      cursor:pointer;
-      user-select:none;
-      padding:8px 12px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.06);
-      font-size:12px;
-      opacity:.95;
-      white-space:nowrap;
-      text-shadow: 0 2px 8px rgba(0,0,0,.55);
-    }
-    .miniBtn:hover{background: rgba(255,255,255,.10);}
-    .miniBtn:active{transform: translateY(1px);}
-    .miniBtn.disabled{opacity:.45;cursor:not-allowed;pointer-events:none;}
-
-    @media (min-width: 1400px){
-      .grid{grid-template-columns:repeat(auto-fill,minmax(240px,1fr));}
-    }
-
 </style>
 </head>
 <body>
   <div class="acf-page ui-panel"><div id="acfMasterMount"></div>
   <div class="page-wrap">
 
-    <div class="headerStrip">
-      <div class="headerLeft">
-        <div class="tabs">
-          <div class="tabbtn active" id="tabSaves">我的成品</div>
-          <div class="tabbtn" id="tabRecipes">Recipes</div>
-        </div>
-        <div class="statusline" id="statusLine"><span class="spinner" id="spin" style="display:none;"></span><span id="statusText">讀取中</span></div>
-      </div>
-
-      <div class="headerRight">
-        <div class="ctrlRow">
-          <div class="ctrlGroup">
-            <label class="ctrlLabel" for="sortSel">排序</label>
-            <select id="sortSel" class="ctrlSelect">
-              <option value="new">最新</option>
-              <option value="old">最舊</option>
-              <option value="rarity">稀有度</option>
-            </select>
-          </div>
-
-          <div class="ctrlGroup">
-            <label class="ctrlLabel" for="filterSel">篩選</label>
-            <select id="filterSel" class="ctrlSelect">
-              <option value="all">全部</option>
-              <option value="unlocked">已解鎖</option>
-              <option value="locked">未解鎖</option>
-              <option value="showing">展示中</option>
-            </select>
-          </div>
-
-          <div class="ctrlGroup searchGroup">
-            <label class="ctrlLabel" for="searchInp">搜尋</label>
-            <input id="searchInp" class="ctrlInput" placeholder="輸入 Recipe ID 或關鍵字" />
-          </div>
-        </div>
-      </div>
+    <div class="tabs">
+      <div class="tabbtn active" id="tabSaves">我的成品</div>
+      <div class="tabbtn" id="tabRecipes">Recipes</div>
     </div>
 
-<div id="errorBox" class="errorbox" style="display:none;"></div>
+    <div class="statusline" id="statusLine">讀取中</div>
+    <div id="errorBox" class="errorbox" style="display:none;"></div>
 
     <div class="grid" id="gridSaves"></div>
     <div class="grid" id="gridRecipes" style="display:none;"></div>
@@ -523,11 +362,7 @@
     <div class="modalbox">
       <div class="modalhead">
         <div class="h" id="modalTitle">預覽</div>
-        <div class="modalActions">
-          <div class="miniBtn disabled" id="btnDownload">下載原圖</div>
-          <div class="miniBtn disabled" id="btnSetAvatar">設為頭像</div>
-          <div class="x" id="modalClose">關閉</div>
-        </div>
+        <div class="x" id="modalClose">關閉</div>
       </div>
       <div class="modalbody">
         <div class="bigwrap" id="bigwrap"></div>
@@ -543,8 +378,6 @@
 
   const uid = localStorage.getItem("acf_uid") || "";
   const statusLine = document.getElementById("statusLine");
-  const statusText = document.getElementById("statusText");
-  const spin = document.getElementById("spin");
   const errorBox = document.getElementById("errorBox");
 
   const gridSaves = document.getElementById("gridSaves");
@@ -559,71 +392,6 @@
   const modalMeta = document.getElementById("modalMeta");
   const bigwrap = document.getElementById("bigwrap");
 
-  const sortSel = document.getElementById("sortSel");
-  const filterSel = document.getElementById("filterSel");
-  const searchInp = document.getElementById("searchInp");
-
-  const btnDownload = document.getElementById("btnDownload");
-  const btnSetAvatar = document.getElementById("btnSetAvatar");
-
-  let _activeTab = "saves";
-  let _lastSaves = [];
-  let _lastRecipes = [];
-  let _unlockSet = new Set();
-  let _showcaseComboSet = new Set();
-  let _modalContext = null;
-
-  function setLoading(on){
-    if (spin) spin.style.display = on ? "inline-block" : "none";
-  }
-  function norm(s){ return String(s || "").toLowerCase().trim(); }
-  function rarityRank(r){
-    const x = norm(r);
-    if (x === "ur") return 5;
-    if (x === "ssr") return 4;
-    if (x === "sr") return 3;
-    if (x === "r") return 2;
-    if (x === "c") return 1;
-    return 0;
-  }
-  function applySort(list, timeFn, rarityFn){
-    const mode = (sortSel && sortSel.value) ? sortSel.value : "new";
-    const arr = list.slice();
-    if (mode === "old") arr.sort((a,b) => (timeFn(a)||0) - (timeFn(b)||0));
-    else if (mode === "rarity") arr.sort((a,b) => (rarityFn(b)||0) - (rarityFn(a)||0));
-    else arr.sort((a,b) => (timeFn(b)||0) - (timeFn(a)||0));
-    return arr;
-  }
-  function applySearch(list, text, keyFn){
-    const q = norm(text);
-    if (!q) return list;
-    return list.filter((x) => norm(keyFn(x)).includes(q));
-  }
-  function applyFilterSaves(list){
-    const f = (filterSel && filterSel.value) ? filterSel.value : "all";
-    if (f === "showing"){
-      return list.filter((s) => __showcaseComboSet.has(comboKey(s.headId, s.bodyId, s.bgId, s.addon1Id, s.addon2Id)));
-    }
-    return list;
-  }
-  function applyFilterRecipes(list){
-    const f = (filterSel && filterSel.value) ? filterSel.value : "all";
-    if (f === "unlocked") return list.filter((r) => _unlockSet.has(String(r.recipeId)));
-    if (f === "locked") return list.filter((r) => !_unlockSet.has(String(r.recipeId)));
-    return list;
-  }
-  function refreshView(){
-    if (_activeTab === "recipes") renderRecipes(_lastRecipes, _unlockSet, true);
-    else renderSaves(_lastSaves, true);
-  }
-  if (sortSel) sortSel.onchange = refreshView;
-  if (filterSel) filterSel.onchange = refreshView;
-  if (searchInp){
-    searchInp.addEventListener("keydown", (e) => { if (e.key === "Enter") refreshView(); });
-    searchInp.addEventListener("input", () => { if (searchInp.value.length === 0) refreshView(); });
-  }
-
-
   function setNet(ok){ /* no header badge on this page */ }
   function showError(msg){
     errorBox.style.display = "block";
@@ -634,54 +402,7 @@
     errorBox.textContent = "";
   }
 
-  
-
-  if (btnDownload){
-    btnDownload.onclick = () => {
-      if (btnDownload.classList.contains("disabled")) return;
-      if (!_modalContext) return;
-      const url = _modalContext.imageUrl || "";
-      if (!url){
-        showError("此預覽沒有可下載的原圖");
-        return;
-      }
-      try{
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "image.webp";
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-      }catch(e){
-        showError("下載失敗：" + (e && e.message ? e.message : String(e)));
-      }
-    };
-  }
-
-  if (btnSetAvatar){
-    btnSetAvatar.onclick = async () => {
-      if (btnSetAvatar.classList.contains("disabled")) return;
-      if (!_modalContext) return;
-      if (!uid){
-        showError("請先登入後再設為頭像");
-        return;
-      }
-      const url = _modalContext.imageUrl || "";
-      if (!url){
-        showError("此預覽沒有可用的頭像圖片");
-        return;
-      }
-      try{
-        clearError();
-        await apiReq("POST", "/api/me/avatar", { imageUrl: url });
-        showError("已設為頭像");
-      }catch(e){
-        showError("設為頭像失敗：" + (e && e.message ? e.message : String(e)));
-      }
-    };
-  }
-
-function api(path){
+  function api(path){
     return fetch(WORKER_BASE + path, {
       method: "GET",
       headers: {
@@ -731,7 +452,6 @@ function api(path){
   }
 
   function openModalLayers(title, metaText, layers){
-    _modalContext = { type:"layers", imageUrl:"", layers: layers || [], meta: metaText || "" };
     modalTitle.textContent = title || "預覽";
     modalMeta.textContent = metaText || "";
     bigwrap.innerHTML = "";
@@ -750,13 +470,9 @@ function api(path){
     });
 
     modal.classList.add("show");
-    if (btnDownload) btnDownload.classList.remove("disabled");
-    if (btnSetAvatar) btnSetAvatar.classList.remove("disabled");
-
   }
 
   function openModalSingle(title, metaText, imageUrl){
-    _modalContext = { type:"single", imageUrl: imageUrl || "", layers: [], meta: metaText || "" };
     modalTitle.textContent = title || "預覽";
     modalMeta.textContent = metaText || "";
     bigwrap.innerHTML = "";
@@ -767,36 +483,17 @@ function api(path){
     img.src = imageUrl;
     bigwrap.appendChild(img);
     modal.classList.add("show");
-    if (btnDownload) btnDownload.classList.remove("disabled");
-    if (btnSetAvatar) btnSetAvatar.classList.remove("disabled");
-
   }
 
-  modalClose.onclick = () => { modal.classList.remove("show"); if (btnDownload) btnDownload.classList.add("disabled"); if (btnSetAvatar) btnSetAvatar.classList.add("disabled"); };
-  modal.onclick = (e) => { if (e.target === modal){ modal.classList.remove("show"); if (btnDownload) btnDownload.classList.add("disabled"); if (btnSetAvatar) btnSetAvatar.classList.add("disabled"); } };
-  window.addEventListener("keydown", (e) => { if (e.key === "Escape"){ modal.classList.remove("show"); if (btnDownload) btnDownload.classList.add("disabled"); if (btnSetAvatar) btnSetAvatar.classList.add("disabled"); } });
+  modalClose.onclick = () => modal.classList.remove("show");
+  modal.onclick = (e) => { if (e.target === modal) modal.classList.remove("show"); };
+  window.addEventListener("keydown", (e) => { if (e.key === "Escape") modal.classList.remove("show"); });
 
   function thumbUrl(assetUrl){
     // thumbs disabled: always use original
     return assetUrl || "";
   }
 
-
-  function addRipple(ev, host){
-    try{
-      const r = document.createElement("span");
-      r.className = "ripple";
-      const rect = host.getBoundingClientRect();
-      const size = Math.max(rect.width, rect.height) * 0.42;
-      r.style.width = r.style.height = size + "px";
-      const x = (ev.clientX - rect.left) - size/2;
-      const y = (ev.clientY - rect.top) - size/2;
-      r.style.left = x + "px";
-      r.style.top = y + "px";
-      host.appendChild(r);
-      setTimeout(() => r.remove(), 650);
-    }catch{}
-  }
 
   function markCardIn(card){
     const delay = Math.min(240, (markCardIn._i = (markCardIn._i || 0) + 1) * 18);
@@ -821,24 +518,12 @@ function api(path){
   }
 
   function setTab(which){
-    _activeTab = (which === "recipes") ? "recipes" : "saves";
-    if (filterSel){
-      const v = filterSel.value || "all";
-      Array.from(filterSel.options || []).forEach((o) => {
-        if (o.value === "showing") o.disabled = (_activeTab !== "saves");
-        if (o.value === "locked" || o.value === "unlocked") o.disabled = (_activeTab !== "recipes");
-      });
-      if ((_activeTab !== "saves" && v === "showing") || (_activeTab !== "recipes" && (v === "locked" || v === "unlocked"))){
-        filterSel.value = "all";
-      }
-    }
-
     if (which === "recipes"){
       tabRecipes.classList.add("active");
       tabSaves.classList.remove("active");
       gridRecipes.style.display = "grid";
       gridSaves.style.display = "none";
-      statusText.textContent = "讀取中";
+      statusLine.textContent = "讀取中";
       clearError();
       loadRecipes();
     } else {
@@ -846,7 +531,7 @@ function api(path){
       tabRecipes.classList.remove("active");
       gridSaves.style.display = "grid";
       gridRecipes.style.display = "none";
-      statusText.textContent = "讀取中";
+      statusLine.textContent = "讀取中";
       clearError();
       loadSaves();
     }
@@ -856,7 +541,6 @@ function api(path){
   tabRecipes.onclick = () => setTab("recipes");
 
   async function loadSaves(){
-    setLoading(true);
     gridSaves.innerHTML = "";
     try{
       const res = await api("/api/me/saves");
@@ -867,12 +551,12 @@ function api(path){
       return [String(headId || ""), String(bodyId || ""), String(bgId || ""), a[0], a[1]].join("|");
     };
 
-    _showcaseComboSet = new Set();
+    let showcaseComboSet = new Set();
     try{
       const all = await api("/api/me/showcases?seasonId=S1");
       const list = all.showcases || [];
       list.forEach((x) => {
-        __showcaseComboSet.add(comboKey(x.headId, x.bodyId, x.bgId, x.addon1Id, x.addon2Id));
+        showcaseComboSet.add(comboKey(x.headId, x.bodyId, x.bgId, x.addon1Id, x.addon2Id));
       });
     }catch(e){
       // If this fails, we should NOT silently ignore it, otherwise users can't tell why "展示中" never appears.
@@ -881,7 +565,12 @@ function api(path){
     }
 
       const saves = res.saves || [];
-      statusText.textContent = "共 " + saves.length + " 個成品";
+      statusLine.textContent = "共 " + saves.length + " 個成品";
+
+      if (saves.length === 0){
+        gridSaves.innerHTML = '<div class="empty">尚未儲存任何成品</div>';
+        return;
+      }
 
       saves.forEach((s) => {
         const card = document.createElement("div");
@@ -920,7 +609,7 @@ function api(path){
         const btnShow = document.createElement("div");
         btnShow.className = "showBtn";
         
-        let isShowing = __showcaseComboSet.has(comboKey(s.headId, s.bodyId, s.bgId, s.addon1Id, s.addon2Id));
+        let isShowing = showcaseComboSet.has(comboKey(s.headId, s.bodyId, s.bgId, s.addon1Id, s.addon2Id));
         btnShow.textContent = isShowing ? "展示中" : "展示";
         if (isShowing){
           btnShow.classList.add("disabled");
@@ -963,13 +652,11 @@ if (curItem){
             await apiReq("POST", "/api/me/showcase", { ...payload, seasonId:"S1", overwrite: !!curItem });
 
             // Immediately reflect UI state
-            __showcaseComboSet.add(comboKey(payload.headId, payload.bodyId, payload.bgId, payload.addon1Id, payload.addon2Id));
+            showcaseComboSet.add(comboKey(payload.headId, payload.bodyId, payload.bgId, payload.addon1Id, payload.addon2Id));
             btnShow.textContent = "展示中";
             btnShow.classList.add("disabled");
             showError("已提交展示");
-            setLoading(false);
-      setLoading(false);
-    } catch(e){
+          } catch(e){
             showError("展示失敗：" + (e && e.message ? e.message : String(e)));
             console.error(e);
           }
@@ -988,8 +675,7 @@ if (curItem){
         card.appendChild(th);
         card.appendChild(meta);
 
-        card.onclick = (ev) => {
-        addRipple(ev, card);
+        card.onclick = () => {
           const layersBig = [
             { url: s.bgUrl, z: 10 },
             { url: s.addon2Url, z: 20 },
@@ -1005,167 +691,23 @@ if (curItem){
       });
 
     } catch(e){
-      setLoading(false);
       setNet(false);
-      statusText.textContent = "讀取失敗";
+      statusLine.textContent = "讀取失敗";
       showError("讀取失敗，請確認後端已更新，並且有資料庫表 user_saves");
       console.error(e);
     }
   }
 
-
-  function renderSaves(saves, fromControls){
-    _lastSaves = saves || [];
-    gridSaves.innerHTML = "";
-
-    const text = (searchInp && searchInp.value) ? searchInp.value : "";
-    let list = applySort(_lastSaves, (s) => (s && s.savedOn ? new Date(s.savedOn).getTime() : 0), (s) => rarityRank(s && s.rarity));
-    list = applyFilterSaves(list);
-    list = applySearch(list, text, (s) => [s.saveId, s.id, s.headId, s.bodyId, s.bgId, s.rarity].filter(Boolean).join(" "));
-
-    statusText.textContent = "共 " + list.length + " 個成品";
-
-    if (list.length == 0){
-      gridSaves.innerHTML = '<div class="empty">沒有符合條件的成品</div>';
-      return;
-    }
-
-    list.forEach((s) => {
-      const card = document.createElement("div");
-      card.className = "card";
-
-      if (s && s.rarity){
-        const rr = String(s.rarity).toLowerCase();
-        if (rr === "ssr") card.classList.add("rarity-ssr");
-        if (rr === "ur") card.classList.add("rarity-ur");
-      }
-
-      const th = document.createElement("div");
-      th.className = "thumb";
-
-      const layersThumb = [
-        { url: s.bgUrl, z: 10, preferThumb:false },
-        { url: s.addon2Url, z: 20, preferThumb:false },
-        { url: s.headUrl, z: 30, preferThumb:false },
-        { url: s.bodyUrl, z: 40, preferThumb:false },
-        { url: s.addon1Url, z: 50, preferThumb:false },
-      ];
-      makeStackThumb(th, layersThumb);
-
-      const meta = document.createElement("div");
-      meta.className = "meta";
-
-      const row = document.createElement("div");
-      row.className = "row";
-
-      const time = document.createElement("div");
-      time.className = "time";
-      time.textContent = fmtTime(s.savedOn);
-
-      const btnShow = document.createElement("div");
-      btnShow.className = "showBtn";
-
-      let isShowing = __showcaseComboSet.has(comboKey(s.headId, s.bodyId, s.bgId, s.addon1Id, s.addon2Id));
-      btnShow.textContent = isShowing ? "展示中" : "展示";
-      if (isShowing) btnShow.classList.add("disabled");
-
-      btnShow.onclick = async (ev) => {
-        if (btnShow.classList.contains("disabled")) return;
-        ev.stopPropagation();
-        clearError();
-
-        if (!uid){
-          showError("請先登入後再使用展示功能");
-          return;
-        }
-
-        const payload = {
-          saveId: s.saveId || s.id || null,
-          headId: s.headId || null,
-          bodyId: s.bodyId || null,
-          bgId: s.bgId || null,
-          addon1Id: s.addon1Id || null,
-          addon2Id: s.addon2Id || null,
-          headUrl: s.headUrl || null,
-          bodyUrl: s.bodyUrl || null,
-          bgUrl: s.bgUrl || null,
-          addon1Url: s.addon1Url || null,
-          addon2Url: s.addon2Url || null,
-          savedOn: s.savedOn || null
-        };
-
-        try{
-          const cur = await api("/api/me/showcase?seasonId=S1");
-          const curItem = cur.showcase || cur.item || cur.current || null;
-          if (curItem){
-            const ok = window.confirm("本期已經有作品正在展示中。上傳新作品後，原有的票數將歸零並重新計票。是否確認？");
-            if (!ok) return;
-          }
-
-          await apiReq("POST", "/api/me/showcase", { ...payload, seasonId:"S1", overwrite: !!curItem });
-
-          __showcaseComboSet.add(comboKey(payload.headId, payload.bodyId, payload.bgId, payload.addon1Id, payload.addon2Id));
-          btnShow.textContent = "展示中";
-          btnShow.classList.add("disabled");
-          showError("已提交展示");
-        } catch(e){
-          showError("展示失敗：" + (e && e.message ? e.message : String(e)));
-        }
-      };
-
-      row.appendChild(time);
-      row.appendChild(btnShow);
-
-      const sub = document.createElement("div");
-      sub.className = "sub";
-      sub.textContent = s && s.rarity ? ("稀有度 " + String(s.rarity).toUpperCase()) : "已儲存成品";
-
-      meta.appendChild(row);
-      meta.appendChild(sub);
-
-      card.appendChild(th);
-      card.appendChild(meta);
-
-      card.onclick = (ev) => {
-        addRipple(ev, card);
-
-        const layersBig = [
-          { url: s.bgUrl, z: 10 },
-          { url: s.addon2Url, z: 20 },
-          { url: s.headUrl, z: 30 },
-          { url: s.bodyUrl, z: 40 },
-          { url: s.addon1Url, z: 50 },
-        ];
-
-        const metaText = "時間 " + fmtTime(s.savedOn) + "    head " + (s.headId || "-") + "    body " + (s.bodyId || "-") + "    bg " + (s.bgId || "-");
-        _modalContext = { type:"layers", imageUrl: (s.headUrl || s.bodyUrl || s.bgUrl || ""), layers: layersBig, meta: metaText };
-
-        openModalLayers("我的成品", metaText, layersBig);
-      };
-
-      gridSaves.appendChild(card);
-      markCardIn(card);
-    });
-  }
-
-  function renderRecipes(recipes, unlockSet, fromControls){
-    _lastRecipes = recipes || [];
-    _unlockSet = unlockSet || new Set();
+  function renderRecipes(recipes, unlockSet){
     gridRecipes.innerHTML = "";
+    statusLine.textContent = "共 " + recipes.length + " 張 Recipes";
 
-    const text = (searchInp && searchInp.value) ? searchInp.value : "";
-    let list = applySort(_lastRecipes, (r) => (r && r.recipeId != null ? Number(r.recipeId) : 0), (r) => rarityRank(r && r.rarity));
-    list = applyFilterRecipes(list);
-    list = applySearch(list, text, (r) => [r.recipeId, r.imageUrl, r.rarity].filter(Boolean).join(" "));
-
-    statusText.textContent = "共 " + list.length + " 張 Recipes";
-
-    if (list.length === 0){
-      gridRecipes.innerHTML = '<div class="empty">沒有符合條件的 Recipes</div>';
+    if (recipes.length === 0){
+      gridRecipes.innerHTML = '<div class="empty">recipes table 目前沒有資料</div>';
       return;
     }
 
-    list.forEach((r) => {
+    recipes.forEach((r) => {
       const unlocked = unlockSet.has(String(r.recipeId));
 
       const card = document.createElement("div");
@@ -1196,23 +738,21 @@ if (curItem){
       const time = document.createElement("div");
       time.className = "time";
       time.textContent = "Recipe #" + r.recipeId;
-      const sub = document.createElement("div");
-      sub.className = "sub";
-      sub.textContent = unlocked ? "已解鎖 可查看原圖" : "未解鎖";
+      const parts = document.createElement("div");
+      parts.className = "parts";
+      parts.textContent = unlocked ? "已解鎖，可查看原圖" : "未解鎖";
       meta.appendChild(time);
-      meta.appendChild(sub);
+      meta.appendChild(parts);
 
       card.appendChild(th);
       card.appendChild(meta);
 
-      card.onclick = (ev) => {
-        addRipple(ev, card);
+      card.onclick = () => {
         if (!unlocked){
           showError("此成品尚未解鎖");
           return;
         }
         clearError();
-_modalContext = { type:"single", imageUrl: r.imageUrl || "", layers: [], meta: "Recipe " + r.recipeId };
         openModalSingle("Recipe #" + r.recipeId, "已解鎖", r.imageUrl);
       };
 
@@ -1222,7 +762,6 @@ _modalContext = { type:"single", imageUrl: r.imageUrl || "", layers: [], meta: "
   }
 
   async function loadRecipes(){
-    setLoading(true);
     gridRecipes.innerHTML = "";
     try{
       const [r1, r2] = await Promise.all([
@@ -1235,13 +774,11 @@ _modalContext = { type:"single", imageUrl: r.imageUrl || "", layers: [], meta: "
       const unlocks = r2.unlocks || [];
       const unlockSet = new Set(unlocks.map((x) => String(x)));
 
-      renderRecipes(recipes, unlockSet, false);
-      setLoading(false);
+      renderRecipes(recipes, unlockSet);
 
     } catch(e){
-      setLoading(false);
       setNet(false);
-      statusText.textContent = "讀取失敗";
+      statusLine.textContent = "讀取失敗";
       showError("讀取失敗，請確認後端已有 /api/recipes 與 /api/me/unlocks，並且資料庫存在 recipes / user_unlocks");
       console.error(e);
     }
