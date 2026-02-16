@@ -319,6 +319,23 @@ window.getName = getName;
         background-size: 100% 100%, 100% 100%;
       }
 
+      /* isolate master UI from global page styles (some pages set img{position:absolute}) */
+      .acf-master-fixed, .acf-master-fixed *{ box-sizing: border-box; }
+      .acf-masterStats img{
+        position: static !important;
+        inset: auto !important;
+        transform: none !important;
+      }
+      .acf-cap, .acf-cap span{ position: relative; }
+      .acf-masterStats{
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 12px;
+        flex-wrap: nowrap;
+        min-width: 0;
+      }
+
       .acf-masterDivider{
         pointer-events: none;
         width: 100%;
