@@ -1582,6 +1582,42 @@ body{ padding-top: var(--masterH, 0px); }
   100%{ transform: scale(1.3) rotate(-8deg); opacity:1.0; }
 }
 
+
+/* ===== Ensure gacha overlay + result cinematic are ALWAYS topmost ===== */
+.overlay{ z-index: 120000 !important; }
+.cinematic{ z-index: 130000 !important; }
+
+/* ===== Result cards: force single row (no wrap) ===== */
+.results-bottom,
+.results-grid,
+.results-row{
+  flex-wrap: nowrap !important;
+  overflow-x: auto;
+  overflow-y: hidden;
+  justify-content: center !important;
+  padding-bottom: 6px;
+}
+
+/* cinematic 10-pull grid also single row */
+.cine-ten-grid{
+  flex-wrap: nowrap !important;
+  overflow-x: auto;
+  overflow-y: hidden;
+  justify-content: center;
+  padding-bottom: 6px;
+}
+
+/* keep spacing nice when scrollbars appear */
+.results-bottom::-webkit-scrollbar,
+.cine-ten-grid::-webkit-scrollbar{
+  height: 10px;
+}
+.results-bottom::-webkit-scrollbar-thumb,
+.cine-ten-grid::-webkit-scrollbar-thumb{
+  background: rgba(255,214,102,0.35);
+  border-radius: 999px;
+}
+
 </style>
 </head>
 <body>

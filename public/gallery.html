@@ -177,7 +177,183 @@
       .podiumGrid{flex-direction:column;align-items:stretch}
       .podMetaTop{height:auto}
     }
-  </style>
+  
+
+/* =========================================
+   GOLD THEME OVERRIDES
+   全站區塊 金色邊框 + 半透明金色背景
+========================================= */
+:root{
+  --gold1: rgba(255,215,0,.95);
+  --gold2: rgba(255,195,0,.65);
+  --gold3: rgba(255,180,0,.35);
+
+  --glassGold: rgba(255,215,0,.08);
+  --glassGoldHeavy: rgba(255,215,0,.14);
+
+  --goldBorder: rgba(255,215,0,.45);
+  --goldBorderStrong: rgba(255,215,0,.75);
+
+  --goldGlow: rgba(255,215,0,.35);
+
+  --txt: rgba(255,255,255,.96);
+  --mut: rgba(255,240,200,.75);
+  --mut2: rgba(255,240,200,.62);
+}
+
+/* 共用金色面板 */
+.podiumCard,
+.recCard,
+.authorCard,
+.entry,
+.panel,
+.select,
+.iconBtn,
+.pill2,
+.authorAvBig,
+.av,
+.recAuthorAv,
+.podAuthorAv,
+.toast,
+.error
+{
+  background:
+    linear-gradient(180deg, rgba(255,215,0,.12), rgba(255,215,0,.04)),
+    rgba(0,0,0,.35) !important;
+
+  border: 1px solid var(--goldBorder) !important;
+
+  backdrop-filter: blur(12px);
+
+  box-shadow:
+    inset 0 0 12px rgba(255,215,0,.08),
+    0 0 18px rgba(255,215,0,.12),
+    0 8px 28px rgba(0,0,0,.45);
+}
+
+/* Hover 發光 */
+.podiumCard:hover,
+.recCard:hover,
+.authorCard:hover,
+.entry:hover,
+.iconBtn:hover,
+.select:hover
+{
+  border-color: var(--goldBorderStrong) !important;
+  box-shadow:
+    inset 0 0 16px rgba(255,215,0,.18),
+    0 0 22px rgba(255,215,0,.35),
+    0 10px 30px rgba(0,0,0,.55);
+}
+
+/* 工具列也變成金色玻璃 */
+.toolbar{
+  padding: 10px 14px;
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(255,215,0,.12), rgba(255,215,0,.03)),
+    rgba(0,0,0,.22) !important;
+  border: 1px solid rgba(255,215,0,.35) !important;
+  box-shadow:
+    inset 0 0 10px rgba(255,215,0,.08),
+    0 10px 26px rgba(0,0,0,.35);
+}
+
+/* Select 更像遊戲 UI */
+.select{
+  border-radius: 999px;
+  border: 1px solid rgba(255,215,0,.45) !important;
+  background:
+    linear-gradient(180deg, rgba(255,215,0,.18), rgba(255,215,0,.06)),
+    rgba(0,0,0,.22) !important;
+}
+
+/* Badge 金屬金 */
+.recBadge{
+  background:
+    linear-gradient(180deg, rgba(255,215,0,.35), rgba(255,180,0,.15)) !important;
+  border: 1px solid rgba(255,215,0,.60) !important;
+  box-shadow: 0 0 12px rgba(255,215,0,.45);
+  color: rgba(255,255,255,.98) !important;
+}
+
+/* Pills 金色化 */
+.pill2{
+  background:
+    linear-gradient(180deg, rgba(255,215,0,.14), rgba(255,215,0,.05)),
+    rgba(0,0,0,.20) !important;
+  border: 1px solid rgba(255,215,0,.40) !important;
+}
+
+/* 按鈕金屬感 */
+.iconBtn{
+  background:
+    linear-gradient(180deg, rgba(255,215,0,.22), rgba(255,180,0,.08)),
+    rgba(0,0,0,.22) !important;
+  border: 1px solid rgba(255,215,0,.55) !important;
+}
+.iconBtn.on{
+  background:
+    linear-gradient(180deg, rgba(120,255,200,.14), rgba(255,215,0,.10)),
+    rgba(0,0,0,.22) !important;
+  border-color: rgba(255,215,0,.75) !important;
+}
+.iconBtn.warn{
+  background:
+    linear-gradient(180deg, rgba(255,170,0,.22), rgba(255,120,0,.08)),
+    rgba(0,0,0,.22) !important;
+  border-color: rgba(255,170,0,.60) !important;
+}
+
+/* Modal 面板金色化 */
+.panel{
+  background:
+    linear-gradient(180deg, rgba(255,215,0,.15), rgba(255,215,0,.05)),
+    rgba(0,0,0,.55) !important;
+  border: 1px solid rgba(255,215,0,.65) !important;
+  box-shadow:
+    inset 0 0 22px rgba(255,215,0,.25),
+    0 0 40px rgba(255,215,0,.45);
+}
+.close{
+  background:
+    linear-gradient(180deg, rgba(255,215,0,.18), rgba(255,215,0,.06)),
+    rgba(0,0,0,.20) !important;
+  border: 1px solid rgba(255,215,0,.45) !important;
+}
+.modal{
+  background: rgba(0,0,0,.72) !important;
+}
+
+/* 頒獎台第 1 名更華麗 */
+.podiumCard.rank1{
+  border: 1px solid rgba(255,215,0,.90) !important;
+  background:
+    linear-gradient(180deg, rgba(255,215,0,.25), rgba(255,215,0,.06)),
+    rgba(0,0,0,.35) !important;
+  box-shadow:
+    inset 0 0 24px rgba(255,215,0,.25),
+    0 0 40px rgba(255,215,0,.55),
+    0 12px 40px rgba(0,0,0,.60);
+}
+
+/* 頒獎台第 2 第 3 名也統一金邊 */
+.podiumCard.rank2,
+.podiumCard.rank3{
+  border-color: rgba(255,215,0,.55) !important;
+}
+
+/* Error 也改成金色玻璃系統 但保留紅色文字提醒 */
+.error{
+  color: rgba(255,220,230,.98) !important;
+  border-color: rgba(255,215,0,.35) !important;
+}
+
+/* 文字微調 */
+.sectionTitle{ color: rgba(255,245,220,.92); }
+.status{ color: var(--mut); }
+
+</style>
 
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="ui_fx.css" />
