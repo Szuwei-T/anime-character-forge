@@ -313,10 +313,11 @@ window.getName = getName;
         justify-content: space-between;
         padding: 0 28px;
         box-sizing: border-box;
-        background-image: url("/effect/top_light.webp"), url("/ui/frame/account_top_frame.webp");
-        background-repeat: no-repeat, no-repeat;
-        background-position: center top, center center;
-        background-size: 100% 100%, 100% 100%;
+        background-image: url("/frame/top_bar.webp");
+        background-repeat: no-repeat;
+        background-position: center top;
+        background-size: 100% 100%;
+        overflow: hidden;
       }
 
       /* isolate master UI from global page styles (some pages set img{position:absolute}) */
@@ -329,18 +330,27 @@ window.getName = getName;
       .acf-cap, .acf-cap span{ position: relative; }
       .acf-masterStats{
         display: flex;
+        max-width: 70vw;
+        overflow-x: auto;
+        padding-bottom: 2px;
         align-items: center;
         justify-content: flex-end;
         gap: 12px;
         flex-wrap: nowrap;
         min-width: 0;
       }
+      .acf-masterStats::-webkit-scrollbar{ height: 6px; }
+      .acf-masterStats::-webkit-scrollbar-thumb{ background: rgba(255,255,255,0.18); border-radius: 99px; }
+      .acf-masterStats{ scrollbar-color: rgba(255,255,255,0.18) transparent; scrollbar-width: thin; }
 
       .acf-masterDivider{
         pointer-events: none;
         width: 100%;
         height: 8px;
-        background: url("/ui/frame/top_bar_divider.webp") center / 100% 100% no-repeat;
+        background-image: url("/frame/top_bar_divider.webp");
+        background-repeat: no-repeat;
+        background-position: center top;
+        background-size: auto;
       }
 
       .acf-masterLeft{
@@ -423,67 +433,69 @@ window.getName = getName;
 
       .acf-masterStats{
         display: flex;
+        max-width: 70vw;
+        overflow-x: auto;
+        padding-bottom: 2px;
         align-items: center;
         gap: 14px;
       }
 
-      .acf-cap{
-        width: 240px;
-        height: 62px;
+      .acf-stat{
         display: flex;
         align-items: center;
-        justify-content: flex-end;
-        padding: 0 22px;
-        box-sizing: border-box;
+        gap: 10px;
+        padding: 0 14px;
+        height: 54px;
+        border-radius: 14px;
+        background: rgba(0,0,0,0.32);
+        border: 1px solid rgba(255,255,255,0.10);
+        box-shadow: 0 10px 18px rgba(0,0,0,0.35);
         color: rgba(255,255,255,0.98);
         font-weight: 900;
         font-size: 16px;
         letter-spacing: 0.2px;
         text-shadow: 0 2px 10px rgba(0,0,0,0.55);
-        background-size: 100% 100%;
-        background-repeat: no-repeat;
         white-space: nowrap;
+        min-width: 92px;
+        justify-content: center;
       }
 
-      .acf-capGold{ background-image: url("/ui/frame/account_gold.webp"); }
-      .acf-capGem{ background-image: url("/ui/frame/account_gem.webp"); }
-      .acf-capTicket{ background-image: url("/ui/frame/account_ticket.webp"); }
-      .acf-capGeneric{
-        background-image: url("/ui/frame/account_capsule.webp");
-        justify-content: space-between;
-        padding: 0 18px;
-        gap: 10px;
-      }
-
-      .acf-capIcon{
+      .acf-statIcon{
         width: 22px;
         height: 22px;
         display: block;
         opacity: 0.96;
         filter: drop-shadow(0 2px 6px rgba(0,0,0,0.45));
+        flex: 0 0 auto;
+      }
+
+      .acf-statValue{
+        display: inline-block;
+        min-width: 18px;
+        text-align: left;
       }
 
       @media (max-width: 1100px){
-        .acf-cap{ width: 210px; height: 56px; font-size: 15px; }
+        .acf-stat{ height: 50px; font-size: 15px; padding: 0 12px; }
       }
 
       @media (max-width: 920px){
         .acf-masterShell{ height: 96px; padding: 0 16px; }
         .acf-masterAvatar{ width: 56px; height: 56px; }
         .acf-masterName{ font-size: 16px; }
-        .acf-cap{ width: 190px; height: 52px; font-size: 14px; }
+        .acf-stat{ height: 46px; font-size: 14px; padding: 0 10px; }
         .acf-masterStats{ gap: 10px; }
       }
 
       @media (max-width: 760px){
         .acf-masterSub, .acf-masterNet{ display: none; }
-        .acf-capGeneric{ display: none; }
-        .acf-cap{ width: 170px; }
+        
+        
       }
 
       @media (max-width: 560px){
-        .acf-capTicket{ display: none; }
-        .acf-cap{ width: 160px; }
+        
+        
         .acf-masterLeft{ min-width: 0; }
       }
 `;
@@ -636,11 +648,20 @@ window.getName = getName;
 
   function statCap(kind, value, iconPath){
     const v = Number(value || 0);
-    if(kind === "gold") return `<div class="acf-cap acf-capGold">${v}</div>`;
-    if(kind === "gem") return `<div class="acf-cap acf-capGem">${v}</div>`;
-    if(kind === "ticket") return `<div class="acf-cap acf-capTicket">${v}</div>`;
-    const icon = iconPath ? `<img class="acf-capIcon" src="${iconPath}" alt="">` : "";
-    return `<div class="acf-cap acf-capGeneric">${icon}<span>${v}</span></div>`;
+
+    // Prefer icons (avoids dependency on frame/capsule assets across pages)
+    const iconMap = {
+      gold: "/icon/gold.webp",
+      gem: "/icon/gem.webp",
+      ticket: "/icon/ticket.webp",
+      like: "/icon/like.webp",
+      follow: "/icon/follow.webp",
+      favorite: "/icon/favorite.webp",
+    };
+
+    const src = iconPath || iconMap[kind] || "";
+    const icon = src ? `<img class="acf-statIcon" src="${src}" alt="">` : "";
+    return `<div class="acf-stat">${icon}<span class="acf-statValue">${v}</span></div>`;
   }
 
   function renderMaster(me){
@@ -684,10 +705,7 @@ window.getName = getName;
     html.push(statCap("gold", acc.userGold));
     html.push(statCap("gem", acc.userGem));
     html.push(statCap("ticket", acc.userVote));
-    html.push(statCap("like", st.likes, "/ui/icon/like.webp"));
-    html.push(statCap("follow", st.followers, "/ui/icon/follow.webp"));
-    html.push(statCap("favorite", st.collectionsUnlocked, "/ui/icon/favorite.webp"));
-    statsEl.innerHTML = html.join("");
+statsEl.innerHTML = html.join("");
 
     setBodyOffset();
   }
