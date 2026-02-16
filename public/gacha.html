@@ -696,16 +696,17 @@ body{
 /* 切換模式：loading 顯示文字；done 顯示按鈕 */
 .actionBar.mode-loading .statusText{ opacity: 1; }
 .actionBar.mode-loading .confirm{
-  opacity: 0;
-  pointer-events:none;
-  transform: translate(-50%, -50%) scale(0.98);
+  display:none;
 }
+
 
 .actionBar.mode-done .statusText{ opacity: 0; }
 .actionBar.mode-done .confirm{
-  opacity: 1;
+  display:inline-flex;
+opacity: 1;
   pointer-events:auto;
   transform: translate(-50%, -50%) scale(1);
+
 }
 
 /* 小小按鈕進場質感 */
@@ -816,7 +817,37 @@ body{
       overflow:hidden;
     }
 
-    .cine-rarity{
+    
+    .cine-mainRow{
+      width: 100%;
+      display:flex;
+      gap: 14px;
+      align-items:flex-start;
+      justify-content:center;
+    }
+    .cine-leftCol{
+      flex: 1 1 auto;
+      min-width: 0;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap: 14px;
+    }
+    .cine-rightCol{
+      flex: 0 0 auto;
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+    }
+    .cine-rightCol .sharePanel{
+      margin-top: 0;
+    }
+    @media (max-width: 900px){
+      .cine-mainRow{ flex-direction: column; align-items:center; }
+      .cine-rightCol{ width: 100%; }
+      .cine-rightCol .sharePanel{ width: min(520px, 92vw); }
+    }
+.cine-rarity{
       font-weight: 1000;
       letter-spacing: 1px;
       font-size: clamp(24px, 4vw, 44px);
@@ -1006,21 +1037,9 @@ body{
     .cine-ten-item.full.r5 .tag{ color: rgba(239,68,68,1); border-color: rgba(239,68,68,0.80); }
 
 
-    .cine-ok{
-      margin-top: 2px;
-      border: 0;
-      border-radius: 999px;
-      padding: 12px 18px;
-      font-size: 15px;
-      font-weight: 1000;
-      letter-spacing: 0.5px;
-      cursor: pointer;
-      color: #0a0f18;
-      background: linear-gradient(135deg, rgba(255,198,106,0.98), rgba(255,159,47,0.98));
-      box-shadow: 0 18px 45px rgba(0,0,0,0.45);
-      user-select:none;
-    }
+    .cine-ok{ margin-top: 2px; }
     .cine-ok:active{ transform: translateY(1px); }
+
 
     .cine-cta{
       margin-top: 6px;
@@ -1102,7 +1121,9 @@ body{
     }
     .cine-ten-g .cine-ten-item{
       width: 132px;
-      height: 196px;
+      flex: 0 0 132px;
+      aspect-ratio: 2 / 3;
+      height: auto;
       border-radius: 18px;
     }
 
@@ -1334,7 +1355,16 @@ body{
       justify-content:center;
       border-radius: 18px;
     }
-    .shopBtn{
+    
+    .confirm:hover{
+      filter: brightness(1.08) saturate(1.06);
+      transform: translateY(-1px);
+    }
+    .confirm:active{
+      filter: brightness(0.95) saturate(1.02);
+      transform: translateY(0px) scale(0.99);
+    }
+.shopBtn{
       background-image: url("/ui/button/btn_shop.webp");
       background-color: transparent;
       color:#fff;
@@ -2897,34 +2927,24 @@ function renderGridDecoys(list){
 <div aria-modal="true" class="cine-core" role="dialog">
 <div class="cine-rarity" id="cineRarity">UR</div>
 <div class="cine-sub" id="cineSub">恭喜獲得</div>
-<div class="cine-card">
+<div class="cine-mainRow" id="cineMainRow">
+  <div class="cine-leftCol">
+    <div class="cine-card">
 <div class="fx fx-ray"></div>
-<div class="fx fx-spark"></div>
-<div class="fx fx-burst"></div>
-<img alt="reward" id="cineImg">
-</img></div>
-<div class="cine-ten" id="cineTen">
+    <div class="cine-ten" id="cineTen">
 <div class="cine-ten-title" id="cineTenTitle">10連抽結果</div>
 <div class="cine-ten-subtitle"></div>
 <div class="cine-ten-g" id="cineTenGuarantee"></div>
 <div class="cine-ten-subtitle"></div>
 <div class="cine-ten-grid" id="cineTenGrid"></div>
 </div>
-<button class="cine-ok" id="cineOk" type="button">確認</button>
-<div class="sharePanel" id="sharePanel" style="display:none;">
+  </div>
+  <div class="cine-rightCol">
+    <div class="sharePanel" id="sharePanel" style="display:none;">
 <div class="shareTitle">分享抽卡結果</div>
-<div class="shareBody">
-<img alt="share preview" id="sharePreview">
-<div class="shareBtns">
-<button class="shareBtn" id="shareDownload" type="button">下載圖片</button>
-<button class="shareBtn" id="shareCopy" type="button">複製文案</button>
-<button class="shareBtn" id="shareShare" type="button">一鍵分享</button>
-<button class="shareBtn" id="shareReddit" type="button">Reddit</button>
-<button class="shareBtn shareClaim" id="shareClaim" type="button">領取獎勵</button>
+  </div>
 </div>
-</img></div>
-<div class="shareHint" id="shareHint">抽到 SSR 或 UR 才會出現分享圖，分享到 Discord Reddit 朋友圈後再點領取獎勵，每天最多 5 次</div>
-</div>
+<button class="cine-ok confirm" id="cineOk" type="button">確認</button>
 <div class="cine-cta" id="cineCta">點擊確認繼續</div>
 </div>
 </div>
