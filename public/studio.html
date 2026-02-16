@@ -659,8 +659,105 @@ html{
   scrollbar-gutter: stable both-edges;
 }
 body{
+  margin:0;
+  min-height:100vh;
+
+  /* match gacha palette */
+  background: url("/ui/bg/main_bg.webp") center/cover no-repeat fixed;
+
+  color:#fff;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, "Noto Sans TC", sans-serif;
+
   overflow-y: scroll;
   overflow-x: hidden;
+}
+
+/* ===== Gacha-matching background overlays ===== */
+.vignette{
+  position:fixed;
+  inset:0;
+  background: url("/ui/bg/vignette_bg.webp") center/cover no-repeat;
+  pointer-events:none;
+  z-index: 1;
+  mix-blend-mode: multiply;
+  opacity: 0.95;
+}
+
+.particles{
+  position:fixed;
+  inset:-10%;
+  background: url("/ui/bg/particles.png") center/auto repeat;
+  opacity: 0.38;
+  pointer-events:none;
+  z-index: 2;
+  animation: particlesDrift 18s linear infinite;
+}
+
+@keyframes particlesDrift{
+  0%{ transform: translate3d(0,0,0); }
+  100%{ transform: translate3d(-120px, 80px, 0); }
+}
+
+/* ensure studio UI stays above overlays */
+.acf-page, .container, .card, .cardBody, .grid{
+  position: relative;
+  z-index: 5;
+}
+
+/* masterpage must always be top-most */
+#acfMasterMount{
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 99999;
+}
+
+/* ===== Palette alignment (match gacha gold panels) ===== */
+.card{
+  border-radius: 22px;
+  background: rgba(0,0,0,0.58);
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 18px 70px rgba(0,0,0,0.45);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.stage{
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255,255,255,0.08), transparent 55%),
+    radial-gradient(circle at 80% 70%, rgba(255,198,106,0.16), transparent 60%),
+    rgba(0,0,0,0.18);
+  border: 1px solid rgba(255,214,102,0.40);
+  box-shadow:
+    0 18px 60px rgba(0,0,0,0.35),
+    0 0 0 1px rgba(255,255,255,0.05) inset;
+}
+
+.asset-grid{
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255,255,255,0.08), transparent 55%),
+    radial-gradient(circle at 80% 70%, rgba(255,198,106,0.14), transparent 60%),
+    rgba(0,0,0,0.16);
+  border: 1px solid rgba(255,214,102,0.35);
+}
+
+/* tabs: gold tone like gacha */
+.tab-btn{
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 999px;
+  font-weight: 900;
+}
+.tab-btn.active{
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255,255,255,0.12), transparent 55%),
+    linear-gradient(180deg, rgba(255,198,106,0.26), rgba(255,159,47,0.18));
+  border-color: rgba(255,214,102,0.70);
+  color: rgba(255,222,136,0.98);
+  text-shadow: 0 2px 10px rgba(0,0,0,0.65);
 }
 
 /* Prevent accidental overflow caused by flex/grid */
@@ -744,6 +841,8 @@ body{
 </head>
 <body>
   <div class="acf-page ui-panel"><div id="acfMasterMount"></div>
+  <div class="vignette"></div>
+  <div class="particles"></div>
   <div class="container">
 
     <div class="card">

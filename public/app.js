@@ -651,12 +651,12 @@ window.getName = getName;
 
     // Prefer icons (avoids dependency on frame/capsule assets across pages)
     const iconMap = {
-      gold: "/icon/gold.webp",
-      gem: "/icon/gem.webp",
-      ticket: "/icon/ticket.webp",
-      like: "/icon/like.webp",
-      follow: "/icon/follow.webp",
-      favorite: "/icon/favorite.webp",
+      gold: "/ui/icon/gold.webp",
+      gem: "/ui/icon/gem.webp",
+      ticket: "/ui/icon/ticket.webp",
+      like: "/ui/icon/like.webp",
+      follow: "/ui/icon/follow.webp",
+      favorite: "/ui/icon/favorite.webp",
     };
 
     const src = iconPath || iconMap[kind] || "";
