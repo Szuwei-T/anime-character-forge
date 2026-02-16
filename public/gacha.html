@@ -1687,117 +1687,128 @@ body, .wrap, .page, .acf-page, .container{
 .overlay{ z-index: 1200000 !important; }
 .cinematic{ z-index: 1300000 !important; isolation: isolate; }
 
-/* ===== Result layout: top 2 columns, bottom 1 row ===== */
-
-.cine-core{
-  display:flex;
-  flex-direction:column;
-  gap: 18px;
+/* ===== Cine layout: make bottom row (10-pull grid) span under share panel ===== */
+.cinematic .cine-mainRow{
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: 22px;
+  align-items: start;
+}
+.cinematic .cine-leftCol{
+  display: contents !important; /* allow children to become grid items */
+}
+.cinematic .cine-card{
+  grid-column: 1 / 2;
+}
+.cinematic .cine-rightCol{
+  grid-column: 2 / 3;
+  grid-row: 1;
+}
+.cinematic .cine-ten{
+  grid-column: 1 / -1; /* span full width */
+  width: 100% !important;
+  max-width: 100% !important;
 }
 
-/* 上塊：左 SSR UR，右 分享 */
-.cinematic .result-top{
+/* Keep the 10-pull cards in one row without wrapping */
+.cinematic .cine-ten-grid{
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  max-width: 100% !important;
+}
+
+
+/* ===== Result layout remake: Top (SSR/UR + Share) + Bottom (C/R/SR single row) ===== */
+.cine-results{
+  width: 100%;
+  display: none;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 6px;
+}
+.cine-results.show{ display:flex; }
+
+.cine-results .top{
   display:grid;
-  grid-template-columns: minmax(0, 1fr) 360px;
-  gap: 20px;
-  align-items:start;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 520px);
+  gap: 16px;
+  align-items: start;
+}
+.cine-results .topLeft,
+.cine-results .bottom{
+  border-radius: 18px;
+  background: rgba(0,0,0,0.28);
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
+  padding: 12px;
 }
 
+.cine-results .topRight{
+  align-self: stretch;
+}
+
+.cine-results .sectionTitle{
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: 0.5px;
+  opacity: 0.86;
+  margin-bottom: 10px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 10px;
+}
+
+.cine-results .resultsRow{
+  display:flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  gap: 12px;
+  padding-bottom: 6px;
+  scrollbar-gutter: stable;
+  max-width: 100%;
+  box-sizing: border-box;
+  justify-content: flex-start;
+}
+.cine-results .resultsRow::-webkit-scrollbar{ height: 10px; }
+.cine-results .resultsRow::-webkit-scrollbar-thumb{
+  background: rgba(255,214,102,0.35);
+  border-radius: 999px;
+}
+
+/* card size inside results rows */
+.cine-results .result-card{
+  width: 108px;
+  height: 162px;
+  border-radius: 16px;
+  overflow:hidden;
+  flex: 0 0 auto;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.10);
+  box-shadow: 0 18px 55px rgba(0,0,0,0.35);
+  position: relative;
+}
+@media (max-width: 940px){
+  .cine-results .result-card{ width: 98px; height: 147px; }
+}
+@media (max-width: 520px){
+  .cine-results .result-card{ width: 90px; height: 135px; }
+}
+
+/* responsive: stack share under ssr/ur on small screens */
 @media (max-width: 900px){
-  .cinematic .result-top{
+  .cine-results .top{
     grid-template-columns: 1fr;
   }
-}
-
-/* 左上：SSR UR */
-.cinematic .result-rare{
-  display:flex;
-  flex-direction:column;
-  gap: 14px;
-  align-items:center;
-  justify-content:flex-start;
-  min-width: 0;
-}
-
-.cinematic .result-rare .cine-card{
-  width: min(520px, 86vw);
-  aspect-ratio: 1 / 1;
-}
-
-.cinematic .result-rare-row{
-  width: 100%;
-  display:flex;
-  gap: 12px;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  overflow-y: hidden;
-  justify-content:center;
-  padding-bottom: 6px;
-  max-width: 100%;
-}
-
-.cinematic .result-rare-row::-webkit-scrollbar{
-  height: 10px;
-}
-.cinematic .result-rare-row::-webkit-scrollbar-thumb{
-  background: rgba(255,214,102,0.35);
-  border-radius: 999px;
-}
-
-.cinematic .rareEmpty{
-  opacity: 0.75;
-  font-size: 13px;
-  font-weight: 900;
-  letter-spacing: 0.3px;
-  text-align:center;
-}
-
-/* 右上：分享 */
-.cinematic .result-share{
-  display:flex;
-  align-items:flex-start;
-  justify-content:center;
-}
-
-/* 下塊：C R SR 單排不換行 */
-.cinematic .result-bottom{
-  width: 100%;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-}
-
-.cinematic .result-normal-row{
-  width: 100%;
-  display:flex;
-  gap: 14px;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  overflow-y: hidden;
-  justify-content:center;
-  padding-bottom: 6px;
-  max-width: 100%;
-}
-
-.cinematic .result-normal-row::-webkit-scrollbar{
-  height: 10px;
-}
-.cinematic .result-normal-row::-webkit-scrollbar-thumb{
-  background: rgba(255,214,102,0.35);
-  border-radius: 999px;
-}
-
-/* 結果卡尺寸 */
-.cinematic .result-rare-row .cine-ten-item{
-  width: 132px;
-  flex: 0 0 132px;
-  border-radius: 18px;
-}
-
-.cinematic .result-normal-row .cine-ten-item{
-  width: 84px;
-  flex: 0 0 84px;
-  border-radius: 12px;
+  .cine-results .topRight{
+    width: 100%;
+  }
+  .cine-results .topRight .sharePanel{
+    width: 100%;
+    max-width: 100%;
+  }
 }
 
 </style>
@@ -2357,7 +2368,12 @@ function assetFullUrl(a){
       const cineRarity = document.getElementById("cineRarity");
       const cineSub = document.getElementById("cineSub");
       const cineImg = document.getElementById("cineImg");
-            const cineOk = document.getElementById("cineOk");
+      const cineResults = document.getElementById("cineResults");
+      const resultsSSRUR = document.getElementById("resultsSSRUR");
+      const resultsCRSR = document.getElementById("resultsCRSR");
+      const cineResultsTopNote = document.getElementById("cineResultsTopNote");
+      const cineResultsBottomNote = document.getElementById("cineResultsBottomNote");
+      const cineOk = document.getElementById("cineOk");
       const cineCta = document.getElementById("cineCta");
       const sharePanel = document.getElementById("sharePanel");
       const shareCanvas = document.getElementById("shareCanvas");
@@ -2634,69 +2650,80 @@ function assetFullUrl(a){
         confirmBtn.style.opacity = "0.0";
         confirmBtn.style.pointerEvents = "none";
       }
-      // Results layout: 上塊 SSR/UR， 下塊 C/R/SR（單排不換行）
-      const resultRareRow = document.getElementById("resultRareRow");
-      const resultNormalRow = document.getElementById("resultNormalRow");
-      const rareEmpty = document.getElementById("rareEmpty");
 
-      if(resultRareRow) resultRareRow.innerHTML = "";
-      if(resultNormalRow) resultNormalRow.innerHTML = "";
-      if(rareEmpty) rareEmpty.style.display = "none";
+      
+      // Ten-pull thumbnails (SSR/UR on top)
+      // 10連顯示：上半部左側 SSR/UR，右側分享；下半部 C/R/SR（單排不換行）
+      if(cineResults && resultsSSRUR && resultsCRSR){
+        resultsSSRUR.innerHTML = "";
+        resultsCRSR.innerHTML = "";
+        if(cineResultsTopNote) cineResultsTopNote.textContent = "";
+        if(cineResultsBottomNote) cineResultsBottomNote.textContent = "";
 
-      const addItem = (w, container, best=false) => {
-        if(!container) return;
-        const rr = Math.max(1, Math.min(5, Number(w?.rarity || 1)));
-        const t = String(w?.type || "").toLowerCase();
-        const isHB = (t === "head" || t === "body");
-        const item = document.createElement("div");
-        item.className = `cine-ten-item r${rr}` + (best ? " best" : "") + (isHB ? " thumb" : " full");
-        const img = document.createElement("img");
-        img.src = isHB ? assetThumb(w) : assetFullUrl(w);
-        img.alt = String(w?.id || w?.assetId || "");
-        if(!isHB){
-          const tag = document.createElement("div");
-          tag.className = "tag";
-          tag.textContent = RARITY_NAME[rr] || `R${rr}`;
-          item.appendChild(img);
-          item.appendChild(tag);
-        }else{
-          item.appendChild(img);
-        }
-        container.appendChild(item);
-      };
+        if(isTen){
+          cineResults.classList.add("show");
 
-      if(isTen){
-        const featured = arr.filter(w => Number(w?.rarity||1) >= 4);
-        const rest = arr.filter(w => Number(w?.rarity||1) < 4);
+          // featured: SSR/UR (rarity >= 4) keep original order
+          const featured = arr.filter(w => Number(w?.rarity||1) >= 4);
+          const rest = arr.filter(w => Number(w?.rarity||1) < 4);
 
-        if(featured.length){
-          for(const w of featured){
-            addItem(w, resultRareRow, (w === focus));
+          const addItem = (w, container, best=false) => {
+            const rr = Math.max(1, Math.min(5, Number(w?.rarity || 1)));
+            const t = String(w?.type || "").toLowerCase();
+            const isHB = (t === "head" || t === "body");
+            const item = document.createElement("div");
+            item.className = `result-card rarity-${(rr===5?"ur":rr===4?"ssr":rr===3?"sr":rr===2?"r":"c")}` + (best ? " best" : "");
+            const img = document.createElement("img");
+            img.alt = assetLabel(w);
+            img.loading = "lazy";
+            img.decoding = "async";
+            img.src = isHB ? assetThumb(w) : (assetFullUrl(w) || assetThumb(w));
+            item.appendChild(img);
+
+            const badge = document.createElement("div");
+            badge.className = "rarity-badge";
+            badge.textContent = (rr===5?"UR":rr===4?"SSR":rr===3?"SR":rr===2?"R":"C");
+            item.appendChild(badge);
+
+            const name = document.createElement("div");
+            name.className = "result-name";
+            name.textContent = assetLabel(w);
+            item.appendChild(name);
+
+            item.onclick = ()=>{
+              try{
+                const id = String(w?.assetId || w?.id || "");
+                if(id){
+                  const url = "/assets/" + encodeURIComponent(id) + ".png";
+                  window.open(url, "_blank", "noopener,noreferrer");
+                }
+              }catch(_){}
+            };
+            container.appendChild(item);
+          };
+
+          // top left: SSR/UR
+          if(featured.length){
+            for(const w of featured) addItem(w, resultsSSRUR, (w === focus));
+            if(cineResultsTopNote) cineResultsTopNote.textContent = `${featured.length} 張`;
+          }else{
+            // 若沒有 SSR/UR，仍把最稀有卡放上去避免空白
+            addItem(focus, resultsSSRUR, true);
+            if(cineResultsTopNote) cineResultsTopNote.textContent = "本次無 SSR/UR";
           }
-        }else{
-          if(rareEmpty) rareEmpty.style.display = "";
-        }
 
-        for(const w of rest){
-          addItem(w, resultNormalRow, (w === focus));
-        }
-      }else{
-        const rr = Number(focus?.rarity || 1);
-        if(rr >= 4){
-          addItem(focus, resultRareRow, true);
+          // bottom: C/R/SR single row
+          for(const w of rest){
+            addItem(w, resultsCRSR, (w === focus));
+          }
+          if(cineResultsBottomNote) cineResultsBottomNote.textContent = `${rest.length} 張`;
         }else{
-          if(rareEmpty) rareEmpty.style.display = "";
-          addItem(focus, resultNormalRow, true);
+          cineResults.classList.remove("show");
         }
       }
+// Show big card only for single pull
 
-      // Cine main card always shows the focus card
       const cineCardWrap = cineImg ? cineImg.closest(".cine-card") : null;
-      if(cineCardWrap){
-        cineCardWrap.style.display = "";
-      }
-
-      // Show big card only for single pull
       if(cineCardWrap){
         cineCardWrap.style.display = isTen ? "none" : "";
       }
@@ -2857,10 +2884,12 @@ function assetFullUrl(a){
       cinematic.setAttribute("aria-hidden","true");
       const cineImg = document.getElementById("cineImg");
       if(cineImg) cineImg.removeAttribute("src");
-      const cineTenGrid = document.getElementById("cineTenGrid");
-      if(cineTenGrid) cineTenGrid.innerHTML = "";
-      const cineTen = document.getElementById("cineTen");
-      if(cineTen) cineTen.classList.remove("show");
+      const resultsSSRUR = document.getElementById("resultsSSRUR");
+      const resultsCRSR = document.getElementById("resultsCRSR");
+      if(resultsSSRUR) resultsSSRUR.innerHTML = "";
+      if(resultsCRSR) resultsCRSR.innerHTML = "";
+      const cineResults = document.getElementById("cineResults");
+      if(cineResults) cineResults.classList.remove("show");
       // restore underlying confirm for non-cinematic paths
       if(typeof confirmBtn !== "undefined" && confirmBtn){
         confirmBtn.style.opacity = "1";
@@ -3227,52 +3256,48 @@ function renderGridDecoys(list){
     <div class="cine-sub" id="cineSub">恭喜獲得</div>
 
     <div class="cine-mainRow" id="cineMainRow">
-
-      <div class="cine-mainRow" id="cineMainRow">
-
-      <div class="result-top">
-
-        <div class="result-rare">
-
-          <div class="cine-card" id="cineCard">
-            <div class="fx fx-ray"></div>
-            <div class="fx fx-spark"></div>
-            <div class="fx fx-burst"></div>
-            <img alt="reward" id="cineImg" />
-          </div>
-
-          <div class="result-rare-row" id="resultRareRow"></div>
-
-          <div class="rareEmpty" id="rareEmpty" style="display:none;">本次未抽到 SSR 或 UR</div>
-
+      <div class="cine-leftCol">
+        <div class="cine-card" id="cineCard">
+          <div class="fx fx-ray"></div>
+          <div class="fx fx-spark"></div>
+          <div class="fx fx-burst"></div>
+          <img alt="reward" id="cineImg" />
         </div>
 
-        <div class="result-share">
-          <div class="sharePanel" id="sharePanel" style="display:none;">
-            <div class="shareTitle">分享抽卡結果</div>
-            <div class="shareBody">
-              <img alt="share preview" id="sharePreview" />
-              <div class="shareBtns">
-                <button class="shareBtn" id="shareDownload" type="button">下載圖片</button>
-                <button class="shareBtn" id="shareCopy" type="button">複製文案</button>
-                <button class="shareBtn" id="shareShare" type="button">一鍵分享</button>
-                <button class="shareBtn" id="shareReddit" type="button">Reddit</button>
-                <button class="shareBtn shareClaim" id="shareClaim" type="button">領取獎勵</button>
+        <!-- Ten-pull result layout (remade): Top SSR/UR + Share, Bottom C/R/SR -->
+        <div class="cine-results" id="cineResults">
+          <div class="top">
+            <div class="topLeft">
+              <div class="sectionTitle"><span>SSR / UR</span><span style="opacity:0.75;font-weight:900" id="cineResultsTopNote"></span></div>
+              <div class="resultsRow" id="resultsSSRUR"></div>
+            </div>
+
+            <div class="topRight">
+              <div class="sharePanel" id="sharePanel" style="display:none;">
+                <div class="shareTitle">分享抽卡結果</div>
+                <div class="shareBody">
+                  <img alt="share preview" id="sharePreview" />
+                  <div class="shareBtns">
+                    <button class="shareBtn" id="shareDownload" type="button">下載圖片</button>
+                    <button class="shareBtn" id="shareCopy" type="button">複製文案</button>
+                    <button class="shareBtn" id="shareShare" type="button">一鍵分享</button>
+                    <button class="shareBtn" id="shareReddit" type="button">Reddit</button>
+                    <button class="shareBtn shareClaim" id="shareClaim" type="button">領取獎勵</button>
+                  </div>
+                </div>
+                <div class="shareHint" id="shareHint">抽到 SSR 或 UR 才會出現分享圖，分享到 Discord Reddit 朋友圈後再點領取獎勵，每天最多 5 次</div>
               </div>
             </div>
-            <div class="shareHint" id="shareHint">抽到 SSR 或 UR 才會出現分享圖，分享到 Discord Reddit 朋友圈後再點領取獎勵，每天最多 5 次</div>
+          </div>
+
+          <div class="bottom">
+            <div class="sectionTitle"><span>C / R / SR</span><span style="opacity:0.75;font-weight:900" id="cineResultsBottomNote"></span></div>
+            <div class="resultsRow" id="resultsCRSR"></div>
           </div>
         </div>
-
       </div>
-
-      <div class="result-bottom">
-        <div class="result-normal-row" id="resultNormalRow"></div>
-      </div>
-
     </div>
-
-    <button class="cine-ok confirm" id="cineOk" type="button">確認</button>
+<button class="cine-ok confirm" id="cineOk" type="button">確認</button>
     <div class="cine-cta" id="cineCta">點擊確認繼續</div>
   </div>
 
