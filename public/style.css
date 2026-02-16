@@ -379,3 +379,189 @@ body::after{
 }
 .pill:hover, .btn:hover, .tabbtn:hover{ background-image:url("/ui/button/btn_primary_hover.webp") !important; }
 .pill:active, .btn:active, .tabbtn:active{ background-image:url("/ui/button/btn_primary_pressed.webp") !important; transform:translateY(1px); }
+
+/* =====================================================
+   ACF ULTIMATE GOLD GLASS PANEL UPGRADE
+   integrates with existing Fantasy Gold UI Theme
+   safe override version
+   ===================================================== */
+
+/* ===== Card gold glass upgrade ===== */
+.card{
+  position:relative;
+  border-radius:18px;
+
+  background:
+    linear-gradient(180deg, rgba(255,215,0,0.10), rgba(255,215,0,0.05)),
+    radial-gradient(circle at 30% -20%, rgba(255,215,0,0.20), transparent 60%),
+    radial-gradient(circle at 80% 140%, rgba(255,180,0,0.14), transparent 60%),
+    rgba(0,0,0,0.22);
+
+  border:1px solid rgba(255,215,0,0.30);
+
+  box-shadow:
+    0 25px 80px rgba(0,0,0,0.65),
+    0 0 0 1px rgba(255,215,0,0.12) inset,
+    0 0 40px rgba(255,215,0,0.10);
+
+  backdrop-filter: blur(14px);
+
+  overflow:hidden;
+}
+
+/* gold inner glow */
+.card::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:18px;
+
+  background:
+    linear-gradient(135deg,
+      rgba(255,240,180,0.35),
+      rgba(255,200,80,0.18),
+      rgba(255,150,0,0.10)
+    );
+
+  opacity:.55;
+  pointer-events:none;
+}
+
+/* animated outer halo */
+.card::after{
+  content:"";
+  position:absolute;
+  inset:-2px;
+  border-radius:20px;
+
+  background:
+    conic-gradient(
+      from 180deg,
+      transparent,
+      rgba(255,215,0,0.35),
+      transparent
+    );
+
+  filter: blur(10px);
+  opacity:.35;
+
+  animation:acfGoldSpin 12s linear infinite;
+
+  pointer-events:none;
+}
+
+@keyframes acfGoldSpin{
+  0%{ transform:rotate(0deg); }
+  100%{ transform:rotate(360deg); }
+}
+
+
+/* ===== Header gold glass ===== */
+.cardHeader{
+  position:relative;
+
+  background:
+    linear-gradient(180deg, rgba(255,215,0,0.15), rgba(0,0,0,0.15)),
+    radial-gradient(circle at 50% 0%, rgba(255,215,0,0.25), transparent 70%);
+
+  border-bottom:1px solid rgba(255,215,0,0.35);
+
+  backdrop-filter: blur(12px);
+}
+
+/* header shimmer line */
+.cardHeader::after{
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  top:0;
+  height:1px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255,215,0,0.9),
+      transparent
+    );
+
+  opacity:.75;
+}
+
+
+/* ===== title gold glow ===== */
+.cardHeader h2{
+  font-family:"GameFont","GameFontCN",sans-serif;
+
+  color:#FFE8A3;
+
+  text-shadow:
+    0 0 10px rgba(255,215,0,.6),
+    0 0 30px rgba(255,180,0,.35),
+    0 0 60px rgba(255,180,0,.18);
+}
+
+
+/* ===== return badge upgrade ===== */
+.cardHeader .badge{
+  border:1px solid rgba(255,215,0,0.55);
+
+  background:
+    linear-gradient(180deg, rgba(255,215,0,0.25), rgba(0,0,0,0.18));
+
+  color:#FFE8A3;
+
+  box-shadow:
+    0 0 20px rgba(255,215,0,.18),
+    inset 0 0 10px rgba(255,215,0,.12);
+
+  transition:.15s;
+}
+
+.cardHeader .badge:hover{
+  background:
+    linear-gradient(180deg, rgba(255,235,160,0.35), rgba(0,0,0,0.18));
+
+  box-shadow:
+    0 0 30px rgba(255,215,0,.35),
+    inset 0 0 12px rgba(255,215,0,.18);
+}
+
+
+/* ===== stage panel gold upgrade ===== */
+.stage{
+  border:1px solid rgba(255,215,0,0.35);
+
+  background:
+    radial-gradient(circle at 50% 20%, rgba(255,215,0,0.18), transparent 60%),
+    rgba(0,0,0,0.30);
+
+  box-shadow:
+    0 30px 100px rgba(0,0,0,0.75),
+    0 0 40px rgba(255,215,0,0.15),
+    inset 0 0 20px rgba(255,215,0,0.12);
+
+  backdrop-filter: blur(12px);
+}
+
+
+/* ===== input gold upgrade ===== */
+.input{
+  border:1px solid rgba(255,215,0,0.35);
+
+  background:
+    linear-gradient(180deg, rgba(255,215,0,0.12), rgba(0,0,0,0.20));
+
+  box-shadow:
+    0 10px 30px rgba(0,0,0,0.5),
+    inset 0 0 10px rgba(255,215,0,0.12);
+}
+
+.input:focus{
+  border-color:rgba(255,215,0,0.75);
+
+  box-shadow:
+    0 0 0 2px rgba(255,215,0,0.25),
+    0 0 30px rgba(255,215,0,0.35);
+}
