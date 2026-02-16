@@ -283,7 +283,28 @@
       border-radius: 999px;
     }
     .miniLinks a:hover{ opacity: 1; background: rgba(255,255,255,0.10); }
-  </style>
+  
+/* ===== Scrollbar stability fix ===== */
+html{
+  scrollbar-gutter: stable both-edges;
+}
+body{
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+
+/* Prevent accidental overflow caused by flex/grid */
+.wrap, .page-wrap, .heroStage, .featureStage, .asset-grid, .grid{
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Prevent layout jitter from transforms */
+*{
+  backface-visibility: hidden;
+}
+
+</style>
 </head>
 <body>
   <div class="acf-page ui-panel">
@@ -566,5 +587,24 @@
       boot();
     </script>
   </div>
+
+<script>
+(function(){
+  function updateMasterHeightStable(){
+    const m = document.getElementById("acfMasterMount");
+    if(!m) return;
+    const hRaw = m.getBoundingClientRect().height;
+    const h = Math.round(hRaw);
+    const cur = parseInt(getComputedStyle(document.documentElement)
+      .getPropertyValue("--masterH")) || 0;
+    if(Math.abs(h-cur) >= 2){
+      document.documentElement.style.setProperty("--masterH", h+"px");
+    }
+  }
+  window.addEventListener("resize", updateMasterHeightStable);
+  window.addEventListener("load", updateMasterHeightStable);
+})();
+</script>
+
 </body>
 </html>
