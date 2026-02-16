@@ -1739,11 +1739,13 @@ body, .wrap, .page, .acf-page, .container{
   display:flex;
   gap: 14px;
   align-items:center;
-  justify-content:flex-start;
+  justify-content:center; /* center SSR/UR cards inside the left area */
+  width:100%;
+  min-height: 180px;
   flex-wrap: nowrap !important;
   overflow-x: auto;
   overflow-y: hidden;
-  padding-bottom: 6px;
+  padding: 6px 8px 8px;
   scrollbar-gutter: stable;
 }
 

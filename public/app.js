@@ -430,16 +430,16 @@ window.getName = getName;
 
       /* caps: smaller again */
       .acf-cap{
-        width: 190px;
-        height: 50px;
+        width: 160px;
+        height: 42px;
         display: flex;
         align-items: center;
         justify-content: flex-end;
-        padding: 0 16px;
+        padding: 0 14px;
         box-sizing: border-box;
         color: rgba(255,255,255,0.98);
         font-weight: 900;
-        font-size: 14px;
+        font-size: 12px;
         letter-spacing: 0.2px;
         text-shadow: 0 2px 10px rgba(0,0,0,0.55);
         background-size: 100% 100%;
@@ -466,7 +466,7 @@ window.getName = getName;
       }
 
       @media (max-width: 1100px){
-        .acf-cap{ width: 175px; height: 46px; font-size: 13px; }
+        .acf-cap{ width: 150px; height: 40px; font-size: 12px; }
         .acf-masterDivider{ height: 22px; }
       }
 
@@ -474,7 +474,7 @@ window.getName = getName;
         .acf-masterShell{ height: 96px; padding: 0 16px; }
         .acf-masterAvatar{ width: 56px; height: 56px; }
         .acf-masterName{ font-size: 16px; }
-        .acf-cap{ width: 160px; height: 44px; font-size: 12px; }
+        .acf-cap{ width: 140px; height: 38px; font-size: 11px; }
         .acf-masterStats{ gap: 10px; }
         .acf-masterDivider{ height: 20px; }
       }
@@ -482,13 +482,13 @@ window.getName = getName;
       @media (max-width: 760px){
         .acf-masterSub, .acf-masterNet{ display: none; }
         .acf-capGeneric{ display: none; }
-        .acf-cap{ width: 150px; }
+        .acf-cap{ width: 132px; height: 36px; font-size: 11px; }
         .acf-masterDivider{ height: 18px; }
       }
 
       @media (max-width: 560px){
         .acf-capTicket{ display: none; }
-        .acf-cap{ width: 140px; }
+        .acf-cap{ width: 124px; height: 34px; font-size: 10px; }
         .acf-masterLeft{ min-width: 0; }
         .acf-masterDivider{ height: 16px; }
       }
