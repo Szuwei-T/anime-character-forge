@@ -1432,20 +1432,24 @@ body{ padding-top: var(--masterH, 0px); }
   object-fit: cover;
   z-index:1;
 }
+
 .stageVideo{
   position: relative;
-  height: 100%;
-  max-height: 100%;
+
+  /* 高度填滿 heroStage */
+  height: calc(100vh - var(--masterpage-height, 90px));
+
   width: auto;
-  /* center within the remaining space between left & right overlays */
-  max-width: calc(100% - 752px);
+  max-width: none;
+
   aspect-ratio: 9 / 16;
   object-fit: contain;
+
   z-index: 3;
   border-radius: 18px;
   box-shadow: 0 30px 80px rgba(0,0,0,0.55);
-  transform: none;
 }
+
 
 @media (max-width: 1100px){
   .heroStage{
