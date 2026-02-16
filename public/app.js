@@ -33,7 +33,6 @@ function syncUidAliases(uid){
   try{
     const id = String(uid || "").trim();
     if(!id) return;
-    // Keep legacy keys in sync so every page sends the SAME x-user-id
     localStorage.setItem("uid", id);
     localStorage.setItem("userId", id);
     localStorage.setItem("USER_ID", id);
@@ -49,7 +48,6 @@ function getOrCreateUid(){
   const primary = "acf_uid";
   let uid = localStorage.getItem(primary);
 
-  // Migrate legacy keys if present so we keep the SAME account across pages
   if(!uid){
     uid =
       localStorage.getItem("uid") ||
@@ -163,7 +161,6 @@ function saveOfflineDb(db){
 async function apiFetch(path, options={}){
   const url = (WORKER_BASE || "") + path;
 
-  // Always attach uid header (required by /api/me/account and other per-user endpoints)
   const uid = getOrCreateUid();
 
   const headers = Object.assign({}, (options && options.headers) ? options.headers : {});
@@ -171,7 +168,6 @@ async function apiFetch(path, options={}){
 
   const hasBody = options && options.body !== undefined && options.body !== null;
 
-  // If sending an object as body, auto JSON encode it
   let body = hasBody ? options.body : undefined;
   const ct = String(headers["content-type"] || headers["Content-Type"] || "");
   const wantsJson = ct.includes("application/json") || (!ct && typeof body === "object" && !(body instanceof FormData));
@@ -319,7 +315,6 @@ window.getName = getName;
         background-size: 100% 100%, 100% 100%;
       }
 
-      /* isolate master UI from global page styles (some pages set img{position:absolute}) */
       .acf-master-fixed, .acf-master-fixed *{ box-sizing: border-box; }
       .acf-masterStats img{
         position: static !important;
@@ -327,6 +322,7 @@ window.getName = getName;
         transform: none !important;
       }
       .acf-cap, .acf-cap span{ position: relative; }
+
       .acf-masterStats{
         display: flex;
         align-items: center;
@@ -336,13 +332,20 @@ window.getName = getName;
         min-width: 0;
       }
 
+      /* divider: no stretch, no cut, no thin border line */
       .acf-masterDivider{
         pointer-events: none;
         width: 100%;
-        height: 8px;
-        background-image: url("/ui/frame/top_bar_divider.webp");
-        background-position: center center;
-        background-repeat: repeat-x;
+        height: 24px;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        outline: 0;
+        box-shadow: none;
+        background: url("/ui/frame/top_bar_divider.webp") center center repeat-x;
+        background-size: auto 100%;
+        overflow: visible;
+        line-height: 0;
       }
 
       .acf-masterLeft{
@@ -423,23 +426,18 @@ window.getName = getName;
       .acf-masterNet.net-online{ color: rgba(34,197,94,0.98); text-shadow: 0 0 12px rgba(34,197,94,0.25); }
       .acf-masterNet.net-offline{ color: rgba(239,68,68,0.98); text-shadow: 0 0 12px rgba(239,68,68,0.20); }
 
-      .acf-masterStats{
-        display: flex;
-        align-items: center;
-        gap: 14px;
-      }
-
+      /* caps: slightly smaller */
       .acf-cap{
-        width: 240px;
-        height: 62px;
+        width: 210px;
+        height: 56px;
         display: flex;
         align-items: center;
         justify-content: flex-end;
-        padding: 0 22px;
+        padding: 0 18px;
         box-sizing: border-box;
         color: rgba(255,255,255,0.98);
         font-weight: 900;
-        font-size: 16px;
+        font-size: 15px;
         letter-spacing: 0.2px;
         text-shadow: 0 2px 10px rgba(0,0,0,0.55);
         background-size: 100% 100%;
@@ -466,27 +464,30 @@ window.getName = getName;
       }
 
       @media (max-width: 1100px){
-        .acf-cap{ width: 210px; height: 56px; font-size: 15px; }
+        .acf-cap{ width: 190px; height: 52px; font-size: 14px; }
       }
 
       @media (max-width: 920px){
         .acf-masterShell{ height: 96px; padding: 0 16px; }
         .acf-masterAvatar{ width: 56px; height: 56px; }
         .acf-masterName{ font-size: 16px; }
-        .acf-cap{ width: 190px; height: 52px; font-size: 14px; }
+        .acf-cap{ width: 175px; height: 48px; font-size: 13px; }
         .acf-masterStats{ gap: 10px; }
+        .acf-masterDivider{ height: 22px; }
       }
 
       @media (max-width: 760px){
         .acf-masterSub, .acf-masterNet{ display: none; }
         .acf-capGeneric{ display: none; }
         .acf-cap{ width: 170px; }
+        .acf-masterDivider{ height: 20px; }
       }
 
       @media (max-width: 560px){
         .acf-capTicket{ display: none; }
         .acf-cap{ width: 160px; }
         .acf-masterLeft{ min-width: 0; }
+        .acf-masterDivider{ height: 18px; }
       }
 `;
     document.head.appendChild(s);
