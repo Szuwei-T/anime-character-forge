@@ -304,32 +304,33 @@ window.getName = getName;
         pointer-events: none;
       }
 
-      .acf-master{
+      .acf-masterShell{
         pointer-events: auto;
         width: 100%;
-        padding: 10px 0;
-        box-sizing: border-box;
-        display: flex;
-        justify-content: center;
-      }
-
-      .acf-masterInner{
-        width: min(1240px, calc(100% - 20px));
-        height: 92px;
-        background: url("/ui/frame/account_top_frame.webp") center / 100% 100% no-repeat;
+        height: 110px;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0 22px;
+        padding: 0 28px;
         box-sizing: border-box;
-        gap: 16px;
+        background-image: url("/effect/top_light.webp"), url("/frame/account_top_frame.webp");
+        background-repeat: no-repeat, no-repeat;
+        background-position: center top, center center;
+        background-size: 100% 100%, 100% 100%;
+      }
+
+      .acf-masterDivider{
+        pointer-events: none;
+        width: 100%;
+        height: 8px;
+        background: url("/frame/top_bar_divider.webp") center / 100% 100% no-repeat;
       }
 
       .acf-masterLeft{
         display: flex;
         align-items: center;
-        gap: 12px;
-        min-width: 280px;
+        gap: 14px;
+        min-width: 260px;
       }
 
       .acf-masterAvatar{
@@ -339,9 +340,9 @@ window.getName = getName;
         overflow: hidden;
         position: relative;
         flex: 0 0 auto;
-        box-shadow: 0 8px 18px rgba(0,0,0,0.35);
+        box-shadow: 0 8px 18px rgba(0,0,0,0.45);
+        border: 2px solid rgba(255,215,128,0.75);
         background: rgba(255,255,255,0.06);
-        border: 1px solid rgba(255,255,255,0.14);
       }
 
       .acf-layer{
@@ -357,7 +358,6 @@ window.getName = getName;
         width: 100%;
         height: 100%;
         object-fit: contain;
-        image-rendering: auto;
         pointer-events: none;
         user-select: none;
       }
@@ -375,93 +375,99 @@ window.getName = getName;
       .acf-masterTxt{
         display: flex;
         flex-direction: column;
-        line-height: 1.1;
-        min-width: 0;
+        line-height: 1.12;
+        min-width: 160px;
       }
 
       .acf-masterName{
         font-size: 18px;
         font-weight: 900;
         color: rgba(255,255,255,0.98);
-        text-shadow: 0 2px 10px rgba(0,0,0,0.35);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 320px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.45);
       }
 
       .acf-masterSub{
-        margin-top: 4px;
+        margin-top: 3px;
         font-size: 12px;
-        font-weight: 700;
-        color: rgba(226,232,240,0.78);
+        color: rgba(255,255,255,0.72);
       }
 
       .acf-masterNet{
-        margin-top: 6px;
+        margin-top: 3px;
         font-size: 12px;
         font-weight: 900;
         letter-spacing: 0.2px;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
+        opacity: 0.95;
+        color: rgba(148,163,184,0.95);
       }
-
-      .acf-masterNet::before{
-        content: "";
-        width: 8px;
-        height: 8px;
-        border-radius: 999px;
-        background: rgba(148,163,184,0.95);
-        box-shadow: 0 0 10px rgba(148,163,184,0.25);
-      }
+      .acf-masterNet.net-connecting{ color: rgba(148,163,184,0.95); }
+      .acf-masterNet.net-online{ color: rgba(34,197,94,0.98); text-shadow: 0 0 12px rgba(34,197,94,0.25); }
+      .acf-masterNet.net-offline{ color: rgba(239,68,68,0.98); text-shadow: 0 0 12px rgba(239,68,68,0.20); }
 
       .acf-masterStats{
         display: flex;
-        gap: 10px;
         align-items: center;
-        flex-wrap: nowrap;
+        gap: 14px;
       }
 
-      .acf-statPill{
-        display: inline-flex;
+      .acf-cap{
+        width: 240px;
+        height: 62px;
+        display: flex;
         align-items: center;
-        gap: 8px;
-        padding: 8px 10px;
-        border-radius: 999px;
-        background: rgba(2,6,23,0.28);
-        border: 1px solid rgba(148,163,184,0.22);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.22);
-        font-weight: 900;
+        justify-content: flex-end;
+        padding: 0 22px;
+        box-sizing: border-box;
         color: rgba(255,255,255,0.98);
-        font-size: 14px;
+        font-weight: 900;
+        font-size: 16px;
+        letter-spacing: 0.2px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.55);
+        background-size: 100% 100%;
+        background-repeat: no-repeat;
         white-space: nowrap;
       }
 
-      .acf-statPill img{
-        width: 18px;
-        height: 18px;
-        display: block;
-        filter: drop-shadow(0 2px 6px rgba(0,0,0,0.35));
+      .acf-capGold{ background-image: url("/frame/account_gold.webp"); }
+      .acf-capGem{ background-image: url("/frame/account_gem.webp"); }
+      .acf-capTicket{ background-image: url("/frame/account_ticket.webp"); }
+      .acf-capGeneric{
+        background-image: url("/frame/account_capsule.webp");
+        justify-content: space-between;
+        padding: 0 18px;
+        gap: 10px;
       }
 
-      @media (max-width: 980px){
-        .acf-masterInner{ height: 84px; padding: 0 16px; }
+      .acf-capIcon{
+        width: 22px;
+        height: 22px;
+        display: block;
+        opacity: 0.96;
+        filter: drop-shadow(0 2px 6px rgba(0,0,0,0.45));
+      }
+
+      @media (max-width: 1100px){
+        .acf-cap{ width: 210px; height: 56px; font-size: 15px; }
+      }
+
+      @media (max-width: 920px){
+        .acf-masterShell{ height: 96px; padding: 0 16px; }
         .acf-masterAvatar{ width: 56px; height: 56px; }
-        .acf-masterName{ font-size: 16px; max-width: 240px; }
-        .acf-statPill{ padding: 7px 9px; font-size: 13px; }
+        .acf-masterName{ font-size: 16px; }
+        .acf-cap{ width: 190px; height: 52px; font-size: 14px; }
+        .acf-masterStats{ gap: 10px; }
       }
 
       @media (max-width: 760px){
-        .acf-masterSub{ display: none; }
-        .acf-masterNet{ display: none; }
-        .acf-masterLeft{ min-width: 0; }
-        .acf-statPill{ font-size: 12px; padding: 6px 8px; }
-        .acf-statPill img{ width: 16px; height: 16px; }
+        .acf-masterSub, .acf-masterNet{ display: none; }
+        .acf-capGeneric{ display: none; }
+        .acf-cap{ width: 170px; }
       }
 
       @media (max-width: 560px){
-        .acf-statPill:nth-child(n+4){ display: none; }
+        .acf-capTicket{ display: none; }
+        .acf-cap{ width: 160px; }
+        .acf-masterLeft{ min-width: 0; }
       }
 `;
     document.head.appendChild(s);
@@ -513,8 +519,7 @@ window.getName = getName;
     const fixed = el("div","acf-master-fixed");
     fixed.id = "acfMasterHeader";
 
-    const bar = el("div","acf-master");
-    const inner = el("div","acf-masterInner");
+    const bar = el("div","acf-masterShell");
     const left = el("div","acf-masterLeft");
 
     const avatar = el("div","acf-masterAvatar");
@@ -542,10 +547,12 @@ window.getName = getName;
     const stats = el("div","acf-masterStats");
     stats.id = "acfMasterStats";
 
-    inner.appendChild(left);
-    inner.appendChild(stats);
-    bar.appendChild(inner);
+    bar.appendChild(left);
+    bar.appendChild(stats);
     fixed.appendChild(bar);
+
+    const div = el("div","acf-masterDivider");
+    fixed.appendChild(div);
 
     return fixed;
   }
@@ -566,14 +573,17 @@ window.getName = getName;
     const s = document.createElement("style");
     s.id = "acfMasterNetStyle";
     s.textContent = `
+      .acf-masterNet{
+        margin-top: 2px;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.2px;
+        opacity: 0.92;
+        color: rgba(148,163,184,0.95);
+      }
       .acf-masterNet.net-connecting{ color: rgba(148,163,184,0.95); }
-      .acf-masterNet.net-connecting::before{ background: rgba(148,163,184,0.95); box-shadow: 0 0 10px rgba(148,163,184,0.25); }
-
       .acf-masterNet.net-online{ color: rgba(34,197,94,0.98); text-shadow: 0 0 10px rgba(34,197,94,0.25); }
-      .acf-masterNet.net-online::before{ background: rgba(34,197,94,0.98); box-shadow: 0 0 10px rgba(34,197,94,0.35); }
-
       .acf-masterNet.net-offline{ color: rgba(239,68,68,0.98); text-shadow: 0 0 10px rgba(239,68,68,0.18); }
-      .acf-masterNet.net-offline::before{ background: rgba(239,68,68,0.98); box-shadow: 0 0 10px rgba(239,68,68,0.25); }
     `;
     document.head.appendChild(s);
   }
@@ -607,13 +617,13 @@ window.getName = getName;
     }
   }
 
-  function statIcon(path, value){
-    return `
-      <div class="acf-statPill">
-        <img src="${path}" alt="">
-        ${Number(value || 0)}
-      </div>
-    `;
+  function statCap(kind, value, iconPath){
+    const v = Number(value || 0);
+    if(kind === "gold") return `<div class="acf-cap acf-capGold">${v}</div>`;
+    if(kind === "gem") return `<div class="acf-cap acf-capGem">${v}</div>`;
+    if(kind === "ticket") return `<div class="acf-cap acf-capTicket">${v}</div>`;
+    const icon = iconPath ? `<img class="acf-capIcon" src="${iconPath}" alt="">` : "";
+    return `<div class="acf-cap acf-capGeneric">${icon}<span>${v}</span></div>`;
   }
 
   function renderMaster(me){
@@ -654,12 +664,12 @@ window.getName = getName;
     }
 
     const html = [];
-    html.push(statIcon("/ui/icon/gold.webp", acc.userGold));
-    html.push(statIcon("/ui/icon/gem.webp", acc.userGem));
-    html.push(statIcon("/ui/icon/ticket.webp", acc.userVote));
-    html.push(statIcon("/ui/icon/like.webp", st.likes));
-    html.push(statIcon("/ui/icon/follow.webp", st.followers));
-    html.push(statIcon("/ui/icon/favorite.webp", st.collectionsUnlocked));
+    html.push(statCap("gold", acc.userGold));
+    html.push(statCap("gem", acc.userGem));
+    html.push(statCap("ticket", acc.userVote));
+    html.push(statCap("like", st.likes, "/ui/icon/like.webp"));
+    html.push(statCap("follow", st.followers, "/ui/icon/follow.webp"));
+    html.push(statCap("favorite", st.collectionsUnlocked, "/ui/icon/favorite.webp"));
     statsEl.innerHTML = html.join("");
 
     setBodyOffset();
