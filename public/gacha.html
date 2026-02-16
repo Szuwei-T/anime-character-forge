@@ -1764,6 +1764,61 @@ body, .wrap, .page, .acf-page, .container{
   padding-bottom: 6px;
 }
 
+
+/* ===== Cine layout hard structure (top: left SSR/UR, right Share; bottom: C/R/SR row) ===== */
+.cinematic .cine-mainRow{
+  display:flex !important;
+  flex-direction:column !important;
+  gap: 18px;
+}
+.cinematic .cine-top{
+  display:flex;
+  gap: 22px;
+  align-items:flex-start;
+}
+.cinematic .cine-topLeft{
+  flex: 1 1 0;
+  display:flex;
+  justify-content:flex-start;
+}
+.cinematic .cine-topRight{
+  flex: 1 1 0;
+  display:flex;
+  justify-content:flex-end;
+}
+.cinematic .cine-bottom{
+  width:100%;
+}
+
+/* Put SSR/UR card to the left */
+.cinematic .cine-card{
+  margin: 0 !important;
+}
+
+/* Ensure "10連抽結果" title stays with bottom row */
+.cinematic .cine-ten-title,
+.cinematic .cine-ten-subtitle,
+.cinematic .cine-ten-g{
+  position: static !important;
+  text-align: left;
+}
+
+/* Bottom row: single line */
+.cinematic .cine-ten{
+  width:100% !important;
+  max-width:100% !important;
+}
+.cinematic .cine-ten-grid{
+  display:flex !important;
+  gap: 14px;
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  max-width: 100% !important;
+  justify-content: flex-start !important;
+  padding-bottom: 6px;
+}
+
 </style>
 </head>
 <body>
@@ -3256,6 +3311,53 @@ function renderGridDecoys(list){
   // run again after masterpage finishes rendering
   setTimeout(liftOverlays, 50);
   setTimeout(liftOverlays, 300);
+})();
+</script>
+
+
+<script>
+(function(){
+  function restructureCine(){
+    const main = document.getElementById('cineMainRow');
+    const card = document.getElementById('cineCard');
+    const ten  = document.getElementById('cineTen');
+    const share = document.getElementById('sharePanel');
+
+    if(!main || !card || !ten) return;
+    if(main.querySelector('.cine-top') && main.querySelector('.cine-bottom')) return;
+
+    const top = document.createElement('div');
+    top.className = 'cine-top';
+
+    const topL = document.createElement('div');
+    topL.className = 'cine-topLeft';
+
+    const topR = document.createElement('div');
+    topR.className = 'cine-topRight';
+
+    const bottom = document.createElement('div');
+    bottom.className = 'cine-bottom';
+
+    topL.appendChild(card);
+    if(share) topR.appendChild(share);
+
+    bottom.appendChild(ten);
+
+    main.innerHTML = '';
+    top.appendChild(topL);
+    top.appendChild(topR);
+    main.appendChild(top);
+    main.appendChild(bottom);
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', restructureCine, {once:true});
+  }else{
+    restructureCine();
+  }
+  setTimeout(restructureCine, 50);
+  setTimeout(restructureCine, 200);
+  setTimeout(restructureCine, 600);
 })();
 </script>
 
