@@ -602,7 +602,7 @@
   function applyFilterSaves(list){
     const f = (filterSel && filterSel.value) ? filterSel.value : "all";
     if (f === "showing"){
-      return list.filter((s) => _showcaseComboSet.has(comboKey(s.headId, s.bodyId, s.bgId, s.addon1Id, s.addon2Id)));
+      return list.filter((s) => __showcaseComboSet.has(comboKey(s.headId, s.bodyId, s.bgId, s.addon1Id, s.addon2Id)));
     }
     return list;
   }
@@ -872,7 +872,7 @@ function api(path){
       const all = await api("/api/me/showcases?seasonId=S1");
       const list = all.showcases || [];
       list.forEach((x) => {
-        _showcaseComboSet.add(comboKey(x.headId, x.bodyId, x.bgId, x.addon1Id, x.addon2Id));
+        __showcaseComboSet.add(comboKey(x.headId, x.bodyId, x.bgId, x.addon1Id, x.addon2Id));
       });
     }catch(e){
       // If this fails, we should NOT silently ignore it, otherwise users can't tell why "展示中" never appears.
@@ -920,7 +920,7 @@ function api(path){
         const btnShow = document.createElement("div");
         btnShow.className = "showBtn";
         
-        let isShowing = showcaseComboSet.has(comboKey(s.headId, s.bodyId, s.bgId, s.addon1Id, s.addon2Id));
+        let isShowing = __showcaseComboSet.has(comboKey(s.headId, s.bodyId, s.bgId, s.addon1Id, s.addon2Id));
         btnShow.textContent = isShowing ? "展示中" : "展示";
         if (isShowing){
           btnShow.classList.add("disabled");
@@ -963,7 +963,7 @@ if (curItem){
             await apiReq("POST", "/api/me/showcase", { ...payload, seasonId:"S1", overwrite: !!curItem });
 
             // Immediately reflect UI state
-            _showcaseComboSet.add(comboKey(payload.headId, payload.bodyId, payload.bgId, payload.addon1Id, payload.addon2Id));
+            __showcaseComboSet.add(comboKey(payload.headId, payload.bodyId, payload.bgId, payload.addon1Id, payload.addon2Id));
             btnShow.textContent = "展示中";
             btnShow.classList.add("disabled");
             showError("已提交展示");
@@ -1065,7 +1065,7 @@ if (curItem){
       const btnShow = document.createElement("div");
       btnShow.className = "showBtn";
 
-      let isShowing = _showcaseComboSet.has(comboKey(s.headId, s.bodyId, s.bgId, s.addon1Id, s.addon2Id));
+      let isShowing = __showcaseComboSet.has(comboKey(s.headId, s.bodyId, s.bgId, s.addon1Id, s.addon2Id));
       btnShow.textContent = isShowing ? "展示中" : "展示";
       if (isShowing) btnShow.classList.add("disabled");
 
@@ -1104,7 +1104,7 @@ if (curItem){
 
           await apiReq("POST", "/api/me/showcase", { ...payload, seasonId:"S1", overwrite: !!curItem });
 
-          _showcaseComboSet.add(comboKey(payload.headId, payload.bodyId, payload.bgId, payload.addon1Id, payload.addon2Id));
+          __showcaseComboSet.add(comboKey(payload.headId, payload.bodyId, payload.bgId, payload.addon1Id, payload.addon2Id));
           btnShow.textContent = "展示中";
           btnShow.classList.add("disabled");
           showError("已提交展示");
