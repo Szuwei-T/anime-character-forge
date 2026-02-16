@@ -86,7 +86,25 @@ body{
       50%{ transform: translateY(-10px) scale(1.01); }
       100%{ transform: translateY(0) scale(1); }
     }
-    .promoTag{
+    
+    .featuredTitleOverlay{
+      position:absolute;
+      top:16px;
+      left:16px;
+      z-index:6;
+      padding:10px 14px;
+      border-radius:14px;
+      background: rgba(0,0,0,0.35);
+      border: 1px solid rgba(255,255,255,0.18);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      color: rgba(255,255,255,0.92);
+      text-shadow: 0 2px 12px rgba(0,0,0,0.55);
+      pointer-events:none;
+    }
+.promoTag{
   position:absolute;
   top:16px;
   right:16px;
@@ -1416,24 +1434,32 @@ body{ padding-top: var(--masterH, 0px); }
 }
 .stageVideo{
   position: relative;
-  /* keep the featured video fully visible */
-  height: min(calc(100% - 140px), 860px);
-  max-height: calc(100% - 140px);
+  height: 100%;
+  max-height: 100%;
   width: auto;
-  max-width: min(46vw, 620px);
+  /* center within the remaining space between left & right overlays */
+  max-width: calc(100% - 752px);
   aspect-ratio: 9 / 16;
+  object-fit: contain;
   z-index: 3;
   border-radius: 18px;
   box-shadow: 0 30px 80px rgba(0,0,0,0.55);
-  /* nudge down a bit and slightly left to feel centered between side panels */
-  transform: translate(-36px, 44px);
+  transform: none;
 }
+
 @media (max-width: 1100px){
-  .featureStage{ position:relative; height: 72vh; }
+  .heroStage{
+    height: auto;
+    min-height: 0;
+  }
+  .featureStage{
+    position:relative;
+    height: 72vh;
+  }
   .stageVideo{
-    transform: translate(0, 18px);
-    height: min(calc(100% - 70px), 820px);
+    height: 100%;
     max-width: 92vw;
+    transform: none;
   }
 }
 
@@ -1460,7 +1486,7 @@ body{ padding-top: var(--masterH, 0px); }
 <div class="featureStage" id="featureStage">
 <div class="featuredTitleOverlay">本期 Featured 角色</div>
 <div aria-hidden="true" class="promoTag">
-<div class="promoBig">素材獲得機率+300%</div>
+<div class="promoBig">素材獲得機率+30%</div>
 </div>
 <video autoplay="" class="bgVideo" id="featuredVideoBg" loop="" muted="" playsinline=""></video>
 <video autoplay="" class="fgVideo stageVideo" id="featuredVideo" loop="" muted="" playsinline=""></video>
