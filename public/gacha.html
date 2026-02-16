@@ -2919,36 +2919,57 @@ function renderGridDecoys(list){
   </script>
 <!-- V2 cinematic rarity reveal (fixed layer, never blocks clicks) -->
 <div aria-hidden="true" class="cinematic" id="cinematic">
-<div class="cine-bg"></div>
-<div class="cine-black"></div>
-<div class="cine-flash"></div>
-<div class="cine-shake"></div>
-<div class="cine-glow"></div>
-<div aria-modal="true" class="cine-core" role="dialog">
-<div class="cine-rarity" id="cineRarity">UR</div>
-<div class="cine-sub" id="cineSub">恭喜獲得</div>
-<div class="cine-mainRow" id="cineMainRow">
-  <div class="cine-leftCol">
-    <div class="cine-card">
-<div class="fx fx-ray"></div>
-    <div class="cine-ten" id="cineTen">
-<div class="cine-ten-title" id="cineTenTitle">10連抽結果</div>
-<div class="cine-ten-subtitle"></div>
-<div class="cine-ten-g" id="cineTenGuarantee"></div>
-<div class="cine-ten-subtitle"></div>
-<div class="cine-ten-grid" id="cineTenGrid"></div>
-</div>
+  <div class="cine-bg"></div>
+  <div class="cine-black"></div>
+  <div class="cine-flash"></div>
+  <div class="cine-shake"></div>
+  <div class="cine-glow"></div>
+
+  <div aria-modal="true" class="cine-core" role="dialog">
+    <div class="cine-rarity" id="cineRarity">UR</div>
+    <div class="cine-sub" id="cineSub">恭喜獲得</div>
+
+    <div class="cine-mainRow" id="cineMainRow">
+      <div class="cine-leftCol">
+        <div class="cine-card" id="cineCard">
+          <div class="fx fx-ray"></div>
+          <div class="fx fx-spark"></div>
+          <div class="fx fx-burst"></div>
+          <img alt="reward" id="cineImg" />
+        </div>
+
+        <div class="cine-ten" id="cineTen">
+          <div class="cine-ten-title" id="cineTenTitle">10連抽結果</div>
+          <div class="cine-ten-subtitle"></div>
+          <div class="cine-ten-g" id="cineTenGuarantee"></div>
+          <div class="cine-ten-subtitle"></div>
+          <div class="cine-ten-grid" id="cineTenGrid"></div>
+        </div>
+      </div>
+
+      <div class="cine-rightCol">
+        <div class="sharePanel" id="sharePanel" style="display:none;">
+          <div class="shareTitle">分享抽卡結果</div>
+          <div class="shareBody">
+            <img alt="share preview" id="sharePreview" />
+            <div class="shareBtns">
+              <button class="shareBtn" id="shareDownload" type="button">下載圖片</button>
+              <button class="shareBtn" id="shareCopy" type="button">複製文案</button>
+              <button class="shareBtn" id="shareShare" type="button">一鍵分享</button>
+              <button class="shareBtn" id="shareReddit" type="button">Reddit</button>
+              <button class="shareBtn shareClaim" id="shareClaim" type="button">領取獎勵</button>
+            </div>
+          </div>
+          <div class="shareHint" id="shareHint">抽到 SSR 或 UR 才會出現分享圖，分享到 Discord Reddit 朋友圈後再點領取獎勵，每天最多 5 次</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="cine-ok confirm" id="cineOk" type="button">確認</button>
+    <div class="cine-cta" id="cineCta">點擊確認繼續</div>
   </div>
-  <div class="cine-rightCol">
-    <div class="sharePanel" id="sharePanel" style="display:none;">
-<div class="shareTitle">分享抽卡結果</div>
-  </div>
+
+  <canvas height="1080" id="shareCanvas" style="display:none;" width="1080"></canvas>
 </div>
-<button class="cine-ok confirm" id="cineOk" type="button">確認</button>
-<div class="cine-cta" id="cineCta">點擊確認繼續</div>
-</div>
-</div>
-<canvas height="1080" id="shareCanvas" style="display:none;" width="1080"></canvas>
-</div>
-</div></div></body>
+</body>
 </html>
