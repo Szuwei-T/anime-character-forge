@@ -1673,6 +1673,51 @@ body, .wrap, .page, .acf-page, .container{
   transform: none !important;
 }
 
+
+/* ===== Hard-fix: cinematic overlay ALWAYS above masterpage (avoid stacking contexts) ===== */
+#acfMasterMount{ z-index: 5000 !important; }
+.cinematic, .overlay{
+  position: fixed !important;
+  inset: 0 !important;
+  left: 0 !important;
+  top: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+}
+.overlay{ z-index: 1200000 !important; }
+.cinematic{ z-index: 1300000 !important; isolation: isolate; }
+
+/* ===== Cine layout: make bottom row (10-pull grid) span under share panel ===== */
+.cinematic .cine-mainRow{
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: 22px;
+  align-items: start;
+}
+.cinematic .cine-leftCol{
+  display: contents !important; /* allow children to become grid items */
+}
+.cinematic .cine-card{
+  grid-column: 1 / 2;
+}
+.cinematic .cine-rightCol{
+  grid-column: 2 / 3;
+  grid-row: 1;
+}
+.cinematic .cine-ten{
+  grid-column: 1 / -1; /* span full width */
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* Keep the 10-pull cards in one row without wrapping */
+.cinematic .cine-ten-grid{
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  max-width: 100% !important;
+}
+
 </style>
 </head>
 <body>
@@ -3142,5 +3187,31 @@ function renderGridDecoys(list){
 
   <canvas height="1080" id="shareCanvas" style="display:none;" width="1080"></canvas>
 </div>
+
+<script>
+(function(){
+  function liftOverlays(){
+    try{
+      const cine = document.getElementById('cinematic');
+      const ov = document.getElementById('overlay');
+      if(cine && cine.parentElement !== document.body){
+        document.body.appendChild(cine);
+      }
+      if(ov && ov.parentElement !== document.body){
+        document.body.appendChild(ov);
+      }
+    }catch(e){}
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', liftOverlays, {once:true});
+  }else{
+    liftOverlays();
+  }
+  // run again after masterpage finishes rendering
+  setTimeout(liftOverlays, 50);
+  setTimeout(liftOverlays, 300);
+})();
+</script>
+
 </body>
 </html>

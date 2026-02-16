@@ -180,28 +180,29 @@
   
 
 /* =========================================
-   GOLD THEME OVERRIDES
-   全站區塊 金色邊框 + 半透明金色背景
+   GOLD THEME OVERRIDES (match gacha tone)
+   全站區塊：gacha 同色調的橘金玻璃面板
 ========================================= */
-:root{
-  --gold1: rgba(255,215,0,.95);
-  --gold2: rgba(255,195,0,.65);
-  --gold3: rgba(255,180,0,.35);
 
-  --glassGold: rgba(255,215,0,.08);
-  --glassGoldHeavy: rgba(255,215,0,.14);
-
-  --goldBorder: rgba(255,215,0,.45);
-  --goldBorderStrong: rgba(255,215,0,.75);
-
-  --goldGlow: rgba(255,215,0,.35);
-
-  --txt: rgba(255,255,255,.96);
-  --mut: rgba(255,240,200,.75);
-  --mut2: rgba(255,240,200,.62);
+/* 同 gacha：主背景 */
+body{
+  background: url("/ui/bg/main_bg.webp") center/cover no-repeat fixed;
 }
 
-/* 共用金色面板 */
+/* 色票以 gacha 的 goldPanel 為準 */
+:root{
+  --gachaGoldA: rgba(255,198,106,1);   /* warm orange-gold */
+  --gachaGoldB: rgba(255,159,47,1);    /* deeper orange */
+  --gachaGoldBorder: rgba(255,214,102,0.80);
+  --gachaGoldBorderStrong: rgba(255,214,102,0.90);
+  --gachaGoldGlow: rgba(255,198,106,0.22);
+
+  --txt: rgba(255,255,255,0.96);
+  --mut: rgba(255,245,220,0.78);
+  --mut2: rgba(255,245,220,0.62);
+}
+
+/* 共用橘金玻璃面板（同 gacha goldPanel） */
 .podiumCard,
 .recCard,
 .authorCard,
@@ -218,140 +219,125 @@
 .error
 {
   background:
-    linear-gradient(180deg, rgba(255,215,0,.12), rgba(255,215,0,.04)),
-    rgba(0,0,0,.35) !important;
-
-  border: 1px solid var(--goldBorder) !important;
-
-  backdrop-filter: blur(12px);
-
+    radial-gradient(circle at 20% 20%, rgba(255,255,255,0.10), transparent 55%),
+    radial-gradient(circle at 80% 70%, rgba(255,198,106,0.20), transparent 60%),
+    linear-gradient(180deg, rgba(255,198,106,0.38), rgba(255,159,47,0.30));
+  border: 1px solid var(--gachaGoldBorder) !important;
   box-shadow:
-    inset 0 0 12px rgba(255,215,0,.08),
-    0 0 18px rgba(255,215,0,.12),
-    0 8px 28px rgba(0,0,0,.45);
+    0 18px 60px rgba(0,0,0,0.35),
+    0 0 0 1px rgba(255,255,255,0.06) inset,
+    0 0 28px var(--gachaGoldGlow);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
-/* Hover 發光 */
+/* Hover 發光（更亮一點但不刺眼） */
 .podiumCard:hover,
 .recCard:hover,
 .authorCard:hover,
 .entry:hover,
 .iconBtn:hover,
-.select:hover
-{
-  border-color: var(--goldBorderStrong) !important;
+.select:hover{
+  border-color: var(--gachaGoldBorderStrong) !important;
   box-shadow:
-    inset 0 0 16px rgba(255,215,0,.18),
-    0 0 22px rgba(255,215,0,.35),
-    0 10px 30px rgba(0,0,0,.55);
+    0 22px 70px rgba(0,0,0,0.42),
+    0 0 0 1px rgba(255,255,255,0.08) inset,
+    0 0 34px rgba(255,198,106,0.30);
 }
 
-/* 工具列也變成金色玻璃 */
+/* 工具列也用同一套 */
 .toolbar{
   padding: 10px 14px;
   border-radius: 14px;
   background:
-    linear-gradient(180deg, rgba(255,215,0,.12), rgba(255,215,0,.03)),
-    rgba(0,0,0,.22) !important;
-  border: 1px solid rgba(255,215,0,.35) !important;
+    radial-gradient(circle at 20% 20%, rgba(255,255,255,0.10), transparent 55%),
+    radial-gradient(circle at 80% 70%, rgba(255,198,106,0.18), transparent 60%),
+    linear-gradient(180deg, rgba(255,198,106,0.34), rgba(255,159,47,0.26));
+  border: 1px solid rgba(255,214,102,0.75) !important;
   box-shadow:
-    inset 0 0 10px rgba(255,215,0,.08),
-    0 10px 26px rgba(0,0,0,.35);
+    0 18px 55px rgba(0,0,0,0.35),
+    0 0 0 1px rgba(255,255,255,0.06) inset;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 /* Select 更像遊戲 UI */
 .select{
   border-radius: 999px;
-  border: 1px solid rgba(255,215,0,.45) !important;
-  background:
-    linear-gradient(180deg, rgba(255,215,0,.18), rgba(255,215,0,.06)),
-    rgba(0,0,0,.22) !important;
 }
 
-/* Badge 金屬金 */
+/* Badge 橘金金屬 */
 .recBadge{
   background:
-    linear-gradient(180deg, rgba(255,215,0,.35), rgba(255,180,0,.15)) !important;
-  border: 1px solid rgba(255,215,0,.60) !important;
-  box-shadow: 0 0 12px rgba(255,215,0,.45);
-  color: rgba(255,255,255,.98) !important;
+    radial-gradient(circle at 30% 30%, rgba(255,255,255,0.16), transparent 55%),
+    linear-gradient(180deg, rgba(255,198,106,0.55), rgba(255,159,47,0.28)) !important;
+  border: 1px solid rgba(255,214,102,0.88) !important;
+  box-shadow: 0 0 18px rgba(255,198,106,0.35);
+  color: rgba(20,20,20,0.95) !important;
+  font-weight: 900;
 }
 
-/* Pills 金色化 */
+/* Pills */
 .pill2{
   background:
-    linear-gradient(180deg, rgba(255,215,0,.14), rgba(255,215,0,.05)),
-    rgba(0,0,0,.20) !important;
-  border: 1px solid rgba(255,215,0,.40) !important;
+    radial-gradient(circle at 20% 20%, rgba(255,255,255,0.10), transparent 60%),
+    linear-gradient(180deg, rgba(255,198,106,0.26), rgba(255,159,47,0.16)) !important;
+  border: 1px solid rgba(255,214,102,0.70) !important;
 }
 
-/* 按鈕金屬感 */
+/* iconBtn：統一橘金玻璃 */
 .iconBtn{
   background:
-    linear-gradient(180deg, rgba(255,215,0,.22), rgba(255,180,0,.08)),
-    rgba(0,0,0,.22) !important;
-  border: 1px solid rgba(255,215,0,.55) !important;
+    radial-gradient(circle at 20% 20%, rgba(255,255,255,0.10), transparent 60%),
+    linear-gradient(180deg, rgba(255,198,106,0.30), rgba(255,159,47,0.18)) !important;
+  border: 1px solid rgba(255,214,102,0.78) !important;
 }
 .iconBtn.on{
   background:
-    linear-gradient(180deg, rgba(120,255,200,.14), rgba(255,215,0,.10)),
-    rgba(0,0,0,.22) !important;
-  border-color: rgba(255,215,0,.75) !important;
+    radial-gradient(circle at 20% 20%, rgba(255,255,255,0.12), transparent 60%),
+    linear-gradient(180deg, rgba(120,255,200,0.14), rgba(255,198,106,0.16)) !important;
+  border-color: rgba(255,214,102,0.90) !important;
 }
 .iconBtn.warn{
   background:
-    linear-gradient(180deg, rgba(255,170,0,.22), rgba(255,120,0,.08)),
-    rgba(0,0,0,.22) !important;
-  border-color: rgba(255,170,0,.60) !important;
+    radial-gradient(circle at 20% 20%, rgba(255,255,255,0.12), transparent 60%),
+    linear-gradient(180deg, rgba(255,170,0,0.24), rgba(255,120,0,0.14)) !important;
+  border-color: rgba(255,180,60,0.88) !important;
 }
 
-/* Modal 面板金色化 */
+/* Modal 面板：底更深一點（更像 gacha 的覆蓋感） */
 .panel{
   background:
-    linear-gradient(180deg, rgba(255,215,0,.15), rgba(255,215,0,.05)),
-    rgba(0,0,0,.55) !important;
-  border: 1px solid rgba(255,215,0,.65) !important;
+    radial-gradient(circle at 20% 20%, rgba(255,255,255,0.10), transparent 55%),
+    radial-gradient(circle at 80% 70%, rgba(255,198,106,0.22), transparent 60%),
+    linear-gradient(180deg, rgba(0,0,0,0.72), rgba(0,0,0,0.62)) !important;
+  border: 1px solid rgba(255,214,102,0.88) !important;
   box-shadow:
-    inset 0 0 22px rgba(255,215,0,.25),
-    0 0 40px rgba(255,215,0,.45);
+    0 30px 120px rgba(0,0,0,0.65),
+    0 0 40px rgba(255,198,106,0.30),
+    inset 0 0 0 1px rgba(255,255,255,0.08);
 }
+
+/* 關閉按鈕 */
 .close{
   background:
-    linear-gradient(180deg, rgba(255,215,0,.18), rgba(255,215,0,.06)),
-    rgba(0,0,0,.20) !important;
-  border: 1px solid rgba(255,215,0,.45) !important;
-}
-.modal{
-  background: rgba(0,0,0,.72) !important;
+    radial-gradient(circle at 20% 20%, rgba(255,255,255,0.10), transparent 60%),
+    linear-gradient(180deg, rgba(255,198,106,0.22), rgba(255,159,47,0.12)) !important;
+  border: 1px solid rgba(255,214,102,0.78) !important;
 }
 
-/* 頒獎台第 1 名更華麗 */
-.podiumCard.rank1{
-  border: 1px solid rgba(255,215,0,.90) !important;
+/* Toast */
+.toast{
   background:
-    linear-gradient(180deg, rgba(255,215,0,.25), rgba(255,215,0,.06)),
-    rgba(0,0,0,.35) !important;
-  box-shadow:
-    inset 0 0 24px rgba(255,215,0,.25),
-    0 0 40px rgba(255,215,0,.55),
-    0 12px 40px rgba(0,0,0,.60);
+    radial-gradient(circle at 20% 20%, rgba(255,255,255,0.08), transparent 60%),
+    linear-gradient(180deg, rgba(0,0,0,0.72), rgba(0,0,0,0.58)) !important;
+  border: 1px solid rgba(255,214,102,0.55) !important;
 }
 
-/* 頒獎台第 2 第 3 名也統一金邊 */
-.podiumCard.rank2,
-.podiumCard.rank3{
-  border-color: rgba(255,215,0,.55) !important;
-}
-
-/* Error 也改成金色玻璃系統 但保留紅色文字提醒 */
+/* Error 仍維持偏紅，但邊框用同色調 */
 .error{
-  color: rgba(255,220,230,.98) !important;
-  border-color: rgba(255,215,0,.35) !important;
+  border-color: rgba(255,214,102,0.55) !important;
 }
-
-/* 文字微調 */
-.sectionTitle{ color: rgba(255,245,220,.92); }
-.status{ color: var(--mut); }
 
 </style>
 
