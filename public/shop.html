@@ -7,189 +7,192 @@
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="ui_fx.css" />
   <style>
-    .wrap{max-width:1100px;margin:28px auto;padding:0 14px;}
-    h1{margin:0 0 6px;font-size:26px;}
-    .sub{opacity:.85;margin:0 0 16px;line-height:1.4}
-    .topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-    .links a{opacity:.9;margin-left:10px}
-    .row{margin:10px 0}
-    label{display:block;font-size:12px;opacity:.8;margin-bottom:6px}
-    input{width:100%;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.25);color:#fff}
-    input[disabled]{opacity:.8}
-    .hint{font-size:12px;opacity:.7;margin-top:6px}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:18px}
-    .card{border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.22);border-radius:16px;padding:14px;box-shadow:0 10px 24px rgba(0,0,0,.25)}
+    .wrap{max-width:1100px;margin:28px auto;padding:0 14px}
+    h1{margin:0 0 6px;font-size:26px;letter-spacing:.2px}
+    .sub{opacity:.85;margin:0 0 16px;line-height:1.45}
+    .topbar{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;flex-wrap:wrap}
+    .links a{opacity:.9;margin-left:10px;text-decoration:none}
+    .links a:hover{opacity:1;text-decoration:underline}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-top:18px}
+    .card{border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.22);border-radius:16px;padding:14px;box-shadow:0 10px 24px rgba(0,0,0,.25);backdrop-filter:blur(4px)}
+    .card:hover{border-color:rgba(255,255,255,.18);transform:translateY(-1px)}
     .title{font-size:22px;font-weight:800;margin-bottom:10px}
     .line{margin:6px 0}
     .promo{display:inline-block;margin-top:8px;padding:8px 10px;border-radius:12px;background:rgba(255,215,0,.10);border:1px solid rgba(255,215,0,.18)}
-    .buy{width:100%;margin-top:12px;padding:12px 12px;border-radius:14px;border:0;cursor:pointer;font-weight:800}
-    .buy[disabled]{opacity:.6;cursor:not-allowed}
-    .ok{margin-top:10px;color:#8dffa4}
-    .err{margin-top:10px;color:#ff9b9b;white-space:pre-wrap}
-    .pill{display:inline-block;font-size:12px;padding:4px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06)}
+    .buy{width:100%;margin-top:12px;padding:12px 12px;border-radius:14px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:#fff;cursor:pointer;font-weight:800}
+    .buy:hover{background:rgba(255,255,255,.12)}
+    .buy:active{transform:translateY(1px)}
+    .buy[disabled]{opacity:.6;cursor:not-allowed;transform:none}
+    .toast{margin-top:14px;border-radius:14px;padding:10px 12px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.20);backdrop-filter:blur(4px)}
+    .ok{color:#8dffa4}
+    .err{color:#ff9b9b;white-space:pre-wrap}
+    .muted{opacity:.75;font-size:12px;line-height:1.4;margin-top:10px}
   </style>
 </head>
 <body>
-  <div class="acf-page ui-panel"><div id="acfMasterMount"></div>
-  <div class="wrap">
-    <div class="topbar">
-      <div>
-        <h1>DREAM LEAGUE BASEBALL 商城</h1>
-        <div class="sub">付款完成後不會立刻入帳。後端收到 Stripe webhook 才入帳，避免前端作弊。</div>
-      </div>
-      <div class="links">
-        <a href="./shop-success.html">Success</a>
-        <span> </span>
-        <a href="./shop-cancel.html">Cancel</a>
-      </div>
-    </div>
+  <div class="acf-page ui-panel">
+    <div id="acfMasterMount"></div>
 
-    <div class="row">
-      <label>Worker API Base</label>
-      <input id="apiBase" disabled />
-      <div class="hint">自動使用與其他頁面相同的 WORKER_BASE（app.js）。</div>
-    </div>
-
-    <div class="row">
-      <label>登入狀態</label>
-      <input id="loginStatus" disabled />
-      <div class="hint">本專案登入狀態以 localStorage 的 acf_uid 為準（與 studio、recipes 相同）。</div>
-    </div>
-
-    <div class="grid" id="grid"></div>
-    <div id="ok" class="ok"></div>
-    <div id="err" class="err"></div>
-  </div>
-
-  <script src="app.js"></script>
-  <script>window.WORKER_BASE = window.WORKER_BASE || ((location.hostname === "127.0.0.1" || location.hostname === "localhost") ? "" : "https://acf-api.dream-league-baseball.workers.dev");</script>
-  <script>
-    const PACKS = [
-      { id: "pack_199",  priceUsd: "1.99",  coins: 1000000,  gems: 300,  bonusGems: 200 },
-      { id: "pack_499",  priceUsd: "4.99",  coins: 3000000,  gems: 900,  bonusGems: 600 },
-      { id: "pack_999",  priceUsd: "9.99",  coins: 6000000,  gems: 1800, bonusGems: 1200 },
-      { id: "pack_1999", priceUsd: "19.99", coins: 12000000, gems: 3600, bonusGems: 2400 },
-      { id: "pack_4999", priceUsd: "49.99", coins: 30000000, gems: 9000, bonusGems: 6000 }
-    ];
-
-    const grid = document.getElementById("grid");
-    const okBox = document.getElementById("ok");
-    const errBox = document.getElementById("err");
-    const apiBaseInput = document.getElementById("apiBase");
-    const loginStatusInput = document.getElementById("loginStatus");
-
-    function safeWorkerBase(){
-      // app.js defines WORKER_BASE in its module scope; it also exposes api() helper on window as window.api (see app.js end)
-      // If not available, fall back to previous localStorage key.
-      return (window.WORKER_BASE || "").trim() || (localStorage.getItem("dlb_api_base") || "").trim();
-    }
-
-    function getUid(){
-      return (localStorage.getItem("acf_uid") || "").trim();
-    }
-
-    function ensureUid(){
-      let uid = getUid();
-      if(!uid){
-        uid = (crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now());
-        localStorage.setItem("acf_uid", uid);
-      }
-      return uid;
-    }
-
-    function setLoginStatus(text){
-      loginStatusInput.value = text;
-    }
-
-    function cardHtml(p){
-      return `
-        <div class="card">
-          <div class="title">$${p.priceUsd}</div>
-          <div class="line">金幣 <b>${p.coins}</b></div>
-          <div class="line">鑽石 <b>${p.gems}</b></div>
-          <div class="promo">活動加送 <b>${p.bonusGems}</b> 鑽石</div>
-          <button class="buy" data-pack="${p.id}">立即購買</button>
+    <div class="wrap">
+      <div class="topbar">
+        <div>
+          <h1>DREAM LEAGUE BASEBALL 商城</h1>
+          <div class="sub">付款完成後不會立刻入帳。後端收到 Stripe webhook 才入帳，避免前端作弊。</div>
         </div>
-      `;
-    }
+        <div class="links">
+          <a href="./shop-success.html">Success</a>
+          <span> </span>
+          <a href="./shop-cancel.html">Cancel</a>
+        </div>
+      </div>
 
-    function render(){
-      grid.innerHTML = PACKS.map(cardHtml).join("");
-      document.querySelectorAll("button.buy").forEach(btn=>{
-        btn.addEventListener("click", ()=>startCheckout(btn));
-      });
-    }
+      <div class="grid" id="grid"></div>
 
-    async function startCheckout(btn){
-      errBox.textContent = "";
-      okBox.textContent = "";
+      <div id="okWrap" class="toast" style="display:none">
+        <div id="ok" class="ok"></div>
+        <div class="muted">如果沒有自動跳轉，請確認瀏覽器沒有阻擋重新導向。</div>
+      </div>
 
-      const apiBase = (apiBaseInput.value || "").trim().replace(/\/+$/g,"");
-      const uid = ensureUid();
-      const packId = btn.getAttribute("data-pack");
+      <div id="errWrap" class="toast" style="display:none">
+        <div id="err" class="err"></div>
+        <div class="muted">若你在本機離線模式，請用線上環境或確認 WORKER_BASE 已設定。</div>
+      </div>
+    </div>
 
-      if(!apiBase){
-        errBox.textContent = "Worker API Base 為空（看起來你在本機離線模式，或 app.js 的 WORKER_BASE 沒設定）。";
-        return;
+    <script src="app.js"></script>
+    <script>
+      window.WORKER_BASE = window.WORKER_BASE || ((location.hostname === "127.0.0.1" || location.hostname === "localhost")
+        ? ""
+        : "https://acf-api.dream-league-baseball.workers.dev");
+    </script>
+    <script>
+      const PACKS = [
+        { id: "pack_199",  priceUsd: "1.99",  coins: 1000000,  gems: 300,  bonusGems: 200 },
+        { id: "pack_499",  priceUsd: "4.99",  coins: 3000000,  gems: 900,  bonusGems: 600 },
+        { id: "pack_999",  priceUsd: "9.99",  coins: 6000000,  gems: 1800, bonusGems: 1200 },
+        { id: "pack_1999", priceUsd: "19.99", coins: 12000000, gems: 3600, bonusGems: 2400 },
+        { id: "pack_4999", priceUsd: "49.99", coins: 30000000, gems: 9000, bonusGems: 6000 }
+      ];
+
+      const grid = document.getElementById("grid");
+      const okBox = document.getElementById("ok");
+      const errBox = document.getElementById("err");
+      const okWrap = document.getElementById("okWrap");
+      const errWrap = document.getElementById("errWrap");
+
+      function showOk(msg){
+        okBox.textContent = msg || "";
+        okWrap.style.display = msg ? "" : "none";
       }
 
-      btn.disabled = true;
-      btn.textContent = "建立付款中";
+      function showErr(msg){
+        errBox.textContent = msg || "";
+        errWrap.style.display = msg ? "" : "none";
+      }
 
-      try{
-        // Prefer project helper api() which auto-injects x-user-id
-        let data = null;
+      function safeWorkerBase(){
+        // Prefer app.js WORKER_BASE if present, then fallback to last saved value.
+        return (window.WORKER_BASE || "").trim() || (localStorage.getItem("dlb_api_base") || "").trim();
+      }
 
-        if(typeof window.api === "function"){
-          data = await window.api("/api/store/create-checkout-session", {
-            method: "POST",
-            body: JSON.stringify({ packId })
-          });
-        }else{
-          const r = await fetch(apiBase + "/api/store/create-checkout-session", {
-            method:"POST",
-            headers:{
-              "content-type":"application/json",
-              "x-user-id": uid
-            },
-            body: JSON.stringify({ packId })
-          });
-          data = await r.json().catch(()=> ({}));
-          if(!r.ok) throw new Error(data && data.error ? data.error : "create_session_failed");
+      function getUid(){
+        return (localStorage.getItem("acf_uid") || "").trim();
+      }
+
+      function ensureUid(){
+        let uid = getUid();
+        if(!uid){
+          uid = (crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now());
+          localStorage.setItem("acf_uid", uid);
+        }
+        return uid;
+      }
+
+      function cardHtml(p){
+        return `
+          <div class="card">
+            <div class="title">$${p.priceUsd}</div>
+            <div class="line">金幣 <b>${p.coins}</b></div>
+            <div class="line">鑽石 <b>${p.gems}</b></div>
+            <div class="promo">活動加送 <b>${p.bonusGems}</b> 鑽石</div>
+            <button class="buy" data-pack="${p.id}">立即購買</button>
+          </div>
+        `;
+      }
+
+      function render(){
+        grid.innerHTML = PACKS.map(cardHtml).join("");
+        document.querySelectorAll("button.buy").forEach(btn=>{
+          btn.addEventListener("click", ()=>startCheckout(btn));
+        });
+      }
+
+      async function startCheckout(btn){
+        showErr("");
+        showOk("");
+
+        const apiBase = safeWorkerBase().replace(/\/+$/g,"");
+        const uid = ensureUid();
+        const packId = btn.getAttribute("data-pack");
+
+        if(!apiBase){
+          showErr("Worker API Base 為空（看起來你在本機離線模式，或 app.js 的 WORKER_BASE 沒設定）。");
+          return;
         }
 
-        if(!data || !data.url) throw new Error("missing_checkout_url");
-        okBox.textContent = "已建立 Stripe Checkout，轉跳中";
-        location.href = data.url;
-      }catch(e){
-        errBox.textContent = String(e && e.message ? e.message : e);
-        btn.disabled = false;
-        btn.textContent = "立即購買";
+        btn.disabled = true;
+        btn.textContent = "建立付款中";
+
+        try{
+          let data = null;
+
+          if(typeof window.api === "function"){
+            data = await window.api("/api/store/create-checkout-session", {
+              method: "POST",
+              body: JSON.stringify({ packId })
+            });
+          }else{
+            const r = await fetch(apiBase + "/api/store/create-checkout-session", {
+              method:"POST",
+              headers:{
+                "content-type":"application/json",
+                "x-user-id": uid
+              },
+              body: JSON.stringify({ packId })
+            });
+            data = await r.json().catch(()=> ({}));
+            if(!r.ok) throw new Error(data && data.error ? data.error : "create_session_failed");
+          }
+
+          if(!data || !data.url) throw new Error("missing_checkout_url");
+          showOk("已建立 Stripe Checkout，轉跳中");
+          location.href = data.url;
+        }catch(e){
+          showErr(String(e && e.message ? e.message : e));
+          btn.disabled = false;
+          btn.textContent = "立即購買";
+        }
       }
-    }
 
-    async function boot(){
-      const apiBase = safeWorkerBase();
-      apiBaseInput.value = apiBase || "";
-      localStorage.setItem("dlb_api_base", apiBaseInput.value);
+      async function boot(){
+        const apiBase = safeWorkerBase();
+        localStorage.setItem("dlb_api_base", apiBase || "");
 
-      const uid = ensureUid();
-      const name = localStorage.getItem("acf_name") || "Player";
-      setLoginStatus(`已登入（uid: ${uid}，name: ${name}）`);
+        // Make sure uid exists for store calls
+        ensureUid();
 
-      // Make sure the user row exists in D1 (same as other pages)
-      try{
-        if(typeof window.initSession === "function") await window.initSession();
-      }catch(e){
-        // Don't block store UI, but show a hint if needed
-        console.warn(e);
+        // Make sure the user row exists in D1 (same as other pages)
+        try{
+          if(typeof window.initSession === "function") await window.initSession();
+        }catch(e){
+          console.warn(e);
+        }
+
+        render();
       }
 
-      render();
-    }
-
-    boot();
-  </script>
+      boot();
+    </script>
   </div>
 </body>
 </html>
