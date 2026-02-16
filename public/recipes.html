@@ -111,6 +111,9 @@
       --ui-btn-gold: url('/ui/button/btn_gold.webp');
       --ui-btn-gem: url('/ui/button/btn_gem.webp');
 
+      --ui-btn-gold-hover: url('/ui/button/btn_gold_hover.webp');
+      --ui-btn-gold-pressed: url('/ui/button/btn_gold_pressed.webp');
+
       --ui-glow-ssr: url('/ui/glow/glow_ssr.webp');
       --ui-glow-ur: url('/ui/glow/glow_ur.webp');
       --ui-starburst: url('/ui/effect/starburst.webp');
@@ -166,6 +169,12 @@
     }
 
     .page-wrap{position:relative; z-index:1;}
+    /* Masterpage pinned to the very top (always visible) */
+    #acfMasterMount{
+      position: sticky;
+      top: 0;
+      z-index: 4000; /* below modal (9999) */
+    }
 
         .page-wrap::before{
       content:"";
@@ -315,16 +324,19 @@
     }
     .showBtn{
       background-image: var(--ui-btn-gold);
+      background-size:100% 100%;
     }
     .showBtn:hover{
-      background-image: var(--ui-btn-primary-hover);
+      background-image: var(--ui-btn-gold-hover);
     }
     .showBtn:active{
-      background-image: var(--ui-btn-primary-pressed);
+      background-image: var(--ui-btn-gold-pressed);
     }
+    /* "展示中" should keep the same button size/skin, just dim it */
     .showBtn.disabled{
-      background-image: var(--ui-btn-primary);
-      filter: saturate(.55) brightness(.9);
+      background-image: var(--ui-btn-gold);
+      background-size:100% 100%;
+      filter: saturate(.65) brightness(.9);
     }
 
     /* Meta readability */
@@ -625,7 +637,14 @@ body{
 
         const time = document.createElement("div");
         time.className = "time";
-        time.textContent = fmtTime(s.savedOn);
+        // Replace time with work name (hide if unnamed)
+        const workName = String(s.workName || s.workTitle || s.title || s.name || s.displayName || "").trim();
+        if (workName){
+          time.textContent = workName;
+        } else {
+          time.textContent = "";
+          time.style.display = "none";
+        }
 
         const btnShow = document.createElement("div");
         btnShow.className = "showBtn";

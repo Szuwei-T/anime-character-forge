@@ -10,6 +10,78 @@
   .picker-section{margin-bottom:14px; display: none;}
   .picker-section.active{display: block;}
   .picker-title{font-size:14px;opacity:.9;margin:10px 0 10px; display: none;}
+
+  /* ===== Studio layout overrides (requested) ===== */
+  .acf-page{ position: relative; }
+  /* masterpage always on top */
+  #acfMasterMount{
+    position: sticky;
+    top: 0;
+    z-index: 99999;
+  }
+
+  /* Two-row layout:
+     Row 1: stage (left) + tabs+asset box (right)
+     Row 2: title input (left, width equals stage) + "去看成品庫" (right)
+  */
+  .studio-layout{
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    grid-template-rows: auto auto;
+    column-gap: 18px;
+    row-gap: 10px;
+    align-items: start;
+  }
+  .studio-left{ grid-column: 1; grid-row: 1; }
+  .studio-right{ grid-column: 2; grid-row: 1; }
+  .studio-titleRow{ grid-column: 1; grid-row: 2; }
+  .studio-linkRow{ grid-column: 2; grid-row: 2; display:flex; justify-content:flex-start; align-items:center; }
+
+  /* Keep left column width locked to stage width, so title input matches image width */
+  .studio-left{
+    width: var(--stageW, 420px);
+    max-width: min(92vw, var(--stageW, 420px));
+  }
+  #titleInput{
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+  }
+
+  /* Right column: make asset frame exactly fit 7 cards, and height align to stage bottom */
+  :root{
+    --thumbW: 64px;
+    --thumbH: 96px;
+    --thumbGap: 8px;
+    --assetPad: 10px;
+  }
+  .studio-right{
+    /* match stage height so the asset grid can stretch to the stage bottom */
+    height: var(--stageH, 620px);
+    display:flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .tabs-container{
+    margin-bottom: 0;
+  }
+  .asset-grid{
+    width: calc(7 * var(--thumbW) + 6 * var(--thumbGap) + 2 * var(--assetPad));
+    max-width: 100%;
+    height: calc(var(--stageH, 620px) - 44px); /* tabs height buffer */
+    padding: var(--assetPad);
+    box-sizing: border-box;
+    overflow: auto;
+  }
+
+  /* Ensure the virtual grid uses the same math as the fixed 7-card frame */
+  .asset-item{ width: var(--thumbW); height: var(--thumbH); }
+  .asset-thumb{ width: var(--thumbW); height: var(--thumbH); }
+
+  /* Make the link button align nicely with the title input row */
+  .studio-linkRow .btn{
+    margin-top: 0;
+  }
   
   /* Tabs Styling */
   .tabs-container {
@@ -682,8 +754,8 @@ body{
 
     <div class="card">
       <div class="cardBody">
-        <div class="grid">
-          <div class="col7">
+        <div class="studio-layout">
+          <div class="studio-left">
             <div class="stage">
 <img class="layer" id="bgLayer" alt="background" />
 <img class="layer" id="addon2Layer" alt="add on 2" />
@@ -698,13 +770,9 @@ body{
                 <button class="smallBtn" id="submitBtn">保存</button>
               </div>
             </div>
-            <div style="height:10px"></div>
-            <input class="input" id="titleInput" placeholder="作品標題 例如 Neon Queen" />
-            <div style="height:10px"></div>
-            <div class="help" id="unlockHint"></div>
           </div>
 
-          <div class="col5">
+          <div class="studio-right">
             <div class="tabs-container" id="assetTabs">
               <button class="tab-btn active" data-target="headGrid">頭部</button>
               <button class="tab-btn" data-target="bodyGrid">身體</button>
@@ -712,22 +780,21 @@ body{
               <button class="tab-btn" data-target="addon1Grid">Addon 1</button>
               <button class="tab-btn" data-target="addon2Grid">Addon 2</button>
             </div>
-            <div class="grid">
-              <div class="col12">
-                <div class="picker-section active" id="headSection"><div id="headGrid" class="asset-grid"><div class="asset-spacer"></div></div></div>
-              </div>
-              <div class="col12">
-                <div class="picker-section" id="bodySection"><div id="bodyGrid" class="asset-grid"><div class="asset-spacer"></div></div></div>
-              </div>
-              <div class="col12">
-                <div class="picker-section" id="bgSection"><div id="bgGrid" class="asset-grid"><div class="asset-spacer"></div></div></div>
-              </div>
-              <div class="col12">
-                <div class="picker-section" id="addon1Section"><div id="addon1Grid" class="asset-grid"><div class="asset-spacer"></div></div></div>
-                <div class="picker-section" id="addon2Section"><div id="addon2Grid" class="asset-grid"><div class="asset-spacer"></div></div></div>
-              </div>
-            </div>
-            <div class="hr"></div>
+
+            <div class="picker-section active" id="headSection"><div id="headGrid" class="asset-grid"><div class="asset-spacer"></div></div></div>
+            <div class="picker-section" id="bodySection"><div id="bodyGrid" class="asset-grid"><div class="asset-spacer"></div></div></div>
+            <div class="picker-section" id="bgSection"><div id="bgGrid" class="asset-grid"><div class="asset-spacer"></div></div></div>
+            <div class="picker-section" id="addon1Section"><div id="addon1Grid" class="asset-grid"><div class="asset-spacer"></div></div></div>
+            <div class="picker-section" id="addon2Section"><div id="addon2Grid" class="asset-grid"><div class="asset-spacer"></div></div></div>
+          </div>
+
+          <div class="studio-titleRow">
+            <input class="input" id="titleInput" placeholder="作品標題 例如 Neon Queen" />
+            <div style="height:10px"></div>
+            <div class="help" id="unlockHint"></div>
+          </div>
+
+          <div class="studio-linkRow">
             <a class="btn" href="recipes.html">去看成品庫</a>
           </div>
         </div>
