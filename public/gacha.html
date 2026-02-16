@@ -1719,98 +1719,70 @@ body, .wrap, .page, .acf-page, .container{
 }
 
 
-/* ===== Result layout remake: Top (SSR/UR + Share) + Bottom (C/R/SR single row) ===== */
-.cine-results{
+
+/* ===== Ten-pull Results Layout: Top (SSR/UR + Share) Bottom (C/R/SR single row) ===== */
+.cine-ten .results-container{
   width: 100%;
-  display: none;
-  flex-direction: column;
-  gap: 14px;
-  margin-top: 6px;
-}
-.cine-results.show{ display:flex; }
-
-.cine-results .top{
-  display:grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 520px);
+  display:flex;
+  flex-direction:column;
   gap: 16px;
-  align-items: start;
-}
-.cine-results .topLeft,
-.cine-results .bottom{
-  border-radius: 18px;
-  background: rgba(0,0,0,0.28);
-  border: 1px solid rgba(255,255,255,0.12);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
-  padding: 12px;
 }
 
-.cine-results .topRight{
-  align-self: stretch;
+.cine-ten .results-top{
+  display:grid;
+  grid-template-columns: minmax(0, 1fr) 380px;
+  gap: 18px;
+  align-items:start;
 }
 
-.cine-results .sectionTitle{
-  font-size: 12px;
-  font-weight: 950;
-  letter-spacing: 0.5px;
-  opacity: 0.86;
-  margin-bottom: 10px;
+.cine-ten .results-top-left{
   display:flex;
+  gap: 14px;
   align-items:center;
-  justify-content:space-between;
-  gap: 10px;
-}
-
-.cine-results .resultsRow{
-  display:flex;
-  flex-wrap: nowrap;
+  justify-content:flex-start;
+  flex-wrap: nowrap !important;
   overflow-x: auto;
   overflow-y: hidden;
-  gap: 12px;
   padding-bottom: 6px;
   scrollbar-gutter: stable;
-  max-width: 100%;
-  box-sizing: border-box;
-  justify-content: flex-start;
 }
-.cine-results .resultsRow::-webkit-scrollbar{ height: 10px; }
-.cine-results .resultsRow::-webkit-scrollbar-thumb{
+
+.cine-ten .results-top-left::-webkit-scrollbar{ height: 10px; }
+.cine-ten .results-top-left::-webkit-scrollbar-thumb{
   background: rgba(255,214,102,0.35);
   border-radius: 999px;
 }
 
-/* card size inside results rows */
-.cine-results .result-card{
-  width: 108px;
-  height: 162px;
-  border-radius: 16px;
-  overflow:hidden;
-  flex: 0 0 auto;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.10);
-  box-shadow: 0 18px 55px rgba(0,0,0,0.35);
-  position: relative;
-}
-@media (max-width: 940px){
-  .cine-results .result-card{ width: 98px; height: 147px; }
-}
-@media (max-width: 520px){
-  .cine-results .result-card{ width: 90px; height: 135px; }
+.cine-ten .results-top-right{
+  width: 100%;
+  max-width: 520px;
+  justify-self:end;
 }
 
-/* responsive: stack share under ssr/ur on small screens */
+.cine-ten .results-bottom{
+  width: 100%;
+  display:flex;
+  flex-wrap: nowrap !important;
+  justify-content:center;
+  gap: 10px;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255,214,102,0.25);
+  padding-bottom: 6px;
+  scrollbar-gutter: stable;
+}
+
+.cine-ten .results-bottom::-webkit-scrollbar{ height: 10px; }
+.cine-ten .results-bottom::-webkit-scrollbar-thumb{
+  background: rgba(255,214,102,0.35);
+  border-radius: 999px;
+}
+
 @media (max-width: 900px){
-  .cine-results .top{
-    grid-template-columns: 1fr;
-  }
-  .cine-results .topRight{
-    width: 100%;
-  }
-  .cine-results .topRight .sharePanel{
-    width: 100%;
-    max-width: 100%;
-  }
+  .cine-ten .results-top{ grid-template-columns: 1fr; }
+  .cine-ten .results-top-right{ justify-self:center; }
 }
-
 </style>
 </head>
 <body>
@@ -1829,7 +1801,6 @@ body, .wrap, .page, .acf-page, .container{
 <video autoplay="" class="fgVideo stageVideo" id="featuredVideo" loop="" muted="" playsinline=""></video>
 <img alt="" class="bgVideo" id="featuredFallbackBg" src="/assets/feature_character.png" style="display:none;"/>
 <img alt="" id="featuredFallback" src="/assets/feature_character.png" style="display:none; position:absolute; inset:0; width:100%; height:100%; object-fit:contain; z-index:1;"/>
-
 <div class="leftOverlay side" id="leftOverlay">
 <div class="sideCard goldPanel">
 <div class="title"><span>抽角色</span><span style="opacity:0.7;font-weight:800">head</span></div>
@@ -1913,8 +1884,6 @@ body, .wrap, .page, .acf-page, .container{
 <div class="pity" id="pityPremium">再抽200次 必出UR</div>
 </div>
 </div></div>
-
-
 </div>
 </div>
 </div>
@@ -2368,11 +2337,8 @@ function assetFullUrl(a){
       const cineRarity = document.getElementById("cineRarity");
       const cineSub = document.getElementById("cineSub");
       const cineImg = document.getElementById("cineImg");
-      const cineResults = document.getElementById("cineResults");
-      const resultsSSRUR = document.getElementById("resultsSSRUR");
-      const resultsCRSR = document.getElementById("resultsCRSR");
-      const cineResultsTopNote = document.getElementById("cineResultsTopNote");
-      const cineResultsBottomNote = document.getElementById("cineResultsBottomNote");
+      const cineTen = document.getElementById("cineTen");
+      const cineTenGrid = document.getElementById("cineTenGrid");
       const cineOk = document.getElementById("cineOk");
       const cineCta = document.getElementById("cineCta");
       const sharePanel = document.getElementById("sharePanel");
@@ -2653,17 +2619,13 @@ function assetFullUrl(a){
 
       
       // Ten-pull thumbnails (SSR/UR on top)
-      // 10連顯示：上半部左側 SSR/UR，右側分享；下半部 C/R/SR（單排不換行）
-      if(cineResults && resultsSSRUR && resultsCRSR){
-        resultsSSRUR.innerHTML = "";
-        resultsCRSR.innerHTML = "";
-        if(cineResultsTopNote) cineResultsTopNote.textContent = "";
-        if(cineResultsBottomNote) cineResultsBottomNote.textContent = "";
-
+      if(cineTen && cineTenGrid){
+        cineTenGrid.innerHTML = "";
+        if(cineTenGuarantee) cineTenGuarantee.innerHTML = "";
         if(isTen){
-          cineResults.classList.add("show");
+          cineTen.classList.add("show");
 
-          // featured: SSR/UR (rarity >= 4) keep original order
+          // featured: all SSR/UR (rarity >= 4), keep original order
           const featured = arr.filter(w => Number(w?.rarity||1) >= 4);
           const rest = arr.filter(w => Number(w?.rarity||1) < 4);
 
@@ -2672,56 +2634,48 @@ function assetFullUrl(a){
             const t = String(w?.type || "").toLowerCase();
             const isHB = (t === "head" || t === "body");
             const item = document.createElement("div");
-            item.className = `result-card rarity-${(rr===5?"ur":rr===4?"ssr":rr===3?"sr":rr===2?"r":"c")}` + (best ? " best" : "");
+            item.className = `cine-ten-item r${rr}` + (best ? " best" : "") + (isHB ? " thumb" : " full");
             const img = document.createElement("img");
-            img.alt = assetLabel(w);
-            img.loading = "lazy";
-            img.decoding = "async";
-            img.src = isHB ? assetThumb(w) : (assetFullUrl(w) || assetThumb(w));
-            item.appendChild(img);
-
-            const badge = document.createElement("div");
-            badge.className = "rarity-badge";
-            badge.textContent = (rr===5?"UR":rr===4?"SSR":rr===3?"SR":rr===2?"R":"C");
-            item.appendChild(badge);
-
-            const name = document.createElement("div");
-            name.className = "result-name";
-            name.textContent = assetLabel(w);
-            item.appendChild(name);
-
-            item.onclick = ()=>{
-              try{
-                const id = String(w?.assetId || w?.id || "");
-                if(id){
-                  const url = "/assets/" + encodeURIComponent(id) + ".png";
-                  window.open(url, "_blank", "noopener,noreferrer");
-                }
-              }catch(_){}
-            };
+            // head/body: thumb only; others: use full card art
+            img.src = isHB ? assetThumb(w) : assetFullUrl(w);
+            img.alt = String(w?.id || w?.assetId || "");
+            // If not thumb (non head/body), show rarity badge
+            if(!isHB){
+              const tag = document.createElement("div");
+              tag.className = "tag";
+              tag.textContent = RARITY_NAME[rr] || `R${rr}`;
+              item.appendChild(img);
+              item.appendChild(tag);
+            }else{
+              item.appendChild(img);
+            }
             container.appendChild(item);
           };
 
-          // top left: SSR/UR
-          if(featured.length){
-            for(const w of featured) addItem(w, resultsSSRUR, (w === focus));
-            if(cineResultsTopNote) cineResultsTopNote.textContent = `${featured.length} 張`;
-          }else{
-            // 若沒有 SSR/UR，仍把最稀有卡放上去避免空白
-            addItem(focus, resultsSSRUR, true);
-            if(cineResultsTopNote) cineResultsTopNote.textContent = "本次無 SSR/UR";
+          // top row: SSR/UR (if any). reuse cineTenGuarantee as the top container
+          if(cineTenGuarantee){
+            if(featured.length){
+              for(const w of featured){
+                addItem(w, cineTenGuarantee, (w === focus));
+              }
+            }else{
+              // if no SSR/UR, show the best card on top for a bit of drama
+              addItem(focus, cineTenGuarantee, true);
+            }
           }
 
-          // bottom: C/R/SR single row
+          // bottom grid: all remaining cards
           for(const w of rest){
-            addItem(w, resultsCRSR, (w === focus));
+            // avoid duplicating focus if it was used as fallback top card
+            if(!featured.length && w === focus) continue;
+            addItem(w, cineTenGrid, (w === focus));
           }
-          if(cineResultsBottomNote) cineResultsBottomNote.textContent = `${rest.length} 張`;
         }else{
-          cineResults.classList.remove("show");
+          cineTen.classList.remove("show");
         }
       }
-// Show big card only for single pull
+
+      // Show big card only for single pull
 
       const cineCardWrap = cineImg ? cineImg.closest(".cine-card") : null;
       if(cineCardWrap){
@@ -2884,12 +2838,10 @@ function assetFullUrl(a){
       cinematic.setAttribute("aria-hidden","true");
       const cineImg = document.getElementById("cineImg");
       if(cineImg) cineImg.removeAttribute("src");
-      const resultsSSRUR = document.getElementById("resultsSSRUR");
-      const resultsCRSR = document.getElementById("resultsCRSR");
-      if(resultsSSRUR) resultsSSRUR.innerHTML = "";
-      if(resultsCRSR) resultsCRSR.innerHTML = "";
-      const cineResults = document.getElementById("cineResults");
-      if(cineResults) cineResults.classList.remove("show");
+      const cineTenGrid = document.getElementById("cineTenGrid");
+      if(cineTenGrid) cineTenGrid.innerHTML = "";
+      const cineTen = document.getElementById("cineTen");
+      if(cineTen) cineTen.classList.remove("show");
       // restore underlying confirm for non-cinematic paths
       if(typeof confirmBtn !== "undefined" && confirmBtn){
         confirmBtn.style.opacity = "1";
@@ -3245,65 +3197,44 @@ function renderGridDecoys(list){
   </script>
 <!-- V2 cinematic rarity reveal (fixed layer, never blocks clicks) -->
 <div aria-hidden="true" class="cinematic" id="cinematic">
-  <div class="cine-bg"></div>
-  <div class="cine-black"></div>
-  <div class="cine-flash"></div>
-  <div class="cine-shake"></div>
-  <div class="cine-glow"></div>
-
-  <div aria-modal="true" class="cine-core" role="dialog">
-    <div class="cine-rarity" id="cineRarity">UR</div>
-    <div class="cine-sub" id="cineSub">恭喜獲得</div>
-
-    <div class="cine-mainRow" id="cineMainRow">
-      <div class="cine-leftCol">
-        <div class="cine-card" id="cineCard">
-          <div class="fx fx-ray"></div>
-          <div class="fx fx-spark"></div>
-          <div class="fx fx-burst"></div>
-          <img alt="reward" id="cineImg" />
-        </div>
-
-        <!-- Ten-pull result layout (remade): Top SSR/UR + Share, Bottom C/R/SR -->
-        <div class="cine-results" id="cineResults">
-          <div class="top">
-            <div class="topLeft">
-              <div class="sectionTitle"><span>SSR / UR</span><span style="opacity:0.75;font-weight:900" id="cineResultsTopNote"></span></div>
-              <div class="resultsRow" id="resultsSSRUR"></div>
-            </div>
-
-            <div class="topRight">
-              <div class="sharePanel" id="sharePanel" style="display:none;">
-                <div class="shareTitle">分享抽卡結果</div>
-                <div class="shareBody">
-                  <img alt="share preview" id="sharePreview" />
-                  <div class="shareBtns">
-                    <button class="shareBtn" id="shareDownload" type="button">下載圖片</button>
-                    <button class="shareBtn" id="shareCopy" type="button">複製文案</button>
-                    <button class="shareBtn" id="shareShare" type="button">一鍵分享</button>
-                    <button class="shareBtn" id="shareReddit" type="button">Reddit</button>
-                    <button class="shareBtn shareClaim" id="shareClaim" type="button">領取獎勵</button>
-                  </div>
-                </div>
-                <div class="shareHint" id="shareHint">抽到 SSR 或 UR 才會出現分享圖，分享到 Discord Reddit 朋友圈後再點領取獎勵，每天最多 5 次</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="bottom">
-            <div class="sectionTitle"><span>C / R / SR</span><span style="opacity:0.75;font-weight:900" id="cineResultsBottomNote"></span></div>
-            <div class="resultsRow" id="resultsCRSR"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-<button class="cine-ok confirm" id="cineOk" type="button">確認</button>
-    <div class="cine-cta" id="cineCta">點擊確認繼續</div>
-  </div>
-
-  <canvas height="1080" id="shareCanvas" style="display:none;" width="1080"></canvas>
+<div class="cine-bg"></div>
+<div class="cine-black"></div>
+<div class="cine-flash"></div>
+<div class="cine-shake"></div>
+<div class="cine-glow"></div>
+<div aria-modal="true" class="cine-core" role="dialog">
+<div class="cine-rarity" id="cineRarity">UR</div>
+<div class="cine-sub" id="cineSub">恭喜獲得</div>
+<div class="cine-mainRow" id="cineMainRow">
+<div class="cine-leftCol">
+<div class="cine-card" id="cineCard">
+<div class="fx fx-ray"></div>
+<div class="fx fx-spark"></div>
+<div class="fx fx-burst"></div>
+<img alt="reward" id="cineImg"/>
+</div>
+<div class="cine-ten" id="cineTen"><div class="cine-ten-title" id="cineTenTitle">10連抽結果</div><div class="results-container"><div class="results-top"><div class="results-top-left cine-ten-g" id="cineTenGuarantee"></div><div class="sharePanel results-top-right" id="sharePanel" style="display:none;">
+<div class="shareTitle">分享抽卡結果</div>
+<div class="shareBody">
+<img alt="share preview" id="sharePreview"/>
+<div class="shareBtns">
+<button class="shareBtn" id="shareDownload" type="button">下載圖片</button>
+<button class="shareBtn" id="shareCopy" type="button">複製文案</button>
+<button class="shareBtn" id="shareShare" type="button">一鍵分享</button>
+<button class="shareBtn" id="shareReddit" type="button">Reddit</button>
+<button class="shareBtn shareClaim" id="shareClaim" type="button">領取獎勵</button>
+</div>
+</div>
+<div class="shareHint" id="shareHint">抽到 SSR 或 UR 才會出現分享圖，分享到 Discord Reddit 朋友圈後再點領取獎勵，每天最多 5 次</div>
+</div></div><div class="cine-ten-grid results-bottom" id="cineTenGrid"></div></div></div>
 </div>
 
+</div>
+<button class="cine-ok confirm" id="cineOk" type="button">確認</button>
+<div class="cine-cta" id="cineCta">點擊確認繼續</div>
+</div>
+<canvas height="1080" id="shareCanvas" style="display:none;" width="1080"></canvas>
+</div>
 <script>
 (function(){
   function liftOverlays(){
@@ -3328,6 +3259,5 @@ function renderGridDecoys(list){
   setTimeout(liftOverlays, 300);
 })();
 </script>
-
-</body>
+</div></div></div></body>
 </html>

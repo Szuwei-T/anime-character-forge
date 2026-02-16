@@ -332,7 +332,7 @@ window.getName = getName;
         min-width: 0;
       }
 
-      /* divider: no stretch, no cut, no thin border line */
+      /* divider: single centered, no repeat, no cut, no thin border line */
       .acf-masterDivider{
         pointer-events: none;
         width: 100%;
@@ -342,8 +342,10 @@ window.getName = getName;
         border: 0;
         outline: 0;
         box-shadow: none;
-        background: url("/ui/frame/top_bar_divider.webp") center center repeat-x;
-        background-size: auto 100%;
+        background-image: url("/ui/frame/top_bar_divider.webp");
+        background-position: center center;
+        background-repeat: no-repeat;
+        background-size: contain;
         overflow: visible;
         line-height: 0;
       }
@@ -426,18 +428,18 @@ window.getName = getName;
       .acf-masterNet.net-online{ color: rgba(34,197,94,0.98); text-shadow: 0 0 12px rgba(34,197,94,0.25); }
       .acf-masterNet.net-offline{ color: rgba(239,68,68,0.98); text-shadow: 0 0 12px rgba(239,68,68,0.20); }
 
-      /* caps: slightly smaller */
+      /* caps: smaller again */
       .acf-cap{
-        width: 210px;
-        height: 56px;
+        width: 190px;
+        height: 50px;
         display: flex;
         align-items: center;
         justify-content: flex-end;
-        padding: 0 18px;
+        padding: 0 16px;
         box-sizing: border-box;
         color: rgba(255,255,255,0.98);
         font-weight: 900;
-        font-size: 15px;
+        font-size: 14px;
         letter-spacing: 0.2px;
         text-shadow: 0 2px 10px rgba(0,0,0,0.55);
         background-size: 100% 100%;
@@ -451,7 +453,7 @@ window.getName = getName;
       .acf-capGeneric{
         background-image: url("/ui/frame/account_capsule.webp");
         justify-content: space-between;
-        padding: 0 18px;
+        padding: 0 16px;
         gap: 10px;
       }
 
@@ -464,30 +466,31 @@ window.getName = getName;
       }
 
       @media (max-width: 1100px){
-        .acf-cap{ width: 190px; height: 52px; font-size: 14px; }
+        .acf-cap{ width: 175px; height: 46px; font-size: 13px; }
+        .acf-masterDivider{ height: 22px; }
       }
 
       @media (max-width: 920px){
         .acf-masterShell{ height: 96px; padding: 0 16px; }
         .acf-masterAvatar{ width: 56px; height: 56px; }
         .acf-masterName{ font-size: 16px; }
-        .acf-cap{ width: 175px; height: 48px; font-size: 13px; }
+        .acf-cap{ width: 160px; height: 44px; font-size: 12px; }
         .acf-masterStats{ gap: 10px; }
-        .acf-masterDivider{ height: 22px; }
+        .acf-masterDivider{ height: 20px; }
       }
 
       @media (max-width: 760px){
         .acf-masterSub, .acf-masterNet{ display: none; }
         .acf-capGeneric{ display: none; }
-        .acf-cap{ width: 170px; }
-        .acf-masterDivider{ height: 20px; }
+        .acf-cap{ width: 150px; }
+        .acf-masterDivider{ height: 18px; }
       }
 
       @media (max-width: 560px){
         .acf-capTicket{ display: none; }
-        .acf-cap{ width: 160px; }
+        .acf-cap{ width: 140px; }
         .acf-masterLeft{ min-width: 0; }
-        .acf-masterDivider{ height: 18px; }
+        .acf-masterDivider{ height: 16px; }
       }
 `;
     document.head.appendChild(s);
@@ -662,7 +665,6 @@ window.getName = getName;
     }
 
     const acc = me.account || {};
-    const st = me.stats || {};
 
     box.style.display = "block";
     nameEl.textContent = String(acc.userName || "Player");
