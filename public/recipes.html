@@ -24,32 +24,60 @@
     .thumb .layer img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block}
     .meta{padding:10px 12px}
     .meta .time{font-size:12px;opacity:.85;margin-bottom:4px}
-    .meta .parts{font-size:12px;opacity:.65;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .meta .parts{display:none !important}
 
     .meta .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    
     .showBtn{
       cursor:pointer;
       user-select:none;
-      padding:8px 12px;
-      border-radius:999px;
-      background:rgba(255,255,255,.07);
-      border:1px solid rgba(255,255,255,.14);
-      font-size:12px;
-      opacity:.95;
-      white-space:nowrap;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+
+      width:120px;
+      height:44px;
+      padding:0;
+
+      font-family: "GameFontSciFi", "GameFont", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, "Noto Sans TC", sans-serif;
+      font-size:14px;
+      font-weight:950;
+      letter-spacing:0.4px;
+
+      color:#fff;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.85);
+
+      background-image: url("/ui/button/btn_gold.webp");
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+
+      border:0;
+      border-radius:14px;
+      box-shadow:none;
+      opacity:0.98;
     }
-    .showBtn:hover{background:rgba(255,255,255,.12)}
-    .showBtn:active{transform:translateY(1px)}
+    .showBtn:hover{
+      background-image: url("/ui/button/btn_gold_hover.webp");
+      filter: brightness(1.06) saturate(1.05);
+      transform: translateY(-1px);
+    }
+    .showBtn:active{
+      background-image: url("/ui/button/btn_gold_pressed.webp");
+      filter: brightness(0.96) saturate(1.02);
+      transform: translateY(0px) scale(0.99);
+    }
 
     .showBtn.disabled{
-      opacity:.5;
-      cursor:not-allowed;
+      opacity:0.85;
+      cursor:default;
       pointer-events:none;
-      background:rgba(255,255,255,.04);
+      background-image: url("/ui/button/btn_gold_pressed.webp");
+      filter: brightness(0.85) saturate(0.80);
+      transform:none;
     }
 
-
-    /* Locked recipe cards */
+/* Locked recipe cards */
     .locked .thumb{filter:blur(12px) brightness(.5) saturate(.2) contrast(.75);transform:scale(1.08)}
     /* Locked overlay: keep 🔒 always on top, never affected by blur/filter */
     .lockmask{
@@ -704,15 +732,8 @@ if (curItem){
 
         row.appendChild(time);
         row.appendChild(btnShow);
-
-        const parts = document.createElement("div");
-        parts.className = "parts";
-        parts.textContent = [s.headId, s.bodyId, s.bgId].filter(Boolean).join(" / ");
-
         meta.appendChild(row);
-        meta.appendChild(parts);
-
-        card.appendChild(th);
+card.appendChild(th);
         card.appendChild(meta);
 
         card.onclick = () => {
@@ -778,13 +799,8 @@ if (curItem){
       const time = document.createElement("div");
       time.className = "time";
       time.textContent = "Recipe #" + r.recipeId;
-      const parts = document.createElement("div");
-      parts.className = "parts";
-      parts.textContent = unlocked ? "已解鎖，可查看原圖" : "未解鎖";
       meta.appendChild(time);
-      meta.appendChild(parts);
-
-      card.appendChild(th);
+card.appendChild(th);
       card.appendChild(meta);
 
       card.onclick = () => {
