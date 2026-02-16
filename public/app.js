@@ -340,7 +340,9 @@ window.getName = getName;
         pointer-events: none;
         width: 100%;
         height: 8px;
-        background: url("/ui/frame/top_bar_divider.webp") center / 100% 100% no-repeat;
+        background-image: url("/ui/frame/top_bar_divider.webp");
+        background-position: center center;
+        background-repeat: repeat-x;
       }
 
       .acf-masterLeft{
@@ -684,9 +686,6 @@ window.getName = getName;
     html.push(statCap("gold", acc.userGold));
     html.push(statCap("gem", acc.userGem));
     html.push(statCap("ticket", acc.userVote));
-    html.push(statCap("like", st.likes, "/ui/icon/like.webp"));
-    html.push(statCap("follow", st.followers, "/ui/icon/follow.webp"));
-    html.push(statCap("favorite", st.collectionsUnlocked, "/ui/icon/favorite.webp"));
     statsEl.innerHTML = html.join("");
 
     setBodyOffset();
