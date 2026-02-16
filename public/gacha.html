@@ -1718,6 +1718,52 @@ body, .wrap, .page, .acf-page, .container{
   max-width: 100% !important;
 }
 
+
+/* ===== Layout fix: Top (SSR/UR + Share side-by-side) / Bottom (C/R/SR row) ===== */
+.cinematic .cine-mainRow{
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  grid-template-areas:
+    "topLeft topRight"
+    "bottom  bottom";
+  column-gap: 22px;
+  row-gap: 18px;
+  align-items: start;
+}
+
+.cinematic .cine-leftCol{
+  display: contents !important; /* promote children into grid */
+}
+
+.cinematic .cine-card{
+  grid-area: topLeft !important;
+  justify-self: center;
+}
+
+.cinematic .cine-rightCol{
+  grid-area: topRight !important;
+  align-self: start;
+}
+
+.cinematic .cine-ten{
+  grid-area: bottom !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* Keep bottom row as single line, scroll inside row if needed */
+.cinematic .cine-ten-grid{
+  display:flex !important;
+  gap: 14px;
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  max-width: 100% !important;
+  justify-content: flex-start !important;
+  padding-bottom: 6px;
+}
+
 </style>
 </head>
 <body>
