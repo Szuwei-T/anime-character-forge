@@ -216,7 +216,26 @@
       color: rgba(226,232,240,0.60);
       margin-top: 10px;
     }
-  </style>
+  
+/* ===== Scrollbar stability fix ===== */
+html{
+  scrollbar-gutter: stable both-edges;
+}
+body{
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+
+/* Prevent accidental overflow */
+.wrap, .page-wrap, .acf-page, .card, .grid, .modalCard{
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Avoid 1px jitter from transforms */
+*{ backface-visibility: hidden; }
+
+</style>
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="ui_fx.css" />
 </head>
@@ -488,5 +507,23 @@
     };
   </script>
   </div>
+
+<script>
+(function(){
+  function updateMasterHeightStable(){
+    const m = document.getElementById("acfMasterMount");
+    if(!m) return;
+    const hRaw = m.getBoundingClientRect().height;
+    const h = Math.round(hRaw);
+    const cur = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--masterH")) || 0;
+    if(Math.abs(h-cur) >= 2){
+      document.documentElement.style.setProperty("--masterH", h + "px");
+    }
+  }
+  window.addEventListener("resize", updateMasterHeightStable);
+  window.addEventListener("load", updateMasterHeightStable);
+})();
+</script>
+
 </body>
 </html>

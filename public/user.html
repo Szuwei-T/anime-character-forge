@@ -40,6 +40,25 @@
 .preview{width:min(520px,92vw);aspect-ratio:1365/2048;position:relative;border-radius:14px;overflow:hidden;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.10)}
 .preview .layer{background-size:contain}
 
+
+/* ===== Scrollbar stability fix ===== */
+html{
+  scrollbar-gutter: stable both-edges;
+}
+body{
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+
+/* Prevent accidental overflow */
+.wrap, .page-wrap, .acf-page, .card, .grid, .modalCard{
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Avoid 1px jitter from transforms */
+*{ backface-visibility: hidden; }
+
 </style>
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -336,5 +355,23 @@ if(modalClose) modalClose.onclick = closeModal;
 })();
 </script>
   <script src="app.js"></script>
+
+<script>
+(function(){
+  function updateMasterHeightStable(){
+    const m = document.getElementById("acfMasterMount");
+    if(!m) return;
+    const hRaw = m.getBoundingClientRect().height;
+    const h = Math.round(hRaw);
+    const cur = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--masterH")) || 0;
+    if(Math.abs(h-cur) >= 2){
+      document.documentElement.style.setProperty("--masterH", h + "px");
+    }
+  }
+  window.addEventListener("resize", updateMasterHeightStable);
+  window.addEventListener("load", updateMasterHeightStable);
+})();
+</script>
+
 </body>
 </html>
