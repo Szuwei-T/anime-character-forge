@@ -220,6 +220,22 @@ body{
       box-shadow: 0 18px 60px rgba(0,0,0,0.35);
       padding: 12px 12px 12px;
     }
+
+    /* ===== Gold translucent panels ===== */
+    .goldPanel{
+      border-radius: 18px;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(255,255,255,0.10), transparent 55%),
+        radial-gradient(circle at 80% 70%, rgba(255,198,106,0.20), transparent 60%),
+        linear-gradient(180deg, rgba(255,198,106,0.14), rgba(255,159,47,0.08));
+      border: 1px solid rgba(255,214,102,0.70);
+      box-shadow:
+        0 18px 60px rgba(0,0,0,0.35),
+        0 0 0 1px rgba(255,255,255,0.06) inset,
+        0 0 28px rgba(255,198,106,0.22);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
     .shopCta{
   background:
     radial-gradient(circle at 20% 20%, rgba(255,198,106,0.18), transparent 55%),
@@ -1528,33 +1544,33 @@ body{ padding-top: var(--masterH, 0px); }
 <img alt="" id="featuredFallback" src="/assets/feature_character.png" style="display:none; position:absolute; inset:0; width:100%; height:100%; object-fit:contain; z-index:1;"/>
 
 <div class="leftOverlay side" id="leftOverlay">
-<div class="sideCard">
+<div class="sideCard goldPanel">
 <div class="title"><span>抽角色</span><span style="opacity:0.7;font-weight:800">head</span></div>
 <div class="miniRow">
 <button class="btn gray small" id="btnHead1">1次</button>
 <button class="btn gray small" id="btnHead10">10次</button>
 </div>
 </div>
-<div class="sideCard">
+<div class="sideCard goldPanel">
 <div class="title"><span>抽服裝</span><span style="opacity:0.7;font-weight:800">body</span></div>
 <div class="miniRow">
 <button class="btn gray small" id="btnBody1">1次</button>
 <button class="btn gray small" id="btnBody10">10次</button>
 </div>
 </div>
-<div class="sideCard">
+<div class="sideCard goldPanel">
 <div class="title"><span>抽背景</span><span style="opacity:0.7;font-weight:800">background</span></div>
 <div class="miniRow">
 <button class="btn gray small" id="btnBg1">1次</button>
 <button class="btn gray small" id="btnBg10">10次</button>
 </div>
-</div><div class="sideCard">
+</div><div class="sideCard goldPanel">
 <div class="title"><span>抽特效1</span><span style="opacity:0.7;font-weight:800">addon1</span></div>
 <div class="miniRow">
 <button class="btn gray small" id="btnAddon11">1次</button>
 <button class="btn gray small" id="btnAddon110">10次</button>
 </div>
-</div><div class="sideCard">
+</div><div class="sideCard goldPanel">
 <div class="title"><span>抽特效2</span><span style="opacity:0.7;font-weight:800">addon2</span></div>
 <div class="miniRow">
 <button class="btn gray small" id="btnAddon21">1次</button>
@@ -1563,7 +1579,7 @@ body{ padding-top: var(--masterH, 0px); }
 </div>
 </div>
 <div class="rightOverlay side" id="rightOverlay">
-<div class="sideCard shopCta">
+<div class="sideCard shopCta goldPanel">
 <div class="title">
 <span>想抽更爽</span>
 <span style="opacity:0.8;font-weight:900">去充值</span>
@@ -1573,7 +1589,7 @@ body{ padding-top: var(--masterH, 0px); }
 <a class="shopBtn" href="shop.html">前往 Shop</a>
 </div>
 </div><div class="sideCard gachaSide"><div class="title"><span>抽卡</span><span style="opacity:0.7;font-weight:800">normal / premium</span></div><div class="gachaStack">
-<div class="gachaCard">
+<div class="gachaCard goldPanel">
 <div class="gachaHead">
 <div class="gachaName">普通抽卡</div>
 <div class="gachaDesc">單次 或 10 連抽</div>
@@ -1591,7 +1607,7 @@ body{ padding-top: var(--masterH, 0px); }
 </div>
 <div class="pity" id="pityNormal">再抽200次 必出SSR</div>
 </div>
-<div class="gachaCard">
+<div class="gachaCard goldPanel">
 <div class="gachaHead">
 <div class="gachaName">高級抽卡</div>
 <div class="gachaDesc">單次 或 10 連抽</div>
