@@ -23,7 +23,7 @@
     .thumb .layer{position:absolute;inset:0}
     .thumb .layer img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block}
     .meta{padding:10px 12px}
-    .meta .time{font-size:12px;opacity:.85;margin-bottom:4px;text-align:center;}
+    .meta .time{font-size:12px;opacity:.85;margin-bottom:4pxtext-align:center;}
     .meta .parts{display:none !important}
 
     .meta .row{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
@@ -469,24 +469,8 @@
   const DEFAULT_WORKER = "https://acf-api.dream-league-baseball.workers.dev";
   const WORKER_BASE = window.WORKER_BASE || localStorage.getItem("acf_worker_base") || DEFAULT_WORKER;
 
-  // Ensure uid is always available (same behavior as app.js:getOrCreateUid)
-function getOrCreateUidLocal(){
-  const primary = "acf_uid";
-  let id = localStorage.getItem(primary) || localStorage.getItem("uid") || localStorage.getItem("userId") || localStorage.getItem("USER_ID") || "";
-  id = String(id || "").trim();
-  if(!id){
-    id = (crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now().toString(36) + Math.random().toString(36).slice(2));
-  }
-  localStorage.setItem(primary, id);
-  localStorage.setItem("uid", id);
-  localStorage.setItem("userId", id);
-  localStorage.setItem("USER_ID", id);
-  return id;
-}
-
-let uid = getOrCreateUidLocal();
-
-  let currentAvatarSavedOn = 0;
+  const uid = localStorage.getItem("acf_uid") || "";
+  let currentAvatarSavedOn = Number(localStorage.getItem("acf_avatar_savedOn") || 0) || 0;
   const statusLine = document.getElementById("statusLine");
   const errorBox = document.getElementById("errorBox");
 
@@ -552,40 +536,146 @@ let uid = getOrCreateUidLocal();
   }
 
   
-  async function fetchCurrentAvatar(){
-  // 1) Always trust localStorage first (instant + survives refresh)
-  currentAvatarSavedOn = Number(localStorage.getItem("acf_avatar_savedOn") || 0) || 0;
+  
+  // ===== System scoring (client-side) =====
+  // Follows the same logic as studio.html so scores still show even if /api/me/saves doesn't include systemScore.
+  const scoreDb = { assets: [], userAssets: {}, seasonThemeTag: "" };
+  let _scoreDbLoaded = false;
 
-  // 2) Try dedicated endpoint (if worker supports it)
-  try{
-    const j = await api("/api/me/avatar");
-    const so = Number(j.savedOn || j.avatarSavedOn || j.currentAvatarSavedOn || 0) || 0;
-    if(so){
-      currentAvatarSavedOn = so;
-      localStorage.setItem("acf_avatar_savedOn", String(so));
-      return;
-    }
-  }catch(e){}
+  function normId(v){
+    if(v === null || v === undefined) return "";
+    return String(v).trim();
+  }
 
-  // 3) Fallback to /api/me (worker returns { ok, account, stats, avatarSave })
-  try{
-    const j = await api("/api/me");
-    const so =
-      Number(
-        j?.account?.avatarSaveOn ||
-        j?.account?.avatarSavedOn ||
-        j?.avatarSave?.savedOn ||
-        j?.avatarSavedOn ||
-        j?.savedOn ||
-        j?.avatar?.savedOn ||
-        0
-      ) || 0;
-    if(so){
-      currentAvatarSavedOn = so;
-      localStorage.setItem("acf_avatar_savedOn", String(so));
+  async function ensureScoreDb(){
+    if(_scoreDbLoaded) return;
+    _scoreDbLoaded = true; // prevent thundering herd; we'll fill as much as we can
+
+    // assets
+    try{
+      const ares = await api("/api/assets");
+      scoreDb.assets = ares.assets || ares.items || ares.data || [];
+    }catch(e){
+      scoreDb.assets = [];
     }
-  }catch(e){}
-}
+
+    // user assets (stars)
+    try{
+      const ures = await api("/api/me/assets");
+      // Accept a few shapes:
+      // 1) { assets:[{assetId,stars}] }
+      // 2) { userAssets:{[assetId]:{stars}} }
+      // 3) { owned:{...} }
+      if(ures.userAssets && typeof ures.userAssets === "object"){
+        scoreDb.userAssets = ures.userAssets;
+      }else if(ures.owned && typeof ures.owned === "object"){
+        scoreDb.userAssets = ures.owned;
+      }else{
+        const arr = ures.assets || ures.items || ures.data || [];
+        const map = {};
+        (arr || []).forEach(x => {
+          const id = String(x.assetId || x.id || "").trim();
+          if(!id) return;
+          map[id] = { stars: Number(x.stars || x.star || 1) || 1 };
+        });
+        scoreDb.userAssets = map;
+      }
+    }catch(e){
+      scoreDb.userAssets = {};
+    }
+
+    // season theme tag (optional)
+    try{
+      const sres = await api("/api/season/current");
+      scoreDb.seasonThemeTag = String(sres.themeTag || sres.tag || sres.seasonThemeTag || "").trim();
+    }catch(e){
+      scoreDb.seasonThemeTag = "";
+    }
+  }
+
+  const BASE_SCORE = { 1:500, 2:700, 3:1000, 4:1500, 5:2500 };
+
+  function normTags(tagStr){
+    return String(tagStr || "")
+      .split(",")
+      .map(t => t.trim().toLowerCase())
+      .filter(Boolean);
+  }
+
+  function tagBonusPct(n){
+    if(n >= 5) return 0.80;
+    if(n === 4) return 0.40;
+    if(n === 3) return 0.20;
+    if(n === 2) return 0.10;
+    return 0.0;
+  }
+
+  function calcAssetScore(assetId){
+    const id = String(assetId || "");
+    if(!id) return { score:0, tags:[] };
+
+    const a = (scoreDb.assets || []).find(x => String(x.assetId) === id) || null;
+    const rarity = Number(a?.rarity || 1);
+    const base = Number(BASE_SCORE[rarity] || 0);
+
+    const ua = (scoreDb.userAssets || {})[id] || {};
+    let stars = Number(ua.stars || 1);
+    if(!Number.isFinite(stars) || stars < 1) stars = 1;
+    if(stars > 5) stars = 5;
+
+    const tags = normTags(a?.tags);
+    const theme = String(scoreDb.seasonThemeTag || "").trim().toLowerCase();
+
+    const starBonus = (stars > 1) ? (0.2 * (stars - 1)) : 0;
+    const themeBonus = (theme && tags.includes(theme)) ? 0.3 : 0;
+
+    const score = base * (1 + starBonus + themeBonus);
+    return { score, tags };
+  }
+
+  function computeSystemScore(payload){
+    const ids = [payload.headId, payload.bodyId, payload.bgId, payload.addon1Id, payload.addon2Id]
+      .map(normId).filter(Boolean);
+
+    const per = ids.map(calcAssetScore).map(x => ({ ...x, score: Math.round(Number(x.score)||0) }));
+    const sumBase = per.reduce((acc, x) => acc + (Number(x.score)||0), 0);
+
+    // Tag synergy bonus across all assets
+    const counts = {};
+    per.forEach(x => (x.tags || []).forEach(t => { counts[t] = (counts[t]||0)+1; }));
+    let bonus = 0;
+    Object.keys(counts).forEach(t => { bonus += tagBonusPct(counts[t]); });
+
+    const total = Math.round(sumBase * (1 + bonus));
+    return { total, sumBase: Math.round(sumBase), bonusPct: bonus };
+  }
+async function fetchCurrentAvatar(){
+    // Prefer local cache so refresh still shows correct state even if /api/me/avatar is missing.
+    const cached = Number(localStorage.getItem("acf_avatar_savedOn") || 0) || 0;
+    currentAvatarSavedOn = cached;
+
+    // Try a dedicated endpoint if exists
+    try{
+      const j = await api("/api/me/avatar");
+      const so = Number(j.savedOn || j.avatarSavedOn || j.currentAvatarSavedOn || 0) || 0;
+      if(so){
+        currentAvatarSavedOn = so;
+        localStorage.setItem("acf_avatar_savedOn", String(so));
+        return;
+      }
+    }catch(e){}
+
+    // Fallback to /api/me
+    try{
+      const j = await api("/api/me");
+      const so = Number(j.avatarSavedOn || j.savedOn || j.avatar?.savedOn || 0) || 0;
+      if(so){
+        currentAvatarSavedOn = so;
+        localStorage.setItem("acf_avatar_savedOn", String(so));
+      }
+    }catch(e){}
+  }
+
 
 function fmtTime(ts){
     if (!ts) return "";
@@ -693,6 +783,7 @@ function fmtTime(ts){
     try{
       const res = await api("/api/me/saves");
       await fetchCurrentAvatar();
+      await ensureScoreDb();
       setNet(true);
 
       const comboKey = (headId, bodyId, bgId, addon1Id, addon2Id) => {
@@ -745,9 +836,13 @@ function fmtTime(ts){
         makeStackThumb(th, layersThumb);
 
         // System score frame pinned to thumbnail bottom (above buttons)
-        th.appendChild(makeScoreThumb(s.systemScore || 0));
-
-        const meta = document.createElement("div");
+                // Prefer backend systemScore, fallback to client-side computed score
+        const __payloadForScore = { headId:s.headId, bodyId:s.bodyId, bgId:s.bgId, addon1Id:s.addon1Id, addon2Id:s.addon2Id };
+        const __computed = computeSystemScore(__payloadForScore);
+        const __sys = Number(s.systemScore ?? s.score ?? s.system_score ?? 0) || 0;
+        const __finalScore = __sys > 0 ? __sys : (__computed.total || 0);
+        th.appendChild(makeScoreThumb(__finalScore));
+const meta = document.createElement("div");
         meta.className = "meta";
 
         const row = document.createElement("div");

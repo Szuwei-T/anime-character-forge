@@ -364,6 +364,45 @@ body{
   backface-visibility: hidden;
 }
 
+
+    /* Score frame overlay */
+    .scoreOverlay{
+      position:absolute;
+      left:8px;
+      bottom:8px;
+      width:146px;
+      height:46px;
+      pointer-events:none;
+      z-index:200;
+      display:block;
+    }
+    .scoreOverlay img{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      object-fit:contain;
+      display:block;
+      filter: drop-shadow(0 6px 10px rgba(0,0,0,.45));
+      opacity:.98;
+    }
+    .scoreOverlay .scoreTxt{
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:14px;
+      font-weight:900;
+      letter-spacing:.6px;
+      color:rgba(255,255,255,.96);
+      text-shadow:0 2px 10px rgba(0,0,0,.85);
+      transform: translateY(6px);
+    }
+    .entryThumb .scoreOverlay{ width:128px; height:40px; left:6px; bottom:6px; }
+    .recThumb .scoreOverlay{ width:128px; height:40px; left:6px; bottom:6px; }
+    .podThumb .scoreOverlay{ width:150px; height:48px; left:8px; bottom:8px; }
+
 </style>
 
   <link rel="stylesheet" href="style.css" />
@@ -587,7 +626,34 @@ body{
             img.src = l.url;
             img.style.zIndex = String(l.z || 0);
             wrap.appendChild(img);
-          });
+          }
+        
+        function addScoreOverlay(thumbEl, score){
+          try{
+            if(!thumbEl) return;
+            if(getComputedStyle(thumbEl).position === "static"){
+              thumbEl.style.position = "relative";
+            }
+            const old = thumbEl.querySelector(".scoreOverlay");
+            if(old) old.remove();
+
+            const wrap = document.createElement("div");
+            wrap.className = "scoreOverlay";
+
+            const frame = document.createElement("img");
+            frame.alt = "score frame";
+            frame.src = "/ui/frame/card_scoring.webp";
+
+            const txt = document.createElement("div");
+            txt.className = "scoreTxt";
+            txt.textContent = String(Number(score || 0));
+
+            wrap.appendChild(frame);
+            wrap.appendChild(txt);
+            thumbEl.appendChild(wrap);
+          }catch(_){}
+        }
+);
           container.appendChild(wrap);
         }
 
@@ -632,11 +698,12 @@ body{
           return data;
         }
 
-        function openModal(title, sub, layers){
+        function openModal(title, sub, layers, score){
           mTitle.textContent = title;
           mSub.textContent = sub || "";
           mThumb.innerHTML = "";
           makeStackThumb(mThumb, layers);
+          addScoreOverlay(mThumb, score);
           modal.style.display = "flex";
         }
 
@@ -811,6 +878,7 @@ body{
               { url: s.bodyUrl, z:40 },
               { url: s.addon1Url, z:50 },
             ]);
+              addScoreOverlay(th, s.systemScore);
 
             card.appendChild(th);
             outer.appendChild(metaTop);
@@ -855,6 +923,7 @@ body{
                 { url: s.bodyUrl, z:40 },
                 { url: s.addon1Url, z:50 },
               ]);
+              addScoreOverlay(th, s.systemScore);
 
               const meta = document.createElement("div");
               meta.className = "recMeta";
@@ -984,6 +1053,7 @@ body{
               { url: s.bodyUrl, z:40 },
               { url: s.addon1Url, z:50 },
             ]);
+              addScoreOverlay(th, s.systemScore);
 
             const body = document.createElement("div");
             body.className = "entryBody";
@@ -1191,6 +1261,7 @@ body{
               { url: s.bodyUrl, z:40 },
               { url: s.addon1Url, z:50 },
             ]);
+              addScoreOverlay(th, s.systemScore);
 
             const meta = document.createElement("div");
             meta.className = "recMeta";
