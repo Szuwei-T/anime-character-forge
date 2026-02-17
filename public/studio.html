@@ -782,6 +782,74 @@ body{
     font-size: 26px;
     text-shadow: 0 2px 10px rgba(0,0,0,.8);
   }
+
+  /* ===== Visual polish overrides (match recipes deep dark glass panel) ===== */
+  :root{
+    --ui-main-bg: url('/ui/bg/main_bg.webp');
+    --ui-noise: url('/ui/bg/noise.png');
+    --ui-vignette: url('/ui/bg/vignette.png');
+    --ui-vignette-bg: url('/ui/bg/vignette_bg.webp');
+  }
+
+  body{
+    background:
+      var(--ui-vignette-bg),
+      var(--ui-vignette),
+      var(--ui-noise),
+      var(--ui-main-bg);
+    background-size:
+      cover,
+      cover,
+      300px 300px,
+      cover;
+    background-position:
+      center,
+      center,
+      center,
+      center;
+    background-attachment:
+      fixed,
+      fixed,
+      fixed,
+      fixed;
+  }
+
+  body::after{
+    content:"";
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    background: var(--ui-vignette-bg) center/cover no-repeat;
+    opacity:.55;
+    mix-blend-mode: multiply;
+    z-index:0;
+  }
+
+  .container{ position:relative; z-index:1; }
+
+  .card{
+    background: linear-gradient(180deg, rgba(20,24,34,.72), rgba(10,12,18,.55)) !important;
+    border: 1px solid rgba(255,255,255,.10) !important;
+    box-shadow:
+      0 18px 50px rgba(0,0,0,.55),
+      inset 0 1px 0 rgba(255,255,255,.06) !important;
+    border-radius: 22px !important;
+    backdrop-filter: blur(10px);
+  }
+  .cardBody{
+    background: transparent !important;
+  }
+
+  /* Score number slightly lower inside the frame */
+  .scoreVal{
+    transform: translateY(6px);
+  }
+
+  /* Buttons width x2 */
+  .stageBtns .smallBtn{
+    min-width: 240px;
+  }
+
 </style>
 </head>
 <body>
