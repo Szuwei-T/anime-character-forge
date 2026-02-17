@@ -23,10 +23,10 @@
     .thumb .layer{position:absolute;inset:0}
     .thumb .layer img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block}
     .meta{padding:10px 12px}
-    .meta .time{font-size:12px;opacity:.85;margin-bottom:4px}
+    .meta .time{font-size:12px;opacity:.85;margin-bottom:4pxtext-align:center;}
     .meta .parts{display:none !important}
 
-    .meta .row{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
+    .meta .row{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
 
     .showBtn{
       cursor:pointer;
@@ -93,7 +93,7 @@
       display:flex;
       align-items:center;
       justify-content:center;
-      z-index:90;
+      z-index: 1000;
       pointer-events:none;
       filter: drop-shadow(0 6px 16px rgba(0,0,0,0.40));
     }
@@ -733,6 +733,8 @@ function fmtTime(ts){
 
         const btnAvatar = document.createElement("div");
         btnAvatar.className = "showBtn";
+        btnAvatar.setAttribute("data-role","avatar");
+        btnAvatar.setAttribute("data-savedon", String(Number(s.savedOn||0)||0));
         btnAvatar.textContent = "設為頭像";
         // If this is already the current avatar, lock the button like "展示中"
         const __savedOnNum = Number(s.savedOn || 0) || 0;
@@ -757,8 +759,19 @@ function fmtTime(ts){
           try{
             await apiReq("POST", "/api/me/avatar", { savedOn });
             showError("已設為頭像");
-            // Refresh to let masterpage reload avatar immediately
-            location.reload();
+            localStorage.setItem("acf_avatar_savedOn", String(savedOn));
+            currentAvatarSavedOn = Number(savedOn) || 0;
+            // Update all avatar buttons immediately
+            document.querySelectorAll('.showBtn[data-role="avatar"]').forEach((b)=>{
+              const so = Number(b.getAttribute("data-savedon")||0)||0;
+              if(so && currentAvatarSavedOn && so === currentAvatarSavedOn){
+                b.textContent = "當前頭像";
+                b.classList.add("disabled");
+              }else{
+                b.textContent = "設為頭像";
+                b.classList.remove("disabled");
+              }
+            });
           }catch(e){
             showError("設定頭像失敗：" + (e && e.message ? e.message : String(e)));
             console.error(e);
@@ -767,8 +780,11 @@ function fmtTime(ts){
 
         const btnShow = document.createElement("div");
         btnShow.className = "showBtn";
+        btnShow.setAttribute("data-role","showcase");
 
-        let isShowing = showcaseComboSet.has(comboKey(s.headId, s.bodyId, s.bgId, s.addon1Id, s.addon2Id));
+        const __ck = comboKey(s.headId, s.bodyId, s.bgId, s.addon1Id, s.addon2Id);
+        btnShow.setAttribute("data-combokey", __ck);
+        let isShowing = showcaseComboSet.has(__ck);
         btnShow.textContent = isShowing ? "展示中" : "展示";
         if (isShowing){
           btnShow.classList.add("disabled");
@@ -810,9 +826,19 @@ function fmtTime(ts){
             await apiReq("POST", "/api/me/showcase", { ...payload, seasonId:"S1", overwrite: !!curItem });
 
             // Immediately reflect UI state
-            showcaseComboSet.add(comboKey(payload.headId, payload.bodyId, payload.bgId, payload.addon1Id, payload.addon2Id));
-            btnShow.textContent = "展示中";
-            btnShow.classList.add("disabled");
+            const newKey = comboKey(payload.headId, payload.bodyId, payload.bgId, payload.addon1Id, payload.addon2Id);
+            // Only one showcase per season: reset set and update all buttons instantly
+            showcaseComboSet = new Set([newKey]);
+            document.querySelectorAll('.showBtn[data-role="showcase"]').forEach((b)=>{
+              const k = b.getAttribute("data-combokey") || "";
+              if(k && k === newKey){
+                b.textContent = "展示中";
+                b.classList.add("disabled");
+              }else{
+                b.textContent = "展示";
+                b.classList.remove("disabled");
+              }
+            });
             showError("已提交展示");
           } catch(e){
             showError("展示失敗：" + (e && e.message ? e.message : String(e)));
