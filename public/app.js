@@ -492,6 +492,98 @@ window.getName = getName;
         .acf-masterLeft{ min-width: 0; }
         .acf-masterDivider{ height: 16px; }
       }
+
+      .acf-dailyBtn{
+        height: 42px;
+        padding: 0 14px;
+        border-radius: 12px;
+        border: 1px solid rgba(148,163,184,0.28);
+        background: rgba(15,23,42,0.55);
+        color: rgba(226,232,240,0.95);
+        font-weight: 900;
+        letter-spacing: 0.2px;
+        cursor: pointer;
+      }
+      .acf-dailyBtn:hover{ filter: brightness(1.08); }
+      .acf-dailyOverlay{
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.62);
+        z-index: 10050;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 18px;
+      }
+      .acf-dailyModal{
+        width: min(560px, 100%);
+        border-radius: 16px;
+        background: rgba(6,11,23,0.92);
+        border: 1px solid rgba(148,163,184,0.22);
+        box-shadow: 0 20px 70px rgba(0,0,0,0.55);
+        overflow: hidden;
+      }
+      .acf-dailyHeader{
+        display:flex;
+        align-items:center;
+        justify-content: space-between;
+        padding: 14px 16px;
+        border-bottom: 1px solid rgba(148,163,184,0.16);
+      }
+      .acf-dailyTitle{
+        font-size: 16px;
+        font-weight: 950;
+        color: rgba(226,232,240,0.96);
+      }
+      .acf-dailyClose{
+        height: 34px;
+        padding: 0 12px;
+        border-radius: 10px;
+        border: 1px solid rgba(148,163,184,0.24);
+        background: rgba(15,23,42,0.55);
+        color: rgba(226,232,240,0.95);
+        font-weight: 900;
+        cursor: pointer;
+      }
+      .acf-dailyBody{ padding: 14px 16px 16px; }
+      .acf-dailyRow{
+        display:flex;
+        align-items:center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid rgba(148,163,184,0.10);
+      }
+      .acf-dailyRow:last-child{ border-bottom: 0; }
+      .acf-dailyLeft{ min-width: 0; }
+      .acf-dailyName{
+        font-weight: 900;
+        color: rgba(226,232,240,0.94);
+        font-size: 14px;
+      }
+      .acf-dailyProg{
+        margin-top: 3px;
+        font-size: 12px;
+        color: rgba(148,163,184,0.95);
+      }
+      .acf-dailyClaim{
+        height: 34px;
+        padding: 0 12px;
+        border-radius: 10px;
+        border: 1px solid rgba(148,163,184,0.24);
+        background: rgba(15,23,42,0.55);
+        color: rgba(226,232,240,0.95);
+        font-weight: 950;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      .acf-dailyClaim[disabled]{ opacity: 0.45; cursor: not-allowed; }
+      .acf-dailyReward{
+        font-size: 12px;
+        color: rgba(226,232,240,0.88);
+        margin-left: 10px;
+        white-space: nowrap;
+      }
 `;
     document.head.appendChild(s);
   }
@@ -689,12 +781,185 @@ window.getName = getName;
     html.push(statCap("gold", acc.userGold));
     html.push(statCap("gem", acc.userGem));
     html.push(statCap("ticket", acc.userVote));
-    statsEl.innerHTML = html.join("");
+    statsEl.innerHTML = html.join("") + `<button class="acf-dailyBtn" id="acfDailyBtn" type="button">Daily</button>`;
+
+    const btn = document.getElementById("acfDailyBtn");
+    if(btn){ btn.onclick = ()=>openDailyModal(); }
 
     setBodyOffset();
   }
 
-  async function initMasterHeader(){
+  async 
+  let __acfDailyOverlay = null;
+
+  async function fetchDailyStatus(){
+    const r = await fetch("/api/daily", { method:"GET", headers: apiHeaders() });
+    const j = await r.json().catch(()=>null);
+    if(!r.ok || !j || !j.ok) throw new Error(j?.error || "daily_failed");
+    return j;
+  }
+
+  async function claimDaily(taskId){
+    const r = await fetch("/api/daily/claim", {
+      method:"POST",
+      headers: apiHeaders({ "Content-Type":"application/json" }),
+      body: JSON.stringify({ taskId })
+    });
+    const j = await r.json().catch(()=>null);
+    if(!r.ok || !j || !j.ok) throw new Error(j?.error || "claim_failed");
+    return j;
+  }
+
+  function rewardText(reward){
+    const r = reward || {};
+    const parts = [];
+    if(Number(r.gold||0) > 0) parts.push(`gold +${Number(r.gold||0)}`);
+    if(Number(r.gem||0) > 0) parts.push(`gem +${Number(r.gem||0)}`);
+    if(Number(r.ticket||0) > 0) parts.push(`ticket +${Number(r.ticket||0)}`);
+    return parts.join(" · ");
+  }
+
+  function closeDailyModal(){
+    if(__acfDailyOverlay){
+      __acfDailyOverlay.remove();
+      __acfDailyOverlay = null;
+    }
+  }
+
+  async function openDailyModal(){
+    closeDailyModal();
+
+    const overlay = el("div","acf-dailyOverlay");
+    __acfDailyOverlay = overlay;
+
+    const modal = el("div","acf-dailyModal");
+    overlay.appendChild(modal);
+
+    const header = el("div","acf-dailyHeader");
+    const title = el("div","acf-dailyTitle");
+    title.textContent = "Daily Tasks";
+    const closeBtn = el("button","acf-dailyClose");
+    closeBtn.type = "button";
+    closeBtn.textContent = "Close";
+    closeBtn.onclick = closeDailyModal;
+
+    header.appendChild(title);
+    header.appendChild(closeBtn);
+
+    const body = el("div","acf-dailyBody");
+    body.textContent = "Loading...";
+
+    modal.appendChild(header);
+    modal.appendChild(body);
+
+    overlay.addEventListener("click", (e)=>{ if(e.target === overlay) closeDailyModal(); }, { passive:true });
+
+    document.body.appendChild(overlay);
+
+    try{
+      const data = await fetchDailyStatus();
+      renderDailyModal(body, data);
+    }catch(e){
+      body.textContent = "Failed to load dailies";
+    }
+  }
+
+  function renderDailyModal(bodyEl, data){
+    bodyEl.innerHTML = "";
+
+    const tasks = Array.isArray(data.tasks) ? data.tasks : [];
+    for(const t of tasks){
+      const row = el("div","acf-dailyRow");
+
+      const left = el("div","acf-dailyLeft");
+      const name = el("div","acf-dailyName");
+      name.textContent = t.title || t.id;
+      const prog = el("div","acf-dailyProg");
+      prog.textContent = `${Number(t.progress||0)}/${Number(t.target||0)}` + (t.complete ? " · Complete" : "");
+      left.appendChild(name);
+      left.appendChild(prog);
+
+      const right = el("div");
+      const reward = el("span","acf-dailyReward");
+      reward.textContent = rewardText(t.reward);
+
+      const btn = el("button","acf-dailyClaim");
+      btn.type = "button";
+      btn.textContent = t.claimed ? "Claimed" : "Claim";
+      btn.disabled = !t.complete || !!t.claimed;
+
+      btn.onclick = async ()=>{
+        try{
+          btn.disabled = true;
+          await claimDaily(t.id);
+          const refreshed = await fetchDailyStatus();
+          renderDailyModal(bodyEl, refreshed);
+          try{
+            const me = await fetchMeAccount();
+            renderMaster(me);
+          }catch(_){}
+        }catch(_e){
+          btn.disabled = false;
+        }
+      };
+
+      right.appendChild(btn);
+      right.appendChild(reward);
+
+      row.appendChild(left);
+      row.appendChild(right);
+
+      bodyEl.appendChild(row);
+    }
+
+    // bonus row
+    if(data.bonus){
+      const b = data.bonus;
+      const row = el("div","acf-dailyRow");
+
+      const left = el("div","acf-dailyLeft");
+      const name = el("div","acf-dailyName");
+      name.textContent = b.title || "Bonus";
+      const prog = el("div","acf-dailyProg");
+      prog.textContent = b.complete ? "Ready" : "Complete all tasks first";
+      left.appendChild(name);
+      left.appendChild(prog);
+
+      const right = el("div");
+      const reward = el("span","acf-dailyReward");
+      reward.textContent = rewardText(b.reward);
+
+      const btn = el("button","acf-dailyClaim");
+      btn.type = "button";
+      btn.textContent = b.claimed ? "Claimed" : "Claim";
+      btn.disabled = !b.complete || !!b.claimed;
+
+      btn.onclick = async ()=>{
+        try{
+          btn.disabled = true;
+          await claimDaily(b.id);
+          const refreshed = await fetchDailyStatus();
+          renderDailyModal(bodyEl, refreshed);
+          try{
+            const me = await fetchMeAccount();
+            renderMaster(me);
+          }catch(_){}
+        }catch(_e){
+          btn.disabled = false;
+        }
+      };
+
+      right.appendChild(btn);
+      right.appendChild(reward);
+
+      row.appendChild(left);
+      row.appendChild(right);
+
+      bodyEl.appendChild(row);
+    }
+  }
+
+function initMasterHeader(){
     if(window.ACF_DISABLE_MASTER) return;
     if(document.getElementById("acfMasterHeader")) return;
 
