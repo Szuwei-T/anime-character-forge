@@ -294,8 +294,8 @@
       opacity:.95;
     }
     .thumb{border-radius:18px; overflow:hidden;}
-    .meta{position:relative; z-index:3;}
-    .thumb{position:relative; z-index:1;}
+    .meta{position:relative; z-index:5;}
+    .thumb{position:relative; z-index:4;}
     .card:hover{
       transform: translateY(-2px);
       filter: drop-shadow(0 0 18px rgba(255,220,120,.12));
@@ -430,7 +430,17 @@
       box-sizing: border-box;
     }
 
-    /* Prevent layout jitter from transforms */
+    
+    /* ===== Button size 70% (設為頭像 / 展示) ===== */
+    .showBtn{
+      width:84px;
+      height:31px;
+      padding:0;
+      font-size:12px;
+      border-radius:12px;
+    }
+    .btnRow{gap:8px;}
+/* Prevent layout jitter from transforms */
     *{
       backface-visibility: hidden;
     }
@@ -716,7 +726,7 @@
 
         const btnAvatar = document.createElement("div");
         btnAvatar.className = "showBtn";
-        btnAvatar.textContent = "設頭像";
+        btnAvatar.textContent = "設為頭像";
         btnAvatar.onclick = async (ev) => {
           ev.stopPropagation();
           clearError();
