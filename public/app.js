@@ -789,7 +789,6 @@ window.getName = getName;
     setBodyOffset();
   }
 
-  async 
   let __acfDailyOverlay = null;
 
   async function fetchDailyStatus(){
