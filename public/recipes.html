@@ -27,7 +27,7 @@
     .meta .parts{display:none !important}
 
     .meta .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
-    
+
     .showBtn{
       cursor:pointer;
       user-select:none;
@@ -77,7 +77,43 @@
       transform:none;
     }
 
-/* Locked recipe cards */
+    .btnRow{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      justify-content:flex-end;
+      flex:0 0 auto;
+    }
+
+    /* ===== System Score frame on thumbnail bottom ===== */
+    .scoreFrameThumb{
+      position:absolute;
+      left:10px;
+      right:10px;
+      bottom:10px;
+      height:44px;
+      background-image:url("/ui/frame/card_scoring.webp");
+      background-size:100% 100%;
+      background-repeat:no-repeat;
+      background-position:center;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index:90;
+      pointer-events:none;
+      filter: drop-shadow(0 6px 16px rgba(0,0,0,0.40));
+    }
+    .scoreFrameThumb .val{
+      font-family: "GameFontSciFi", "GameFont", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, "Noto Sans TC", sans-serif;
+      font-weight:950;
+      font-size:16px;
+      letter-spacing:0.4px;
+      color:#fff;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.85);
+      transform: translateY(1px);
+    }
+
+    /* Locked recipe cards */
     .locked .thumb{filter:blur(12px) brightness(.5) saturate(.2) contrast(.75);transform:scale(1.08)}
     /* Locked overlay: keep 🔒 always on top, never affected by blur/filter */
     .lockmask{
@@ -122,7 +158,7 @@
     .bigwrap img.single{width:100%;height:auto;display:block}
     .footnote{margin-top:10px;font-size:12px;opacity:.75}
     .empty{opacity:.75;padding:14px 0}
-  
+
     :root{
       --ui-main-bg: url('/ui/bg/main_bg.webp');
       --ui-noise: url('/ui/bg/noise.png');
@@ -184,7 +220,6 @@
       z-index:0;
     }
 
-
     body::after{
       content:"";
       position:fixed;
@@ -204,7 +239,7 @@
       z-index: 4000; /* below modal (9999) */
     }
 
-        .page-wrap::before{
+    .page-wrap::before{
       content:"";
       position:absolute;
       inset:14px 12px;
@@ -380,52 +415,26 @@
       box-shadow: 0 24px 80px rgba(0,0,0,.55);
     }
 
+    /* ===== Scrollbar stability fix ===== */
+    html{
+      scrollbar-gutter: stable both-edges;
+    }
+    body{
+      overflow-y: scroll;
+      overflow-x: hidden;
+    }
 
-/* ===== Scrollbar stability fix ===== */
-html{
-  scrollbar-gutter: stable both-edges;
-}
-body{
-  overflow-y: scroll;
-  overflow-x: hidden;
-}
+    /* Prevent accidental overflow caused by flex/grid */
+    .wrap, .page-wrap, .heroStage, .featureStage, .asset-grid, .grid{
+      max-width: 100%;
+      box-sizing: border-box;
+    }
 
-/* Prevent accidental overflow caused by flex/grid */
-.wrap, .page-wrap, .heroStage, .featureStage, .asset-grid, .grid{
-  max-width: 100%;
-  box-sizing: border-box;
-}
-
-/* Prevent layout jitter from transforms */
-*{
-  backface-visibility: hidden;
-}
-
-
-  /* --- System Score (Recipes) --- */
-  .scoreFrameSmall{
-    position: relative;
-    width: 220px;
-    height: 66px;
-    margin-top: 8px;
-  }
-  .scoreFrameSmall img{
-    width:100%;
-    height:100%;
-    display:block;
-  }
-  .scoreFrameSmall .val{
-    position:absolute;
-    inset:0;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-weight:800;
-    font-size:22px;
-    letter-spacing:1px;
-    text-shadow: 0 2px 10px rgba(0,0,0,.8);
-  }
-</style>
+    /* Prevent layout jitter from transforms */
+    *{
+      backface-visibility: hidden;
+    }
+  </style>
 </head>
 <body>
   <div class="acf-page ui-panel"><div id="acfMasterMount"></div>
@@ -458,89 +467,6 @@ body{
 
 <script>
 (function(){
-
-  // --- System Scoring helpers ---
-  const BASE_SCORE = { 1:500, 2:700, 3:1000, 4:1500, 5:2500 };
-  let _assetsById = null;      // {assetId: {rarity,tags}}
-  let _userStarsById = null;   // {assetId: stars}
-  let _themeTag = "";
-
-  function normTags(tagStr){
-    return String(tagStr || "")
-      .split(",")
-      .map(t => t.trim().toLowerCase())
-      .filter(Boolean);
-  }
-  function tagBonusPct(n){
-    if(n >= 5) return 0.80;
-    if(n === 4) return 0.40;
-    if(n === 3) return 0.20;
-    if(n === 2) return 0.10;
-    return 0.0;
-  }
-  async function ensureScoringData(){
-    if(_assetsById && _userStarsById) return;
-    _assetsById = {};
-    _userStarsById = {};
-    try{
-      const [a, inv, season] = await Promise.all([
-        api("/api/assets"),
-        api("/api/me/assets"),
-        api("/api/season/current"),
-      ]);
-      (a.assets || []).forEach(x => {
-        _assetsById[String(x.assetId)] = { rarity: Number(x.rarity||1), tags: String(x.tags||"") };
-      });
-      (inv.assets || inv.items || []).forEach(x => {
-        const id = String(x.assetId || x.id || "");
-        const stars = Number(x.stars || 1);
-        if(id) _userStarsById[id] = (Number.isFinite(stars) && stars>0) ? Math.min(5, stars) : 1;
-      });
-      _themeTag = String(season.themeTag || season.theme || "").trim().toLowerCase();
-    }catch(e){
-      // Best-effort: score will fallback to 0 if data missing
-      _themeTag = _themeTag || "";
-    }
-  }
-  function calcAssetScore(assetId){
-    const id = String(assetId || "");
-    if(!id) return { score:0, tags:[] };
-    const a = _assetsById ? _assetsById[id] : null;
-    const rarity = Number(a?.rarity || 1);
-    const base = Number(BASE_SCORE[rarity] || 0);
-    let stars = Number((_userStarsById && _userStarsById[id]) || 1);
-    if(!Number.isFinite(stars) || stars < 1) stars = 1;
-    if(stars > 5) stars = 5;
-
-    let score = base;
-    if(stars > 1) score = score * (1 + 0.2 * (stars - 1));
-
-    const tags = normTags(a?.tags);
-    if(_themeTag && tags.includes(_themeTag)){
-      score = score * 1.30;
-    }
-    return { score, tags };
-  }
-  function computeSystemScoreFromIds(ids){
-    const clean = (ids || []).map(x => String(x||"").trim()).filter(Boolean);
-    const per = clean.map(calcAssetScore);
-    const sumBase = per.reduce((acc, x) => acc + (Number(x.score)||0), 0);
-
-    const counts = {};
-    per.forEach(x => (x.tags || []).forEach(t => { counts[t] = (counts[t]||0)+1; }));
-    let bonus = 0;
-    Object.keys(counts).forEach(t => { bonus += tagBonusPct(counts[t]); });
-
-    return Math.round(sumBase * (1 + bonus));
-  }
-  function makeScoreEl(score){
-    const wrap = document.createElement("div");
-    wrap.className = "scoreFrameSmall";
-    wrap.innerHTML = '<img src="/ui/frame/card_scoring.webp" alt="score" /><div class="val"></div>';
-    wrap.querySelector(".val").textContent = String(score || 0);
-    return wrap;
-  }
-
   const DEFAULT_WORKER = "https://acf-api.dream-league-baseball.workers.dev";
   const WORKER_BASE = window.WORKER_BASE || localStorage.getItem("acf_worker_base") || DEFAULT_WORKER;
 
@@ -609,7 +535,6 @@ body{
     });
   }
 
-
   function fmtTime(ts){
     if (!ts) return "";
     try{
@@ -644,7 +569,6 @@ body{
     modalTitle.textContent = title || "預覽";
     modalMeta.textContent = metaText || "";
     bigwrap.innerHTML = "";
-    // For single image, keep aspect-ratio container but allow scroll in modalbody to see full if needed
     const img = document.createElement("img");
     img.className = "single";
     img.loading = "lazy";
@@ -657,12 +581,6 @@ body{
   modal.onclick = (e) => { if (e.target === modal) modal.classList.remove("show"); };
   window.addEventListener("keydown", (e) => { if (e.key === "Escape") modal.classList.remove("show"); });
 
-  function thumbUrl(assetUrl){
-    // thumbs disabled: always use original
-    return assetUrl || "";
-  }
-
-
   function markCardIn(card){
     const delay = Math.min(240, (markCardIn._i = (markCardIn._i || 0) + 1) * 18);
     card.style.transitionDelay = delay + "ms";
@@ -670,7 +588,6 @@ body{
   }
 
   function makeStackThumb(container, layers){
-    // layers: [{url, z, preferThumb}]
     container.innerHTML = "";
     layers.forEach((l) => {
       if (!l.url) return;
@@ -683,6 +600,17 @@ body{
       div.appendChild(img);
       container.appendChild(div);
     });
+  }
+
+  function makeScoreThumb(score){
+    const wrap = document.createElement("div");
+    wrap.className = "scoreFrameThumb";
+    const val = document.createElement("div");
+    val.className = "val";
+    const n = Math.max(0, Math.floor(Number(score || 0)));
+    val.textContent = String(n);
+    wrap.appendChild(val);
+    return wrap;
   }
 
   function setTab(which){
@@ -714,27 +642,22 @@ body{
       const res = await api("/api/me/saves");
       setNet(true);
 
-      await ensureScoringData();
+      const comboKey = (headId, bodyId, bgId, addon1Id, addon2Id) => {
+        const a = [String(addon1Id || ""), String(addon2Id || "")].sort();
+        return [String(headId || ""), String(bodyId || ""), String(bgId || ""), a[0], a[1]].join("|");
+      };
 
-      await ensureScoringData();
-
-    const comboKey = (headId, bodyId, bgId, addon1Id, addon2Id) => {
-      const a = [String(addon1Id || ""), String(addon2Id || "")].sort();
-      return [String(headId || ""), String(bodyId || ""), String(bgId || ""), a[0], a[1]].join("|");
-    };
-
-    let showcaseComboSet = new Set();
-    try{
-      const all = await api("/api/me/showcases?seasonId=S1");
-      const list = all.showcases || [];
-      list.forEach((x) => {
-        showcaseComboSet.add(comboKey(x.headId, x.bodyId, x.bgId, x.addon1Id, x.addon2Id));
-      });
-    }catch(e){
-      // If this fails, we should NOT silently ignore it, otherwise users can't tell why "展示中" never appears.
-      console.warn("load showcases failed", e);
-      showError("讀取展示資料失敗，請確認已更新 Worker 並且 WORKER_BASE 指向同一個資料庫");
-    }
+      let showcaseComboSet = new Set();
+      try{
+        const all = await api("/api/me/showcases?seasonId=S1");
+        const list = all.showcases || [];
+        list.forEach((x) => {
+          showcaseComboSet.add(comboKey(x.headId, x.bodyId, x.bgId, x.addon1Id, x.addon2Id));
+        });
+      }catch(e){
+        console.warn("load showcases failed", e);
+        showError("讀取展示資料失敗，請確認已更新 Worker 並且 WORKER_BASE 指向同一個資料庫");
+      }
 
       const saves = res.saves || [];
       statusLine.textContent = "共 " + saves.length + " 個成品";
@@ -768,6 +691,9 @@ body{
         ];
         makeStackThumb(th, layersThumb);
 
+        // System score frame pinned to thumbnail bottom (above buttons)
+        th.appendChild(makeScoreThumb(s.systemScore || 0));
+
         const meta = document.createElement("div");
         meta.className = "meta";
 
@@ -785,15 +711,43 @@ body{
           time.style.display = "none";
         }
 
+        const btnWrap = document.createElement("div");
+        btnWrap.className = "btnRow";
+
+        const btnAvatar = document.createElement("div");
+        btnAvatar.className = "showBtn";
+        btnAvatar.textContent = "設頭像";
+        btnAvatar.onclick = async (ev) => {
+          ev.stopPropagation();
+          clearError();
+          if (!uid){
+            showError("請先登入後再設定頭像");
+            return;
+          }
+          const savedOn = Number(s.savedOn || 0);
+          if (!savedOn){
+            showError("找不到 savedOn，無法設定頭像");
+            return;
+          }
+          try{
+            await apiReq("POST", "/api/me/avatar", { savedOn });
+            showError("已設為頭像");
+            // Refresh to let masterpage reload avatar immediately
+            location.reload();
+          }catch(e){
+            showError("設定頭像失敗：" + (e && e.message ? e.message : String(e)));
+            console.error(e);
+          }
+        };
+
         const btnShow = document.createElement("div");
         btnShow.className = "showBtn";
-        
+
         let isShowing = showcaseComboSet.has(comboKey(s.headId, s.bodyId, s.bgId, s.addon1Id, s.addon2Id));
         btnShow.textContent = isShowing ? "展示中" : "展示";
         if (isShowing){
           btnShow.classList.add("disabled");
         }
-
 
         btnShow.onclick = async (ev) => {
           if (btnShow.classList.contains("disabled")) return;
@@ -823,7 +777,7 @@ body{
           try{
             const cur = await api("/api/me/showcase?seasonId=S1");
             const curItem = cur.showcase || cur.item || cur.current || null;
-if (curItem){
+            if (curItem){
               const ok = window.confirm("本期已經有作品正在展示中。上傳新作品後，原有的票數將歸零並重新計票。是否確認？");
               if (!ok) return;
             }
@@ -841,14 +795,14 @@ if (curItem){
           }
         };
 
+        btnWrap.appendChild(btnAvatar);
+        btnWrap.appendChild(btnShow);
+
         row.appendChild(time);
-        row.appendChild(btnShow);
+        row.appendChild(btnWrap);
         meta.appendChild(row);
 
-        // system score
-        const scoreVal = Number(s.systemScore || 0) || computeSystemScoreFromIds([s.headId, s.bodyId, s.bgId, s.addon1Id, s.addon2Id]);
-        meta.appendChild(makeScoreEl(scoreVal));
-card.appendChild(th);
+        card.appendChild(th);
         card.appendChild(meta);
 
         card.onclick = () => {
@@ -902,6 +856,10 @@ card.appendChild(th);
       img.src = r.imageUrl;
       th.appendChild(img);
 
+      if (unlocked){
+        th.appendChild(makeScoreThumb(r.systemScore || 0));
+      }
+
       if (!unlocked){
         const mask = document.createElement("div");
         mask.className = "lockmask";
@@ -916,11 +874,7 @@ card.appendChild(th);
       time.textContent = "Recipe #" + r.recipeId;
       meta.appendChild(time);
 
-      if(unlocked){
-        const scoreVal = computeSystemScoreFromIds([r.headId, r.bodyId, r.bgId, r.addon1Id, r.addon2Id]);
-        meta.appendChild(makeScoreEl(scoreVal));
-      }
-card.appendChild(th);
+      card.appendChild(th);
       card.appendChild(meta);
 
       card.onclick = () => {
@@ -945,8 +899,6 @@ card.appendChild(th);
         api("/api/me/unlocks"),
       ]);
       setNet(true);
-
-      await ensureScoringData();
 
       const recipes = r1.recipes || [];
       const unlocks = r2.unlocks || [];

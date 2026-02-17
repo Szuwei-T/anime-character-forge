@@ -1111,20 +1111,19 @@ function calcAssetScore(assetId){
   if(!Number.isFinite(stars) || stars < 1) stars = 1;
   if(stars > 5) stars = 5;
 
-  let score = base;
-  if(stars > 1) score = score * (1 + 0.2 * (stars - 1));
-
-  const tags = normTags(a?.tags);
+    const tags = normTags(a?.tags);
   const theme = String(db.seasonThemeTag || "").trim().toLowerCase();
-  if(theme && tags.includes(theme)){
-    score = score * 1.30;
-  }
+
+  const starBonus = (stars > 1) ? (0.2 * (stars - 1)) : 0;
+  const themeBonus = (theme && tags.includes(theme)) ? 0.3 : 0;
+
+  const score = base * (1 + starBonus + themeBonus);
 
   return { score, tags };
 }
 function computeSystemScore(payload){
   const ids = [payload.headId, payload.bodyId, payload.bgId, payload.addon1Id, payload.addon2Id].map(normId).filter(Boolean);
-  const per = ids.map(calcAssetScore);
+  const per = ids.map(calcAssetScore).map(x => ({ ...x, score: Math.round(Number(x.score)||0) }));
   const sumBase = per.reduce((acc, x) => acc + (Number(x.score)||0), 0);
 
   // Tag synergy bonus: sum each tag's bonus by its appearance count across different assets.
@@ -1136,18 +1135,43 @@ function computeSystemScore(payload){
   const total = Math.round(sumBase * (1 + bonus));
   return { total, sumBase: Math.round(sumBase), bonusPct: bonus };
 }
+
+function animateNumber(el, from, to, durationMs){
+  const start = performance.now();
+  const dur = Math.max(120, Math.min(600, Number(durationMs||220)));
+  const a = Number(from||0);
+  const b = Number(to||0);
+  if(window.__scoreAnimRaf) cancelAnimationFrame(window.__scoreAnimRaf);
+  function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
+  function tick(now){
+    const p = Math.min(1, (now - start) / dur);
+    const v = a + (b - a) * easeOutCubic(p);
+    el.textContent = String(Math.round(v));
+    if(p < 1) window.__scoreAnimRaf = requestAnimationFrame(tick);
+    else { el.textContent = String(Math.round(b)); window.__scoreAnimRaf = 0; }
+  }
+  window.__scoreAnimRaf = requestAnimationFrame(tick);
+}
+
 function renderSystemScore(){
   const el = q("#systemScoreVal");
   if(!el) return;
-  const payload = { headId: SEL.headId, bodyId: SEL.bodyId, bgId: SEL.bgId, addon1Id: SEL.addon1Id || "", addon2Id: SEL.addon2Id || "", systemScore: Number(window.__systemScore || 0) };
-  if(!payload.headId || !payload.bodyId || !payload.bgId){
-    el.textContent = "0";
+
+  const anySelected = !!(SEL.headId || SEL.bodyId || SEL.bgId || SEL.addon1Id || SEL.addon2Id);
+
+  const current = Number(window.__systemScore || 0);
+  if(!anySelected){
     window.__systemScore = 0;
+    animateNumber(el, current, 0, 220);
     return;
   }
+
+  const payload = { headId: SEL.headId || "", bodyId: SEL.bodyId || "", bgId: SEL.bgId || "", addon1Id: SEL.addon1Id || "", addon2Id: SEL.addon2Id || "" };
   const r = computeSystemScore(payload);
-  el.textContent = String(r.total);
-  window.__systemScore = r.total;
+  const next = Number(r.total || 0);
+
+  window.__systemScore = next;
+  animateNumber(el, current, next, 220);
 }
 
 
