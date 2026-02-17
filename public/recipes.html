@@ -586,13 +586,6 @@ let uid = getOrCreateUidLocal();
     }
   }catch(e){}
 }
-catch(e){}
-    try{
-      // Fallback to /api/me
-      const j = await api("/api/me");
-      currentAvatarSavedOn = Number(j.avatarSavedOn || j.savedOn || j.avatar?.savedOn || 0) || 0;
-    }catch(e){}
-  }
 
 function fmtTime(ts){
     if (!ts) return "";
