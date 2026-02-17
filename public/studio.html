@@ -740,6 +740,48 @@ body{
   }
   .asset-grid::-webkit-scrollbar{ width: 0; height: 0; }
 
+
+  /* --- System Score (Studio) --- */
+  .stageOverlay{
+    position:absolute;
+    left: 0;
+    right: 0;
+    bottom: 10px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap: 10px;
+    pointer-events:none;
+  }
+  .stageBtns{
+    display:flex;
+    gap: 10px;
+    pointer-events:auto;
+  }
+  .scoreWrap{
+    pointer-events:none;
+  }
+  .scoreFrame{
+    position:relative;
+    width: 240px;
+    height: 72px;
+  }
+  .scoreFrame img{
+    width:100%;
+    height:100%;
+    display:block;
+  }
+  .scoreVal{
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight: 800;
+    letter-spacing: 1px;
+    font-size: 26px;
+    text-shadow: 0 2px 10px rgba(0,0,0,.8);
+  }
 </style>
 </head>
 <body>
@@ -760,8 +802,16 @@ body{
 
               <div id="bodyMissingMask" class="body-missing-mask"></div>
               <div class="stageOverlay">
-                <button class="smallBtn" id="randomBtn">隨機搭配</button>
-                <button class="smallBtn" id="submitBtn">保存</button>
+                <div class="scoreWrap" id="scoreWrap" title="系統評分">
+                  <div class="scoreFrame">
+                    <img src="/ui/frame/card_scoring.webp" alt="score frame" />
+                    <div class="scoreVal" id="systemScoreVal">0</div>
+                  </div>
+                </div>
+                <div class="stageBtns">
+                  <button class="smallBtn" id="randomBtn">隨機搭配</button>
+                  <button class="smallBtn" id="submitBtn">保存</button>
+                </div>
               </div>
             </div>
             <div style="height:10px"></div>
@@ -1034,6 +1084,73 @@ function getAssetStats(assetId, count, starsFromDb) {
   return { stars, neededForNext, totalCount: Number(count || 0) };
 }
 
+// --- System Scoring ---
+const BASE_SCORE = { 1:500, 2:700, 3:1000, 4:1500, 5:2500 };
+function normTags(tagStr){
+  return String(tagStr || "")
+    .split(",")
+    .map(t => t.trim().toLowerCase())
+    .filter(Boolean);
+}
+function tagBonusPct(n){
+  if(n >= 5) return 0.80;
+  if(n === 4) return 0.40;
+  if(n === 3) return 0.20;
+  if(n === 2) return 0.10;
+  return 0.0;
+}
+function calcAssetScore(assetId){
+  const id = String(assetId || "");
+  if(!id) return { score:0, tags:[] };
+  const a = (db.assets || []).find(x => String(x.assetId) === id) || null;
+  const rarity = Number(a?.rarity || 1);
+  const base = Number(BASE_SCORE[rarity] || 0);
+
+  const ua = (db.userAssets || db.playerAssets || db.assetsOwned || {})[id] || {};
+  let stars = Number(ua.stars || 1);
+  if(!Number.isFinite(stars) || stars < 1) stars = 1;
+  if(stars > 5) stars = 5;
+
+  let score = base;
+  if(stars > 1) score = score * (1 + 0.2 * (stars - 1));
+
+  const tags = normTags(a?.tags);
+  const theme = String(db.seasonThemeTag || "").trim().toLowerCase();
+  if(theme && tags.includes(theme)){
+    score = score * 1.30;
+  }
+
+  return { score, tags };
+}
+function computeSystemScore(payload){
+  const ids = [payload.headId, payload.bodyId, payload.bgId, payload.addon1Id, payload.addon2Id].map(normId).filter(Boolean);
+  const per = ids.map(calcAssetScore);
+  const sumBase = per.reduce((acc, x) => acc + (Number(x.score)||0), 0);
+
+  // Tag synergy bonus: sum each tag's bonus by its appearance count across different assets.
+  const counts = {};
+  per.forEach(x => (x.tags || []).forEach(t => { counts[t] = (counts[t]||0)+1; }));
+  let bonus = 0;
+  Object.keys(counts).forEach(t => { bonus += tagBonusPct(counts[t]); });
+
+  const total = Math.round(sumBase * (1 + bonus));
+  return { total, sumBase: Math.round(sumBase), bonusPct: bonus };
+}
+function renderSystemScore(){
+  const el = q("#systemScoreVal");
+  if(!el) return;
+  const payload = { headId: SEL.headId, bodyId: SEL.bodyId, bgId: SEL.bgId, addon1Id: SEL.addon1Id || "", addon2Id: SEL.addon2Id || "", systemScore: Number(window.__systemScore || 0) };
+  if(!payload.headId || !payload.bodyId || !payload.bgId){
+    el.textContent = "0";
+    window.__systemScore = 0;
+    return;
+  }
+  const r = computeSystemScore(payload);
+  el.textContent = String(r.total);
+  window.__systemScore = r.total;
+}
+
+
 
     let db = offlineDb();
 
@@ -1047,8 +1164,17 @@ if(!APP.offline){
       if(t === "bg") type = "background";
       if(t === "addon1" || t === "addon2") type = "accessory";
       if(t === "backgrounds") type = "background";
-      return { assetId: a.assetId, type, rarity: Number(a.rarity||1), imageUrl: a.imageUrl };
+      return { assetId: a.assetId, type, rarity: Number(a.rarity||1), imageUrl: a.imageUrl, tags: a.tags || "" };
     });
+
+    // Current season theme (for scoring)
+    try{
+      const sres = await fetch(WORKER_BASE + "/api/season/current").then(r=>r.json());
+      db.seasonThemeTag = String(sres.themeTag || sres.theme || "").trim().toLowerCase();
+    }catch(e){
+      db.seasonThemeTag = "";
+    }
+
 
     const invRes = await fetch(WORKER_BASE + "/api/me/assets?uid=" + encodeURIComponent(APP.uid)).then(r=>r.json());
     const items = invRes.items || invRes.assets || invRes.rows || invRes.results || [];
@@ -1262,7 +1388,7 @@ function setLayers(){
 }
 
 
-function refreshPreview(){ setLayers(); }
+function refreshPreview(){ setLayers(); renderSystemScore(); }
 
 const hoverBox = q("#hoverPreview");
 const hoverImg = hoverBox.querySelector("img");
@@ -1607,7 +1733,7 @@ q("#randomBtn").addEventListener("click", ()=>{
 });
 
 q("#submitBtn").addEventListener("click", async ()=>{
-  const payload = { headId: SEL.headId, bodyId: SEL.bodyId, bgId: SEL.bgId, addon1Id: SEL.addon1Id || "", addon2Id: SEL.addon2Id || "" };
+  const payload = { headId: SEL.headId, bodyId: SEL.bodyId, bgId: SEL.bgId, addon1Id: SEL.addon1Id || "", addon2Id: SEL.addon2Id || "", systemScore: Number(window.__systemScore || 0) };
   if(!payload.headId || !payload.bodyId || !payload.bgId) return toast("素材不足");
   if(!isGenderCompatible(payload.headId, payload.bodyId)) return toast("性別不匹配");
   const others = [payload.bodyId, payload.bgId, payload.addon1Id, payload.addon2Id].filter(Boolean);

@@ -401,6 +401,30 @@ body{
   backface-visibility: hidden;
 }
 
+
+  /* --- System Score (Recipes) --- */
+  .scoreFrameSmall{
+    position: relative;
+    width: 220px;
+    height: 66px;
+    margin-top: 8px;
+  }
+  .scoreFrameSmall img{
+    width:100%;
+    height:100%;
+    display:block;
+  }
+  .scoreFrameSmall .val{
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:800;
+    font-size:22px;
+    letter-spacing:1px;
+    text-shadow: 0 2px 10px rgba(0,0,0,.8);
+  }
 </style>
 </head>
 <body>
@@ -434,6 +458,89 @@ body{
 
 <script>
 (function(){
+
+  // --- System Scoring helpers ---
+  const BASE_SCORE = { 1:500, 2:700, 3:1000, 4:1500, 5:2500 };
+  let _assetsById = null;      // {assetId: {rarity,tags}}
+  let _userStarsById = null;   // {assetId: stars}
+  let _themeTag = "";
+
+  function normTags(tagStr){
+    return String(tagStr || "")
+      .split(",")
+      .map(t => t.trim().toLowerCase())
+      .filter(Boolean);
+  }
+  function tagBonusPct(n){
+    if(n >= 5) return 0.80;
+    if(n === 4) return 0.40;
+    if(n === 3) return 0.20;
+    if(n === 2) return 0.10;
+    return 0.0;
+  }
+  async function ensureScoringData(){
+    if(_assetsById && _userStarsById) return;
+    _assetsById = {};
+    _userStarsById = {};
+    try{
+      const [a, inv, season] = await Promise.all([
+        api("/api/assets"),
+        api("/api/me/assets"),
+        api("/api/season/current"),
+      ]);
+      (a.assets || []).forEach(x => {
+        _assetsById[String(x.assetId)] = { rarity: Number(x.rarity||1), tags: String(x.tags||"") };
+      });
+      (inv.assets || inv.items || []).forEach(x => {
+        const id = String(x.assetId || x.id || "");
+        const stars = Number(x.stars || 1);
+        if(id) _userStarsById[id] = (Number.isFinite(stars) && stars>0) ? Math.min(5, stars) : 1;
+      });
+      _themeTag = String(season.themeTag || season.theme || "").trim().toLowerCase();
+    }catch(e){
+      // Best-effort: score will fallback to 0 if data missing
+      _themeTag = _themeTag || "";
+    }
+  }
+  function calcAssetScore(assetId){
+    const id = String(assetId || "");
+    if(!id) return { score:0, tags:[] };
+    const a = _assetsById ? _assetsById[id] : null;
+    const rarity = Number(a?.rarity || 1);
+    const base = Number(BASE_SCORE[rarity] || 0);
+    let stars = Number((_userStarsById && _userStarsById[id]) || 1);
+    if(!Number.isFinite(stars) || stars < 1) stars = 1;
+    if(stars > 5) stars = 5;
+
+    let score = base;
+    if(stars > 1) score = score * (1 + 0.2 * (stars - 1));
+
+    const tags = normTags(a?.tags);
+    if(_themeTag && tags.includes(_themeTag)){
+      score = score * 1.30;
+    }
+    return { score, tags };
+  }
+  function computeSystemScoreFromIds(ids){
+    const clean = (ids || []).map(x => String(x||"").trim()).filter(Boolean);
+    const per = clean.map(calcAssetScore);
+    const sumBase = per.reduce((acc, x) => acc + (Number(x.score)||0), 0);
+
+    const counts = {};
+    per.forEach(x => (x.tags || []).forEach(t => { counts[t] = (counts[t]||0)+1; }));
+    let bonus = 0;
+    Object.keys(counts).forEach(t => { bonus += tagBonusPct(counts[t]); });
+
+    return Math.round(sumBase * (1 + bonus));
+  }
+  function makeScoreEl(score){
+    const wrap = document.createElement("div");
+    wrap.className = "scoreFrameSmall";
+    wrap.innerHTML = '<img src="/ui/frame/card_scoring.webp" alt="score" /><div class="val"></div>';
+    wrap.querySelector(".val").textContent = String(score || 0);
+    return wrap;
+  }
+
   const DEFAULT_WORKER = "https://acf-api.dream-league-baseball.workers.dev";
   const WORKER_BASE = window.WORKER_BASE || localStorage.getItem("acf_worker_base") || DEFAULT_WORKER;
 
@@ -607,6 +714,10 @@ body{
       const res = await api("/api/me/saves");
       setNet(true);
 
+      await ensureScoringData();
+
+      await ensureScoringData();
+
     const comboKey = (headId, bodyId, bgId, addon1Id, addon2Id) => {
       const a = [String(addon1Id || ""), String(addon2Id || "")].sort();
       return [String(headId || ""), String(bodyId || ""), String(bgId || ""), a[0], a[1]].join("|");
@@ -733,6 +844,10 @@ if (curItem){
         row.appendChild(time);
         row.appendChild(btnShow);
         meta.appendChild(row);
+
+        // system score
+        const scoreVal = Number(s.systemScore || 0) || computeSystemScoreFromIds([s.headId, s.bodyId, s.bgId, s.addon1Id, s.addon2Id]);
+        meta.appendChild(makeScoreEl(scoreVal));
 card.appendChild(th);
         card.appendChild(meta);
 
@@ -800,6 +915,11 @@ card.appendChild(th);
       time.className = "time";
       time.textContent = "Recipe #" + r.recipeId;
       meta.appendChild(time);
+
+      if(unlocked){
+        const scoreVal = computeSystemScoreFromIds([r.headId, r.bodyId, r.bgId, r.addon1Id, r.addon2Id]);
+        meta.appendChild(makeScoreEl(scoreVal));
+      }
 card.appendChild(th);
       card.appendChild(meta);
 
@@ -825,6 +945,8 @@ card.appendChild(th);
         api("/api/me/unlocks"),
       ]);
       setNet(true);
+
+      await ensureScoringData();
 
       const recipes = r1.recipes || [];
       const unlocks = r2.unlocks || [];
