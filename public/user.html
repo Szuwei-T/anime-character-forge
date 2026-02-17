@@ -294,7 +294,8 @@
         pill.className="pill";
         const votes = Number(s.votes || 0);
         const favs = Number(s.favorites || 0);
-        pill.textContent = "票數 " + String(votes) + " · 收藏 " + String(favs);
+        const sc = Number(s.systemScore || 0);
+        pill.textContent = "票數 " + String(votes) + " · 收藏 " + String(favs) + " · 評分 " + String(sc);
 
         const season = document.createElement("div");
         season.className="pill";

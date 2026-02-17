@@ -48,6 +48,8 @@
     .rankText.silver{color:rgba(220,225,235,.92)}
     .rankText.bronze{color:rgba(205,127,50,.95)}
     .podVotesTop{font-size:12px;opacity:.78;white-space:nowrap;margin-top:2px}
+    .podScore{font-size:12px;opacity:.85;white-space:nowrap;margin-top:2px}
+
     .podAuthor{display:flex;align-items:center;gap:8px;min-width:0;cursor:pointer}
     .podAuthor:hover .podAuthorName{text-decoration:underline}
     .podAuthorAv{width:28px;height:28px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);overflow:hidden;display:grid;place-items:center;font-size:11px;flex:0 0 28px}
@@ -121,6 +123,8 @@
     .recAuthorAv{width:26px;height:26px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);overflow:hidden;display:grid;place-items:center;font-size:11px;flex:0 0 26px}
     .recAuthorName{font-size:12px;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
     .recBadge{padding:6px 10px;border-radius:999px;background:rgba(255,165,0,.10);border:1px solid rgba(255,165,0,.22);font-size:12px;white-space:nowrap}
+        .recScore{ font-size:12px; font-weight:800; color: rgba(226,232,240,0.95); opacity:0.95; margin-top:6px; }
+
     .recTitleLine{font-weight:700;font-size:13px;line-height:1.2;opacity:.95;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
     .authorGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
@@ -789,7 +793,7 @@ body{
 
             const right = document.createElement("div");
             right.className = "podVotesTop";
-            right.textContent = "票數 " + String(Number(s.votes || 0));
+            right.innerHTML = `<div>票數 ${String(Number(s.votes || 0))}</div><div class="podScore">評分 ${String(Number(s.systemScore || 0))}</div>`;
 
             metaTop.appendChild(left);
             metaTop.appendChild(right);
@@ -885,6 +889,10 @@ body{
               topRow.appendChild(author);
               topRow.appendChild(b);
 
+              const sc = document.createElement("div");
+              sc.className = "recScore";
+              sc.textContent = "評分 " + String(Number(s.systemScore || 0));
+
               const t = document.createElement("div");
               t.className = "recTitleLine";
               t.textContent = (s.title && String(s.title).trim()) ? String(s.title).trim() : "未命名作品";
@@ -941,6 +949,7 @@ body{
               actions.appendChild(favBtn);
 
               meta.appendChild(topRow);
+            meta.appendChild(sc);
               meta.appendChild(t);
               meta.appendChild(actions);
 
@@ -1211,6 +1220,11 @@ body{
 
             topRow.appendChild(author);
             topRow.appendChild(b);
+
+            const sc = document.createElement("div");
+            sc.className = "recScore";
+            sc.textContent = "評分 " + String(Number(s.systemScore || 0));
+
 
             const t = document.createElement("div");
             t.className = "recTitleLine";
