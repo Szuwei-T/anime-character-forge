@@ -446,7 +446,7 @@
   #levelUpConfirm:active{ transform: scale(0.98); }
 
   @keyframes levelUpWrapPop{
-    0%{ transform: translateY(14px) scale(0.86); opacity: 0; }
+    0%{ transform: translateY(22px) scale(0.86); opacity: 0; }
     55%{ transform: translateY(0) scale(1.04); opacity: 1; }
     100%{ transform: translateY(0) scale(1); opacity: 1; }
   }
@@ -842,13 +842,27 @@ body{
 
   /* Score number slightly lower inside the frame */
   .scoreVal{
-    transform: translateY(6px);
+    transform: translateY(14px);
   }
 
   /* Buttons width x2 */
   .stageBtns .smallBtn{
     min-width: 240px;
   }
+
+
+.gold-action-btn{
+    border: 2px solid rgba(255,215,0,0.9);
+    background: rgba(255,215,0,0.10);
+    color: #fff;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 0 10px rgba(255,215,0,0.25), inset 0 0 8px rgba(255,215,0,0.12);
+    transition: all .18s ease;
+}
+.gold-action-btn:hover{
+    background: rgba(255,215,0,0.16);
+    box-shadow: 0 0 16px rgba(255,215,0,0.45), inset 0 0 10px rgba(255,215,0,0.20);
+}
 
 </style>
 </head>
