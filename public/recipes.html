@@ -469,7 +469,23 @@
   const DEFAULT_WORKER = "https://acf-api.dream-league-baseball.workers.dev";
   const WORKER_BASE = window.WORKER_BASE || localStorage.getItem("acf_worker_base") || DEFAULT_WORKER;
 
-  const uid = localStorage.getItem("acf_uid") || "";
+  // Ensure uid is always available (same behavior as app.js:getOrCreateUid)
+function getOrCreateUidLocal(){
+  const primary = "acf_uid";
+  let id = localStorage.getItem(primary) || localStorage.getItem("uid") || localStorage.getItem("userId") || localStorage.getItem("USER_ID") || "";
+  id = String(id || "").trim();
+  if(!id){
+    id = (crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now().toString(36) + Math.random().toString(36).slice(2));
+  }
+  localStorage.setItem(primary, id);
+  localStorage.setItem("uid", id);
+  localStorage.setItem("userId", id);
+  localStorage.setItem("USER_ID", id);
+  return id;
+}
+
+let uid = getOrCreateUidLocal();
+
   let currentAvatarSavedOn = 0;
   const statusLine = document.getElementById("statusLine");
   const errorBox = document.getElementById("errorBox");
@@ -537,13 +553,40 @@
 
   
   async function fetchCurrentAvatar(){
-    currentAvatarSavedOn = 0;
-    try{
-      // Try a dedicated endpoint if exists
-      const j = await api("/api/me/avatar");
-      currentAvatarSavedOn = Number(j.savedOn || j.avatarSavedOn || j.currentAvatarSavedOn || 0) || 0;
+  // 1) Always trust localStorage first (instant + survives refresh)
+  currentAvatarSavedOn = Number(localStorage.getItem("acf_avatar_savedOn") || 0) || 0;
+
+  // 2) Try dedicated endpoint (if worker supports it)
+  try{
+    const j = await api("/api/me/avatar");
+    const so = Number(j.savedOn || j.avatarSavedOn || j.currentAvatarSavedOn || 0) || 0;
+    if(so){
+      currentAvatarSavedOn = so;
+      localStorage.setItem("acf_avatar_savedOn", String(so));
       return;
-    }catch(e){}
+    }
+  }catch(e){}
+
+  // 3) Fallback to /api/me (worker returns { ok, account, stats, avatarSave })
+  try{
+    const j = await api("/api/me");
+    const so =
+      Number(
+        j?.account?.avatarSaveOn ||
+        j?.account?.avatarSavedOn ||
+        j?.avatarSave?.savedOn ||
+        j?.avatarSavedOn ||
+        j?.savedOn ||
+        j?.avatar?.savedOn ||
+        0
+      ) || 0;
+    if(so){
+      currentAvatarSavedOn = so;
+      localStorage.setItem("acf_avatar_savedOn", String(so));
+    }
+  }catch(e){}
+}
+catch(e){}
     try{
       // Fallback to /api/me
       const j = await api("/api/me");
