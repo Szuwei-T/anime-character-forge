@@ -959,7 +959,7 @@ window.getName = getName;
     }
   }
 
-function initMasterHeader(){
+async function initMasterHeader(){
     if(window.ACF_DISABLE_MASTER) return;
     if(document.getElementById("acfMasterHeader")) return;
 
