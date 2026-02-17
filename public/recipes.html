@@ -26,7 +26,7 @@
     .meta .time{font-size:12px;opacity:.85;margin-bottom:4px}
     .meta .parts{display:none !important}
 
-    .meta .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .meta .row{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
 
     .showBtn{
       cursor:pointer;
@@ -77,13 +77,7 @@
       transform:none;
     }
 
-    .btnRow{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      justify-content:flex-end;
-      flex:0 0 auto;
-    }
+    .btnRow{display:flex;align-items:center;gap:10px;justify-content:center;width:100%}
 
     /* ===== System Score frame on thumbnail bottom ===== */
     .scoreFrameThumb{
@@ -294,8 +288,8 @@
       opacity:.95;
     }
     .thumb{border-radius:18px; overflow:hidden;}
-    .meta{position:relative; z-index:5;}
-    .thumb{position:relative; z-index:4;}
+    .meta{position:relative; z-index:3;}
+    .thumb{position:relative; z-index:1;}
     .card:hover{
       transform: translateY(-2px);
       filter: drop-shadow(0 0 18px rgba(255,220,120,.12));
@@ -430,21 +424,16 @@
       box-sizing: border-box;
     }
 
-    
-    /* ===== Button size 70% (設為頭像 / 展示) ===== */
-    .showBtn{
-      width:84px;
-      height:31px;
-      padding:0;
-      font-size:12px;
-      border-radius:12px;
-    }
-    .btnRow{gap:8px;}
-/* Prevent layout jitter from transforms */
+    /* Prevent layout jitter from transforms */
     *{
       backface-visibility: hidden;
     }
-  </style>
+  
+    /* --- Fix score overlay stacking --- */
+    .thumb{position:relative; z-index:4 !important;}
+    .meta{position:relative; z-index:5 !important;}
+    .scoreFrameThumb{z-index:1000 !important; pointer-events:none;}
+</style>
 </head>
 <body>
   <div class="acf-page ui-panel"><div id="acfMasterMount"></div>
@@ -452,7 +441,7 @@
 
     <div class="tabs">
       <div class="tabbtn active" id="tabSaves">我的成品</div>
-      <div class="tabbtn" id="tabRecipes">Recipes</div>
+      <div class="tabbtn" id="tabRecipes">我的收藏</div>
     </div>
 
     <div class="statusline" id="statusLine">讀取中</div>
@@ -481,6 +470,7 @@
   const WORKER_BASE = window.WORKER_BASE || localStorage.getItem("acf_worker_base") || DEFAULT_WORKER;
 
   const uid = localStorage.getItem("acf_uid") || "";
+  let currentAvatarSavedOn = 0;
   const statusLine = document.getElementById("statusLine");
   const errorBox = document.getElementById("errorBox");
 
@@ -545,7 +535,23 @@
     });
   }
 
-  function fmtTime(ts){
+  
+  async function fetchCurrentAvatar(){
+    currentAvatarSavedOn = 0;
+    try{
+      // Try a dedicated endpoint if exists
+      const j = await api("/api/me/avatar");
+      currentAvatarSavedOn = Number(j.savedOn || j.avatarSavedOn || j.currentAvatarSavedOn || 0) || 0;
+      return;
+    }catch(e){}
+    try{
+      // Fallback to /api/me
+      const j = await api("/api/me");
+      currentAvatarSavedOn = Number(j.avatarSavedOn || j.savedOn || j.avatar?.savedOn || 0) || 0;
+    }catch(e){}
+  }
+
+function fmtTime(ts){
     if (!ts) return "";
     try{
       const d = new Date(ts);
@@ -650,6 +656,7 @@
     gridSaves.innerHTML = "";
     try{
       const res = await api("/api/me/saves");
+      await fetchCurrentAvatar();
       setNet(true);
 
       const comboKey = (headId, bodyId, bgId, addon1Id, addon2Id) => {
@@ -727,7 +734,15 @@
         const btnAvatar = document.createElement("div");
         btnAvatar.className = "showBtn";
         btnAvatar.textContent = "設為頭像";
+        // If this is already the current avatar, lock the button like "展示中"
+        const __savedOnNum = Number(s.savedOn || 0) || 0;
+        if(__savedOnNum && currentAvatarSavedOn && __savedOnNum === currentAvatarSavedOn){
+          btnAvatar.textContent = "當前頭像";
+          btnAvatar.classList.add("disabled");
+        }
+
         btnAvatar.onclick = async (ev) => {
+          if (btnAvatar.classList.contains("disabled")) return;
           ev.stopPropagation();
           clearError();
           if (!uid){
@@ -865,10 +880,6 @@
       img.loading = "lazy";
       img.src = r.imageUrl;
       th.appendChild(img);
-
-      if (unlocked){
-        th.appendChild(makeScoreThumb(r.systemScore || 0));
-      }
 
       if (!unlocked){
         const mask = document.createElement("div");
