@@ -1786,53 +1786,46 @@ body, .wrap, .page, .acf-page, .container{
   .cine-ten .results-top-right{ justify-self:center; }
 }
 
-/* Featured icon overlay (replaces "本期Featured角色") */
-.featuredIcon{
-  position:absolute;
-  top:12px;
-  /* right of the "抽角色" block (leftOverlay: left 18px, width 340px) */
-  left:calc(18px + 340px + 12px);
-  width:160px;
-  height:auto;
-  z-index:8;
-  pointer-events:none;
-  filter:
-    drop-shadow(0 8px 18px rgba(0,0,0,0.60))
-    drop-shadow(0 0 12px rgba(255,215,120,0.40));
-}
-.featureStage{ position:relative; }
-
-
-/* ===== Gacha rate frame overlay (素材獲得機率) ===== */
-.gachaRateFrame{
-  position:absolute;
-  top:18px;
-  right:18px;
-  width:260px;
-  height:80px;
-  background-image:url("/ui/frame/gacha_featured.webp");
-  background-size:contain;
-  background-repeat:no-repeat;
-  background-position:center;
-  z-index:9;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  pointer-events:none;
-  filter:
-    drop-shadow(0 10px 20px rgba(0,0,0,0.6))
-    drop-shadow(0 0 14px rgba(255,200,80,0.35));
+/* ===== Shop-style panelCard for 前往Shop block ===== */
+.panelCardShopStyle{
+  pointer-events: auto;
+  border-radius: 18px;
+  background: rgba(0,0,0,0.58);
+  border: 1px solid rgba(255,255,255,0.16);
+  box-shadow: 0 18px 60px rgba(0,0,0,0.50);
+  padding: 12px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
-.gachaRateFrame span{
-  font-weight:900;
-  font-size:20px;
-  letter-spacing:1px;
-  color:#fff;
-  text-shadow:
-    0 2px 6px rgba(0,0,0,0.8),
-    0 0 10px rgba(255,215,120,0.5);
-  transform: translateY(2px);
+.panelCardShopStyle .panelTitle .name{
+  font-weight: 950;
+  letter-spacing: 0.4px;
+  font-size: 18px;
+}
+
+.panelCardShopStyle .panelTitle .desc{
+  opacity: 0.78;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.panelCardShopStyle .gBtn,
+.panelCardShopStyle button{
+  width: 100%;
+  border: 0;
+  cursor: pointer;
+  font-weight: 1000;
+  letter-spacing: 0.4px;
+  border-radius: 14px;
+  height: 56px;
+  color: #fff;
+  background: transparent;
+  background-image: url("/ui/button/btn_shop.webp");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.85);
 }
 
 </style>
@@ -1845,8 +1838,7 @@ body, .wrap, .page, .acf-page, .container{
 <div class="wrap">
 <div class="heroStage" id="heroStage">
 <div class="featureStage" id="featureStage">
-  <img src="/ui/icon/Featured.webp" class="featuredIcon" alt="Featured">
-
+<div class="featuredTitleOverlay">本期 Featured 角色</div>
 <div aria-hidden="true" class="promoTag">
 <div class="promoBig">素材獲得機率+30%</div>
 </div>
