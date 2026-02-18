@@ -398,6 +398,49 @@ body{
     .recThumb .scoreFrameThumb{ left:8px; right:8px; bottom:8px; height:40px; }
     .entryThumb .scoreFrameThumb{ left:8px; right:8px; bottom:8px; height:40px; }
 
+
+    /* Recommend cards v2 layout */
+    .recCardRec{
+      flex-direction:column;
+      padding:0;
+    }
+    .recCardRec .recThumb{
+      width:100%;
+      flex:0 0 auto;
+      aspect-ratio:3/4;
+      border-right:none;
+      border-bottom:1px solid rgba(255,255,255,.10);
+    }
+    .recCardRec .recMeta{
+      padding:10px 12px 12px;
+    }
+    .recAuthorRow{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:8px;
+    }
+    .followBtn{
+      appearance:none;
+      border:1px solid rgba(255,215,0,.65);
+      background:rgba(255,215,0,.10);
+      color:rgba(255,255,255,.95);
+      border-radius:999px;
+      padding:8px 12px;
+      font-weight:800;
+      font-size:12px;
+      letter-spacing:.2px;
+      cursor:pointer;
+      transition:.15s ease;
+      box-shadow:0 0 14px rgba(255,215,0,.15) inset, 0 0 12px rgba(0,0,0,.25);
+    }
+    .followBtn:hover{ background:rgba(255,215,0,.14); border-color:rgba(255,215,0,.9); }
+    .followBtn.on{
+      background:rgba(255,215,0,.18);
+      border-color:rgba(255,215,0,.95);
+    }
+
 </style>
 
   <link rel="stylesheet" href="style.css" />
@@ -531,6 +574,48 @@ body{
 
         const ICON_VOTE = `<svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M7 10h10v10H7V10Z" stroke="currentColor" stroke-width="2"/><path d="M9 10V6h6v4" stroke="currentColor" stroke-width="2"/><path d="M10 14l2 2 3-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
         const ICON_HEART = `<svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-4.35-9.33-8.28C.7 9.25 2.3 6 6 6c2 0 3.1 1.1 4 2.2C10.9 7.1 12 6 14 6c3.7 0 5.3 3.25 3.33 6.72C19 16.65 12 21 12 21Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>`;
+
+      const ICON_RECOMMEND = `<svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.2 6.7H21l-5.4 3.9L17.8 20 12 15.9 6.2 20l2.2-7.4L3 8.7h6.8L12 2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>`;
+
+      let followingSet = new Set();
+
+      async function loadFollowing(){
+        try{
+          if(!uid){
+            followingSet = new Set();
+            return;
+          }
+          const r = await api("/api/me/following");
+          const items = r.items || [];
+          followingSet = new Set(items.map(x => String(x.targetUserId || "").trim()).filter(Boolean));
+        }catch(_){
+          followingSet = new Set();
+        }
+      }
+
+      async function toggleFollow(targetUserId){
+        if(!uid){
+          showToast("請先登入");
+          return showError("請先登入");
+        }
+        const tid = String(targetUserId||"").trim();
+        if(!tid) return;
+        if(tid === String(uid)) return;
+        const isOn = followingSet.has(tid);
+        try{
+          if(isOn){
+            await api("/api/follow", { method:"DELETE", body:{ targetUserId: tid } });
+            followingSet.delete(tid);
+            showToast("已取消關注");
+          }else{
+            await api("/api/follow", { method:"POST", body:{ targetUserId: tid } });
+            followingSet.add(tid);
+            showToast("已關注");
+          }
+        }catch(e){
+          showError(String(e.error || e.message || "操作失敗"));
+        }
+      }
         const ICON_FIRE = `<svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M13 3s1 3-1 5-1 4 2 5 4 6 0 8-4 1-6-1-2-4-2-6c0-4 3-5 3-8 0-2-1-3-1-3s4 1 5 3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>`;
 
         function showToast(msg){
@@ -999,7 +1084,7 @@ body{
             recWrap.style.display = "block";
             recItems.forEach((s)=>{
               const card = document.createElement("div");
-              card.className = "recCard";
+              card.className = "recCard recCardRec";
 
               const th = document.createElement("div");
               th.className = "recThumb";
@@ -1010,18 +1095,23 @@ body{
                 { url: s.bodyUrl, z:40 },
                 { url: s.addon1Url, z:50 },
               ]);
+              try{
+                const sc2 = computeSystemScoreFromUrls({ headUrl:s.headUrl, bodyUrl:s.bodyUrl, bgUrl:s.bgUrl, addon1Url:s.addon1Url, addon2Url:s.addon2Url });
+                th.appendChild(makeScoreThumb(sc2));
+              }catch(_){
+                th.appendChild(makeScoreThumb(0));
+              }
 
-            try{ const sc = computeSystemScoreFromUrls({ headUrl:s.headUrl, bodyUrl:s.bodyUrl, bgUrl:s.bgUrl, addon1Url:s.addon1Url, addon2Url:s.addon2Url }); th.appendChild(makeScoreThumb(sc)); }catch(_){ th.appendChild(makeScoreThumb(0)); }
               const meta = document.createElement("div");
               meta.className = "recMeta";
 
-              const topRow = document.createElement("div");
-              topRow.className = "recMetaTop";
+              const authorName = String(s.authorName || s.userName || s.userId || "").trim() || "Player";
+
+              const authorRow = document.createElement("div");
+              authorRow.className = "recAuthorRow";
 
               const author = document.createElement("div");
               author.className = "recAuthor";
-              const authorName = String(s.authorName || s.userName || s.userId || "").trim() || "Player";
-
               const av = document.createElement("div");
               av.className = "recAuthorAv";
               renderAvatarInto(av, s, authorName);
@@ -1038,20 +1128,26 @@ body{
                 gotoUserProfile(s.userId);
               };
 
-              const b = document.createElement("div");
-              b.className = "recBadge";
-              b.textContent = "推薦 " + String(Number(s.recommends||0));
+              const followBtn = document.createElement("button");
+              followBtn.type = "button";
+              followBtn.className = "followBtn";
+              const tid = String(s.userId || "").trim();
+              const isSelf = tid && uid && String(tid) === String(uid);
+              const isFollow = tid && followingSet.has(tid);
+              if(isFollow) followBtn.classList.add("on");
+              followBtn.textContent = isSelf ? "自己" : (isFollow ? "已關注" : "關注");
 
-              topRow.appendChild(author);
-              topRow.appendChild(b);
+              followBtn.onclick = async (e)=>{
+                e.stopPropagation();
+                if(isSelf) return;
+                await toggleFollow(tid);
+                const on = followingSet.has(tid);
+                followBtn.textContent = on ? "已關注" : "關注";
+                followBtn.classList.toggle("on", on);
+              };
 
-              const sc = document.createElement("div");
-              sc.className = "recScore";
-              sc.textContent = "評分 " + String(Number(s.systemScore || 0));
-
-              const t = document.createElement("div");
-              t.className = "recTitleLine";
-              t.textContent = (s.title && String(s.title).trim()) ? String(s.title).trim() : "未命名作品";
+              authorRow.appendChild(author);
+              authorRow.appendChild(followBtn);
 
               const actions = document.createElement("div");
               actions.className = "iconRow";
@@ -1101,25 +1197,45 @@ body{
                 await load();
               };
 
+              const recBtn = document.createElement("button");
+              recBtn.className = "iconBtn";
+              recBtn.type = "button";
+              recBtn.innerHTML = ICON_RECOMMEND + "<span>推薦</span>";
+              if((!uid) || userGem < 50) recBtn.style.opacity = ".6";
+              recBtn.onclick = async (e)=>{
+                e.stopPropagation();
+                clearError();
+                const done = setBtnBusy(recBtn, "推薦中");
+                try{
+                  await recommend(sid2);
+                }finally{
+                  done();
+                }
+                await load();
+              };
+
               actions.appendChild(voteBtn);
               actions.appendChild(favBtn);
+              actions.appendChild(recBtn);
 
-              meta.appendChild(topRow);
-            meta.appendChild(sc);
-              meta.appendChild(t);
+              meta.appendChild(authorRow);
               meta.appendChild(actions);
 
               card.appendChild(th);
               card.appendChild(meta);
 
               card.onclick = ()=>{
-                openModal(t.textContent, "推薦 " + String(Number(s.recommends||0)) + " · 票數 " + String(Number(s.votes||0)) + " · " + fmtTime(s.createdAt), [
-                  { url: s.bgUrl, z:10 },
-                  { url: s.addon2Url, z:20 },
-                  { url: s.headUrl, z:30 },
-                  { url: s.bodyUrl, z:40 },
-                  { url: s.addon1Url, z:50 },
-                ]);
+                openModal(
+                  (s.title && String(s.title).trim()) ? String(s.title).trim() : "未命名作品",
+                  "推薦 " + String(Number(s.recommends||0)) + " · 票數 " + String(Number(s.votes||0)) + " · " + fmtTime(s.createdAt),
+                  [
+                    { url: s.bgUrl, z:10 },
+                    { url: s.addon2Url, z:20 },
+                    { url: s.headUrl, z:30 },
+                    { url: s.bodyUrl, z:40 },
+                    { url: s.addon1Url, z:50 },
+                  ]
+                );
               };
 
               recGrid.appendChild(card);
@@ -1488,6 +1604,7 @@ body{
           statusLine.textContent = "讀取中";
           try{
             await loadMeLight();
+          await loadFollowing();
             await loadFavorites();
             await loadRankings();
 
