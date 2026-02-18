@@ -525,6 +525,73 @@ body{
 #recGrid::-webkit-scrollbar{ height:0; }
 #recGrid{ scrollbar-width:none; }
 
+
+/* =========================================
+   Featured Recommend adjustments (per latest request)
+   - 本期推薦：作品縮小到約 50%（以卡片尺寸縮放，不影響標題）
+   - 本區置中
+   - 本區內按鈕文字大小 = sub 文字大小（12px）
+========================================= */
+
+#recWrap{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+#recWrap .recTitle{
+  width:100%;
+  max-width:1180px;
+  margin:0 auto 6px;
+  text-align:center;
+}
+
+#recWrap #recGrid{
+  width:100%;
+  justify-content:center;
+}
+
+/* 作品卡片縮小到約 50%（縮卡片結構尺寸） */
+#recWrap #recGrid .recCard{
+  border-radius:14px;
+}
+#recWrap #recGrid .recThumb{
+  width:70px;
+  flex:0 0 70px;
+}
+#recWrap #recGrid .recMeta{
+  padding:6px 8px;
+  gap:6px;
+}
+#recWrap #recGrid .recMetaTop{
+  gap:6px;
+}
+#recWrap #recGrid .recAuthorAv{
+  width:13px;
+  height:13px;
+  flex:0 0 13px;
+  font-size:9px;
+}
+#recWrap #recGrid .recAuthorName{
+  font-size:12px; /* 保持可讀 */
+  max-width:140px;
+}
+#recWrap #recGrid .recBadge,
+#recWrap #recGrid .recScore{
+  font-size:12px;
+  padding:4px 8px;
+}
+
+/* 本區內按鈕文字：跟 sub 同樣大小 */
+#recWrap .iconBtn{
+  font-size:12px;
+  padding:8px 12px;
+}
+#recWrap .followBtn{
+  font-size:12px;
+  padding:8px 12px;
+}
+
 </style>
 
   <link rel="stylesheet" href="style.css" />
