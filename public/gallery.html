@@ -365,43 +365,38 @@ body{
 }
 
 
-    /* Score frame overlay */
-    .scoreOverlay{
+    /* ===== System Score frame (same method as recipes.html) ===== */
+    .scoreFrameThumb{
       position:absolute;
-      left:8px;
-      bottom:8px;
-      width:146px;
-      height:46px;
-      pointer-events:none;
-      z-index:200;
-      display:block;
-    }
-    .scoreOverlay img{
-      position:absolute;
-      inset:0;
-      width:100%;
-      height:100%;
-      object-fit:contain;
-      display:block;
-      filter: drop-shadow(0 6px 10px rgba(0,0,0,.45));
-      opacity:.98;
-    }
-    .scoreOverlay .scoreTxt{
-      position:absolute;
-      inset:0;
+      left:10px;
+      right:10px;
+      bottom:10px;
+      height:44px;
+      background-image:url("/ui/frame/card_scoring.webp");
+      background-size:100% 100%;
+      background-repeat:no-repeat;
+      background-position:center;
       display:flex;
       align-items:center;
       justify-content:center;
-      font-size:14px;
-      font-weight:900;
-      letter-spacing:.6px;
-      color:rgba(255,255,255,.96);
-      text-shadow:0 2px 10px rgba(0,0,0,.85);
-      transform: translateY(6px);
+      z-index: 1200;
+      pointer-events:none;
+      filter: drop-shadow(0 6px 16px rgba(0,0,0,0.40));
     }
-    .entryThumb .scoreOverlay{ width:128px; height:40px; left:6px; bottom:6px; }
-    .recThumb .scoreOverlay{ width:128px; height:40px; left:6px; bottom:6px; }
-    .podThumb .scoreOverlay{ width:150px; height:48px; left:8px; bottom:8px; }
+    .scoreFrameThumb .val{
+      font-family: "GameFontSciFi", "GameFont", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, "Noto Sans TC", sans-serif;
+      font-weight:950;
+      font-size:16px;
+      letter-spacing:0.4px;
+      color:#fff;
+      line-height:1;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.85);
+      transform: translateY(0px); /* centered */
+    }
+    .podThumb,.recThumb,.entryThumb{ position:relative; }
+    .podThumb .scoreFrameThumb{ left:14px; right:14px; bottom:14px; height:48px; }
+    .recThumb .scoreFrameThumb{ left:8px; right:8px; bottom:8px; height:40px; }
+    .entryThumb .scoreFrameThumb{ left:8px; right:8px; bottom:8px; height:40px; }
 
 </style>
 
@@ -620,40 +615,14 @@ body{
           container.innerHTML = "";
           const wrap = document.createElement("div");
           wrap.className = "layer";
-          (layers || []).forEach((l)=>{
-            if(!l || !l.url) return;
+          layers.forEach((l)=>{
+            if(!l.url) return;
             const img = document.createElement("img");
             img.src = l.url;
             img.style.zIndex = String(l.z || 0);
             wrap.appendChild(img);
           });
           container.appendChild(wrap);
-        }
-
-        function addScoreOverlay(thumbEl, score){
-          try{
-            if(!thumbEl) return;
-            if(getComputedStyle(thumbEl).position === "static"){
-              thumbEl.style.position = "relative";
-            }
-            const old = thumbEl.querySelector(".scoreOverlay");
-            if(old) old.remove();
-
-            const wrap = document.createElement("div");
-            wrap.className = "scoreOverlay";
-
-            const frame = document.createElement("img");
-            frame.alt = "score frame";
-            frame.src = "/ui/frame/card_scoring.webp";
-
-            const txt = document.createElement("div");
-            txt.className = "scoreTxt";
-            txt.textContent = String(Number(score || 0));
-
-            wrap.appendChild(frame);
-            wrap.appendChild(txt);
-            thumbEl.appendChild(wrap);
-          }catch(_){}
         }
 
         function renderAvatarInto(el, show, fallbackName){
@@ -697,12 +666,131 @@ body{
           return data;
         }
 
-        function openModal(title, sub, layers, score){
+  
+  // ===== System scoring (client-side, same method as recipes.html) =====
+  // Works even if gallery API doesn't return systemScore by deriving assetId from layer URLs.
+  const scoreDb = { assets: [], userAssets: {}, seasonThemeTag: "" };
+  let _scoreDbLoaded = false;
+
+  function assetIdFromUrl(url){
+    try{
+      if(!url) return "";
+      const u = String(url);
+      const last = u.split("?")[0].split("#")[0].split("/").pop() || "";
+      return last.replace(/\.(png|webp|jpg|jpeg)$/i, "");
+    }catch(_){ return ""; }
+  }
+
+  async function ensureScoreDb(){
+    if(_scoreDbLoaded) return;
+    _scoreDbLoaded = true;
+
+    try{
+      const ares = await api("/api/assets");
+      scoreDb.assets = ares.assets || ares.items || ares.data || [];
+    }catch(e){
+      scoreDb.assets = [];
+    }
+
+    try{
+      const ures = await api("/api/me/assets");
+      if(ures.userAssets && typeof ures.userAssets === "object"){
+        scoreDb.userAssets = ures.userAssets;
+      }else if(ures.owned && typeof ures.owned === "object"){
+        scoreDb.userAssets = ures.owned;
+      }else{
+        const arr = ures.assets || ures.items || ures.data || [];
+        const map = {};
+        (arr || []).forEach(x => {
+          const id = String(x.assetId || x.id || "").trim();
+          if(!id) return;
+          map[id] = { stars: Number(x.stars || x.star || 1) || 1 };
+        });
+        scoreDb.userAssets = map;
+      }
+    }catch(e){
+      scoreDb.userAssets = {};
+    }
+
+    try{
+      const sres = await api("/api/season/current");
+      scoreDb.seasonThemeTag = String(sres.themeTag || sres.tag || sres.seasonThemeTag || "").trim();
+    }catch(e){
+      scoreDb.seasonThemeTag = "";
+    }
+  }
+
+  const BASE_SCORE = { 1:500, 2:700, 3:1000, 4:1500, 5:2500 };
+
+  function normTags(tagStr){
+    return String(tagStr || "")
+      .split(",")
+      .map(t => t.trim().toLowerCase())
+      .filter(Boolean);
+  }
+
+  function tagBonusPct(n){
+    if(n >= 5) return 0.80;
+    if(n === 4) return 0.40;
+    if(n === 3) return 0.20;
+    if(n === 2) return 0.10;
+    return 0.0;
+  }
+
+  function calcAssetScoreById(assetId){
+    const id = String(assetId || "");
+    if(!id) return { score:0, tags:[] };
+
+    const a = (scoreDb.assets || []).find(x => String(x.assetId) === id) || null;
+    const rarity = Number(a?.rarity || 1);
+    const base = Number(BASE_SCORE[rarity] || 0);
+
+    const ua = (scoreDb.userAssets || {})[id] || {};
+    let stars = Number(ua.stars || 1);
+    if(!Number.isFinite(stars) || stars < 1) stars = 1;
+    if(stars > 99) stars = 99;
+
+    const tags = normTags(a?.tags);
+    const theme = String(scoreDb.seasonThemeTag || "").trim().toLowerCase();
+
+    const starBonus = (stars > 1) ? (0.2 * (stars - 1)) : 0;
+    const themeBonus = (theme && tags.includes(theme)) ? 0.3 : 0;
+
+    const score = base * (1 + starBonus + themeBonus);
+    return { score, tags };
+  }
+
+  function computeSystemScoreFromUrls(parts){
+    const ids = [parts.headUrl, parts.bodyUrl, parts.bgUrl, parts.addon1Url, parts.addon2Url]
+      .map(assetIdFromUrl)
+      .filter(Boolean);
+
+    const per = ids.map(calcAssetScoreById).map(x => ({ ...x, score: Math.round(Number(x.score)||0) }));
+    const sumBase = per.reduce((acc, x) => acc + (Number(x.score)||0), 0);
+
+    const counts = {};
+    per.forEach(x => (x.tags || []).forEach(t => { counts[t] = (counts[t]||0)+1; }));
+    let bonus = 0;
+    Object.keys(counts).forEach(t => { bonus += tagBonusPct(counts[t]); });
+
+    return Math.round(sumBase * (1 + bonus));
+  }
+
+  function makeScoreThumb(score){
+    const wrap = document.createElement("div");
+    wrap.className = "scoreFrameThumb";
+    const val = document.createElement("div");
+    val.className = "val";
+    val.textContent = String(Math.max(0, Math.floor(Number(score || 0))));
+    wrap.appendChild(val);
+    return wrap;
+  }
+
+        function openModal(title, sub, layers){
           mTitle.textContent = title;
           mSub.textContent = sub || "";
           mThumb.innerHTML = "";
           makeStackThumb(mThumb, layers);
-          addScoreOverlay(mThumb, score);
           modal.style.display = "flex";
         }
 
@@ -877,8 +965,8 @@ body{
               { url: s.bodyUrl, z:40 },
               { url: s.addon1Url, z:50 },
             ]);
-              addScoreOverlay(th, s.systemScore);
 
+            try{ const sc = computeSystemScoreFromUrls({ headUrl:s.headUrl, bodyUrl:s.bodyUrl, bgUrl:s.bgUrl, addon1Url:s.addon1Url, addon2Url:s.addon2Url }); th.appendChild(makeScoreThumb(sc)); }catch(_){ th.appendChild(makeScoreThumb(0)); }
             card.appendChild(th);
             outer.appendChild(metaTop);
             outer.appendChild(card);
@@ -922,8 +1010,8 @@ body{
                 { url: s.bodyUrl, z:40 },
                 { url: s.addon1Url, z:50 },
               ]);
-              addScoreOverlay(th, s.systemScore);
 
+            try{ const sc = computeSystemScoreFromUrls({ headUrl:s.headUrl, bodyUrl:s.bodyUrl, bgUrl:s.bgUrl, addon1Url:s.addon1Url, addon2Url:s.addon2Url }); th.appendChild(makeScoreThumb(sc)); }catch(_){ th.appendChild(makeScoreThumb(0)); }
               const meta = document.createElement("div");
               meta.className = "recMeta";
 
@@ -1052,8 +1140,8 @@ body{
               { url: s.bodyUrl, z:40 },
               { url: s.addon1Url, z:50 },
             ]);
-              addScoreOverlay(th, s.systemScore);
 
+            try{ const sc = computeSystemScoreFromUrls({ headUrl:s.headUrl, bodyUrl:s.bodyUrl, bgUrl:s.bgUrl, addon1Url:s.addon1Url, addon2Url:s.addon2Url }); th.appendChild(makeScoreThumb(sc)); }catch(_){ th.appendChild(makeScoreThumb(0)); }
             const body = document.createElement("div");
             body.className = "entryBody";
 
@@ -1260,8 +1348,8 @@ body{
               { url: s.bodyUrl, z:40 },
               { url: s.addon1Url, z:50 },
             ]);
-              addScoreOverlay(th, s.systemScore);
 
+            try{ const sc = computeSystemScoreFromUrls({ headUrl:s.headUrl, bodyUrl:s.bodyUrl, bgUrl:s.bgUrl, addon1Url:s.addon1Url, addon2Url:s.addon2Url }); th.appendChild(makeScoreThumb(sc)); }catch(_){ th.appendChild(makeScoreThumb(0)); }
             const meta = document.createElement("div");
             meta.className = "recMeta";
 
