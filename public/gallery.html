@@ -115,7 +115,7 @@
     .recGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
     .recCard{display:flex;align-items:stretch;gap:0;border-radius:18px;overflow:hidden;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);cursor:pointer;transition:.15s}
     .recCard:hover{background:rgba(255,255,255,.08)}
-    .recThumb{width:140px;flex:0 0 140px;aspect-ratio:3/4;background:rgba(0,0,0,.16);position:relative}
+    .recThumb{width:180px;flex:0 0 180px;aspect-ratio:3/4;background:rgba(0,0,0,.36);position:relative}
     .recMeta{padding:10px 12px;display:flex;flex-direction:column;gap:8px;flex:1}
     .recMetaTop{display:flex;align-items:center;justify-content:space-between;gap:10px}
     .recAuthor{display:flex;align-items:center;gap:8px;min-width:0;cursor:pointer}
@@ -394,9 +394,9 @@ body{
       transform: translateY(0px); /* centered */
     }
     .podThumb,.recThumb,.entryThumb{ position:relative; }
-    .podThumb .scoreFrameThumb{ left:14px; right:14px; bottom:14px; height:48px; }
-    .recThumb .scoreFrameThumb{ left:8px; right:8px; bottom:8px; height:40px; }
-    .entryThumb .scoreFrameThumb{ left:8px; right:8px; bottom:8px; height:40px; }
+    .podThumb .scoreFrameThumb{ top: 14px; left:14px; right:14px; bottom:14px; height:148px; }
+    .recThumb .scoreFrameThumb{ top: 14px; left:8px; right:8px; bottom:8px; height:140px; }
+    .entryThumb .scoreFrameThumb{ top: 14px; left:8px; right:8px; bottom:8px; height:140px; }
 
 
     /* Recommend cards v2 layout */
