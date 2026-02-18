@@ -473,13 +473,14 @@ body{
   width:100%;
   overflow-x:auto;
   overflow-y:hidden;
+  padding-top:6px; /* avoid clipping shadows */
   padding-bottom:6px; /* avoid clipping shadows */
   transform:none;
 }
 
 /* 讓卡片在同一排有一致寬度 */
 #recGrid .recCardRec{
-  flex:0 0 300px;
+  flex:0 0 150px;
 }
 
 /* 評分 frame：保持比例、不拉伸、置中 */
