@@ -442,8 +442,88 @@ body{
     }
 
 
-    /* Recommend section scale down */
-    #recGrid{ transform: scale(0.5); transform-origin: left top; }
+
+
+/* =========================================
+   Featured Recommend strip (full-width, single-row)
+   本期推薦：同一排 + 全螢幕寬 + 與收藏榜緊接
+========================================= */
+
+/* 本期推薦整個區塊 full-bleed */
+#recWrap{
+  width:100vw;
+  margin-left:calc(50% - 50vw);
+  margin-right:calc(50% - 50vw);
+  padding:0 16px;
+  box-sizing:border-box;
+  margin-top:10px;
+  margin-bottom:6px;
+}
+
+/* 收藏榜緊接著，不要大空隙 */
+#favRankWrap{
+  margin-top:6px;
+}
+
+/* 本期推薦作品固定同一排 */
+#recGrid{
+  display:flex;
+  flex-wrap:nowrap;
+  gap:12px;
+  width:100%;
+  overflow-x:auto;
+  overflow-y:hidden;
+  padding-bottom:6px; /* avoid clipping shadows */
+  transform:none;
+}
+
+/* 讓卡片在同一排有一致寬度 */
+#recGrid .recCardRec{
+  flex:0 0 300px;
+}
+
+/* 評分 frame：保持比例、不拉伸、置中 */
+.scoreFrameThumb{
+  left:50%;
+  right:auto;
+  width:140px;
+  height:44px;
+  transform:translateX(-50%);
+  background-size:contain;
+  background-repeat:no-repeat;
+  background-position:center;
+}
+.podThumb .scoreFrameThumb{ width:160px; height:48px; left:50%; right:auto; bottom:14px; }
+.recThumb .scoreFrameThumb{ width:128px; height:40px; left:50%; right:auto; bottom:10px; }
+.entryThumb .scoreFrameThumb{ width:128px; height:40px; left:50%; right:auto; bottom:10px; }
+
+/* 推薦區 3 個按鈕：稍微加寬 + 字變大 */
+#recWrap .iconBtn{
+  padding:9px 14px;
+  font-size:13px;
+}
+#recWrap .icon{
+  width:17px;
+  height:17px;
+}
+
+/* 作者頭像 名稱 關注按鈕：字變大 */
+#recWrap .recAuthorAv{
+  width:30px;
+  height:30px;
+  flex:0 0 30px;
+}
+#recWrap .recAuthorName{
+  font-size:13px;
+}
+#recWrap .followBtn{
+  padding:9px 14px;
+  font-size:13px;
+}
+
+/* 隱藏水平捲軸但保留可滑動（可用觸控板/拖曳） */
+#recGrid::-webkit-scrollbar{ height:0; }
+#recGrid{ scrollbar-width:none; }
 
 </style>
 
