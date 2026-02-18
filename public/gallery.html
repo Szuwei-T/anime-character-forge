@@ -151,8 +151,8 @@
     .av{width:30px;height:30px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);display:grid;place-items:center;overflow:hidden;font-size:12px}
     .nm{font-size:12px;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px}
     .lv{font-size:12px;opacity:.65}
-    .iconRow{display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:flex-end}
-    .iconBtn{display:flex;align-items:center;gap:1px;padding:8px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);cursor:pointer;color:inherit;font-size:10px;transition:.15s}
+    .iconRow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+    .iconBtn{display:flex;align-items:center;gap:6px;padding:8px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);cursor:pointer;color:inherit;font-size:12px;transition:.15s}
     .iconBtn:hover{background:rgba(255,255,255,.10)}
     .iconBtn.on{background:rgba(120,255,200,.08);border-color:rgba(120,255,200,.20)}
     .iconBtn.warn{background:rgba(255,165,0,.10);border-color:rgba(255,165,0,.22)}
@@ -593,6 +593,69 @@ body{
   padding:3px 4px;
 }
 
+
+/* ===== Icon-only action buttons with hover tooltip ===== */
+.iconBtn, .followBtn{
+  position:relative;
+}
+.iconBtn .btnLabel, .followBtn .btnLabel{
+  position:absolute !important;
+  width:1px;height:1px;
+  padding:0;margin:-1px;
+  overflow:hidden;
+  clip:rect(0,0,0,0);
+  white-space:nowrap;
+  border:0;
+}
+.iconBtn[data-tip]:hover::after,
+.followBtn[data-tip]:hover::after{
+  content: attr(data-tip);
+  position:absolute;
+  left:50%;
+  bottom: calc(100% + 8px);
+  transform: translateX(-50%);
+  padding:6px 10px;
+  border-radius:999px;
+  background: rgba(0,0,0,0.72);
+  border: 1px solid rgba(255,214,102,0.55);
+  color: rgba(255,255,255,0.96);
+  font-size:12px;
+  line-height:1;
+  white-space:nowrap;
+  pointer-events:none;
+  z-index:99999;
+  box-shadow: 0 10px 26px rgba(0,0,0,0.45);
+}
+.iconBtn[data-tip]:hover::before,
+.followBtn[data-tip]:hover::before{
+  content:"";
+  position:absolute;
+  left:50%;
+  bottom: calc(100% + 2px);
+  transform: translateX(-50%);
+  width:0;height:0;
+  border-left:6px solid transparent;
+  border-right:6px solid transparent;
+  border-top:6px solid rgba(0,0,0,0.72);
+  pointer-events:none;
+  z-index:99999;
+}
+/* Make icon-only buttons compact */
+.iconBtn{
+  justify-content:center;
+}
+
+
+/* Follow button as icon-only */
+.followBtn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:0;
+  padding:8px 10px;
+}
+.followBtn .icon{ width:16px; height:16px; }
+
 </style>
 
   <link rel="stylesheet" href="style.css" />
@@ -728,6 +791,9 @@ body{
         const ICON_HEART = `<svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-4.35-9.33-8.28C.7 9.25 2.3 6 6 6c2 0 3.1 1.1 4 2.2C10.9 7.1 12 6 14 6c3.7 0 5.3 3.25 3.33 6.72C19 16.65 12 21 12 21Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>`;
 
       const ICON_RECOMMEND = `<svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.2 6.7H21l-5.4 3.9L17.8 20 12 15.9 6.2 20l2.2-7.4L3 8.7h6.8L12 2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>`;
+
+      const ICON_FOLLOW = `<svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" stroke="currentColor" stroke-width="2"/><path d="M19 8v6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M22 11h-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
+      const ICON_FOLLOW_ON = `<svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" stroke="currentColor" stroke-width="2"/><path d="M17 11l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
       let followingSet = new Set();
 
@@ -1288,14 +1354,16 @@ body{
               const isFollow = tid && followingSet.has(tid);
               if(isFollow) followBtn.classList.add("on");
               if(isSelf){ followBtn.style.display = "none"; }
-              followBtn.textContent = (isFollow ? "已關注" : "關注");
+              followBtn.dataset.tip = (isFollow ? "已關注" : "關注");
+              followBtn.innerHTML = (isFollow ? ICON_FOLLOW_ON : ICON_FOLLOW) + `<span class="btnLabel">${isFollow ? "已關注" : "關注"}</span>`;
 
               followBtn.onclick = async (e)=>{
                 e.stopPropagation();
                 if(isSelf) return;
                 await toggleFollow(tid);
                 const on = followingSet.has(tid);
-                followBtn.textContent = on ? "已關注" : "關注";
+                followBtn.dataset.tip = on ? "已關注" : "關注";
+                followBtn.innerHTML = (on ? ICON_FOLLOW_ON : ICON_FOLLOW) + `<span class="btnLabel">${on ? "已關注" : "關注"}</span>`;
                 followBtn.classList.toggle("on", on);
               };
 
@@ -1308,7 +1376,8 @@ body{
               const voteBtn = document.createElement("button");
               voteBtn.className = "iconBtn";
               voteBtn.type = "button";
-              voteBtn.innerHTML = ICON_VOTE + "<span>投票</span>";
+              voteBtn.dataset.tip = "投票";
+              voteBtn.innerHTML = ICON_VOTE + `<span class="btnLabel">投票</span>`;
               if((!uid) || userVote <= 0) voteBtn.style.opacity = ".6";
               voteBtn.onclick = async (e)=>{
                 e.stopPropagation();
@@ -1337,7 +1406,8 @@ body{
               const sid2 = String(s.showcaseId || s.id || "");
               const isFav2 = favoriteSet.has(sid2);
               if(isFav2) favBtn.classList.add("on");
-              favBtn.innerHTML = ICON_HEART + "<span>" + (isFav2 ? "已收藏" : "收藏") + "</span>";
+              favBtn.dataset.tip = isFav2 ? "已收藏" : "收藏";
+              favBtn.innerHTML = ICON_HEART + `<span class="btnLabel">${isFav2 ? "已收藏" : "收藏"}</span>`;
               favBtn.onclick = async (e)=>{
                 e.stopPropagation();
                 clearError();
@@ -1353,7 +1423,8 @@ body{
               const recBtn = document.createElement("button");
               recBtn.className = "iconBtn";
               recBtn.type = "button";
-              recBtn.innerHTML = ICON_RECOMMEND + "<span>推薦</span>";
+              recBtn.dataset.tip = "推薦";
+              recBtn.innerHTML = ICON_RECOMMEND + `<span class="btnLabel">推薦</span>`;
               if((!uid) || userGem < 50) recBtn.style.opacity = ".6";
               recBtn.onclick = async (e)=>{
                 e.stopPropagation();
@@ -1487,7 +1558,8 @@ body{
             const voteBtn = document.createElement("button");
             voteBtn.className = "iconBtn";
             voteBtn.type = "button";
-            voteBtn.innerHTML = ICON_VOTE + "<span>投票</span>";
+            voteBtn.dataset.tip = "投票";
+              voteBtn.innerHTML = ICON_VOTE + `<span class="btnLabel">投票</span>`;
             if((!uid) || userVote <= 0) voteBtn.style.opacity = ".6";
             voteBtn.onclick = async (e)=>{
               e.stopPropagation();
@@ -1515,7 +1587,8 @@ body{
             favBtn.type = "button";
             const isFav = favoriteSet.has(sid);
             if(isFav) favBtn.classList.add("on");
-            favBtn.innerHTML = ICON_HEART + "<span>" + (isFav ? "已收藏" : "收藏") + "</span>";
+            favBtn.dataset.tip = isFav ? "已收藏" : "收藏";
+            favBtn.innerHTML = ICON_HEART + `<span class="btnLabel">${isFav ? "已收藏" : "收藏"}</span>`;
             favBtn.onclick = async (e)=>{
               e.stopPropagation();
               clearError();
