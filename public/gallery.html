@@ -620,14 +620,16 @@ body{
           container.innerHTML = "";
           const wrap = document.createElement("div");
           wrap.className = "layer";
-          layers.forEach((l)=>{
-            if(!l.url) return;
+          (layers || []).forEach((l)=>{
+            if(!l || !l.url) return;
             const img = document.createElement("img");
             img.src = l.url;
             img.style.zIndex = String(l.z || 0);
             wrap.appendChild(img);
-          }
-        
+          });
+          container.appendChild(wrap);
+        }
+
         function addScoreOverlay(thumbEl, score){
           try{
             if(!thumbEl) return;
@@ -652,9 +654,6 @@ body{
             wrap.appendChild(txt);
             thumbEl.appendChild(wrap);
           }catch(_){}
-        }
-);
-          container.appendChild(wrap);
         }
 
         function renderAvatarInto(el, show, fallbackName){
