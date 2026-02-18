@@ -1786,47 +1786,54 @@ body, .wrap, .page, .acf-page, .container{
   .cine-ten .results-top-right{ justify-self:center; }
 }
 
-/* ===== Shop-style panelCard for 前往Shop block ===== */
-.panelCardShopStyle{
-  pointer-events: auto;
-  border-radius: 18px;
-  background: rgba(0,0,0,0.58);
-  border: 1px solid rgba(255,255,255,0.16);
-  box-shadow: 0 18px 60px rgba(0,0,0,0.50);
-  padding: 12px;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+/* ===== Featured icon overlay (right of 抽角色, video top-left area) ===== */
+.featuredIconOverlay{
+  position:absolute;
+  top:18px;
+  left:calc(18px + 340px + 12px);
+  width:160px;
+  height:auto;
+  z-index:10;
+  pointer-events:none;
+  filter:
+    drop-shadow(0 10px 24px rgba(0,0,0,0.60))
+    drop-shadow(0 0 16px rgba(255,215,120,0.40));
 }
 
-.panelCardShopStyle .panelTitle .name{
-  font-weight: 950;
-  letter-spacing: 0.4px;
-  font-size: 18px;
+/* ===== Rate frame overlay (left of Shop, video top-right area) ===== */
+.gachaRateOverlay{
+  position:absolute;
+  top:18px;
+  right:calc(18px + 340px + 12px);
+  width:260px;
+  height:80px;
+  background-image:url("/ui/frame/gacha_featured.webp");
+  background-size:contain;
+  background-repeat:no-repeat;
+  background-position:center;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:10;
+  pointer-events:none;
+  filter:
+    drop-shadow(0 12px 26px rgba(0,0,0,0.60))
+    drop-shadow(0 0 18px rgba(255,200,80,0.40));
 }
 
-.panelCardShopStyle .panelTitle .desc{
-  opacity: 0.78;
-  font-size: 12px;
-  font-weight: 800;
+.gachaRateOverlay span{
+  font-weight:950;
+  font-size:20px;
+  letter-spacing:1px;
+  color:#fff;
+  text-shadow:
+    0 2px 6px rgba(0,0,0,0.85),
+    0 0 12px rgba(255,215,120,0.5);
+  transform: translateY(2px);
 }
 
-.panelCardShopStyle .gBtn,
-.panelCardShopStyle button{
-  width: 100%;
-  border: 0;
-  cursor: pointer;
-  font-weight: 1000;
-  letter-spacing: 0.4px;
-  border-radius: 14px;
-  height: 56px;
-  color: #fff;
-  background: transparent;
-  background-image: url("/ui/button/btn_shop.webp");
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-  text-shadow: 0 2px 10px rgba(0,0,0,0.85);
-}
+/* ensure positioning context */
+.featureStage{ position:relative; }
 
 </style>
 </head>
@@ -1838,7 +1845,6 @@ body, .wrap, .page, .acf-page, .container{
 <div class="wrap">
 <div class="heroStage" id="heroStage">
 <div class="featureStage" id="featureStage">
-<div class="featuredTitleOverlay">本期 Featured 角色</div>
 <div aria-hidden="true" class="promoTag">
 <div class="promoBig">素材獲得機率+30%</div>
 </div>
@@ -1853,7 +1859,6 @@ body, .wrap, .page, .acf-page, .container{
 <button class="btn gray small" id="btnHead1">1次</button>
 <button class="btn gray small" id="btnHead10">10次</button>
 </div>
-<div class="pity">1次 消耗 150 gold · 10次 消耗 1300 gold</div>
 </div>
 <div class="sideCard goldPanel">
 <div class="title"><span>抽服裝</span><span style="opacity:0.7;font-weight:800">body</span></div>
@@ -1861,7 +1866,6 @@ body, .wrap, .page, .acf-page, .container{
 <button class="btn gray small" id="btnBody1">1次</button>
 <button class="btn gray small" id="btnBody10">10次</button>
 </div>
-<div class="pity">1次 消耗 150 gold · 10次 消耗 1300 gold</div>
 </div>
 <div class="sideCard goldPanel">
 <div class="title"><span>抽背景</span><span style="opacity:0.7;font-weight:800">background</span></div>
@@ -1869,21 +1873,18 @@ body, .wrap, .page, .acf-page, .container{
 <button class="btn gray small" id="btnBg1">1次</button>
 <button class="btn gray small" id="btnBg10">10次</button>
 </div>
-<div class="pity">1次 消耗 150 gold · 10次 消耗 1300 gold</div>
 </div><div class="sideCard goldPanel">
 <div class="title"><span>抽特效1</span><span style="opacity:0.7;font-weight:800">addon1</span></div>
 <div class="miniRow">
 <button class="btn gray small" id="btnAddon11">1次</button>
 <button class="btn gray small" id="btnAddon110">10次</button>
 </div>
-<div class="pity">1次 消耗 150 gold · 10次 消耗 1300 gold</div>
 </div><div class="sideCard goldPanel">
 <div class="title"><span>抽特效2</span><span style="opacity:0.7;font-weight:800">addon2</span></div>
 <div class="miniRow">
 <button class="btn gray small" id="btnAddon21">1次</button>
 <button class="btn gray small" id="btnAddon210">10次</button>
 </div>
-<div class="pity">1次 消耗 150 gold · 10次 消耗 1300 gold</div>
 </div>
 </div>
 <div class="rightOverlay side" id="rightOverlay">

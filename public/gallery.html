@@ -115,12 +115,12 @@
     .recGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
     .recCard{display:flex;align-items:stretch;gap:0;border-radius:18px;overflow:hidden;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);cursor:pointer;transition:.15s}
     .recCard:hover{background:rgba(255,255,255,.08)}
-    .recThumb{width:80px;flex:0 0 80px;aspect-ratio:3/4;background:rgba(0,0,0,.36);position:relative}
+    .recThumb{width:140px;flex:0 0 140px;aspect-ratio:3/4;background:rgba(0,0,0,.16);position:relative}
     .recMeta{padding:10px 12px;display:flex;flex-direction:column;gap:8px;flex:1}
     .recMetaTop{display:flex;align-items:center;justify-content:space-between;gap:10px}
     .recAuthor{display:flex;align-items:center;gap:8px;min-width:0;cursor:pointer}
     .recAuthor:hover .recAuthorName{text-decoration:underline}
-    .recAuthorAv{width:36px;height:36px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);overflow:hidden;display:grid;place-items:center;font-size:11px;flex:0 0 36px}
+    .recAuthorAv{width:26px;height:26px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);overflow:hidden;display:grid;place-items:center;font-size:11px;flex:0 0 26px}
     .recAuthorName{font-size:12px;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
     .recBadge{padding:6px 10px;border-radius:999px;background:rgba(255,165,0,.10);border:1px solid rgba(255,165,0,.22);font-size:12px;white-space:nowrap}
         .recScore{ font-size:12px; font-weight:800; color: rgba(226,232,240,0.95); opacity:0.95; margin-top:6px; }
@@ -139,7 +139,7 @@
     .entries{display:flex;flex-direction:column;gap:10px;margin-top:10px}
     .entry{display:flex;gap:12px;align-items:stretch;border-radius:18px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10);overflow:hidden;cursor:pointer;transition:.15s}
     .entry:hover{background:rgba(255,255,255,.07)}
-    .entryThumb{width:80px;flex:0 0 80px;aspect-ratio:3/4;background:rgba(0,0,0,.16);position:relative}
+    .entryThumb{width:104px;flex:0 0 104px;aspect-ratio:3/4;background:rgba(0,0,0,.16);position:relative}
     .entryBody{flex:1;min-width:0;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
     .entryHeader{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}
     .entryTitle{font-size:13px;opacity:.92;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:560px}
@@ -149,7 +149,7 @@
     .authorRow{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
     .authorMini{display:flex;align-items:center;gap:10px;min-width:0}
     .av{width:30px;height:30px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);display:grid;place-items:center;overflow:hidden;font-size:12px}
-    .nm{font-size:12px;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px}
+    .nm{font-size:12px;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px}
     .lv{font-size:12px;opacity:.65}
     .iconRow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
     .iconBtn{display:flex;align-items:center;gap:6px;padding:8px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);cursor:pointer;color:inherit;font-size:12px;transition:.15s}
@@ -160,7 +160,37 @@
     .iconBtn.busy .spin{width:12px;height:12px;border-radius:999px;border:2px solid rgba(255,255,255,.35);border-top-color:rgba(255,255,255,.90);display:inline-block;animation:spin 0.8s linear infinite}
     @keyframes spin{to{transform:rotate(360deg)}}
     .icon{width:16px;height:16px;display:block;opacity:.9}
-    .metaLine{font-size:12px;opacity:.65;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    
+
+     /* Icon-only buttons: hide label, show tooltip on hover */
+     .iconBtn .btnLabel, .followBtn .btnLabel{
+       position:absolute !important;
+       width:1px;height:1px;
+       padding:0;margin:-1px;
+       overflow:hidden;
+       clip:rect(0,0,0,0);
+       white-space:nowrap;
+       border:0;
+     }
+     .iconBtn[data-tip]:hover::after,
+     .followBtn[data-tip]:hover::after{
+       content: attr(data-tip);
+       position:absolute;
+       left:50%;
+       bottom: calc(100% + 8px);
+       transform: translateX(-50%);
+       padding:6px 10px;
+       border-radius:999px;
+       background:rgba(15,18,26,.92);
+       border:1px solid rgba(255,255,255,.18);
+       color:rgba(255,255,255,.92);
+       font-size:12px;
+       white-space:nowrap;
+       pointer-events:none;
+       z-index:99999;
+       box-shadow: 0 10px 24px rgba(0,0,0,.35);
+     }
+.metaLine{font-size:12px;opacity:.65;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
     /* Modal and toast */
     .modal{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;padding:18px;z-index:9999}
@@ -172,7 +202,8 @@
     .big{padding:0 14px 16px}
     .bigThumb{width:100%;max-height:70vh;aspect-ratio:3/4;background:rgba(0,0,0,.16);border-radius:18px;overflow:hidden;position:relative;margin-top:8px}
 
-    .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:rgba(15,18,26,.92);border:1px solid rgba(255,255,255,.14);padding:10px 12px;border-radius:999px;font-size:12px;opacity:0;pointer-events:none;transition:.2s;z-index:99999}
+    .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:rgba(15,18,26,.92);
+  z-index: 99999;border:1px solid rgba(255,255,255,.14);padding:10px 12px;border-radius:999px;font-size:12px;opacity:0;pointer-events:none;transition:.2s;z-index:99999}
     .toast.show{opacity:1}
 
     @media (max-width:640px){
@@ -442,237 +473,8 @@ body{
     }
 
 
-
-
-/* =========================================
-   Featured Recommend strip (full-width, single-row)
-   本期推薦：同一排 + 全螢幕寬 + 與收藏榜緊接
-========================================= */
-
-/* 本期推薦整個區塊 full-bleed */
-#recWrap{
-  width:100vw;
-  margin-left:calc(50% - 50vw);
-  margin-right:calc(50% - 50vw);
-  padding:0 16px;
-  box-sizing:border-box;
-  margin-top:10px;
-  margin-bottom:6px;
-}
-
-/* 收藏榜緊接著，不要大空隙 */
-#favRankWrap{
-  margin-top:6px;
-}
-
-/* 本期推薦作品固定同一排 */
-#recGrid{
-  display:flex;
-  flex-wrap:nowrap;
-  gap:12px;
-  width:100%;
-  overflow-x:auto;
-  overflow-y:hidden;
-  padding-top:6px; /* avoid clipping shadows */
-  padding-bottom:6px; /* avoid clipping shadows */
-  transform:none;
-}
-
-/* 讓卡片在同一排有一致寬度 */
-#recGrid .recCardRec{
-  flex:0 0 150px;
-}
-
-/* 評分 frame：保持比例、不拉伸、置中 */
-.scoreFrameThumb{
-  left:50%;
-  right:auto;
-  width:140px;
-  height:44px;
-  transform:translateX(-50%);
-  background-size:contain;
-  background-repeat:no-repeat;
-  background-position:center;
-}
-.podThumb .scoreFrameThumb{ width:160px; height:48px; left:50%; right:auto; bottom:14px; }
-.recThumb .scoreFrameThumb{ width:128px; height:40px; left:50%; right:auto; bottom:10px; }
-.entryThumb .scoreFrameThumb{ width:128px; height:40px; left:50%; right:auto; bottom:10px; }
-
-/* 推薦區 3 個按鈕：稍微加寬 + 字變大 */
-#recWrap .iconBtn{
-  padding:3px 4px;
-  font-size:10px;
-}
-#recWrap .icon{
-  width:17px;
-  height:17px;
-}
-
-/* 作者頭像 名稱 關注按鈕：字變大 */
-#recWrap .recAuthorAv{
-  width:30px;
-  height:30px;
-  flex:0 0 30px;
-}
-#recWrap .recAuthorName{
-  font-size:13px;
-}
-#recWrap .followBtn{
-  padding:9px 14px;
-  font-size:13px;
-}
-
-/* 隱藏水平捲軸但保留可滑動（可用觸控板/拖曳） */
-#recGrid::-webkit-scrollbar{ height:0; }
-#recGrid{ scrollbar-width:none; }
-
-
-/* =========================================
-   Featured Recommend adjustments (per latest request)
-   - 本期推薦：作品縮小到約 50%（以卡片尺寸縮放，不影響標題）
-   - 本區置中
-   - 本區內按鈕文字大小 = sub 文字大小（12px）
-========================================= */
-
-#recWrap{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-}
-
-#recWrap .recTitle{
-  width:100%;
-  max-width:1180px;
-  margin:0 auto 6px;
-  text-align:center;
-}
-
-#recWrap #recGrid{
-  width:100%;
-  justify-content:center;
-}
-
-/* 作品卡片縮小到約 50%（縮卡片結構尺寸） */
-#recWrap #recGrid .recCard{
-  border-radius:14px;
-}
-#recWrap #recGrid .recThumb{
-  width:140px;
-  flex:0 0 140px;
-}
-#recWrap #recGrid .recMeta{
-  padding:6px 8px;
-  gap:6px;
-}
-#recWrap #recGrid .recMetaTop{
-  gap:6px;
-}
-#recWrap #recGrid .recAuthorAv{
-  width:13px;
-  height:13px;
-  flex:0 0 13px;
-  font-size:9px;
-}
-#recWrap #recGrid .recAuthorName{
-  font-size:12px; /* 保持可讀 */
-  max-width:140px;
-}
-#recWrap #recGrid .recBadge,
-#recWrap #recGrid .recScore{
-  font-size:12px;
-  padding:4px 8px;
-}
-
-/* 本區內按鈕文字：跟 sub 同樣大小 */
-#recWrap .iconBtn{
-  font-size:10px;
-  padding:3px 4px;
-}
-#recWrap .followBtn{
-  font-size:10px;
-  padding:3px 4px;
-}
-
-
-/* ===== Icon-only action buttons with hover tooltip ===== */
-.iconBtn, .followBtn{
-  position:relative;
-}
-.iconBtn .btnLabel, .followBtn .btnLabel{
-  position:absolute !important;
-  width:1px;height:1px;
-  padding:0;margin:-1px;
-  overflow:hidden;
-  clip:rect(0,0,0,0);
-  white-space:nowrap;
-  border:0;
-}
-.iconBtn[data-tip]:hover::after,
-.followBtn[data-tip]:hover::after{
-  content: attr(data-tip);
-  position:absolute;
-  left:50%;
-  bottom: calc(100% + 8px);
-  transform: translateX(-50%);
-  padding:6px 10px;
-  border-radius:999px;
-  background: rgba(0,0,0,0.72);
-  border: 1px solid rgba(255,214,102,0.55);
-  color: rgba(255,255,255,0.96);
-  font-size:12px;
-  line-height:1;
-  white-space:nowrap;
-  pointer-events:none;
-  z-index:99999;
-  box-shadow: 0 10px 26px rgba(0,0,0,0.45);
-}
-.iconBtn[data-tip]:hover::before,
-.followBtn[data-tip]:hover::before{
-  content:"";
-  position:absolute;
-  left:50%;
-  bottom: calc(100% + 2px);
-  transform: translateX(-50%);
-  width:0;height:0;
-  border-left:6px solid transparent;
-  border-right:6px solid transparent;
-  border-top:6px solid rgba(0,0,0,0.72);
-  pointer-events:none;
-  z-index:99999;
-}
-/* Tooltip must float above thumbnails (avoid clipping / stacking) */
-.recCardRec{ overflow: visible !important; }
-.recCardRec .recThumb{ position:relative; z-index:1; }
-.recCardRec .recMeta{ position:relative; z-index:5; overflow:visible !important; }
-.recAuthorRow, .iconRow{ overflow:visible !important; }
-
-/* Make tooltip always above everything */
-.iconBtn[data-tip]:hover::after,
-.followBtn[data-tip]:hover::after,
-.iconBtn[data-tip]:hover::before,
-.followBtn[data-tip]:hover::before{
-  z-index:999999;
-}
-
-/* Avatar bigger and match follow icon size */
-#recWrap .recAuthorAv{ width:26px; height:26px; flex:0 0 26px; }
-#recWrap .followBtn .icon{ width:17px; height:17px; }
-
-/* Make icon-only buttons compact */
-.iconBtn{
-  justify-content:center;
-}
-
-
-/* Follow button as icon-only */
-.followBtn{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  gap:0;
-  padding:8px 10px;
-}
-.followBtn .icon{ width:16px; height:16px; }
+    /* Recommend section scale down */
+    #recGrid{ transform: scale(0.5); transform-origin: left top; }
 
 </style>
 
@@ -718,7 +520,7 @@ body{
           <div class="h">💖 收藏榜</div>
           <div class="sub">不限賽季 · 依被收藏數排序</div>
         </div>
-        <div class="recGrid" id="favRankGrid"></div>
+        <div class="entries" id="favRankGrid"></div>
       </div>
 
       <div class="recWrap" id="newRankWrap">
@@ -809,9 +611,6 @@ body{
         const ICON_HEART = `<svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-4.35-9.33-8.28C.7 9.25 2.3 6 6 6c2 0 3.1 1.1 4 2.2C10.9 7.1 12 6 14 6c3.7 0 5.3 3.25 3.33 6.72C19 16.65 12 21 12 21Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>`;
 
       const ICON_RECOMMEND = `<svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.2 6.7H21l-5.4 3.9L17.8 20 12 15.9 6.2 20l2.2-7.4L3 8.7h6.8L12 2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>`;
-
-      const ICON_FOLLOW = `<svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" stroke="currentColor" stroke-width="2"/><path d="M19 8v6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M22 11h-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
-      const ICON_FOLLOW_ON = `<svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" stroke="currentColor" stroke-width="2"/><path d="M17 11l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
       let followingSet = new Set();
 
@@ -1372,16 +1171,14 @@ body{
               const isFollow = tid && followingSet.has(tid);
               if(isFollow) followBtn.classList.add("on");
               if(isSelf){ followBtn.style.display = "none"; }
-              followBtn.dataset.tip = (isFollow ? "已關注" : "關注");
-              followBtn.innerHTML = (isFollow ? ICON_FOLLOW_ON : ICON_FOLLOW) + `<span class="btnLabel">${isFollow ? "已關注" : "關注"}</span>`;
+              followBtn.textContent = (isFollow ? "已關注" : "關注");
 
               followBtn.onclick = async (e)=>{
                 e.stopPropagation();
                 if(isSelf) return;
                 await toggleFollow(tid);
                 const on = followingSet.has(tid);
-                followBtn.dataset.tip = on ? "已關注" : "關注";
-                followBtn.innerHTML = (on ? ICON_FOLLOW_ON : ICON_FOLLOW) + `<span class="btnLabel">${on ? "已關注" : "關注"}</span>`;
+                followBtn.textContent = on ? "已關注" : "關注";
                 followBtn.classList.toggle("on", on);
               };
 
@@ -1394,9 +1191,7 @@ body{
               const voteBtn = document.createElement("button");
               voteBtn.className = "iconBtn";
               voteBtn.type = "button";
-              voteBtn.dataset.tip = "投票";
-              voteBtn.innerHTML = ICON_VOTE + `<span class="btnLabel">投票</span>`;
-              if(isSelf){ voteBtn.style.display = "none"; }
+              voteBtn.innerHTML = ICON_VOTE + "<span>投票</span>";
               if((!uid) || userVote <= 0) voteBtn.style.opacity = ".6";
               voteBtn.onclick = async (e)=>{
                 e.stopPropagation();
@@ -1425,9 +1220,7 @@ body{
               const sid2 = String(s.showcaseId || s.id || "");
               const isFav2 = favoriteSet.has(sid2);
               if(isFav2) favBtn.classList.add("on");
-              favBtn.dataset.tip = isFav2 ? "已收藏" : "收藏";
-              favBtn.innerHTML = ICON_HEART + `<span class="btnLabel">${isFav2 ? "已收藏" : "收藏"}</span>`;
-              if(isSelf){ favBtn.style.display = "none"; }
+              favBtn.innerHTML = ICON_HEART + "<span>" + (isFav2 ? "已收藏" : "收藏") + "</span>";
               favBtn.onclick = async (e)=>{
                 e.stopPropagation();
                 clearError();
@@ -1443,8 +1236,7 @@ body{
               const recBtn = document.createElement("button");
               recBtn.className = "iconBtn";
               recBtn.type = "button";
-              recBtn.dataset.tip = "推薦";
-              recBtn.innerHTML = ICON_RECOMMEND + `<span class="btnLabel">推薦</span>`;
+              recBtn.innerHTML = ICON_RECOMMEND + "<span>推薦</span>";
               if((!uid) || userGem < 50) recBtn.style.opacity = ".6";
               recBtn.onclick = async (e)=>{
                 e.stopPropagation();
@@ -1578,8 +1370,7 @@ body{
             const voteBtn = document.createElement("button");
             voteBtn.className = "iconBtn";
             voteBtn.type = "button";
-            voteBtn.dataset.tip = "投票";
-              voteBtn.innerHTML = ICON_VOTE + `<span class="btnLabel">投票</span>`;
+            voteBtn.innerHTML = ICON_VOTE + "<span>投票</span>";
             if((!uid) || userVote <= 0) voteBtn.style.opacity = ".6";
             voteBtn.onclick = async (e)=>{
               e.stopPropagation();
@@ -1607,8 +1398,7 @@ body{
             favBtn.type = "button";
             const isFav = favoriteSet.has(sid);
             if(isFav) favBtn.classList.add("on");
-            favBtn.dataset.tip = isFav ? "已收藏" : "收藏";
-            favBtn.innerHTML = ICON_HEART + `<span class="btnLabel">${isFav ? "已收藏" : "收藏"}</span>`;
+            favBtn.innerHTML = ICON_HEART + "<span>" + (isFav ? "已收藏" : "收藏") + "</span>";
             favBtn.onclick = async (e)=>{
               e.stopPropagation();
               clearError();
@@ -1770,6 +1560,204 @@ body{
           });
         }
 
+        // 收藏榜：改成上下直排（entries）並加入 4 個按鈕：關注 / 投票 / 收藏 / 推薦
+        function renderFavRankList(wrapEl, gridEl, items){
+          if(!wrapEl || !gridEl) return;
+          gridEl.innerHTML = "";
+          const list = (items||[]).filter(x => Number(x.favorites || 0) > 0);
+          if(list.length <= 0){
+            wrapEl.style.display = "none";
+            return;
+          }
+          wrapEl.style.display = "";
+          list.forEach((s)=>{
+            const sid = String(s.showcaseId || s.id || "");
+            const entry = document.createElement("div");
+            entry.className = "entry";
+            entry.onclick = ()=> openModal(s);
+
+            const th = document.createElement("div");
+            th.className = "entryThumb";
+            makeStackThumb(th, [
+              { url: s.bgUrl, z:10 },
+              { url: s.addon2Url, z:20 },
+              { url: s.headUrl, z:30 },
+              { url: s.bodyUrl, z:40 },
+              { url: s.addon1Url, z:50 },
+            ]);
+            try{
+              const sc = computeSystemScoreFromUrls({ headUrl:s.headUrl, bodyUrl:s.bodyUrl, bgUrl:s.bgUrl, addon1Url:s.addon1Url, addon2Url:s.addon2Url });
+              th.appendChild(makeScoreThumb(sc));
+            }catch(_){ th.appendChild(makeScoreThumb(0)); }
+
+            const body = document.createElement("div");
+            body.className = "entryBody";
+
+            const header = document.createElement("div");
+            header.className = "entryHeader";
+
+            const title = (s.title && String(s.title).trim()) ? String(s.title).trim() : "未命名作品";
+            const titleEl = document.createElement("div");
+            titleEl.className = "entryTitle";
+            titleEl.textContent = title;
+
+            const kv = document.createElement("div");
+            kv.className = "kv";
+
+            const votes = Number(s.votes || 0);
+            const favs  = Number(s.favorites || 0);
+            const recs  = Number(s.recommends || 0);
+
+            const p1 = document.createElement("div");
+            p1.className = "pill2";
+            p1.textContent = "票數 " + String(votes);
+
+            const p2 = document.createElement("div");
+            p2.className = "pill2";
+            p2.textContent = "收藏 " + String(favs);
+
+            kv.appendChild(p1);
+            kv.appendChild(p2);
+
+            if(recs > 0){
+              const p3 = document.createElement("div");
+              p3.className = "pill2";
+              p3.textContent = "推薦 " + String(recs);
+              kv.appendChild(p3);
+            }
+
+            header.appendChild(titleEl);
+            header.appendChild(kv);
+
+            const authorRow = document.createElement("div");
+            authorRow.className = "authorRow";
+
+            const authorMini = document.createElement("div");
+            authorMini.className = "authorMini";
+
+            const name = String(s.authorName || s.userName || s.userId || "").trim() || "Player";
+            const lv   = Number(s.authorLevel || 1);
+
+            const av = document.createElement("div");
+            av.className = "av";
+            renderAvatarInto(av, s, name);
+
+            const nmWrap = document.createElement("div");
+            nmWrap.style.minWidth = "0";
+
+            const nm = document.createElement("div");
+            nm.className = "nm";
+            nm.textContent = name;
+
+            const lvEl = document.createElement("div");
+            lvEl.className = "lv";
+            lvEl.textContent = "Lv." + String(lv);
+
+            nmWrap.appendChild(nm);
+            nmWrap.appendChild(lvEl);
+
+            authorMini.appendChild(av);
+            authorMini.appendChild(nmWrap);
+            authorMini.style.cursor = "pointer";
+            authorMini.onclick = (e)=>{ e.stopPropagation(); gotoUserProfile(s.userId); };
+
+            const iconRow = document.createElement("div");
+            iconRow.className = "iconRow";
+
+            // follow
+            const followBtn = document.createElement("button");
+            followBtn.type = "button";
+            followBtn.className = "followBtn iconBtn";
+            const tid = String(s.userId || "").trim();
+            const isSelf = tid && uid && String(tid) === String(uid);
+            const isFollow = tid && followingSet.has(tid);
+            followBtn.dataset.tip = isSelf ? "自己" : (isFollow ? "已關注" : "關注");
+            followBtn.innerHTML = ICON_USER_PLUS + `<span class="btnLabel">${isSelf ? "自己" : (isFollow ? "已關注" : "關注")}</span>`;
+            if(isSelf) followBtn.style.display = "none";
+            followBtn.onclick = async (e)=>{
+              e.stopPropagation();
+              if(!tid){ return; }
+              const done = setBtnBusy(followBtn, isFollow ? "取消中" : "關注中");
+              try{
+                await toggleFollow(tid);
+              }finally{ done(); }
+              await load();
+            };
+
+            // vote
+            const voteBtn = document.createElement("button");
+            voteBtn.className = "iconBtn";
+            voteBtn.type = "button";
+            voteBtn.dataset.tip = "投票";
+            voteBtn.innerHTML = ICON_VOTE + `<span class="btnLabel">投票</span>`;
+            if((!uid) || userVote <= 0) voteBtn.style.opacity = ".6";
+            voteBtn.onclick = async (e)=>{
+              e.stopPropagation();
+              clearError();
+              if(!uid){ showToast("請先登入"); return showError("請先登入"); }
+              if(userVote <= 0){ showToast("票數已投滿"); return showError("票數已投滿"); }
+              const done = setBtnBusy(voteBtn, "投票中");
+              showToast("投票中");
+              try{ await vote(sid); } finally{ done(); }
+              await load();
+            };
+
+            // favorite
+            const favBtn = document.createElement("button");
+            favBtn.className = "iconBtn";
+            favBtn.type = "button";
+            const isFav = favoriteSet.has(sid);
+            if(isFav) favBtn.classList.add("on");
+            favBtn.dataset.tip = isFav ? "已收藏" : "收藏";
+            favBtn.innerHTML = ICON_HEART + `<span class="btnLabel">${isFav ? "已收藏" : "收藏"}</span>`;
+            favBtn.onclick = async (e)=>{
+              e.stopPropagation();
+              clearError();
+              const done = setBtnBusy(favBtn, isFav ? "取消中" : "收藏中");
+              try{ await toggleFav(sid); } finally{ done(); }
+              await load();
+            };
+
+            // recommend
+            const recBtn = document.createElement("button");
+            recBtn.className = "iconBtn warn";
+            recBtn.type = "button";
+            recBtn.dataset.tip = "推薦";
+            recBtn.innerHTML = ICON_FIRE + `<span class="btnLabel">推薦</span>`;
+            recBtn.onclick = async (e)=>{
+              e.stopPropagation();
+              clearError();
+              const done = setBtnBusy(recBtn, "推薦中");
+              try{ await recommend(sid); } finally{ done(); }
+              await load();
+            };
+
+            // 自己的作品：隱藏投票 / 收藏（避免誤點）
+            if(isSelf){
+              voteBtn.style.display = "none";
+              favBtn.style.display = "none";
+              recBtn.style.display = "none";
+            }
+
+            iconRow.appendChild(followBtn);
+            iconRow.appendChild(voteBtn);
+            iconRow.appendChild(favBtn);
+            iconRow.appendChild(recBtn);
+
+            authorRow.appendChild(authorMini);
+            authorRow.appendChild(iconRow);
+
+            body.appendChild(header);
+            body.appendChild(authorRow);
+
+            entry.appendChild(th);
+            entry.appendChild(body);
+
+            gridEl.appendChild(entry);
+          });
+        }
+
+
         function renderAuthorRank(items){
           if(!authorRankWrap || !authorRankGrid) return;
           authorRankGrid.innerHTML = "";
@@ -1837,7 +1825,7 @@ body{
               api("/api/rank/authors?limit=30", { method:"GET" }),
             ]);
 
-            if(favRes && favRes.ok) renderRankShowcaseGrid(favRankWrap, favRankGrid, favRes.items || [], (s)=>"收藏 " + String(Number(s.favorites||0)));
+            if(favRes && favRes.ok) renderFavRankList(favRankWrap, favRankGrid, favRes.items || []);
             if(newRes && newRes.ok) renderRankShowcaseGrid(newRankWrap, newRankGrid, newRes.items || [], (s)=>"新人 · 收藏 " + String(Number(s.favorites||0)));
             if(authRes && authRes.ok) renderAuthorRank(authRes.items || []);
           }catch(e){
