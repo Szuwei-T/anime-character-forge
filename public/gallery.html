@@ -441,6 +441,10 @@ body{
       border-color:rgba(255,215,0,.95);
     }
 
+
+    /* Recommend section scale down */
+    #recGrid{ transform: scale(0.5); transform-origin: left top; }
+
 </style>
 
   <link rel="stylesheet" href="style.css" />
@@ -1135,7 +1139,8 @@ body{
               const isSelf = tid && uid && String(tid) === String(uid);
               const isFollow = tid && followingSet.has(tid);
               if(isFollow) followBtn.classList.add("on");
-              followBtn.textContent = isSelf ? "自己" : (isFollow ? "已關注" : "關注");
+              if(isSelf){ followBtn.style.display = "none"; }
+              followBtn.textContent = (isFollow ? "已關注" : "關注");
 
               followBtn.onclick = async (e)=>{
                 e.stopPropagation();
