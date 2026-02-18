@@ -445,47 +445,6 @@ body{
     /* Recommend section scale down */
     #recGrid{ transform: scale(0.5); transform-origin: left top; }
 
-
-    /* ===== Recommend layout refinements v4 ===== */
-    #recGrid{
-      transform:none !important;
-      width:100%;
-      display:flex;
-      flex-wrap:nowrap;
-      gap:14px;
-      overflow:hidden;
-      align-items:flex-start;
-    }
-    /* 3 cards in a row (roughly) */
-    #recGrid .recCardRec{
-      flex:0 0 calc((100% - 28px)/3);
-      max-width:calc((100% - 28px)/3);
-    }
-
-    /* Reduce vertical spacing between recommend and next section */
-    #recSection{ margin-bottom: 10px !important; }
-    #rankSection{ margin-top: 10px !important; }
-
-    /* Score frame: keep aspect ratio, do not stretch */
-    .scoreFrameThumb{
-      left:12px;
-      right:auto;
-      width:170px;
-      height:54px;
-      background-size:contain;
-      background-repeat:no-repeat;
-      background-position:center;
-    }
-
-    /* Slightly wider buttons + bigger text */
-    .recCardRec .iconRow .iconBtn{
-      min-width: 110%;
-      font-size: 13px;
-      padding: 9px 10px;
-    }
-    .recAuthorName{ font-size: 14px; }
-    .followBtn{ font-size: 13px; padding: 9px 14px; }
-
 </style>
 
   <link rel="stylesheet" href="style.css" />

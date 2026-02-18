@@ -453,7 +453,7 @@ white-space: nowrap;
 
       .acf-capGold{ background-image: url("/ui/frame/account_gold.webp"); }
       .acf-capGem{ background-image: url("/ui/frame/account_gem.webp"); }
-      .acf-capTicket{ background-image: url("/ui/frame/account_ticket.webp"); background-size: contain; background-position: left center; padding-right: 6px; justify-content: right; width: 80px; }
+      .acf-capTicket{ background-image: url("/ui/frame/account_ticket.webp"); background-size: contain; background-position: left center; padding-right: 8px; justify-content: right; width: 80px; }
       .acf-capGeneric{
         background-image: url("/ui/frame/account_capsule.webp");
         justify-content: space-between;
