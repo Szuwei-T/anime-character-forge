@@ -640,6 +640,24 @@ body{
   pointer-events:none;
   z-index:99999;
 }
+/* Tooltip must float above thumbnails (avoid clipping / stacking) */
+.recCardRec{ overflow: visible !important; }
+.recCardRec .recThumb{ position:relative; z-index:1; }
+.recCardRec .recMeta{ position:relative; z-index:5; overflow:visible !important; }
+.recAuthorRow, .iconRow{ overflow:visible !important; }
+
+/* Make tooltip always above everything */
+.iconBtn[data-tip]:hover::after,
+.followBtn[data-tip]:hover::after,
+.iconBtn[data-tip]:hover::before,
+.followBtn[data-tip]:hover::before{
+  z-index:999999;
+}
+
+/* Avatar bigger and match follow icon size */
+#recWrap .recAuthorAv{ width:26px; height:26px; flex:0 0 26px; }
+#recWrap .followBtn .icon{ width:26px; height:26px; }
+
 /* Make icon-only buttons compact */
 .iconBtn{
   justify-content:center;
@@ -1378,6 +1396,7 @@ body{
               voteBtn.type = "button";
               voteBtn.dataset.tip = "投票";
               voteBtn.innerHTML = ICON_VOTE + `<span class="btnLabel">投票</span>`;
+              if(isSelf){ voteBtn.style.display = "none"; }
               if((!uid) || userVote <= 0) voteBtn.style.opacity = ".6";
               voteBtn.onclick = async (e)=>{
                 e.stopPropagation();
@@ -1408,6 +1427,7 @@ body{
               if(isFav2) favBtn.classList.add("on");
               favBtn.dataset.tip = isFav2 ? "已收藏" : "收藏";
               favBtn.innerHTML = ICON_HEART + `<span class="btnLabel">${isFav2 ? "已收藏" : "收藏"}</span>`;
+              if(isSelf){ favBtn.style.display = "none"; }
               favBtn.onclick = async (e)=>{
                 e.stopPropagation();
                 clearError();
