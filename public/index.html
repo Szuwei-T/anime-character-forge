@@ -240,6 +240,20 @@ body{
   <link rel="stylesheet" href="ui_fx.css" />
 </head>
 <body>
+
+<script>
+  // 如果已登入（已有 uid），立刻跳轉到作品庫，避免停留在 index
+  (function(){
+    try{
+      const uid = localStorage.getItem("acf_uid") || localStorage.getItem("uid") || "";
+      const justLoggedOut = sessionStorage.getItem("acf_just_logged_out")==="1";
+      if(uid && !justLoggedOut){
+        window.location.replace("gallery.html");
+      }
+    }catch(_e){}
+  })();
+</script>
+
   <div class="acf-page ui-panel"><div id="acfMasterMount"></div>
   <div class="card">
     <div class="head">
@@ -386,6 +400,7 @@ body{
           try{ localStorage.setItem("acf_force_story","1"); }catch(_e){}
         }
 
+        try{ sessionStorage.removeItem("acf_just_logged_out"); }catch(_e){}
         setStatus("登入成功，正在進入作品庫…", "ok");
         setTimeout(() => (window.location.href = "gallery.html"), 250);
 

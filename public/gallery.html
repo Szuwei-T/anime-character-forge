@@ -724,6 +724,38 @@ body{
       #favRankWrap, #authorRankWrap{ flex: 1 1 auto; }
     }
 
+
+/* ===== Rank section frames ===== */
+#favRankWrap,
+#authorRankWrap{
+  border:1px solid rgba(255,215,120,0.35);
+  border-radius:18px;
+  background:rgba(0,0,0,0.45);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  padding:14px 14px 16px 14px;
+  box-shadow:
+    0 10px 30px rgba(0,0,0,0.45),
+    inset 0 0 18px rgba(255,215,120,0.08);
+  position:relative;
+}
+
+/* Add subtle title separator */
+#favRankWrap .recHeader,
+#authorRankWrap .recHeader{
+  border-bottom:1px solid rgba(255,215,120,0.25);
+  padding-bottom:8px;
+  margin-bottom:12px;
+}
+
+/* Slightly different accent for author rank */
+#authorRankWrap{
+  border-color:rgba(120,180,255,0.35);
+  box-shadow:
+    0 10px 30px rgba(0,0,0,0.45),
+    inset 0 0 18px rgba(120,180,255,0.10);
+}
+
 </style>
 
   <link rel="stylesheet" href="style.css" />
