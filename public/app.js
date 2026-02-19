@@ -876,9 +876,10 @@ white-space: nowrap;
     try{
 
     const api = window.requireAppApi ? window.requireAppApi() : null;
-    if(!api) return;
+    if(!api){ toastSafe("API 尚未就緒（requireAppApi 缺失）"); return; }
 
     if(kind === "claim_awaken"){
+      toastSafe("正在領取獎勵...");
       const res = await api("/api/me/story/claim", { method:"POST", body: JSON.stringify({ rewardId:"ch0_awaken" }) });
       if(res && res.ok){
         toastSafe("已領取 角色券x1 服裝券x1");
@@ -970,7 +971,7 @@ white-space: nowrap;
       actBtn.onclick = ()=>hide();
       goBtn.style.display = "none";
     }else{
-      actBtn.onclick = ()=>act(info.kind);
+      actBtn.onclick = (ev)=>{ try{ ev && ev.preventDefault && ev.preventDefault(); ev && ev.stopPropagation && ev.stopPropagation(); }catch(_e){} act(info.kind); };
     }
   }
 
@@ -1232,48 +1233,3 @@ white-space: nowrap;
 
   window.ACF_ARIA_WIDGET = { boot, setState, showBubble };
 })();
-
-
-// ================================
-// CLAIM AWAKEN REWARD HANDLER
-// ================================
-async function act(kind){
-
-  if(kind === "claim_awaken"){
-
-    try{
-
-      const res = await fetch("/api/story/claim-awaken",{
-        method:"POST",
-        headers:{
-          "Content-Type":"application/json",
-          "x-user-id": localStorage.getItem("acf_uid") || ""
-        }
-      });
-
-      const data = await res.json();
-
-      if(data.ok){
-
-        alert("獲得覺醒獎勵！\n角色素材券 x1\n服裝素材券 x1");
-
-        if(window.state){
-          state.step = 2;
-          if(window.saveStory) await saveStory();
-        }
-
-        if(window.hideStory) hideStory();
-
-      }else{
-        alert(data.error || "領取失敗");
-      }
-
-    }catch(e){
-      console.error(e);
-      alert("領取失敗");
-    }
-
-    return;
-  }
-
-}
