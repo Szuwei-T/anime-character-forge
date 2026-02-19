@@ -2503,6 +2503,7 @@ function assetFullUrl(a){
           const s = String(v || "").trim();
           if (s && s !== "null" && s !== "undefined") { headers["x-user-id"] = s; break; }
         }
+        headers["x-session-token"] = headers["x-session-token"] || (localStorage.getItem("acf_token") || "");
         return headers;
       }
 

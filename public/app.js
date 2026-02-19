@@ -165,6 +165,8 @@ async function apiFetch(path, options={}){
 
   const headers = Object.assign({}, (options && options.headers) ? options.headers : {});
   if(uid) headers["x-user-id"] = headers["x-user-id"] || headers["X-User-Id"] || headers["X-USER-ID"] || uid;
+  const tok = localStorage.getItem("acf_token") || "";
+  if(tok && !headers["x-session-token"] && !headers["X-Session-Token"]) headers["x-session-token"] = tok;
 
   const hasBody = options && options.body !== undefined && options.body !== null;
 
@@ -210,6 +212,14 @@ async function initSession(){
     }
     return { ok:true, offline:true };
   }
+  try{
+    if(data && data.ok && data.token){
+      localStorage.setItem("acf_token", String(data.token));
+    }
+    if(data && data.ok && data.userId){
+      localStorage.setItem("acf_uid", String(data.userId));
+    }
+  }catch(_){ }
   return data;
 }
 

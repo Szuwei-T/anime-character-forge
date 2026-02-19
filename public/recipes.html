@@ -501,7 +501,8 @@
       method: "GET",
       headers: {
         "content-type": "application/json",
-        "x-user-id": uid || ""
+        "x-user-id": uid,
+      "x-session-token": (localStorage.getItem("acf_token") || "") || ""
       }
     }).then(async (r) => {
       const t = await r.text();
@@ -520,7 +521,8 @@
       method: method,
       headers: {
         "content-type": "application/json",
-        "x-user-id": uid || ""
+        "x-user-id": uid,
+      "x-session-token": (localStorage.getItem("acf_token") || "") || ""
       },
       body: body ? JSON.stringify(body) : undefined
     }).then(async (r) => {

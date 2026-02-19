@@ -1891,7 +1891,8 @@ async function doUpgrade(assetId){
 
   const res = await fetch(WORKER_BASE + "/api/upgrade", {
     method:"POST",
-    headers:{ "content-type":"application/json", "x-user-id": uid },
+    headers:{ "content-type":"application/json", "x-user-id": uid,
+      "x-session-token": (localStorage.getItem("acf_token") || "") },
     body: JSON.stringify({ uid, assetId })
   }).then(r=>r.json());
 

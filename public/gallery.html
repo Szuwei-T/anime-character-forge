@@ -113,6 +113,30 @@
     .recTitle .h{font-size:14px;opacity:.92}
     .recTitle .sub{font-size:12px;opacity:.68}
     .recGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
+#favRankGrid{
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+}
+#favRankGrid .recCard{
+  width:100%;
+  max-width:310px;
+  margin:0 auto;
+}
+#favRankGrid .recThumb{
+  width:140px;
+  min-width:140px;
+}
+#favRankGrid .favActions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px;
+  margin-top:10px;
+}
+#favRankGrid .favActions .iconBtn{
+  padding:5px 7px;
+  font-size:10px;
+}
     .recCard{display:flex;align-items:stretch;gap:0;border-radius:18px;overflow:hidden;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);cursor:pointer;transition:.15s}
     .recCard:hover{background:rgba(255,255,255,.08)}
     .recThumb{width:80px;flex:0 0 80px;aspect-ratio:3/4;background:rgba(0,0,0,.36);position:relative}
@@ -674,6 +698,64 @@ body{
 }
 .followBtn .icon{ width:16px; height:16px; }
 
+
+    /* ===== Fav + Author ranks side-by-side ===== */
+    .rankRow{
+      display:flex;
+      gap:16px;
+      align-items:flex-start;
+      width:100%;
+      margin-top: 8px;
+      margin-bottom: 10px;
+    }
+    #favRankWrap{ flex: 1 1 30%; }
+    #authorRankWrap{ flex: 1 1 30%; }
+
+    /* Hot author list vertical (top-to-bottom) */
+    #authorRankGrid.authorGrid{
+      display:flex !important;
+      flex-direction:column;
+      gap:12px;
+    }
+    #authorRankGrid .authorCard{ width:100%; }
+
+    @media (max-width: 1100px){
+      .rankRow{ flex-direction:column; }
+      #favRankWrap, #authorRankWrap{ flex: 1 1 auto; }
+    }
+
+
+/* ===== Rank section frames ===== */
+#favRankWrap,
+#authorRankWrap{
+  border:1px solid rgba(255,215,120,0.35);
+  border-radius:18px;
+  background:rgba(0,0,0,0.45);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  padding:14px 14px 16px 14px;
+  box-shadow:
+    0 10px 30px rgba(0,0,0,0.45),
+    inset 0 0 18px rgba(255,215,120,0.08);
+  position:relative;
+}
+
+/* Add subtle title separator */
+#favRankWrap .recHeader,
+#authorRankWrap .recHeader{
+  border-bottom:1px solid rgba(255,215,120,0.25);
+  padding-bottom:8px;
+  margin-bottom:12px;
+}
+
+/* Slightly different accent for author rank */
+#authorRankWrap{
+  border-color:rgba(120,180,255,0.35);
+  box-shadow:
+    0 10px 30px rgba(0,0,0,0.45),
+    inset 0 0 18px rgba(120,180,255,0.10);
+}
+
 </style>
 
   <link rel="stylesheet" href="style.css" />
@@ -713,6 +795,8 @@ body{
         <div class="recGrid" id="recGrid"></div>
       </div>
 
+      <div class="rankRow" id="favAuthorRow">
+
       <div class="recWrap" id="favRankWrap">
         <div class="recTitle">
           <div class="h">💖 收藏榜</div>
@@ -723,10 +807,10 @@ body{
 
       <div class="recWrap" id="newRankWrap">
         <div class="recTitle">
-          <div class="h">🚀 新手衝分榜</div>
-          <div class="sub">註冊 1 個月內 · 依帳號評分排序</div>
+          <div class="h">🆕 新人榜</div>
+          <div class="sub">註冊 1 個月內 · 依被收藏數排序</div>
         </div>
-        <div class="authorGrid" id="newRankGrid"></div>
+        <div class="recGrid" id="newRankGrid"></div>
       </div>
 
       <div class="recWrap" id="authorRankWrap">
@@ -736,6 +820,9 @@ body{
         </div>
         <div class="authorGrid" id="authorRankGrid"></div>
       </div>
+
+
+    </div>
 
       <div class="entries" id="grid"></div>
     </div>
@@ -966,6 +1053,7 @@ body{
           const o = opts || {};
           const headers = Object.assign({}, o.headers || {});
           if(uid) headers["x-user-id"] = uid;
+    headers["x-session-token"] = headers["x-session-token"] || (localStorage.getItem("acf_token") || "");
 
           const hasBody = o.body !== undefined && o.body !== null;
           if(hasBody) headers["content-type"] = "application/json";
@@ -1107,16 +1195,45 @@ body{
     return wrap;
   }
 
-        function openModal(title, sub, layers){
-          mTitle.textContent = title;
-          mSub.textContent = sub || "";
-          mThumb.innerHTML = "";
-          makeStackThumb(mThumb, layers);
-          modal.style.display = "flex";
-        }
+        let __modalScrollY = 0;
+function ensureOverlayRoot(){
+  // If the main page container uses transforms/filters, a fixed modal inside it can behave like it's at the page bottom.
+  // Keep the modal and toast as direct children of <body> to guarantee true viewport overlay.
+  if(modal && modal.parentElement !== document.body){
+    document.body.appendChild(modal);
+  }
+  if(toast && toast.parentElement !== document.body){
+    document.body.appendChild(toast);
+  }
+}
 
-        mClose.onclick = ()=> modal.style.display = "none";
-        modal.onclick = (e)=>{ if(e.target === modal) modal.style.display = "none"; };
+function openModal(title, sub, layers){
+  ensureOverlayRoot();
+  mTitle.textContent = title;
+  mSub.textContent = sub || "";
+  mThumb.innerHTML = "";
+  makeStackThumb(mThumb, layers);
+
+  // lock scroll so the overlay doesn't "snap" to the bottom on some browsers/layouts
+  __modalScrollY = window.scrollY || 0;
+  document.documentElement.style.overflow = "hidden";
+  document.body.style.overflow = "hidden";
+
+  modal.style.display = "flex";
+  modal.scrollTop = 0;
+}
+
+function closeModal(){
+  modal.style.display = "none";
+  document.documentElement.style.overflow = "";
+  document.body.style.overflow = "";
+  // restore previous scroll position
+  window.scrollTo(0, __modalScrollY);
+}
+
+mClose.onclick = closeModal;
+modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
+
 
         async function loadMeLight(){
           try{
@@ -1697,9 +1814,14 @@ body{
           }
           wrapEl.style.display = "block";
 
+          const isFavRank = (gridEl && gridEl.id === "favRankGrid");
+
           list.forEach((s)=>{
+            const sid = String(s.showcaseId || s.id || "");
+            const authorName = String(s.authorName || s.userName || s.userId || "").trim() || "Player";
+
             const card = document.createElement("div");
-            card.className = "recCard";
+            card.className = "recCard" + (isFavRank ? " favRankCard" : "");
 
             const th = document.createElement("div");
             th.className = "recThumb";
@@ -1711,16 +1833,22 @@ body{
               { url: s.addon1Url, z:50 },
             ]);
 
-            try{ const sc = computeSystemScoreFromUrls({ headUrl:s.headUrl, bodyUrl:s.bodyUrl, bgUrl:s.bgUrl, addon1Url:s.addon1Url, addon2Url:s.addon2Url }); th.appendChild(makeScoreThumb(sc)); }catch(_){ th.appendChild(makeScoreThumb(0)); }
+            try{
+              const sc2 = computeSystemScoreFromUrls({ headUrl:s.headUrl, bodyUrl:s.bodyUrl, bgUrl:s.bgUrl, addon1Url:s.addon1Url, addon2Url:s.addon2Url });
+              th.appendChild(makeScoreThumb(sc2));
+            }catch(_){
+              th.appendChild(makeScoreThumb(0));
+            }
+
             const meta = document.createElement("div");
             meta.className = "recMeta";
 
+            // --- Top row: author + badge ---
             const topRow = document.createElement("div");
             topRow.className = "recMetaTop";
 
             const author = document.createElement("div");
             author.className = "recAuthor";
-            const authorName = String(s.authorName || s.userName || s.userId || "").trim() || "Player";
 
             const av = document.createElement("div");
             av.className = "recAuthorAv";
@@ -1741,17 +1869,119 @@ body{
             topRow.appendChild(author);
             topRow.appendChild(b);
 
-            const sc = document.createElement("div");
-            sc.className = "recScore";
-            sc.textContent = "評分 " + String(Number(s.systemScore || 0));
-
-
             const t = document.createElement("div");
             t.className = "recTitleLine";
             t.textContent = (s.title && String(s.title).trim()) ? String(s.title).trim() : "未命名作品";
 
             meta.appendChild(topRow);
             meta.appendChild(t);
+
+            // 收藏榜：加入 關注 / 投票 / 收藏 / 推薦 4 個按鈕（直向列表顯示）
+            if(isFavRank){
+              const actions = document.createElement("div");
+              actions.className = "favActions";
+
+              const tid = String(s.userId || "").trim();
+              const isSelf = tid && uid && String(tid) === String(uid);
+              const isFollow = tid && followingSet.has(tid);
+
+              const followBtn = document.createElement("button");
+              followBtn.type = "button";
+              followBtn.className = "iconBtn";
+              followBtn.dataset.tip = (isFollow ? "已關注" : "關注");
+              followBtn.innerHTML = (isFollow ? ICON_FOLLOW_ON : ICON_FOLLOW) + `<span class="btnLabel">${isFollow ? "已關注" : "關注"}</span>`;
+              if(isSelf){ followBtn.style.display = "none"; }
+              followBtn.onclick = async (e)=>{
+                e.stopPropagation();
+                if(isSelf) return;
+                await toggleFollow(tid);
+                const on = followingSet.has(tid);
+                followBtn.dataset.tip = on ? "已關注" : "關注";
+                followBtn.innerHTML = (on ? ICON_FOLLOW_ON : ICON_FOLLOW) + `<span class="btnLabel">${on ? "已關注" : "關注"}</span>`;
+                followBtn.classList.toggle("on", on);
+              };
+
+              const voteBtn = document.createElement("button");
+              voteBtn.className = "iconBtn";
+              voteBtn.type = "button";
+              voteBtn.dataset.tip = "投票";
+              voteBtn.innerHTML = ICON_VOTE + `<span class="btnLabel">投票</span>`;
+              if(isSelf){ voteBtn.style.display = "none"; }
+              if((!uid) || userVote <= 0) voteBtn.style.opacity = ".6";
+              voteBtn.onclick = async (e)=>{
+                e.stopPropagation();
+                clearError();
+                if(!uid){
+                  showToast("請先登入");
+                  return showError("請先登入");
+                }
+                if(userVote <= 0){
+                  showToast("票數已投滿");
+                  return showError("票數已投滿");
+                }
+                const done = setBtnBusy(voteBtn, "投票中");
+                showToast("投票中");
+                try{
+                  await vote(sid);
+                }finally{
+                  done();
+                }
+                await load();
+              };
+
+              const favBtn = document.createElement("button");
+              favBtn.className = "iconBtn";
+              favBtn.type = "button";
+              const isFav = favoriteSet.has(sid);
+              if(isFav) favBtn.classList.add("on");
+              favBtn.dataset.tip = isFav ? "已收藏" : "收藏";
+              favBtn.innerHTML = ICON_HEART + `<span class="btnLabel">${isFav ? "已收藏" : "收藏"}</span>`;
+              favBtn.onclick = async (e)=>{
+                e.stopPropagation();
+                clearError();
+                const done = setBtnBusy(favBtn, isFav ? "取消中" : "收藏中");
+                try{
+                  await toggleFav(sid);
+                }finally{
+                  done();
+                }
+                await load();
+              };
+
+              const recBtn = document.createElement("button");
+              recBtn.className = "iconBtn warn";
+              recBtn.type = "button";
+              recBtn.dataset.tip = "推薦";
+              recBtn.innerHTML = ICON_FIRE + `<span class="btnLabel">推薦</span>`;
+              if(isSelf){ recBtn.style.display = "none"; }
+              recBtn.onclick = async (e)=>{
+                e.stopPropagation();
+                clearError();
+                if(!uid){
+                  showToast("請先登入");
+                  return showError("請先登入");
+                }
+                if(userGem < 50){
+                  showToast("GEM 不足");
+                  return showError("GEM 不足");
+                }
+                const done = setBtnBusy(recBtn, "推薦中");
+                showToast("推薦中");
+                try{
+                  await recommend(sid);
+                }finally{
+                  done();
+                }
+                await load();
+              };
+
+              actions.appendChild(followBtn);
+              actions.appendChild(voteBtn);
+              actions.appendChild(favBtn);
+              actions.appendChild(recBtn);
+
+              meta.appendChild(actions);
+            }
 
             card.appendChild(th);
             card.appendChild(meta);
@@ -1768,9 +1998,7 @@ body{
 
             gridEl.appendChild(card);
           });
-        }
-
-        function renderAuthorRank(items){
+        }function renderAuthorRank(items){
           if(!authorRankWrap || !authorRankGrid) return;
           authorRankGrid.innerHTML = "";
           const list = (items||[]).filter(x => Number(x.followers||0) > 0);
@@ -1828,64 +2056,7 @@ body{
           });
         }
 
-        
-        function renderNewbieScoreRank(items){
-          newRankGrid.innerHTML = "";
-          const arr = (items || []).slice(0, 30);
-          if(!arr.length){
-            newRankWrap.style.display = "none";
-            return;
-          }
-          newRankWrap.style.display = "";
-          arr.forEach((a, idx)=>{
-            const card = document.createElement("div");
-            card.className = "authorCard";
-
-            const left = document.createElement("div");
-            left.className = "authorLeft";
-
-            const av = document.createElement("div");
-            av.className = "authorAvatar";
-            const fakeShow = {
-              authorAvatarBgId: a.authorAvatarBgId,
-              authorAvatarAddon2Id: a.authorAvatarAddon2Id,
-              authorAvatarHeadId: a.authorAvatarHeadId,
-              authorAvatarBodyId: a.authorAvatarBodyId,
-              authorAvatarAddon1Id: a.authorAvatarAddon1Id,
-            };
-            renderAvatarInto(av, fakeShow, a.userName || a.userId || "Player");
-
-            const txt = document.createElement("div");
-            txt.style.minWidth = "0";
-
-            const nm = document.createElement("div");
-            nm.className = "authorNameBig";
-            nm.textContent = String(a.userName || "Player");
-
-            const sub = document.createElement("div");
-            sub.className = "authorSub";
-            sub.textContent = "Score " + String(Number(a.accountScore||0)) + " · Lv." + String(Number(a.level||1));
-
-            txt.appendChild(nm);
-            txt.appendChild(sub);
-
-            left.appendChild(av);
-            left.appendChild(txt);
-
-            const right = document.createElement("div");
-            right.className = "pill2";
-            right.textContent = "#" + String(idx + 1);
-
-            card.appendChild(left);
-            card.appendChild(right);
-
-            card.onclick = ()=> gotoUserProfile(a.userId);
-
-            newRankGrid.appendChild(card);
-          });
-        }
-
-async function loadRankings(){
+        async function loadRankings(){
           clearRankings();
           try{
             const [favRes, newRes, authRes] = await Promise.all([
@@ -1895,7 +2066,7 @@ async function loadRankings(){
             ]);
 
             if(favRes && favRes.ok) renderRankShowcaseGrid(favRankWrap, favRankGrid, favRes.items || [], (s)=>"收藏 " + String(Number(s.favorites||0)));
-            if(newRes && newRes.ok) renderNewbieScoreRank(newRes.items || []);
+            if(newRes && newRes.ok) renderRankShowcaseGrid(newRankWrap, newRankGrid, newRes.items || [], (s)=>"新人 · 收藏 " + String(Number(s.favorites||0)));
             if(authRes && authRes.ok) renderAuthorRank(authRes.items || []);
           }catch(e){
             clearRankings();
