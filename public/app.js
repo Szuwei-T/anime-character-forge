@@ -29,6 +29,40 @@ function toast(msg){
   el._t = setTimeout(()=>el.classList.add("hidden"), 2400);
 }
 
+// === 這是修復點 1：領取獎勵的 API 通訊邏輯 ===
+async function handleClaimAwaken() {
+  const userId = localStorage.getItem("userId") || window.userId;
+  if (!userId) {
+    toast("找不到使用者 ID，請重新登入");
+    return;
+  }
+
+  try {
+    toast("正在領取獎勵...");
+    // 使用你原本定義好的 WORKER_BASE
+    const res = await fetch(WORKER_BASE + "/api/claim/awaken", {
+      method: "POST",
+      headers: {
+        "x-user-id": userId,
+        "Content-Type": "application/json"
+      }
+    });
+
+    const data = await res.json();
+
+    if (res.ok && data.ok) {
+      toast("🎉 獎勵領取成功！已獲得票券");
+      // 延遲刷新頁面，讓玩家看到通知後再更新餘額
+      setTimeout(() => location.reload(), 1500);
+    } else {
+      toast("領取失敗：" + (data.error || "已經領取過或系統錯誤"));
+    }
+  } catch (e) {
+    console.error(e);
+    toast("網路連接失敗，請檢查後端狀態");
+  }
+}
+
 function syncUidAliases(uid){
   try{
     const id = String(uid || "").trim();
@@ -1238,36 +1272,40 @@ white-space: nowrap;
     return { want, badge };
   }
 
-  function boot(){
-    ensureWidget();
-    // initial state
-    const s = computeState();
-    setState(s.want);
-    setBadge(s.badge);
+// === 這是修復點 2：將點擊事件掛載到泡泡上 ===
+function boot(){
+    if(typeof ensureWidget === 'function') ensureWidget();
+    
+    const s = (typeof computeState === 'function') ? computeState() : { want: "default", badge: false };
+    if(typeof setState === 'function') setState(s.want);
+    if(typeof setBadge === 'function') setBadge(s.badge);
 
-    // gentle hints
-    try{
+    try {
       const hasMonthly = window.ACF_MONTHLY && window.ACF_MONTHLY.__cache && window.ACF_MONTHLY.__cache.canClaim;
-      if(hasMonthly){
-        showBubble("今天有登入獎勵可以領  點我打開", "monthly");
-      }else{
+      if (hasMonthly) {
+        // 修正處：將 showBubble 的回傳值存入變數 bubble
+        const bubble = showBubble("今天有登入獎勵可以領  點我領取", "monthly");
+        
+        // 關鍵修復：手動綁定點擊事件
+        if (bubble) {
+          bubble.style.cursor = "pointer"; // 讓玩家知道可以點
+          bubble.onclick = (e) => {
+            e.preventDefault();
+            handleClaimAwaken(); // 執行上面新增的函數
+          };
+        }
+      } else {
+        // ... 原本的主線任務邏輯保持不變 ...
         const step = window.ACF_GUIDE && window.ACF_GUIDE.__state && Number(window.ACF_GUIDE.__state.step||1);
         const max = window.ACF_GUIDE && window.ACF_GUIDE.__maxStep || 6;
         if(step && step <= max){
           showBubble("主線任務可以繼續  點我打開", "story");
         }
       }
-    }catch(_e){}
-
-    // keep syncing to use all ARIA assets
-    setInterval(()=>{
-      const s2 = computeState();
-      if(s2.want !== currentState){
-        setState(s2.want);
-      }
-      setBadge(s2.badge);
-    }, 1200);
-  }
+    } catch(err) {
+      console.warn("Boot logic error:", err);
+    }
+}
 
   window.ACF_ARIA_WIDGET = { boot, setState, showBubble };
 })();
