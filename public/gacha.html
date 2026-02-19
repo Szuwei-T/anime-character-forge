@@ -1870,7 +1870,7 @@ body, .wrap, .page, .acf-page, .container{
   text-shadow:
     0 2px 6px rgba(0,0,0,0.85),
     0 0 12px rgba(255,215,120,0.5);
-  transform: translateY(34px) translateX(36px);
+  transform: translateY(34px) translateX(38px);
 }
 
 
@@ -1898,6 +1898,16 @@ body, .wrap, .page, .acf-page, .container{
   filter:
     drop-shadow(0 18px 40px rgba(0,0,0,0.65))
     drop-shadow(0 0 24px rgba(255,200,80,0.55)) !important;
+}
+
+
+/* Rarity guarantee icons */
+.rarityBadge{
+  height:24px;
+  width:auto;
+  vertical-align:middle;
+  object-fit:contain;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.7));
 }
 
 </style>
@@ -1983,10 +1993,10 @@ body, .wrap, .page, .acf-page, .container{
 <div class="drawCol">
 <button class="btn orange small" id="btnNormal10">10次</button>
 <div class="cost">cost 1000gold</div>
-<div class="guarantee">必出SR以上</div>
+<div class="guarantee"><img src="/ui/icon/Rarity_SR.webp" class="rarityBadge" alt="SR"></div>
 </div>
 </div>
-<div class="pity" id="pityNormal">再抽200次 必出SSR</div>
+<div class="pity" id="pityNormal">再抽200次 <img src="/ui/icon/Rarity_SSR.webp" class="rarityBadge" alt="SSR"></div>
 </div>
 <div class="gachaCard goldPanel">
 <div class="gachaHead">
@@ -2001,10 +2011,10 @@ body, .wrap, .page, .acf-page, .container{
 <div class="drawCol">
 <button class="btn blue small" id="btnPremium10">10次</button>
 <div class="cost">cost 100gem</div>
-<div class="guarantee">必出SSR以上</div>
+<div class="guarantee"><img src="/ui/icon/Rarity_SSR.webp" class="rarityBadge" alt="SSR">以上</div>
 </div>
 </div>
-<div class="pity" id="pityPremium">再抽200次 必出UR</div>
+<div class="pity" id="pityPremium">再抽200次 <img src="/ui/icon/Rarity_UR.webp" class="rarityBadge" alt="UR"></div>
 </div>
 </div></div>
 </div>
