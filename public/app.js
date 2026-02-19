@@ -764,6 +764,206 @@ white-space: nowrap;
 
 
 
+
+
+// ===== Main Story Guide (Chapter 0) =====
+(function(){
+  const MAX_STEP = 7;
+
+  const STEPS = [
+    { step:1, title:"Chapter 0 覺醒", body:"你在光之祭壇醒來，聽見靈魂的呼喚。\n\n完成劇情後可領取獎勵：角色素材券 x1 + 服裝素材券 x1", kind:"claim_awaken" },
+    { step:2, title:"Chapter 0-2 第一個靈魂 角色素材", body:"使用剛拿到的【角色素材券】抽頭部素材。\n本章必定抽到 head_1_1f", kind:"pull_head_ticket" },
+    { step:3, title:"Chapter 0-2 第一個靈魂 服裝素材", body:"使用【服裝素材券】抽身體素材。\n本章必定抽到 body_1_1f", kind:"pull_body_ticket" },
+    { step:4, title:"Chapter 0-2 組合靈魂", body:"前往 Studio，裝備 head_1_1f 與 body_1_1f。\n隨便選 1 個背景也可以。\n保存後獲得獎勵：背景素材券 x1", kind:"go_studio" , page:"studio.html" },
+    { step:5, title:"Chapter 0-2 抽取背景", body:"你已獲得【背景素材券】。\n使用背景券抽背景。\n本章必定抽到 background_1_1", kind:"pull_bg_ticket" },
+    { step:6, title:"Chapter 0-2 完成契約", body:"回到 Studio，裝備 background_1_1，保存。\n將解鎖第 1 個收藏配方：recipe_1_1f", kind:"go_studio_unlock", page:"studio.html" },
+    { step:7, title:"Chapter 0-2 完成", body:"已解鎖 recipe_1_1f。\n你已完成覺醒與第一個靈魂。", kind:"done" },
+  ];
+
+  function ensureUI(){
+    if(document.getElementById("acfStoryOverlay")) return;
+
+    const wrap = document.createElement("div");
+    wrap.id = "acfStoryOverlay";
+    wrap.className = "acfStoryOverlay hidden";
+    wrap.innerHTML = `
+      <div class="acfStoryMask"></div>
+      <div class="acfStoryCard" role="dialog" aria-modal="true">
+        <div class="acfStoryNpc">
+          <img class="acfStoryNpcImg" src="/ui/npc/aria_full.webp" alt="ARIA">
+        </div>
+        <div class="acfStoryMain">
+          <div class="acfStoryTitle" id="acfStoryTitle"></div>
+          <div class="acfStoryBody" id="acfStoryBody"></div>
+          <div class="acfStoryActions">
+            <button class="acfBtn acfBtnGhost" id="acfStoryClose" type="button">稍後</button>
+            <button class="acfBtn acfBtnPrimary" id="acfStoryGo" type="button">前往</button>
+            <button class="acfBtn acfBtnPrimary" id="acfStoryAct" type="button">執行</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    const style = document.createElement("style");
+    style.textContent = `
+      .acfStoryOverlay{position:fixed;inset:0;z-index:99998;display:grid;place-items:center}
+      .acfStoryOverlay.hidden{display:none}
+      .acfStoryMask{position:absolute;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(6px)}
+      .acfStoryCard{position:relative;width:min(860px,92vw);border-radius:18px;border:1px solid rgba(255,255,255,.16);background:rgba(10,14,22,.80);box-shadow:0 24px 70px rgba(0,0,0,.55);display:flex;gap:14px;padding:14px}
+      .acfStoryNpc{width:190px;flex:0 0 190px;display:grid;place-items:center;border-radius:16px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10)}
+      .acfStoryNpcImg{width:170px;height:auto;display:block}
+      .acfStoryMain{flex:1;min-width:0;display:flex;flex-direction:column;gap:10px;padding:6px 6px 6px 2px}
+      .acfStoryTitle{font-size:16px;font-weight:900;letter-spacing:.4px}
+      .acfStoryBody{font-size:13px;line-height:1.55;opacity:.92;white-space:pre-line}
+      .acfStoryActions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:4px}
+      .acfBtn{font:inherit;border-radius:12px;padding:10px 12px;border:1px solid rgba(255,255,255,.16);cursor:pointer}
+      .acfBtnGhost{background:rgba(255,255,255,.06);color:rgba(255,255,255,.9)}
+      .acfBtnPrimary{background:linear-gradient(135deg, rgba(255,205,90,.18), rgba(120,170,255,.14));color:rgba(255,255,255,.94)}
+      @media (max-width:720px){ .acfStoryCard{flex-direction:column} .acfStoryNpc{width:100%;flex:0 0 auto} }
+    `;
+    document.head.appendChild(style);
+    document.body.appendChild(wrap);
+
+    wrap.querySelector("#acfStoryClose").addEventListener("click", hide);
+    wrap.querySelector(".acfStoryMask").addEventListener("click", hide);
+  }
+
+  function hide(){
+    const o = document.getElementById("acfStoryOverlay");
+    if(o) o.classList.add("hidden");
+  }
+
+  function toastSafe(msg){
+    try{ if(window.toast) window.toast(msg); }catch(_e){}
+  }
+
+  let state = { step: 1, loaded:false };
+
+  async function fetchStory(){
+    const api = window.requireAppApi ? window.requireAppApi() : null;
+    if(!api) return null;
+    const data = await api("/api/me/story");
+    if(data && data.ok && data.story){
+      state.step = Number(data.story.step || 1);
+      state.loaded = true;
+      return state.step;
+    }
+    return null;
+  }
+
+  function stepInfo(step){
+    return STEPS.find(s=>s.step===step) || STEPS[STEPS.length-1];
+  }
+
+  async function act(kind){
+    const api = window.requireAppApi ? window.requireAppApi() : null;
+    if(!api) return;
+
+    if(kind === "claim_awaken"){
+      const res = await api("/api/me/story/claim", { method:"POST", body: JSON.stringify({ rewardId:"ch0_awaken" }) });
+      if(res && res.ok){
+        toastSafe("已領取 角色券x1 服裝券x1");
+      }else{
+        toastSafe("領取失敗");
+      }
+      await fetchStory();
+      open(true);
+      return;
+    }
+
+    if(kind === "pull_head_ticket"){
+      const res = await api("/api/gacha", { method:"POST", body: JSON.stringify({ count:1, type:"head", ticketType:"character" }) });
+      if(res && res.ok){
+        toastSafe("已獲得 head_1_1f");
+      }else{
+        toastSafe("抽取失敗");
+      }
+      await fetchStory();
+      open(true);
+      return;
+    }
+
+    if(kind === "pull_body_ticket"){
+      const res = await api("/api/gacha", { method:"POST", body: JSON.stringify({ count:1, type:"body", ticketType:"costume" }) });
+      if(res && res.ok){
+        toastSafe("已獲得 body_1_1f");
+      }else{
+        toastSafe("抽取失敗");
+      }
+      await fetchStory();
+      open(true);
+      return;
+    }
+
+    if(kind === "pull_bg_ticket"){
+      const res = await api("/api/gacha", { method:"POST", body: JSON.stringify({ count:1, type:"bg", ticketType:"background" }) });
+      if(res && res.ok){
+        toastSafe("已獲得 background_1_1");
+      }else{
+        toastSafe("抽取失敗");
+      }
+      await fetchStory();
+      open(true);
+      return;
+    }
+
+    // go studio or nothing
+    hide();
+  }
+
+  function open(force){
+    ensureUI();
+    const info = stepInfo(Number(state.step||1));
+    const o = document.getElementById("acfStoryOverlay");
+    o.classList.remove("hidden");
+
+    document.getElementById("acfStoryTitle").textContent = info.title;
+    document.getElementById("acfStoryBody").textContent = info.body;
+
+    const goBtn = document.getElementById("acfStoryGo");
+    const actBtn = document.getElementById("acfStoryAct");
+
+    if(info.page){
+      goBtn.style.display = "";
+      goBtn.textContent = "前往";
+      goBtn.onclick = ()=>{ hide(); location.href = info.page; };
+    }else{
+      goBtn.style.display = "none";
+    }
+
+    actBtn.style.display = "";
+    actBtn.textContent = (info.kind === "claim_awaken") ? "領取獎勵"
+      : (info.kind === "pull_head_ticket") ? "使用角色券抽頭"
+      : (info.kind === "pull_body_ticket") ? "使用服裝券抽身體"
+      : (info.kind === "pull_bg_ticket") ? "使用背景券抽背景"
+      : "好的";
+
+    if(info.kind === "go_studio" || info.kind === "go_studio_unlock"){
+      actBtn.textContent = "我知道了";
+      actBtn.onclick = ()=>hide();
+    }else if(info.kind === "done"){
+      actBtn.textContent = "完成";
+      actBtn.onclick = ()=>hide();
+      goBtn.style.display = "none";
+    }else{
+      actBtn.onclick = ()=>act(info.kind);
+    }
+  }
+
+  async function boot(){
+    await fetchStory();
+    try{
+      const k = "acf_story_autoshow_" + (new Date().toISOString().slice(0,10));
+      if(!sessionStorage.getItem(k) && Number(state.step||1) <= MAX_STEP){
+        sessionStorage.setItem(k,"1");
+        setTimeout(()=>open(false), 600);
+      }
+    }catch(_e){}
+  }
+
+  window.ACF_GUIDE = { boot, open: ()=>open(true), __state: state, __maxStep: MAX_STEP };
+})();
+
 // ===== Persistent ARIA NPC Widget (commercial-grade) =====
 (function(){
   const IMAGES = {
