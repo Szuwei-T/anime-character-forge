@@ -2503,7 +2503,6 @@ function assetFullUrl(a){
           const s = String(v || "").trim();
           if (s && s !== "null" && s !== "undefined") { headers["x-user-id"] = s; break; }
         }
-        headers["x-session-token"] = headers["x-session-token"] || (localStorage.getItem("acf_token") || "");
         return headers;
       }
 
@@ -2888,8 +2887,9 @@ function assetFullUrl(a){
             if (typeof window.api === "function") return window.api(url, fetchOpts);
             return fetch(url, fetchOpts);
           };
-          const res = await apiFetch("/api/share/reward", {
-            method:"POST",
+          const base = (typeof WORKER_BASE === "string") ? WORKER_BASE : ((location.hostname === "127.0.0.1" || location.hostname === "localhost") ? "" : "https://acf-api.dream-league-baseball.workers.dev");
+           const res = await fetch(base + "/api/share/reward", {
+             method:"POST",
             headers: buildUidHeaders(),
             body: JSON.stringify({ shareId:_shareState.shareId, rarity:_shareState.rarity, assetId:_shareState.assetId }),
           });
