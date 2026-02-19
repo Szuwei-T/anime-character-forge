@@ -746,3 +746,70 @@ white-space: nowrap;
     initMasterHeader();
   }
 })();
+
+
+
+// ===== Persistent ARIA NPC Widget =====
+(function(){
+  const IMAGES = {
+    default: "/ui/npc/aria_default.webp",
+    success: "/ui/npc/aria_success.webp",
+    warning: "/ui/npc/aria_warning.webp",
+    discover: "/ui/npc/aria_discover.webp",
+    guide: "/ui/npc/aria_guide.webp",
+    full: "/ui/npc/aria_full.webp"
+  };
+
+  function ensureWidget(){
+    if(document.getElementById("acfAriaWidget")) return;
+
+    const wrap = document.createElement("div");
+    wrap.id = "acfAriaWidget";
+    wrap.style.cssText = `
+      position:fixed;
+      right:12px;
+      bottom:80px;
+      z-index:99999;
+      cursor:pointer;
+      user-select:none;
+      transition:transform .2s ease;
+    `;
+
+    const img = document.createElement("img");
+    img.id = "acfAriaWidgetImg";
+    img.src = IMAGES.guide;
+    img.style.cssText = `
+      width:110px;
+      height:auto;
+      filter:drop-shadow(0 10px 25px rgba(0,0,0,.45));
+      transition:transform .2s ease, filter .2s ease;
+    `;
+
+    wrap.appendChild(img);
+
+    wrap.addEventListener("mouseenter", ()=>{
+      img.style.transform = "scale(1.08)";
+      img.style.filter = "drop-shadow(0 14px 30px rgba(0,0,0,.65))";
+    });
+
+    wrap.addEventListener("mouseleave", ()=>{
+      img.style.transform = "scale(1)";
+      img.style.filter = "drop-shadow(0 10px 25px rgba(0,0,0,.45))";
+    });
+
+    wrap.addEventListener("click", ()=>{
+      try{
+        if(window.ACF_GUIDE && window.ACF_GUIDE.open){
+          window.ACF_GUIDE.open();
+        }
+      }catch(e){}
+    });
+
+    document.body.appendChild(wrap);
+  }
+
+  window.ACF_ARIA_WIDGET = {
+    boot: ensureWidget
+  };
+
+})();
