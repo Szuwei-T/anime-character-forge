@@ -246,7 +246,7 @@ body{
       <div class="logo"></div>
       <div class="title">
         <h1>Anime Character Forge</h1>
-        <p>先登入，再設定你的遊戲名稱，馬上開始組角色</p>
+        <p>先登入，登入後會直接進入作品庫</p>
       </div>
     </div>
 
@@ -285,25 +285,6 @@ body{
 
         <div class="note">
           如果你用 Microsoft 或 Apple 登入，需要先在 Firebase Auth 裡啟用對應的 Provider，否則會顯示錯誤。
-        </div>
-      </div>
-
-      <div id="stepProfile" style="display:none;">
-        <div class="row">
-          <div class="field">
-            <label>遊戲名稱</label>
-            <input id="gameName" type="text" maxlength="20" placeholder="例如：星河行者" />
-          </div>
-          <div class="field">
-            <label>地區 (可空白)</label>
-            <input id="region" type="text" maxlength="20" placeholder="例如：CA 或 Toronto" />
-          </div>
-          <button class="btn primary" id="btnSaveProfile">開始遊戲</button>
-          <button class="btn" id="btnSkip">先不填，直接進入</button>
-        </div>
-
-        <div class="note">
-          會寫入 D1 的 <b>user_accounts</b>：userId、userName、userGold、userGem、userVote、userRegion。
         </div>
       </div>
 
@@ -352,12 +333,11 @@ body{
 
     function showStep(loggedIn) {
       $("stepLogin").style.display = loggedIn ? "none" : "block";
-      $("stepProfile").style.display = loggedIn ? "block" : "none";
       $("userbar").style.display = loggedIn ? "flex" : "none";
     }
 
     function setBusy(busy) {
-      for (const id of ["btnGoogle","btnMicrosoft","btnApple","btnEmailLogin","btnEmailSignup","btnSaveProfile","btnSkip","btnLogout"]) {
+      for (const id of ["btnGoogle","btnMicrosoft","btnApple","btnEmailLogin","btnEmailSignup","btnLogout"]) {
         const el = $(id);
         if (el) el.disabled = !!busy;
       }
@@ -370,7 +350,7 @@ body{
       return window.api;
     }
 
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => {
       if (user) {
         const email = user.email || user.providerData?.[0]?.email || "已登入";
         $("userEmail").textContent = email;
@@ -381,7 +361,35 @@ body{
 
         showStep(true);
         setStatus("", "");
-      } else {
+
+        // 初始化 session（建立帳號預設資料）
+        try{
+          if(window.initSession) await window.initSession();
+        }catch(_e){}
+
+        // 判斷是否第一次登入（沒有 userName 就視為新手）
+        let isFirst = false;
+        try{
+          const api = (typeof window.apiFetch === "function") ? window.apiFetch : null;
+          if(api){
+            const me = await api("/api/me/account", { method:"GET" });
+            const nm = me && (me.account?.userName || me.userName || "");
+            if(!nm) isFirst = true;
+          }else{
+            isFirst = true;
+          }
+        }catch(_e){
+          isFirst = true;
+        }
+
+        if(isFirst){
+          try{ localStorage.setItem("acf_force_story","1"); }catch(_e){}
+        }
+
+        setStatus("登入成功，正在進入作品庫…", "ok");
+        setTimeout(() => (window.location.href = "gallery.html"), 250);
+
+} else {
         $("userEmail").textContent = "未登入";
         $("userUid").textContent = "";
         showStep(false);
@@ -470,21 +478,7 @@ body{
       }
     };
 
-    $("btnSaveProfile").onclick = async () => {
-      setStatus("", "");
-      setBusy(true);
-      try {
-        const userName = $("gameName").value.trim();
-        const userRegion = $("region").value.trim();
-        if (!userName) throw new Error("missing_userName");
-
-        const api = requireAppApi();
-        const payload = {
-          userName,
-          userRegion: userRegion || ""
-        };
-
-        const data = await api("/api/me/account", {
+    const data = await api("/api/me/account", {
           method: "POST",
           body: JSON.stringify(payload)
         });
@@ -502,10 +496,7 @@ body{
       }
     };
 
-    $("btnSkip").onclick = () => {
-      window.location.href = "hub.html";
-    };
-  </script>
+    </script>
   </div>
 
 <script>

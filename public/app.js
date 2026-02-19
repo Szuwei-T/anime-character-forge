@@ -676,6 +676,37 @@ white-space: nowrap;
 
     box.style.display = "block";
     nameEl.textContent = String(acc.userName || "Player");
+    // 點玩家名可修改（masterpage）
+    try{
+      nameEl.style.cursor = "pointer";
+      nameEl.title = "點此修改玩家名";
+      nameEl.onclick = async (ev)=>{
+        try{ ev && ev.preventDefault && ev.preventDefault(); ev && ev.stopPropagation && ev.stopPropagation(); }catch(_e){}
+        const cur = String(acc.userName || "Player");
+        const next = prompt("修改玩家名", cur);
+        if(next === null) return;
+        const nm = String(next || "").trim().slice(0, 20);
+        if(!nm){ try{ window.toast && window.toast("玩家名不能為空"); }catch(_e){} return; }
+
+        try{ localStorage.setItem("acf_name", nm); }catch(_e){}
+        nameEl.textContent = nm;
+
+        try{
+          const api = (typeof window.apiFetch === "function") ? window.apiFetch : null;
+          if(api){
+            const res = await api("/api/me/account", { method:"POST", body: { userName: nm } });
+            if(res && res.ok === false){
+              try{ window.toast && window.toast("更新失敗"); }catch(_e){}
+            }else{
+              try{ window.toast && window.toast("已更新玩家名"); }catch(_e){}
+              try{ window.__acfForceRefreshMe && window.__acfForceRefreshMe(); }catch(_e){}
+            }
+          }
+        }catch(_e){
+          try{ window.toast && window.toast("更新失敗"); }catch(_e){}
+        }
+      };
+    }catch(_e){}
     subEl.textContent = "Lv " + String(Number(acc.level || 1)) + (acc.userRegion ? (" · " + String(acc.userRegion)) : "");
 
     avEl.innerHTML = "";
@@ -977,6 +1008,13 @@ white-space: nowrap;
 
   async function boot(){
     await fetchStory();
+    // 強制新手第一次登入時直接打開 ARIA 主線指引
+    try{
+      if(localStorage.getItem("acf_force_story")==="1"){
+        localStorage.removeItem("acf_force_story");
+        setTimeout(()=>open(true), 350);
+      }
+    }catch(_e){}
     try{
       const k = "acf_story_autoshow_" + (new Date().toISOString().slice(0,10));
       if(!sessionStorage.getItem(k) && Number(state.step||1) <= MAX_STEP){
