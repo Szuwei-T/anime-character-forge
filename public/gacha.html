@@ -1880,16 +1880,20 @@ body, .wrap, .page, .acf-page, .container{
   top:0 !important;
   right:calc(18px + 340px + 12px) !important;
 
-  width:200px !important;
+  width:260px !important;
   height:calc(100vh - var(--masterH, 0px)) !important;
 
   background-image:url("/ui/frame/gacha_featured.webp") !important;
   background-size:100% !important;
   background-repeat:no-repeat !important;
-  background-position:center !important;
 
   z-index:30 !important;
   pointer-events:none !important;
+
+  background-position:top;
+  display:flex;
+  align-items:top;
+  justify-content:top;
 
   filter:
     drop-shadow(0 18px 40px rgba(0,0,0,0.65))
