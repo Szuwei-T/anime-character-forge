@@ -1232,3 +1232,48 @@ white-space: nowrap;
 
   window.ACF_ARIA_WIDGET = { boot, setState, showBubble };
 })();
+
+
+// ================================
+// CLAIM AWAKEN REWARD HANDLER
+// ================================
+async function act(kind){
+
+  if(kind === "claim_awaken"){
+
+    try{
+
+      const res = await fetch("/api/story/claim-awaken",{
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json",
+          "x-user-id": localStorage.getItem("acf_uid") || ""
+        }
+      });
+
+      const data = await res.json();
+
+      if(data.ok){
+
+        alert("獲得覺醒獎勵！\n角色素材券 x1\n服裝素材券 x1");
+
+        if(window.state){
+          state.step = 2;
+          if(window.saveStory) await saveStory();
+        }
+
+        if(window.hideStory) hideStory();
+
+      }else{
+        alert(data.error || "領取失敗");
+      }
+
+    }catch(e){
+      console.error(e);
+      alert("領取失敗");
+    }
+
+    return;
+  }
+
+}
