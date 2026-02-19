@@ -1828,6 +1828,51 @@ body, .wrap, .page, .acf-page, .container{
   text-shadow: 0 2px 10px rgba(0,0,0,0.85);
 }
 
+
+/* ===== Overlays on video corners (above panels) ===== */
+.featuredIconOverlay{
+  position:absolute;
+  top:18px;
+  left:calc(18px + 340px + 12px); /* right of leftOverlay */
+  width:160px;
+  height:auto;
+  z-index: 30;
+  pointer-events:none;
+  filter:
+    drop-shadow(0 10px 24px rgba(0,0,0,0.60))
+    drop-shadow(0 0 16px rgba(255,215,120,0.40));
+}
+
+.gachaRateOverlay{
+  position:absolute;
+  top:18px;
+  right:calc(18px + 340px + 12px); /* left of rightOverlay */
+  width:260px;
+  height:80px;
+  background-image:url("/ui/frame/gacha_featured.webp");
+  background-size:contain;
+  background-repeat:no-repeat;
+  background-position:center;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index: 30;
+  pointer-events:none;
+  filter:
+    drop-shadow(0 12px 26px rgba(0,0,0,0.60))
+    drop-shadow(0 0 18px rgba(255,200,80,0.40));
+}
+.gachaRateOverlay span{
+  font-weight:950;
+  font-size:20px;
+  letter-spacing:1px;
+  color:#fff;
+  text-shadow:
+    0 2px 6px rgba(0,0,0,0.85),
+    0 0 12px rgba(255,215,120,0.5);
+  transform: translateY(2px);
+}
+
 </style>
 </head>
 <body>
@@ -1837,6 +1882,9 @@ body, .wrap, .page, .acf-page, .container{
 <div class="particles"></div>
 <div class="wrap">
 <div class="heroStage" id="heroStage">
+  <img src="/ui/icon/Featured.webp" class="featuredIconOverlay" alt="Featured">
+  <div class="gachaRateOverlay"><span>素材獲得機率</span></div>
+
 <div class="featureStage" id="featureStage">
 <div class="featuredTitleOverlay">本期 Featured 角色</div>
 <div aria-hidden="true" class="promoTag">
