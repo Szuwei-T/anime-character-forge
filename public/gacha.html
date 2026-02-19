@@ -1996,7 +1996,7 @@ body, .wrap, .page, .acf-page, .container{
 <div class="guarantee"><img src="/ui/icon/Rarity_SR.webp" class="rarityBadge" alt="SR"></div>
 </div>
 </div>
-<div class="pity" id="pityNormal">再抽200次 <img src="/ui/icon/Rarity_SSR.webp" class="rarityBadge" alt="SSR"></div>
+<div class="pity" id="pityNormal">再抽200次</div> 必出<img src="/ui/icon/Rarity_SSR.webp" class="rarityBadge" alt="SSR">
 </div>
 <div class="gachaCard goldPanel">
 <div class="gachaHead">
@@ -2006,15 +2006,15 @@ body, .wrap, .page, .acf-page, .container{
 <div class="drawRow">
 <div class="drawCol">
 <button class="btn blue small" id="btnPremium1">1次</button>
-<div class="cost">cost 10gem</div>
+<div class="cost">Gem x10</div>
 </div>
 <div class="drawCol">
 <button class="btn blue small" id="btnPremium10">10次</button>
-<div class="cost">cost 100gem</div>
-<div class="guarantee"><img src="/ui/icon/Rarity_SSR.webp" class="rarityBadge" alt="SSR">以上</div>
+<div class="cost">Gem x100</div>
+<div class="guarantee">必出<img src="/ui/icon/Rarity_SSR.webp" class="rarityBadge" alt="SSR">以上</div>
 </div>
 </div>
-<div class="pity" id="pityPremium">再抽200次 <img src="/ui/icon/Rarity_UR.webp" class="rarityBadge" alt="UR"></div>
+<div class="pity" id="pityPremium">再抽200次</div> 必出<img src="/ui/icon/Rarity_UR.webp" class="rarityBadge" alt="UR">
 </div>
 </div></div>
 </div>
@@ -2315,7 +2315,7 @@ async function onlineGacha(opts = {}) {
 function setPityText(el, remaining, label){
   if(!el) return;
   const x = Math.max(1, Number(remaining || 0));
-  el.textContent = `再抽${x}次 必出${label}`;
+  el.textContent = `再抽${x}次`;
 }
 
 function updatePityUI(data){
