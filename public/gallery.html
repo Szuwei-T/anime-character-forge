@@ -698,6 +698,32 @@ body{
 }
 .followBtn .icon{ width:16px; height:16px; }
 
+
+    /* ===== Fav + Author ranks side-by-side ===== */
+    .rankRow{
+      display:flex;
+      gap:16px;
+      align-items:flex-start;
+      width:100%;
+      margin-top: 8px;
+      margin-bottom: 10px;
+    }
+    #favRankWrap{ flex: 1 1 68%; }
+    #authorRankWrap{ flex: 1 1 32%; }
+
+    /* Hot author list vertical (top-to-bottom) */
+    #authorRankGrid.authorGrid{
+      display:flex !important;
+      flex-direction:column;
+      gap:12px;
+    }
+    #authorRankGrid .authorCard{ width:100%; }
+
+    @media (max-width: 1100px){
+      .rankRow{ flex-direction:column; }
+      #favRankWrap, #authorRankWrap{ flex: 1 1 auto; }
+    }
+
 </style>
 
   <link rel="stylesheet" href="style.css" />
@@ -737,6 +763,8 @@ body{
         <div class="recGrid" id="recGrid"></div>
       </div>
 
+      <div class="rankRow" id="favAuthorRow">
+
       <div class="recWrap" id="favRankWrap">
         <div class="recTitle">
           <div class="h">💖 收藏榜</div>
@@ -760,6 +788,9 @@ body{
         </div>
         <div class="authorGrid" id="authorRankGrid"></div>
       </div>
+
+
+    </div>
 
       <div class="entries" id="grid"></div>
     </div>
