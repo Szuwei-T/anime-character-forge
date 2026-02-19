@@ -730,6 +730,18 @@ white-space: nowrap;
       const me = await fetchMeAccount();
       renderMaster(me);
       refreshNetBadge();
+
+      window.__acfForceRefreshMe = async () => {
+        try{
+          const me2 = await fetchMeAccount();
+          renderMaster(me2);
+          refreshNetBadge();
+        }catch(_e){}
+      };
+
+      try{ window.ACF_GUIDE && window.ACF_GUIDE.boot && window.ACF_GUIDE.boot(); }catch(_e){}
+      try{ window.ACF_MONTHLY && window.ACF_MONTHLY.boot && window.ACF_MONTHLY.boot(); }catch(_e){}
+      try{ window.ACF_ARIA_WIDGET && window.ACF_ARIA_WIDGET.boot && window.ACF_ARIA_WIDGET.boot(); }catch(_e){}
     }catch(_e){
       renderMaster(null);
       refreshNetBadge();
@@ -749,7 +761,10 @@ white-space: nowrap;
 
 
 
-// ===== Persistent ARIA NPC Widget =====
+
+
+
+// ===== Persistent ARIA NPC Widget (commercial-grade) =====
 (function(){
   const IMAGES = {
     default: "/ui/npc/aria_default.webp",
@@ -760,56 +775,236 @@ white-space: nowrap;
     full: "/ui/npc/aria_full.webp"
   };
 
+  const STYLE_ID = "acfAriaWidgetStyle";
+
+  let lastHintKey = "";
+  let currentState = "default";
+
+  function ensureStyle(){
+    if(document.getElementById(STYLE_ID)) return;
+    const s = document.createElement("style");
+    s.id = STYLE_ID;
+    s.textContent = `
+      @keyframes acfAriaFloat{
+        0%{ transform: translateY(0) }
+        50%{ transform: translateY(-8px) }
+        100%{ transform: translateY(0) }
+      }
+      @keyframes acfAriaPulse{
+        0%{ box-shadow: 0 0 0 0 rgba(255,205,90,.18) }
+        70%{ box-shadow: 0 0 0 14px rgba(255,205,90,0) }
+        100%{ box-shadow: 0 0 0 0 rgba(255,205,90,0) }
+      }
+      #acfAriaWidget{
+        position: fixed;
+        right: 12px;
+        bottom: 86px;
+        z-index: 99999;
+        cursor: pointer;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+      #acfAriaWidget .acfAriaWrap{
+        position: relative;
+        animation: acfAriaFloat 3.2s ease-in-out infinite;
+      }
+      #acfAriaWidgetImg{
+        width: 120px;
+        height: auto;
+        display: block;
+        filter: drop-shadow(0 12px 28px rgba(0,0,0,.52));
+        transition: transform .18s ease, filter .18s ease, opacity .18s ease;
+      }
+      #acfAriaWidget:hover #acfAriaWidgetImg{
+        transform: scale(1.08);
+        filter: drop-shadow(0 18px 34px rgba(0,0,0,.68));
+      }
+      #acfAriaBadge{
+        position:absolute;
+        right: 6px;
+        top: 10px;
+        width: 12px;
+        height: 12px;
+        border-radius: 999px;
+        background: rgba(255,205,90,.95);
+        border: 1px solid rgba(0,0,0,.45);
+        display:none;
+        animation: acfAriaPulse 1.4s ease-out infinite;
+      }
+      #acfAriaBubble{
+        position:absolute;
+        right: 126px;
+        bottom: 28px;
+        max-width: 260px;
+        padding: 10px 12px;
+        border-radius: 14px;
+        background: rgba(10,14,22,.84);
+        border: 1px solid rgba(255,255,255,.16);
+        color: rgba(255,255,255,.92);
+        font-size: 12px;
+        line-height: 1.45;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 18px 46px rgba(0,0,0,.46);
+        display:none;
+      }
+      #acfAriaBubble:after{
+        content:"";
+        position:absolute;
+        right: -6px;
+        bottom: 14px;
+        width: 10px;
+        height: 10px;
+        background: rgba(10,14,22,.84);
+        border-right: 1px solid rgba(255,255,255,.16);
+        border-bottom: 1px solid rgba(255,255,255,.16);
+        transform: rotate(-45deg);
+      }
+      @media (max-width: 720px){
+        #acfAriaWidgetImg{ width: 102px }
+        #acfAriaBubble{ right: 110px; max-width: 220px }
+      }
+    `;
+    document.head.appendChild(s);
+  }
+
   function ensureWidget(){
     if(document.getElementById("acfAriaWidget")) return;
+    ensureStyle();
+
+    const root = document.createElement("div");
+    root.id = "acfAriaWidget";
 
     const wrap = document.createElement("div");
-    wrap.id = "acfAriaWidget";
-    wrap.style.cssText = `
-      position:fixed;
-      right:12px;
-      bottom:80px;
-      z-index:99999;
-      cursor:pointer;
-      user-select:none;
-      transition:transform .2s ease;
-    `;
+    wrap.className = "acfAriaWrap";
 
     const img = document.createElement("img");
     img.id = "acfAriaWidgetImg";
-    img.src = IMAGES.guide;
-    img.style.cssText = `
-      width:110px;
-      height:auto;
-      filter:drop-shadow(0 10px 25px rgba(0,0,0,.45));
-      transition:transform .2s ease, filter .2s ease;
-    `;
+    img.alt = "ARIA";
+    img.src = IMAGES.default;
+
+    const badge = document.createElement("div");
+    badge.id = "acfAriaBadge";
+
+    const bubble = document.createElement("div");
+    bubble.id = "acfAriaBubble";
 
     wrap.appendChild(img);
+    wrap.appendChild(badge);
+    wrap.appendChild(bubble);
+    root.appendChild(wrap);
 
-    wrap.addEventListener("mouseenter", ()=>{
-      img.style.transform = "scale(1.08)";
-      img.style.filter = "drop-shadow(0 14px 30px rgba(0,0,0,.65))";
-    });
-
-    wrap.addEventListener("mouseleave", ()=>{
-      img.style.transform = "scale(1)";
-      img.style.filter = "drop-shadow(0 10px 25px rgba(0,0,0,.45))";
-    });
-
-    wrap.addEventListener("click", ()=>{
+    root.addEventListener("click", ()=>{
+      hideBubble();
       try{
         if(window.ACF_GUIDE && window.ACF_GUIDE.open){
           window.ACF_GUIDE.open();
         }
-      }catch(e){}
+      }catch(_e){}
     });
 
-    document.body.appendChild(wrap);
+    root.addEventListener("mouseenter", ()=>{
+      if(bubble.textContent) bubble.style.display = "block";
+    });
+
+    root.addEventListener("mouseleave", ()=>{
+      bubble.style.display = "none";
+    });
+
+    document.body.appendChild(root);
   }
 
-  window.ACF_ARIA_WIDGET = {
-    boot: ensureWidget
-  };
+  function setState(next){
+    ensureWidget();
+    const img = document.getElementById("acfAriaWidgetImg");
+    if(!img) return;
+    currentState = IMAGES[next] ? next : "default";
+    img.style.opacity = "0.0";
+    setTimeout(()=>{
+      img.src = IMAGES[currentState] || IMAGES.default;
+      img.style.opacity = "1";
+    }, 90);
+  }
 
+  function setBadge(on){
+    const b = document.getElementById("acfAriaBadge");
+    if(!b) return;
+    b.style.display = on ? "block" : "none";
+  }
+
+  function showBubble(text, key){
+    const bubble = document.getElementById("acfAriaBubble");
+    if(!bubble) return;
+    if(key && key === lastHintKey) return;
+    lastHintKey = key || "";
+    bubble.textContent = text || "";
+    if(!text) return;
+    bubble.style.display = "block";
+    setTimeout(()=>{ try{ bubble.style.display = "none"; }catch(_e){} }, 4200);
+  }
+
+  function hideBubble(){
+    const bubble = document.getElementById("acfAriaBubble");
+    if(bubble) bubble.style.display = "none";
+  }
+
+  function computeState(){
+    let want = "default";
+    let badge = false
+    try{
+      const hasMonthly = window.ACF_MONTHLY && window.ACF_MONTHLY.__cache && window.ACF_MONTHLY.__cache.canClaim;
+      const storyStep = window.ACF_GUIDE && window.ACF_GUIDE.__state && Number(window.ACF_GUIDE.__state.step||1);
+      const storyMax = window.ACF_GUIDE && window.ACF_GUIDE.__maxStep || 6;
+
+      if(hasMonthly){
+        want = "discover";
+        badge = true
+      }else if(storyStep && storyStep <= storyMax){
+        want = "guide";
+        badge = true
+      }else if(storyStep && storyStep > storyMax){
+        want = "success";
+        badge = false
+      }else{
+        want = "default";
+        badge = false
+      }
+    }catch(_e){
+      want = "default";
+      badge = false
+    }
+    return { want, badge };
+  }
+
+  function boot(){
+    ensureWidget();
+    // initial state
+    const s = computeState();
+    setState(s.want);
+    setBadge(s.badge);
+
+    // gentle hints
+    try{
+      const hasMonthly = window.ACF_MONTHLY && window.ACF_MONTHLY.__cache && window.ACF_MONTHLY.__cache.canClaim;
+      if(hasMonthly){
+        showBubble("今天有登入獎勵可以領  點我打開", "monthly");
+      }else{
+        const step = window.ACF_GUIDE && window.ACF_GUIDE.__state && Number(window.ACF_GUIDE.__state.step||1);
+        const max = window.ACF_GUIDE && window.ACF_GUIDE.__maxStep || 6;
+        if(step && step <= max){
+          showBubble("主線任務可以繼續  點我打開", "story");
+        }
+      }
+    }catch(_e){}
+
+    // keep syncing to use all ARIA assets
+    setInterval(()=>{
+      const s2 = computeState();
+      if(s2.want !== currentState){
+        setState(s2.want);
+      }
+      setBadge(s2.badge);
+    }, 1200);
+  }
+
+  window.ACF_ARIA_WIDGET = { boot, setState, showBubble };
 })();
