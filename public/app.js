@@ -834,7 +834,24 @@ white-space: nowrap;
   }
 
   function toastSafe(msg){
-    try{ if(window.toast) window.toast(msg); }catch(_e){}
+    try{
+      if(window.toast){ window.toast(msg); return; }
+    }catch(_e){}
+    try{
+      // fallback lightweight toast
+      let el = document.getElementById("acfTmpToast");
+      if(!el){
+        el = document.createElement("div");
+        el.id = "acfTmpToast";
+        el.style.cssText = "position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:100000;background:rgba(10,14,22,.86);border:1px solid rgba(255,255,255,.16);color:rgba(255,255,255,.92);padding:10px 12px;border-radius:12px;backdrop-filter:blur(10px);box-shadow:0 18px 46px rgba(0,0,0,.46);font-weight:800;letter-spacing:.2px";
+        document.body.appendChild(el);
+      }
+      el.textContent = msg;
+      el.style.display = "block";
+      setTimeout(()=>{ try{ el.style.display = "none"; }catch(_e){} }, 2600);
+      return;
+    }catch(_e){}
+    try{ alert(msg); }catch(_e){}
   }
 
   let state = { step: 1, loaded:false };
@@ -856,6 +873,8 @@ white-space: nowrap;
   }
 
   async function act(kind){
+    try{
+
     const api = window.requireAppApi ? window.requireAppApi() : null;
     if(!api) return;
 
@@ -908,7 +927,12 @@ white-space: nowrap;
     }
 
     // go studio or nothing
-    hide();
+    hide();    }catch(err){
+      console.error("CH0 action failed", kind, err);
+      toastSafe("操作失敗 請看Console或Network");
+      try{ window.ACF_ARIA_WIDGET && window.ACF_ARIA_WIDGET.setState && window.ACF_ARIA_WIDGET.setState("warning"); }catch(_e){}
+    }
+
   }
 
   function open(force){
