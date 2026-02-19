@@ -193,17 +193,6 @@ async function apiFetch(path, options={}){
   }
 }
 
-
-function requireAppApi(){
-  // Returns a function (path, options) => JSON response
-  // Uses apiFetch which already injects x-user-id and handles offline.
-  return async (path, options={}) => {
-    return await apiFetch(path, options || {});
-  };
-}
-try{ window.requireAppApi = requireAppApi; }catch(_e){}
-
-
 async function initSession(){
   APP.uid = getOrCreateUid();
   syncUidAliases(APP.uid);
@@ -687,7 +676,7 @@ white-space: nowrap;
 
     box.style.display = "block";
     nameEl.textContent = String(acc.userName || "Player");
-    subEl.textContent = "Lv " + String(Number(acc.level || 1)) + (acc.userRegion ? (" · " + String(acc.userRegion)) : "");
+    subEl.textContent = "Lv " + String(Number(acc.level || 1)) + (acc.userRegion ? (" · " + String(acc.userRegion)) : "") + " · Score " + String(Number(acc.accountScore||0));
 
     avEl.innerHTML = "";
     if(me.avatarSave){
