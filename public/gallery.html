@@ -884,19 +884,13 @@ body{
         }
 
         let uid = (localStorage.getItem("acf_uid") || localStorage.getItem("uid") || localStorage.getItem("userId") || localStorage.getItem("userid") || "").trim();
-
-        function isLoggedIn(){
-          try{ return (window.ACF_isLoggedIn ? window.ACF_isLoggedIn() : !!localStorage.getItem("acf_token")); }catch(_e){ return false; }
-        }
-
-        async function ensureAuth(){
-          if(isLoggedIn()) return true;
-          if(window.ACF_openAuthOverlay){
-            const ok = await window.ACF_openAuthOverlay("login");
-            return ok && isLoggedIn();
-          }
-          return false;
-        }
+function requireAuth(action){
+        if(uid) return true;
+        if(window.ACF_requireAuth) return window.ACF_requireAuth(action||"");
+        if(window.ACF_openAuthOverlay) window.ACF_openAuthOverlay(action||"");
+        showToast(window.ACF_t?window.ACF_t("auth_need_login"):"Please login");
+        return false;
+      }
 
         if(!uid) uid = getOrCreateUid();
         try{ const u = new URL(location.href).searchParams.get("uid"); if(u) uid = String(u).trim(); }catch(_){}
@@ -931,9 +925,9 @@ body{
       }
 
       async function toggleFollow(targetUserId){
-        if(!isLoggedIn()){
-          const ok = await ensureAuth();
-          if(!ok) return;
+        if(!uid){
+          showToast(window.ACF_t?window.ACF_t("auth_need_login"):"Please login");
+          return (window.ACF_openAuthOverlay?window.ACF_openAuthOverlay(""):null, showError(window.ACF_t?window.ACF_t("auth_need_login"):"Please login"));
         }
         const tid = String(targetUserId||"").trim();
         if(!tid) return;
@@ -1262,7 +1256,7 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
 
         async function loadFavorites(){
           favoriteSet = new Set();
-          if(!isLoggedIn()) return;
+          if(!uid) return;
           try{
             const r = await api("/api/me/favorites", { method:"GET" });
             const arr = Array.isArray(r.items) ? r.items : [];
@@ -1274,10 +1268,7 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
         }
 
         async function vote(showcaseId){
-          if(!isLoggedIn()){
-          const ok = await ensureAuth();
-          if(!ok) return;
-        }
+          if(!uid) return (window.ACF_openAuthOverlay?window.ACF_openAuthOverlay(""):null, showError(window.ACF_t?window.ACF_t("auth_need_login"):"Please login"));
           if(userVote <= 0) return showError("票數不足");
           try{
             await api("/api/vote", { method:"POST", body:{ showcaseId } });
@@ -1289,10 +1280,7 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
         }
 
         async function toggleFav(showcaseId){
-          if(!isLoggedIn()){
-          const ok = await ensureAuth();
-          if(!ok) return;
-        }
+          if(!uid) return (window.ACF_openAuthOverlay?window.ACF_openAuthOverlay(""):null, showError(window.ACF_t?window.ACF_t("auth_need_login"):"Please login"));
           try{
             if(favoriteSet.has(showcaseId)){
               await api("/api/favorite", { method:"DELETE", body:{ showcaseId } });
@@ -1309,10 +1297,7 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
         }
 
         async function recommend(showcaseId){
-          if(!isLoggedIn()){
-          const ok = await ensureAuth();
-          if(!ok) return;
-        }
+          if(!uid) return (window.ACF_openAuthOverlay?window.ACF_openAuthOverlay(""):null, showError(window.ACF_t?window.ACF_t("auth_need_login"):"Please login"));
           if(userGem < 50) return showError("GEM 不足");
           try{
             await api("/api/recommend", { method:"POST", body:{ showcaseId } });
@@ -1322,7 +1307,7 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
             const code = String(e.error || e.code || "");
             if(code === "max_per_showcase_reached" || code === "recommend_limit") return showError("同一作品同一賽季最多推薦 5 次");
             if(code === "insufficient_gem" || code === "no_gem") return showError("GEM 不足");
-            if(code === "unauthorized") return showError("請先登入");
+            if(code === "unauthorized") return (window.ACF_openAuthOverlay?window.ACF_openAuthOverlay(""):null, showError(window.ACF_t?window.ACF_t("auth_need_login"):"Please login"));
             showError(String(e.error || e.message || "推薦失敗"));
           }
         }
@@ -1541,8 +1526,8 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
                 e.stopPropagation();
                 clearError();
                 if(!uid){
-                  showToast("請先登入");
-                  return showError("請先登入");
+                  showToast(window.ACF_t?window.ACF_t("auth_need_login"):"Please login");
+                  return (window.ACF_openAuthOverlay?window.ACF_openAuthOverlay(""):null, showError(window.ACF_t?window.ACF_t("auth_need_login"):"Please login"));
                 }
                 if(userVote <= 0){
                   showToast("票數已投滿");
@@ -1724,8 +1709,8 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
               e.stopPropagation();
               clearError();
               if(!uid){
-                showToast("請先登入");
-                return showError("請先登入");
+                showToast(window.ACF_t?window.ACF_t("auth_need_login"):"Please login");
+                return (window.ACF_openAuthOverlay?window.ACF_openAuthOverlay(""):null, showError(window.ACF_t?window.ACF_t("auth_need_login"):"Please login"));
               }
               if(userVote <= 0){
                 showToast("票數已投滿");
@@ -1768,8 +1753,8 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
               e.stopPropagation();
               clearError();
               if(!uid){
-                showToast("請先登入");
-                return showError("請先登入");
+                showToast(window.ACF_t?window.ACF_t("auth_need_login"):"Please login");
+                return (window.ACF_openAuthOverlay?window.ACF_openAuthOverlay(""):null, showError(window.ACF_t?window.ACF_t("auth_need_login"):"Please login"));
               }
               if(userGem < 50){
                 showToast("GEM 不足");
@@ -1934,8 +1919,8 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
                 e.stopPropagation();
                 clearError();
                 if(!uid){
-                  showToast("請先登入");
-                  return showError("請先登入");
+                  showToast(window.ACF_t?window.ACF_t("auth_need_login"):"Please login");
+                  return (window.ACF_openAuthOverlay?window.ACF_openAuthOverlay(""):null, showError(window.ACF_t?window.ACF_t("auth_need_login"):"Please login"));
                 }
                 if(userVote <= 0){
                   showToast("票數已投滿");
@@ -1980,8 +1965,8 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
                 e.stopPropagation();
                 clearError();
                 if(!uid){
-                  showToast("請先登入");
-                  return showError("請先登入");
+                  showToast(window.ACF_t?window.ACF_t("auth_need_login"):"Please login");
+                  return (window.ACF_openAuthOverlay?window.ACF_openAuthOverlay(""):null, showError(window.ACF_t?window.ACF_t("auth_need_login"):"Please login"));
                 }
                 if(userGem < 50){
                   showToast("GEM 不足");

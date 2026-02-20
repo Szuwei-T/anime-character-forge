@@ -116,25 +116,21 @@
 
   <script>
   (function(){
+  function requireAuth(action){
+      const token = localStorage.getItem("acf_token");
+      if(token) return true;
+      if(window.ACF_requireAuth) return window.ACF_requireAuth(action||"");
+      if(window.ACF_openAuthOverlay) window.ACF_openAuthOverlay(action||"");
+      return false;
+    }
+
+
     const DEFAULT_WORKER = "https://acf-api.dream-league-baseball.workers.dev";
     const WORKER_BASE = window.WORKER_BASE || localStorage.getItem("acf_worker_base") || DEFAULT_WORKER;
 
     const me = localStorage.getItem("acf_uid") || "";
     const url = new URL(location.href);
     const uid = String(url.searchParams.get("uid") || "").trim();
-
-    function isLoggedIn(){
-      try{ return (window.ACF_isLoggedIn ? window.ACF_isLoggedIn() : !!localStorage.getItem("acf_token")); }catch(_e){ return false; }
-    }
-    async function ensureAuth(){
-      if(isLoggedIn()) return true;
-      if(window.ACF_openAuthOverlay){
-        const ok = await window.ACF_openAuthOverlay("login");
-        return ok && isLoggedIn();
-      }
-      return false;
-    }
-
 
     const grid = document.getElementById("grid");
     const btnBack = document.getElementById("btnBack");
@@ -250,15 +246,7 @@
     }
 
     async function toggleFollow(){
-      if(!isLoggedIn()){
-        const ok = await ensureAuth();
-        if(!ok) return;
-      }
-      if(!me){
-        // after login, reload profile state
-        try{ await loadMe(); }catch(_e){}
-      }
-      if(!me) return;
+      if(!me) return (window.ACF_openAuthOverlay?window.ACF_openAuthOverlay(""):null, showError(window.ACF_t?window.ACF_t("auth_need_login"):"Please login"));
       clearError();
       try{
         if(followingSet.has(uid)){
@@ -334,15 +322,7 @@
 
         favBtn.onclick = async (e)=>{
           e.stopPropagation();
-          if(!isLoggedIn()){
-        const ok = await ensureAuth();
-        if(!ok) return;
-      }
-      if(!me){
-        // after login, reload profile state
-        try{ await loadMe(); }catch(_e){}
-      }
-      if(!me) return;
+          if(!me) return (window.ACF_openAuthOverlay?window.ACF_openAuthOverlay(""):null, showError(window.ACF_t?window.ACF_t("auth_need_login"):"Please login"));
           clearError();
           try{
             await api("/api/favorite", { method:"POST", body:{ showcaseId: s.showcaseId } });

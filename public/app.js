@@ -10,6 +10,177 @@ const WORKER_BASE =
     ? ""
     : "https://acf-api.dream-league-baseball.workers.dev";
 
+
+// ===== i18n fallback (only if i18n module not loaded) =====
+(function(){
+  if(!window.ACF_getLang){
+    window.ACF_getLang = function(){ return localStorage.getItem("acf_lang") || "en"; };
+  }
+  if(!window.ACF_setLang){
+    window.ACF_setLang = function(lang){ localStorage.setItem("acf_lang", lang); location.reload(); };
+  }
+  if(!window.ACF_t){
+    const DICT = {
+      en: {
+        lang_english: "English",
+        lang_zh_hant: "繁體中文",
+        lang_zh_hans: "简体中文",
+        lang_ja: "日本語",
+        lang_ko: "한국어",
+        net_connecting: "Connecting",
+        net_online: "Online",
+        net_offline: "Offline",
+        guest_name: "Guest",
+        guest_sub: "Guest (new)",
+        btn_login: "Login",
+        btn_register: "Register",
+        auth_need_login: "Please login to continue",
+        auth_title: "Login required",
+        auth_desc: "To continue this action, please login or register.",
+        auth_go_index: "Go to Login Page",
+        auth_close: "Close"
+      },
+      "zh-Hant": {
+        lang_english: "English",
+        lang_zh_hant: "繁體中文",
+        lang_zh_hans: "简体中文",
+        lang_ja: "日本語",
+        lang_ko: "한국어",
+        net_connecting: "連線中",
+        net_online: "Online",
+        net_offline: "Offline",
+        guest_name: "遊客",
+        guest_sub: "遊客(新註冊)",
+        btn_login: "登入",
+        btn_register: "註冊",
+        auth_need_login: "請先登入",
+        auth_title: "需要登入",
+        auth_desc: "要進行這個操作，請先登入或註冊。",
+        auth_go_index: "前往登入頁",
+        auth_close: "關閉"
+      },
+      "zh-Hans": {
+        lang_english: "English",
+        lang_zh_hant: "繁體中文",
+        lang_zh_hans: "简体中文",
+        lang_ja: "日本語",
+        lang_ko: "한국어",
+        net_connecting: "连接中",
+        net_online: "Online",
+        net_offline: "Offline",
+        guest_name: "游客",
+        guest_sub: "游客(新注册)",
+        btn_login: "登录",
+        btn_register: "注册",
+        auth_need_login: "请先登录",
+        auth_title: "需要登录",
+        auth_desc: "要进行这个操作，请先登录或注册。",
+        auth_go_index: "前往登录页",
+        auth_close: "关闭"
+      },
+      ja: {
+        lang_english: "English",
+        lang_zh_hant: "繁體中文",
+        lang_zh_hans: "简体中文",
+        lang_ja: "日本語",
+        lang_ko: "한국어",
+        net_connecting: "接続中",
+        net_online: "オンライン",
+        net_offline: "オフライン",
+        guest_name: "ゲスト",
+        guest_sub: "ゲスト(新規)",
+        btn_login: "ログイン",
+        btn_register: "登録",
+        auth_need_login: "ログインしてください",
+        auth_title: "ログインが必要です",
+        auth_desc: "続行するにはログインまたは登録してください。",
+        auth_go_index: "ログイン画面へ",
+        auth_close: "閉じる"
+      },
+      ko: {
+        lang_english: "English",
+        lang_zh_hant: "繁體中文",
+        lang_zh_hans: "简体中文",
+        lang_ja: "日本語",
+        lang_ko: "한국어",
+        net_connecting: "연결 중",
+        net_online: "온라인",
+        net_offline: "오프라인",
+        guest_name: "게스트",
+        guest_sub: "게스트(신규)",
+        btn_login: "로그인",
+        btn_register: "가입",
+        auth_need_login: "로그인해 주세요",
+        auth_title: "로그인 필요",
+        auth_desc: "계속하려면 로그인 또는 가입이 필요합니다.",
+        auth_go_index: "로그인 페이지로",
+        auth_close: "닫기"
+      }
+    };
+    window.ACF_t = function(key){
+      const lang = (window.ACF_getLang ? window.ACF_getLang() : "en");
+      const d = DICT[lang] || DICT.en;
+      return d[key] || (DICT.en[key] || key);
+    };
+  }
+
+  window.ACF_isAuthed = function(){
+    const t = localStorage.getItem("acf_token");
+    return !!(t && String(t).trim());
+  };
+
+  window.ACF_openAuthOverlay = function(action){
+    try{
+      let ov = document.getElementById("acfAuthOverlay");
+      if(!ov){
+        ov = document.createElement("div");
+        ov.id = "acfAuthOverlay";
+        ov.style.position = "fixed";
+        ov.style.inset = "0";
+        ov.style.zIndex = "999999";
+        ov.style.background = "rgba(0,0,0,0.65)";
+        ov.style.display = "flex";
+        ov.style.alignItems = "center";
+        ov.style.justifyContent = "center";
+        ov.style.padding = "16px";
+        ov.innerHTML = `
+          <div style="width:420px;max-width:96vw;background:rgba(15,23,42,0.92);border:1px solid rgba(255,255,255,0.12);border-radius:18px;box-shadow:0 30px 90px rgba(0,0,0,0.65);overflow:hidden;">
+            <div style="padding:16px 18px;border-bottom:1px solid rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:space-between;gap:10px;">
+              <div style="font-weight:900;font-size:16px;">${window.ACF_t("auth_title")}</div>
+              <button id="acfAuthClose" style="border:none;background:transparent;color:rgba(255,255,255,0.85);font-size:14px;cursor:pointer;">${window.ACF_t("auth_close")}</button>
+            </div>
+            <div style="padding:16px 18px;color:rgba(255,255,255,0.85);font-size:13px;line-height:1.6;">
+              <div style="margin-bottom:12px;">${window.ACF_t("auth_desc")}</div>
+              <div style="display:grid;gap:10px;">
+                <button id="acfAuthGoIndex" style="width:100%;padding:12px 12px;border-radius:12px;border:1px solid rgba(255,255,255,0.14);background:linear-gradient(135deg, rgba(96,165,250,0.95), rgba(167,139,250,0.95));color:#fff;font-weight:900;cursor:pointer;">${window.ACF_t("auth_go_index")}</button>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                  <button id="acfAuthLogin" style="width:100%;padding:12px 12px;border-radius:12px;border:1px solid rgba(255,255,255,0.14);background:rgba(2,6,23,0.55);color:#fff;font-weight:800;cursor:pointer;">${window.ACF_t("btn_login")}</button>
+                  <button id="acfAuthRegister" style="width:100%;padding:12px 12px;border-radius:12px;border:1px solid rgba(255,255,255,0.14);background:rgba(2,6,23,0.55);color:#fff;font-weight:800;cursor:pointer;">${window.ACF_t("btn_register")}</button>
+                </div>
+              </div>
+              <div style="margin-top:12px;color:rgba(255,255,255,0.65);font-size:12px;">${action ? ("Action: " + String(action)) : ""}</div>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(ov);
+
+        const close = ()=>{ ov.remove(); };
+        ov.addEventListener("click", (e)=>{ if(e.target === ov) close(); });
+        ov.querySelector("#acfAuthClose").addEventListener("click", close);
+        const go = ()=>{ location.href = "/index"; };
+        ov.querySelector("#acfAuthGoIndex").addEventListener("click", go);
+        ov.querySelector("#acfAuthLogin").addEventListener("click", go);
+        ov.querySelector("#acfAuthRegister").addEventListener("click", go);
+      }
+    }catch(_e){}
+  };
+
+  window.ACF_requireAuth = function(action){
+    if(window.ACF_isAuthed()) return true;
+    window.ACF_openAuthOverlay(action || "");
+    return false;
+  };
+})();
 const IS_OFFLINE = WORKER_BASE === "";
 
 
@@ -46,11 +217,6 @@ const IS_OFFLINE = WORKER_BASE === "";
       recommended: "Recommended",
       vote: "Vote",
       voted: "Voted",
-      login: "Login",
-      register: "Register",
-      guest: "Guest",
-      guest_sub: "New",
-      need_login: "Please login to continue",
 
       // studio / recipes / gallery
       not_selectable: "Not selectable",
@@ -101,11 +267,6 @@ const IS_OFFLINE = WORKER_BASE === "";
       recommended: "已推薦",
       vote: "投票",
       voted: "已投票",
-      login: "登入",
-      register: "註冊",
-      guest: "遊客",
-      guest_sub: "新註冊",
-      need_login: "請先登入再進行操作",
 
       not_selectable: "不可選",
       insufficient_materials: "素材不足",
@@ -154,11 +315,6 @@ const IS_OFFLINE = WORKER_BASE === "";
       recommended: "已推荐",
       vote: "投票",
       voted: "已投票",
-      login: "登录",
-      register: "注册",
-      guest: "游客",
-      guest_sub: "新注册",
-      need_login: "请先登录再进行操作",
 
       not_selectable: "不可选",
       insufficient_materials: "素材不足",
@@ -207,11 +363,6 @@ const IS_OFFLINE = WORKER_BASE === "";
       recommended: "おすすめ済み",
       vote: "投票",
       voted: "投票済み",
-      login: "ログイン",
-      register: "登録",
-      guest: "ゲスト",
-      guest_sub: "新規",
-      need_login: "続行するにはログインしてください",
 
       not_selectable: "選択不可",
       insufficient_materials: "素材不足",
@@ -260,11 +411,6 @@ const IS_OFFLINE = WORKER_BASE === "";
       recommended: "추천됨",
       vote: "투표",
       voted: "투표됨",
-      login: "로그인",
-      register: "회원가입",
-      guest: "게스트",
-      guest_sub: "신규",
-      need_login: "계속하려면 로그인하세요",
 
       not_selectable: "선택 불가",
       insufficient_materials: "소재 부족",
@@ -529,59 +675,6 @@ async function apiFetch(path, options={}){
   const headers = Object.assign({}, (options && options.headers) ? options.headers : {});
   if(uid) headers["x-user-id"] = headers["x-user-id"] || headers["X-User-Id"] || headers["X-USER-ID"] || uid;
   try{ const tok = localStorage.getItem("acf_token"); if(tok && !headers["x-session-token"]) headers["x-session-token"] = tok; }catch(_e){}
-
-  function isLoggedIn(){
-    try{ return !!localStorage.getItem("acf_token"); }catch(_e){ return false; }
-  }
-  window.ACF_isLoggedIn = isLoggedIn;
-
-  function openAuthOverlay(mode){
-    return new Promise((resolve)=>{
-      try{ document.getElementById("acfAuthOverlay")?.remove(); }catch(_e){}
-      const ov = el("div","acf-authOverlay");
-      ov.id = "acfAuthOverlay";
-      const m = encodeURIComponent(String(mode||"login"));
-      ov.innerHTML = `
-        <div class="acf-authBackdrop"></div>
-        <div class="acf-authPanel">
-          <button class="acf-authClose" type="button" aria-label="Close">×</button>
-          <iframe class="acf-authFrame" src="index.html?overlay=1&mode=${m}" title="Auth"></iframe>
-        </div>
-      `;
-      document.body.appendChild(ov);
-
-      const close = (ok)=>{
-        window.removeEventListener("message", onMsg);
-        try{ ov.remove(); }catch(_e){}
-        resolve(!!ok);
-      };
-
-      const onMsg = (ev)=>{
-        try{
-          if(!ev || !ev.data) return;
-          if(ev.data && ev.data.type === "acf_auth_ok"){
-            close(true);
-            // refresh master header without forcing a full reload
-            try{ fetchMeAccount().then(renderMaster).catch(()=>renderMaster(null)); }catch(_e){}
-          }
-        }catch(_e){}
-      };
-
-      window.addEventListener("message", onMsg);
-
-      ov.querySelector(".acf-authBackdrop")?.addEventListener("click", ()=>close(false));
-      ov.querySelector(".acf-authClose")?.addEventListener("click", ()=>close(false));
-    });
-  }
-  window.ACF_openAuthOverlay = openAuthOverlay;
-
-  async function ensureAuth(){
-    if(isLoggedIn()) return true;
-    const ok = await openAuthOverlay("login");
-    return ok && isLoggedIn();
-  }
-  window.ACF_ensureAuth = ensureAuth;
-
 
   const hasBody = options && options.body !== undefined && options.body !== null;
 
@@ -1129,18 +1222,33 @@ fixed.appendChild(bar);
     const avEl = document.getElementById("acfMasterAvatar");
     const statsEl = document.getElementById("acfMasterStats");
 
+    const isAuthed = (window.ACF_isAuthed ? window.ACF_isAuthed() : !!localStorage.getItem("acf_token"));
+
+    // Guest browse mode: still show header even without account
     if(!me || !me.account){
       box.style.display = "block";
-      nameEl.textContent = t("guest");
-      subEl.textContent = t("guest_sub");
-      avEl.innerHTML = '<div class="acf-guestCircle">G</div>';
+      const gName = (window.ACF_t ? window.ACF_t("guest_name") : "Guest");
+      const gSub = (window.ACF_t ? window.ACF_t("guest_sub") : "Guest");
+      nameEl.textContent = gName;
+      subEl.textContent = gSub;
+      avEl.innerHTML = "";
+      const d = document.createElement("div");
+      d.className = "acf-initials";
+      d.textContent = (gName||"G").slice(0,2).toUpperCase();
+      avEl.appendChild(d);
 
-      statsEl.innerHTML = `
-        <button class="acf-authBtn" id="acfBtnLogin">${t("login")}</button>
-        <button class="acf-authBtn" id="acfBtnRegister">${t("register")}</button>
-      `;
-      q("#acfBtnLogin", statsEl)?.addEventListener("click", ()=>openAuthOverlay("login"));
-      q("#acfBtnRegister", statsEl)?.addEventListener("click", ()=>openAuthOverlay("register"));
+      // stats area: login/register buttons
+      if(statsEl){
+        statsEl.innerHTML = `
+          <button class="acf-authBtn" id="acfBtnLogin">${window.ACF_t?window.ACF_t("btn_login"):"Login"}</button>
+          <button class="acf-authBtn" id="acfBtnRegister">${window.ACF_t?window.ACF_t("btn_register"):"Register"}</button>
+        `;
+        const go = ()=>{ location.href = "/index"; };
+        const bl = document.getElementById("acfBtnLogin");
+        const br = document.getElementById("acfBtnRegister");
+        bl && bl.addEventListener("click", go);
+        br && br.addEventListener("click", go);
+      }
 
       setBodyOffset();
       return;
@@ -1239,21 +1347,6 @@ async function initMasterHeader(){
       refreshNetBadge();
     }
 
-
-    // guest access rule: allow browsing gallery without login.
-    try{
-      if(!isLoggedIn()){
-        const fn = (location.pathname || "").split("/").pop().toLowerCase();
-        const allow = (fn === "" || fn === "index.html" || fn === "gallery.html" || fn === "gallery");
-        if(!allow){
-          openAuthOverlay("login").then((ok)=>{
-            if(!ok && !isLoggedIn()){
-              try{ location.href = "gallery.html"; }catch(_e){}
-            }
-          });
-        }
-      }
-    }catch(_e){}
     window.addEventListener("resize", ()=>setBodyOffset(), { passive:true });
   }
 
