@@ -29,289 +29,6 @@ function toast(msg){
   el._t = setTimeout(()=>el.classList.add("hidden"), 2400);
 }
 
-
-/* =========================
-   i18n (auto + in-game switch)
-========================= */
-const ACF_I18N = (function(){
-  const STR = {
-    "en": {
-      net_connecting:"Connecting",
-      net_online:"Online",
-      net_offline:"Offline",
-      player_default:"Player",
-      lv:"Lv",
-      score:"Score",
-      region_na:"NA",
-      lang_label:"Language",
-      studio_unselectable:"Unavailable",
-      studio_not_enough_assets:"Not enough assets",
-      recipes_total_builds:"Total {n} builds",
-      recipes_total_recipes:"Total {n} recipes",
-      recipes_set_avatar:"Set as Avatar",
-      recipes_current_avatar:"Current Avatar",
-      recipes_showcase:"Showcase",
-      recipes_showcasing:"Showcasing",
-      recipes_locked:"Locked",
-      loading:"Loading",
-      gallery_follow:"Follow",
-      gallery_followed:"Following",
-      gallery_favorite:"Favorite",
-      gallery_favorited:"Favorited",
-      gallery_recommend:"Recommend",
-      gallery_recommended:"Recommended",
-      gallery_vote:"Vote",
-      gallery_voted:"Voted",
-      gacha_topup_msg:"Top up Gold and Gems to enhance your pulls",
-      gacha_go_shop:"Go to Shop",
-      gacha_drop_rate:"Drop Rate",
-      gacha_pity:"Guaranteed in {n} pulls",
-      gacha_guaranteed:"Guaranteed",
-      gacha_or_above:"or above",
-      shop_bonus:"Bonus",
-      shop_buy_now:"Buy Now",
-      shop_checkout:"Stripe Checkout",
-      shop_balance_note:"Balance will not update instantly. It will update after Stripe webhook is received to prevent client-side cheating."
-    },
-    "zh-Hant": {
-      net_connecting:"連線中",
-      net_online:"Online",
-      net_offline:"Offline",
-      player_default:"Player",
-      lv:"Lv",
-      score:"Score",
-      region_na:"NA",
-      lang_label:"語言",
-      studio_unselectable:"不可選",
-      studio_not_enough_assets:"素材不足",
-      recipes_total_builds:"共 {n} 個成品",
-      recipes_total_recipes:"共 {n} 張 Recipes",
-      recipes_set_avatar:"設為頭像",
-      recipes_current_avatar:"當前頭像",
-      recipes_showcase:"展示",
-      recipes_showcasing:"展示中",
-      recipes_locked:"未解鎖",
-      loading:"讀取中",
-      gallery_follow:"關注",
-      gallery_followed:"已關注",
-      gallery_favorite:"收藏",
-      gallery_favorited:"已收藏",
-      gallery_recommend:"推薦",
-      gallery_recommended:"已推薦",
-      gallery_vote:"投票",
-      gallery_voted:"已投票",
-      gacha_topup_msg:"補充 Gold 與 Gem 立刻提升抽卡體驗",
-      gacha_go_shop:"前往 Shop",
-      gacha_drop_rate:"素材獲得機率",
-      gacha_pity:"再抽 {n} 次必出",
-      gacha_guaranteed:"必出",
-      gacha_or_above:"以上",
-      shop_bonus:"加送",
-      shop_buy_now:"立即購買",
-      shop_checkout:"Stripe Checkout",
-      shop_balance_note:"餘額不會立即更新，需等待 Stripe webhook 回寫以防止前端作弊。"
-    },
-    "zh-Hans": {
-      net_connecting:"连接中",
-      net_online:"在线",
-      net_offline:"离线",
-      player_default:"玩家",
-      lv:"等级",
-      score:"评分",
-      region_na:"北美",
-      lang_label:"语言",
-      studio_unselectable:"不可选",
-      studio_not_enough_assets:"素材不足",
-      recipes_total_builds:"共 {n} 个成品",
-      recipes_total_recipes:"共 {n} 张 Recipes",
-      recipes_set_avatar:"设为头像",
-      recipes_current_avatar:"当前头像",
-      recipes_showcase:"展示",
-      recipes_showcasing:"展示中",
-      recipes_locked:"未解锁",
-      loading:"读取中",
-      gallery_follow:"关注",
-      gallery_followed:"已关注",
-      gallery_favorite:"收藏",
-      gallery_favorited:"已收藏",
-      gallery_recommend:"推荐",
-      gallery_recommended:"已推荐",
-      gallery_vote:"投票",
-      gallery_voted:"已投票",
-      gacha_topup_msg:"补充 Gold 与 Gem 立刻提升抽卡体验",
-      gacha_go_shop:"前往 Shop",
-      gacha_drop_rate:"素材获得概率",
-      gacha_pity:"再抽 {n} 次必出",
-      gacha_guaranteed:"必出",
-      gacha_or_above:"以上",
-      shop_bonus:"加送",
-      shop_buy_now:"立即购买",
-      shop_checkout:"Stripe Checkout",
-      shop_balance_note:"余额不会立即更新，需要等待 Stripe webhook 回写以防前端作弊。"
-    },
-    "ja": {
-      net_connecting:"接続中",
-      net_online:"オンライン",
-      net_offline:"オフライン",
-      player_default:"Player",
-      lv:"Lv",
-      score:"Score",
-      region_na:"NA",
-      lang_label:"言語",
-      studio_unselectable:"選択不可",
-      studio_not_enough_assets:"素材不足",
-      recipes_total_builds:"成品 {n} 件",
-      recipes_total_recipes:"Recipes {n} 枚",
-      recipes_set_avatar:"アバターに設定",
-      recipes_current_avatar:"現在のアバター",
-      recipes_showcase:"展示",
-      recipes_showcasing:"展示中",
-      recipes_locked:"未解放",
-      loading:"読み込み中",
-      gallery_follow:"フォロー",
-      gallery_followed:"フォロー中",
-      gallery_favorite:"お気に入り",
-      gallery_favorited:"お気に入り済み",
-      gallery_recommend:"おすすめ",
-      gallery_recommended:"おすすめ済み",
-      gallery_vote:"投票",
-      gallery_voted:"投票済み",
-      gacha_topup_msg:"Gold と Gem を補充してガチャ体験を向上",
-      gacha_go_shop:"ショップへ",
-      gacha_drop_rate:"ドロップ率",
-      gacha_pity:"保証まであと {n} 回",
-      gacha_guaranteed:"保証",
-      gacha_or_above:"以上",
-      shop_bonus:"ボーナス",
-      shop_buy_now:"購入",
-      shop_checkout:"Stripe Checkout",
-      shop_balance_note:"残高はすぐに更新されません。Stripe webhook 反映後に更新されます。"
-    },
-    "ko": {
-      net_connecting:"연결 중",
-      net_online:"온라인",
-      net_offline:"오프라인",
-      player_default:"Player",
-      lv:"Lv",
-      score:"Score",
-      region_na:"NA",
-      lang_label:"언어",
-      studio_unselectable:"선택 불가",
-      studio_not_enough_assets:"소재 부족",
-      recipes_total_builds:"성품 {n}개",
-      recipes_total_recipes:"Recipes {n}장",
-      recipes_set_avatar:"아바타 설정",
-      recipes_current_avatar:"현재 아바타",
-      recipes_showcase:"전시",
-      recipes_showcasing:"전시 중",
-      recipes_locked:"잠김",
-      loading:"로딩 중",
-      gallery_follow:"팔로우",
-      gallery_followed:"팔로잉",
-      gallery_favorite:"즐겨찾기",
-      gallery_favorited:"즐겨찾기됨",
-      gallery_recommend:"추천",
-      gallery_recommended:"추천됨",
-      gallery_vote:"투표",
-      gallery_voted:"투표됨",
-      gacha_topup_msg:"Gold와 Gem을 충전하여 가챠 경험 향상",
-      gacha_go_shop:"상점으로",
-      gacha_drop_rate:"드롭 확률",
-      gacha_pity:"보장까지 {n}회",
-      gacha_guaranteed:"보장",
-      gacha_or_above:"이상",
-      shop_bonus:"보너스",
-      shop_buy_now:"구매",
-      shop_checkout:"Stripe Checkout",
-      shop_balance_note:"잔액은 즉시 업데이트되지 않으며 Stripe webhook 반영 후 업데이트됩니다."
-    }
-  };
-
-  const LANGS = [
-    { code:"en", label:"English" },
-    { code:"zh-Hant", label:"繁體中文" },
-    { code:"zh-Hans", label:"简体中文" },
-    { code:"ja", label:"日本語" },
-    { code:"ko", label:"한국어" }
-  ];
-
-  function normalizeLang(code){
-    const c = String(code||"").toLowerCase();
-    if(c.startsWith("zh-hans")||c.startsWith("zh-cn")||c.startsWith("zh-sg")) return "zh-Hans";
-    if(c.startsWith("zh-hant")||c.startsWith("zh-tw")||c.startsWith("zh-hk")||c.startsWith("zh-mo")) return "zh-Hant";
-    if(c.startsWith("zh")) return "zh-Hant";
-    if(c.startsWith("ja")) return "ja";
-    if(c.startsWith("ko")) return "ko";
-    return "en";
-  }
-
-  function getLang(){
-    return normalizeLang(localStorage.getItem("acf_lang") || navigator.language || "en");
-  }
-
-  function setLang(code){
-    const lang = normalizeLang(code);
-    localStorage.setItem("acf_lang", lang);
-    location.reload();
-  }
-
-  function t(key, vars){
-    const lang = getLang();
-    let s = (STR[lang] && STR[lang][key]) ? STR[lang][key] : ((STR.en && STR.en[key]) ? STR.en[key] : key);
-    if(vars){
-      for(const k in vars){
-        s = s.split("{"+k+"}").join(String(vars[k]));
-      }
-    }
-    return s;
-  }
-
-  function apply(root=document){
-    const nodes = root.querySelectorAll("[data-i18n]");
-    nodes.forEach(n=>{
-      const k = n.getAttribute("data-i18n");
-      if(!k) return;
-      n.textContent = t(k);
-    });
-    const ph = root.querySelectorAll("[data-i18n-placeholder]");
-    ph.forEach(n=>{
-      const k = n.getAttribute("data-i18n-placeholder");
-      if(!k) return;
-      n.setAttribute("placeholder", t(k));
-    });
-    const tt = root.querySelectorAll("[data-i18n-title]");
-    tt.forEach(n=>{
-      const k = n.getAttribute("data-i18n-title");
-      if(!k) return;
-      n.setAttribute("title", t(k));
-    });
-  }
-
-  function makeLangSelect(){
-    const wrap = el("div","acf-langWrap");
-    const sel = el("select","acf-langSel");
-    sel.id = "acfLangSel";
-    LANGS.forEach(o=>{
-      const opt = document.createElement("option");
-      opt.value = o.code;
-      opt.textContent = o.label;
-      sel.appendChild(opt);
-    });
-    sel.value = getLang();
-    sel.addEventListener("change", ()=>setLang(sel.value));
-    wrap.appendChild(sel);
-    return wrap;
-  }
-
-  return { t, apply, getLang, setLang, makeLangSelect };
-})();
-
-window.ACF_t = ACF_I18N.t;
-window.ACF_applyI18n = ACF_I18N.apply;
-window.ACF_getLang = ACF_I18N.getLang;
-window.ACF_setLang = ACF_I18N.setLang;
-/* ========================= */
-
 function syncUidAliases(uid){
   try{
     const id = String(uid || "").trim();
@@ -349,6 +66,39 @@ function getOrCreateUid(){
   syncUidAliases(uid);
   return uid;
 }
+
+
+/* ===== Login gate (production) ===== */
+function isLoggedIn(){
+  try{ return localStorage.getItem("acf_logged_in")==="1"; }catch(_){ return false; }
+}
+
+function setLoggedIn(flag){
+  try{ localStorage.setItem("acf_logged_in", flag ? "1" : "0"); }catch(_){}
+}
+
+function logoutAndReturnToIndex(){
+  try{
+    setLoggedIn(false);
+    sessionStorage.setItem("acf_just_logged_out","1");
+  }catch(_){}
+  const to = (location.pathname || "").toLowerCase().includes("index") ? "index.html" : "index.html";
+  location.replace(to);
+}
+
+function requireLoginGate(){
+  const path = (location.pathname || "").toLowerCase();
+  const isIndex = path.endsWith("/index.html") || path.endsWith("/index") || path === "/" || path.endsWith("/");
+  if(isIndex) return;
+
+  if(!isLoggedIn()){
+    try{ sessionStorage.setItem("acf_login_redirect", location.pathname + location.search + location.hash); }catch(_){}
+    location.replace("index.html");
+  }
+}
+
+/* run gate ASAP */
+try{ requireLoginGate(); }catch(_){}
 
 function getName(){
   return localStorage.getItem("acf_name") || "Player";
@@ -849,7 +599,7 @@ white-space: nowrap;
 
     const net = el("div","acf-masterNet");
     net.id = "acfMasterNet";
-    net.textContent = ACF_t("net_connecting");
+    net.textContent = "Connecting";
 
     txt.appendChild(name);
     txt.appendChild(sub);
@@ -862,8 +612,6 @@ white-space: nowrap;
     stats.id = "acfMasterStats";
 
     bar.appendChild(left);
-    const langSel = ACF_I18N.makeLangSelect();
-    bar.appendChild(langSel);
     bar.appendChild(stats);
     fixed.appendChild(bar);
 
@@ -909,13 +657,13 @@ white-space: nowrap;
     if(!n) return;
     injectMasterNetStyles();
     const s = String(state || "").toLowerCase();
-    let label = ACF_t("net_connecting");
+    let label = "Connecting";
     let cls = "net-connecting";
     if(s === "online"){
-      label = ACF_t("net_online");
+      label = "Online";
       cls = "net-online";
     }else if(s === "offline"){
-      label = ACF_t("net_offline");
+      label = "Offline";
       cls = "net-offline";
     }
     n.textContent = label;
@@ -960,8 +708,8 @@ white-space: nowrap;
     const acc = me.account || {};
 
     box.style.display = "block";
-    nameEl.textContent = String(acc.userName || ACF_t("player_default"));
-    subEl.textContent = ACF_t("lv") + " " + String(Number(acc.level || 1)) + (acc.userRegion ? (" · " + String(acc.userRegion)) : "") + " · " + ACF_t("score") + " " + String(Number(acc.accountScore||0));
+    nameEl.textContent = String(acc.userName || "Player");
+    subEl.textContent = "Lv " + String(Number(acc.level || 1)) + (acc.userRegion ? (" · " + String(acc.userRegion)) : "") + " · Score " + String(Number(acc.accountScore||0));
 
     avEl.innerHTML = "";
     if(me.avatarSave){
@@ -1031,3 +779,6 @@ white-space: nowrap;
     initMasterHeader();
   }
 })();
+
+
+window.ACF_logout = logoutAndReturnToIndex;
