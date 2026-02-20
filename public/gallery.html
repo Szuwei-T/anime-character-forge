@@ -807,10 +807,10 @@ body{
 
       <div class="recWrap" id="newRankWrap">
         <div class="recTitle">
-          <div class="h">🆕 新人榜</div>
-          <div class="sub">註冊 1 個月內 · 依被收藏數排序</div>
+          <div class="h">🆕 新手衝分榜</div>
+          <div class="sub">註冊 1 個月內 · 依帳號評分排序（取最高作品評分）</div>
         </div>
-        <div class="recGrid" id="newRankGrid"></div>
+        <div class="authorGrid" id="newRankGrid"></div>
       </div>
 
       <div class="recWrap" id="authorRankWrap">
@@ -2015,6 +2015,81 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
             authorRankWrap.style.display = "none";
             return;
           }
+
+        function renderNewcomerRank(items){
+          newRankWrap.style.display = "none";
+          newRankGrid.innerHTML = "";
+          const arr = Array.isArray(items) ? items : [];
+          if(!arr.length) return;
+
+          newRankWrap.style.display = "block";
+
+          arr.forEach((a, idx)=>{
+            const card = document.createElement("div");
+            card.className = "authorCard";
+
+            const left = document.createElement("div");
+            left.className = "authorLeft";
+
+            const av = document.createElement("div");
+            av.className = "authorAv";
+
+            const layers = [
+              { id: a.authorAvatarBgId, z: 10 },
+              { id: a.authorAvatarAddon2Id, z: 20 },
+              { id: a.authorAvatarHeadId, z: 30 },
+              { id: a.authorAvatarBodyId, z: 40 },
+              { id: a.authorAvatarAddon1Id, z: 50 },
+            ];
+            let has = false;
+            layers.forEach(L=>{
+              if(!L.id) return;
+              has = true;
+              const img = document.createElement("img");
+              img.src = "/assets/" + String(L.id) + ".png";
+              img.style.zIndex = String(L.z);
+              img.className = "layerImg";
+              av.appendChild(img);
+            });
+            if(!has){
+              const t = document.createElement("div");
+              t.className = "authorInitial";
+              t.textContent = (String(a.userName||"P").trim().slice(0,1) || "P").toUpperCase();
+              av.appendChild(t);
+            }
+
+            const meta = document.createElement("div");
+            meta.className = "authorMeta";
+
+            const name = document.createElement("div");
+            name.className = "authorName";
+            name.textContent = String(a.userName || "Player");
+
+            const sub = document.createElement("div");
+            sub.className = "authorSub";
+            const score = Number(a.accountScore || 0) || 0;
+            const tier = String(a.rankTier || "").trim() || "D";
+            sub.textContent = "Rank " + tier + " · Score " + String(score);
+
+            meta.appendChild(name);
+            meta.appendChild(sub);
+
+            left.appendChild(av);
+            left.appendChild(meta);
+
+            const right = document.createElement("div");
+            right.className = "pill2";
+            right.textContent = "#" + String(idx + 1);
+
+            card.appendChild(left);
+            card.appendChild(right);
+
+            card.onclick = ()=> gotoUserProfile(a.userId);
+
+            newRankGrid.appendChild(card);
+          });
+        }
+
           authorRankWrap.style.display = "block";
 
           list.forEach((a, idx)=>{
@@ -2075,7 +2150,7 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
             ]);
 
             if(favRes && favRes.ok) renderRankShowcaseGrid(favRankWrap, favRankGrid, favRes.items || [], (s)=>"收藏 " + String(Number(s.favorites||0)));
-            if(newRes && newRes.ok) renderRankShowcaseGrid(newRankWrap, newRankGrid, newRes.items || [], (s)=>"新人 · 收藏 " + String(Number(s.favorites||0)));
+            if(newRes && newRes.ok) renderNewcomerRank(newRes.items || []);
             if(authRes && authRes.ok) renderAuthorRank(authRes.items || []);
           }catch(e){
             clearRankings();

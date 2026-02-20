@@ -988,7 +988,7 @@ white-space: nowrap;
 
     if(!me || !me.account){
       // guest mode
-      me = { account: { userName: I18N.t("guest_name"), level: 1, userRegion: "", accountScore: 0, userGold: 0, userGem: 0, userVote: 0 }, avatarSave: null };
+      me = { account: { userName: I18N.t("guest_name"), level: 1, userRegion: "", accountScore: 0, rankTier: "D", userGold: 0, userGem: 0, userVote: 0 }, avatarSave: null };
     }
 
     const acc = me.account || {};
@@ -997,7 +997,7 @@ white-space: nowrap;
 
     box.style.display = "block";
     nameEl.textContent = String(acc.userName || I18N.t("player_name"));
-    subEl.textContent = I18N.t("lv") + " " + String(Number(acc.level || 1)) + (acc.userRegion ? (" · " + String(acc.userRegion)) : "") + " · " + I18N.t("score") + " " + String(Number(acc.accountScore||0)) + (guest ? (" " + I18N.t("guest_sub")) : "");
+    subEl.textContent = I18N.t("lv") + " " + String(Number(acc.level || 1)) + (acc.userRegion ? (" · " + String(acc.userRegion)) : "") + " · Rank " + String(acc.rankTier || "D") + " · " + I18N.t("score") + " " + String(Number(acc.accountScore||0)) + (guest ? (" " + I18N.t("guest_sub")) : "");
 
     avEl.innerHTML = "";
     if(me.avatarSave){
