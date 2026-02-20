@@ -497,7 +497,7 @@
     pointer-events: auto;
   }
   .asset-item.disabled::after{
-    content: "不可選";
+    content: var(--i18n-unselectable, "不可選");
     position: absolute;
     inset: 0;
     display: flex;
@@ -1774,7 +1774,7 @@ q("#randomBtn").addEventListener("click", ()=>{
   const hAll = ownedOptions("head");
   const bAll = ownedOptions("body");
   const gAll = ownedOptions("background");
-  if(hAll.length === 0 || bAll.length === 0 || gAll.length === 0) return toast("素材不足");
+  if(hAll.length === 0 || bAll.length === 0 || gAll.length === 0) return toast(ACF_t("toast_not_enough_assets","素材不足"));
 
   // try a few times to find a compatible full set
   let picked = false;
@@ -1838,7 +1838,7 @@ q("#randomBtn").addEventListener("click", ()=>{
 
 q("#submitBtn").addEventListener("click", async ()=>{
   const payload = { headId: SEL.headId, bodyId: SEL.bodyId, bgId: SEL.bgId, addon1Id: SEL.addon1Id || "", addon2Id: SEL.addon2Id || "", systemScore: Number(window.__systemScore || 0) };
-  if(!payload.headId || !payload.bodyId || !payload.bgId) return toast("素材不足");
+  if(!payload.headId || !payload.bodyId || !payload.bgId) return toast(ACF_t("toast_not_enough_assets","素材不足"));
   if(!isGenderCompatible(payload.headId, payload.bodyId)) return toast("性別不匹配");
   const others = [payload.bodyId, payload.bgId, payload.addon1Id, payload.addon2Id].filter(Boolean);
   if(others.some(id => !isCompatibleWithHead(id))) return toast(ruleHintText() || "素材不匹配");

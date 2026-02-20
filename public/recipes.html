@@ -800,7 +800,7 @@ function fmtTime(ts){
       }
 
       const saves = res.saves || [];
-      statusLine.textContent = "共 " + saves.length + " 個成品";
+      statusLine.textContent = ACF_t("recipes_total_builds","共 {n} 個成品").replace("{n}", String(saves.length));
 
       if (saves.length === 0){
         gridSaves.innerHTML = '<div class="empty">尚未儲存任何成品</div>';
@@ -862,11 +862,11 @@ const meta = document.createElement("div");
         btnAvatar.className = "showBtn";
         btnAvatar.setAttribute("data-role","avatar");
         btnAvatar.setAttribute("data-savedon", String(Number(s.savedOn||0)||0));
-        btnAvatar.textContent = "設為頭像";
+        btnAvatar.textContent = ACF_t("recipes_btn_set_avatar","設為頭像");
         // If this is already the current avatar, lock the button like "展示中"
         const __savedOnNum = Number(s.savedOn || 0) || 0;
         if(__savedOnNum && currentAvatarSavedOn && __savedOnNum === currentAvatarSavedOn){
-          btnAvatar.textContent = "當前頭像";
+          btnAvatar.textContent = ACF_t("recipes_btn_current_avatar","當前頭像");
           btnAvatar.classList.add("disabled");
         }
 
