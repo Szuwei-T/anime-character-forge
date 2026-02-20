@@ -15,6 +15,346 @@ const IS_OFFLINE = WORKER_BASE === "";
 function q(sel, root=document){ return root.querySelector(sel); }
 function qa(sel, root=document){ return Array.from(root.querySelectorAll(sel)); }
 
+/* === ACF i18n (auto language + in-game switch) === */
+(function(){
+  const LANG_KEY = "acf_lang";
+  const SUPPORTED = ["en","zh-Hant","zh-Hans","ja","ko"];
+
+  const STR = {
+    "en": {
+      "lang.name": "English",
+      "net.connecting": "Connecting",
+      "net.online": "Online",
+      "net.offline": "Offline",
+      "master.lv": "Lv",
+      "master.score": "Score",
+      "master.player": "Player",
+      "lang.label": "Language",
+
+      "gallery.sort.new": "Newest",
+      "gallery.sort.top": "Top Score",
+      "gallery.season.all": "All Seasons",
+      "gallery.loading": "Loading",
+      "gallery.podium": "🏆 Season Podium",
+      "gallery.recommended": "🔥 Recommended",
+      "gallery.recommended.sub": "Recommendations ≥ 1 · Sorted by recommendations",
+      "gallery.favRank": "💖 Favorites",
+      "gallery.favRank.sub": "All seasons · Sorted by favorites",
+      "gallery.newcomerRank": "🆕 Newcomers",
+      "gallery.newcomerRank.sub": "Accounts within 30 days · Sorted by favorites",
+      "gallery.authorRank": "👑 Popular Creators",
+      "gallery.authorRank.sub": "All seasons · Sorted by followers",
+
+      "recipes.tab.saves": "My Works",
+      "recipes.tab.recipes": "My Collection",
+      "recipes.preview": "Preview",
+      "recipes.close": "Close",
+
+      "shop.buyNow": "Buy Now",
+      "shop.bonus": "Bonus {n} Gems",
+      "shop.created": "Checkout created. Redirecting",
+      "shop.noWorker": "Worker API Base is empty (offline or WORKER_BASE not set)."
+    },
+    "zh-Hant": {
+      "lang.name": "繁體中文",
+      "net.connecting": "連線中",
+      "net.online": "線上",
+      "net.offline": "離線",
+      "master.lv": "Lv",
+      "master.score": "評分",
+      "master.player": "玩家",
+      "lang.label": "語言",
+
+      "gallery.sort.new": "最新",
+      "gallery.sort.top": "最高分",
+      "gallery.season.all": "全部 Season",
+      "gallery.loading": "讀取中",
+      "gallery.podium": "🏆 本期頒獎台",
+      "gallery.recommended": "🔥 本期推薦",
+      "gallery.recommended.sub": "推薦次數 ≥ 1 · 依推薦次數排序",
+      "gallery.favRank": "💖 收藏榜",
+      "gallery.favRank.sub": "不限賽季 · 依被收藏數排序",
+      "gallery.newcomerRank": "🆕 新手衝分榜",
+      "gallery.newcomerRank.sub": "註冊 30 天內 · 依帳號評分排序",
+      "gallery.authorRank": "👑 熱門作者榜",
+      "gallery.authorRank.sub": "不限賽季 · 依被關注數排序",
+
+      "recipes.tab.saves": "我的成品",
+      "recipes.tab.recipes": "我的收藏",
+      "recipes.preview": "預覽",
+      "recipes.close": "關閉",
+
+      "shop.buyNow": "立即購買",
+      "shop.bonus": "加送 {n} Gem",
+      "shop.created": "已建立 Stripe Checkout，轉跳中",
+      "shop.noWorker": "Worker API Base 為空（看起來你在本機離線模式，或 app.js 的 WORKER_BASE 沒設定）。"
+    },
+    "zh-Hans": {
+      "lang.name": "简体中文",
+      "net.connecting": "连接中",
+      "net.online": "在线",
+      "net.offline": "离线",
+      "master.lv": "Lv",
+      "master.score": "评分",
+      "master.player": "玩家",
+      "lang.label": "语言",
+
+      "gallery.sort.new": "最新",
+      "gallery.sort.top": "最高分",
+      "gallery.season.all": "全部 赛季",
+      "gallery.loading": "读取中",
+      "gallery.podium": "🏆 本期领奖台",
+      "gallery.recommended": "🔥 本期推荐",
+      "gallery.recommended.sub": "推荐次数 ≥ 1 · 按推荐次数排序",
+      "gallery.favRank": "💖 收藏榜",
+      "gallery.favRank.sub": "不限赛季 · 按被收藏数排序",
+      "gallery.newcomerRank": "🆕 新手冲分榜",
+      "gallery.newcomerRank.sub": "注册 30 天内 · 按账号评分排序",
+      "gallery.authorRank": "👑 热门作者榜",
+      "gallery.authorRank.sub": "不限赛季 · 按被关注数排序",
+
+      "recipes.tab.saves": "我的作品",
+      "recipes.tab.recipes": "我的收藏",
+      "recipes.preview": "预览",
+      "recipes.close": "关闭",
+
+      "shop.buyNow": "立即购买",
+      "shop.bonus": "加送 {n} 宝石",
+      "shop.created": "已创建结账页面，正在跳转",
+      "shop.noWorker": "Worker API Base 为空（可能是离线模式，或未设置 WORKER_BASE）。"
+    },
+    "ja": {
+      "lang.name": "日本語",
+      "net.connecting": "接続中",
+      "net.online": "オンライン",
+      "net.offline": "オフライン",
+      "master.lv": "Lv",
+      "master.score": "スコア",
+      "master.player": "プレイヤー",
+      "lang.label": "言語",
+
+      "gallery.sort.new": "新着",
+      "gallery.sort.top": "最高スコア",
+      "gallery.season.all": "全シーズン",
+      "gallery.loading": "読み込み中",
+      "gallery.podium": "🏆 シーズン表彰台",
+      "gallery.recommended": "🔥 おすすめ",
+      "gallery.recommended.sub": "おすすめ回数 ≥ 1 · おすすめ順",
+      "gallery.favRank": "💖 お気に入り",
+      "gallery.favRank.sub": "全シーズン · お気に入り数順",
+      "gallery.newcomerRank": "🆕 新規ランキング",
+      "gallery.newcomerRank.sub": "30日以内 · アカウントスコア順",
+      "gallery.authorRank": "👑 人気クリエイター",
+      "gallery.authorRank.sub": "全シーズン · フォロー数順",
+
+      "recipes.tab.saves": "作品",
+      "recipes.tab.recipes": "コレクション",
+      "recipes.preview": "プレビュー",
+      "recipes.close": "閉じる",
+
+      "shop.buyNow": "購入",
+      "shop.bonus": "ボーナス {n} ジェム",
+      "shop.created": "チェックアウト作成済み。移動中",
+      "shop.noWorker": "Worker API Base が空です（オフライン、または WORKER_BASE 未設定）。"
+    },
+    "ko": {
+      "lang.name": "한국어",
+      "net.connecting": "연결 중",
+      "net.online": "온라인",
+      "net.offline": "오프라인",
+      "master.lv": "Lv",
+      "master.score": "점수",
+      "master.player": "플레이어",
+      "lang.label": "언어",
+
+      "gallery.sort.new": "최신",
+      "gallery.sort.top": "최고 점수",
+      "gallery.season.all": "전체 시즌",
+      "gallery.loading": "불러오는 중",
+      "gallery.podium": "🏆 시즌 시상대",
+      "gallery.recommended": "🔥 추천",
+      "gallery.recommended.sub": "추천 ≥ 1 · 추천순",
+      "gallery.favRank": "💖 즐겨찾기",
+      "gallery.favRank.sub": "전체 시즌 · 즐겨찾기 수",
+      "gallery.newcomerRank": "🆕 신규 랭킹",
+      "gallery.newcomerRank.sub": "30일 이내 · 계정 점수",
+      "gallery.authorRank": "👑 인기 제작자",
+      "gallery.authorRank.sub": "전체 시즌 · 팔로우 수",
+
+      "recipes.tab.saves": "내 작품",
+      "recipes.tab.recipes": "내 컬렉션",
+      "recipes.preview": "미리보기",
+      "recipes.close": "닫기",
+
+      "shop.buyNow": "구매",
+      "shop.bonus": "보너스 {n} 젬",
+      "shop.created": "결제 생성됨. 이동 중",
+      "shop.noWorker": "Worker API Base가 비어 있습니다(오프라인 또는 WORKER_BASE 미설정)."
+    }
+  };
+
+  function normLang(raw){
+    const s = String(raw||"").trim();
+    if(!s) return "";
+    const low = s.toLowerCase();
+    if(low.startsWith("zh-tw") || low.startsWith("zh-hk") || low.startsWith("zh-mo") || low.includes("hant")) return "zh-Hant";
+    if(low.startsWith("zh")) return "zh-Hans";
+    if(low.startsWith("ja")) return "ja";
+    if(low.startsWith("ko")) return "ko";
+    return "en";
+  }
+
+  function getLang(){
+    const saved = localStorage.getItem(LANG_KEY);
+    if(saved && SUPPORTED.includes(saved)) return saved;
+    const detected = normLang(navigator.language || navigator.userLanguage || "en");
+    return SUPPORTED.includes(detected) ? detected : "en";
+  }
+
+  function setLang(lang){
+    const l = SUPPORTED.includes(lang) ? lang : "en";
+    localStorage.setItem(LANG_KEY, l);
+    applyLang(l);
+  }
+
+  function fmt(s, vars){
+    let out = String(s||"");
+    const v = vars || {};
+    out = out.replace(/\{(\w+)\}/g, (_,k)=> (v[k]!==undefined ? String(v[k]) : `{${k}}`));
+    return out;
+  }
+
+  function t(key, fallback, vars){
+    const lang = getLang();
+    const dict = STR[lang] || STR["en"] || {};
+    const base = (dict[key] !== undefined) ? dict[key] : ((STR["en"]||{})[key]);
+    const val = (base !== undefined) ? base : (fallback !== undefined ? fallback : key);
+    return fmt(val, vars);
+  }
+
+  function applyI18nAttrs(root){
+    const r = root || document;
+    r.querySelectorAll("[data-i18n]").forEach(el=>{
+      const key = el.getAttribute("data-i18n");
+      const fb = el.getAttribute("data-i18n-fallback") || el.textContent;
+      el.textContent = t(key, fb);
+    });
+    r.querySelectorAll("[data-i18n-placeholder]").forEach(el=>{
+      const key = el.getAttribute("data-i18n-placeholder");
+      const fb = el.getAttribute("placeholder") || "";
+      el.setAttribute("placeholder", t(key, fb));
+    });
+    r.querySelectorAll("[data-i18n-title]").forEach(el=>{
+      const key = el.getAttribute("data-i18n-title");
+      const fb = el.getAttribute("title") || "";
+      el.setAttribute("title", t(key, fb));
+    });
+  }
+
+  function applyLang(lang){
+    try{ document.documentElement.setAttribute("lang", lang); }catch(_){}
+
+    // Master header bits
+    try{
+      const net = document.getElementById("acfMasterNet");
+      if(net){
+        const s = net.textContent || "";
+        if(s.toLowerCase().includes("connect")) net.textContent = t("net.connecting", s);
+        if(s.toLowerCase() === "online") net.textContent = t("net.online", s);
+        if(s.toLowerCase() === "offline") net.textContent = t("net.offline", s);
+      }
+    }catch(_){}
+
+    // Gallery page (id-based)
+    const p = (location.pathname || "").toLowerCase();
+    if(p.includes("gallery")){
+      try{
+        const sortSel = document.getElementById("sortSel");
+        if(sortSel){
+          const optNew = sortSel.querySelector("option[value='new']");
+          const optTop = sortSel.querySelector("option[value='top']");
+          if(optNew) optNew.textContent = t("gallery.sort.new", optNew.textContent);
+          if(optTop) optTop.textContent = t("gallery.sort.top", optTop.textContent);
+        }
+        const seasonSel = document.getElementById("seasonSel");
+        if(seasonSel){
+          const optAll = seasonSel.querySelector("option[value='']");
+          if(optAll) optAll.textContent = t("gallery.season.all", optAll.textContent);
+        }
+        const statusLine = document.getElementById("statusLine");
+        if(statusLine && /讀取中|loading/i.test(statusLine.textContent||"")) statusLine.textContent = t("gallery.loading", statusLine.textContent);
+
+        const podiumTitle = document.getElementById("podiumTitle");
+        if(podiumTitle) podiumTitle.textContent = t("gallery.podium", podiumTitle.textContent);
+
+        const recWrap = document.getElementById("recWrap");
+        if(recWrap){
+          const h = recWrap.querySelector(".recTitle .h");
+          const sub = document.getElementById("recSub") || recWrap.querySelector(".recTitle .sub");
+          if(h) h.textContent = t("gallery.recommended", h.textContent);
+          if(sub) sub.textContent = t("gallery.recommended.sub", sub.textContent);
+        }
+        const favRankWrap = document.getElementById("favRankWrap");
+        if(favRankWrap){
+          const h = favRankWrap.querySelector(".recTitle .h");
+          const sub = favRankWrap.querySelector(".recTitle .sub");
+          if(h) h.textContent = t("gallery.favRank", h.textContent);
+          if(sub) sub.textContent = t("gallery.favRank.sub", sub.textContent);
+        }
+        const newRankWrap = document.getElementById("newRankWrap");
+        if(newRankWrap){
+          const h = newRankWrap.querySelector(".recTitle .h");
+          const sub = newRankWrap.querySelector(".recTitle .sub");
+          if(h) h.textContent = t("gallery.newcomerRank", h.textContent);
+          if(sub) sub.textContent = t("gallery.newcomerRank.sub", sub.textContent);
+        }
+        const authorRankWrap = document.getElementById("authorRankWrap");
+        if(authorRankWrap){
+          const h = authorRankWrap.querySelector(".recTitle .h");
+          const sub = authorRankWrap.querySelector(".recTitle .sub");
+          if(h) h.textContent = t("gallery.authorRank", h.textContent);
+          if(sub) sub.textContent = t("gallery.authorRank.sub", sub.textContent);
+        }
+      }catch(_){}
+    }
+
+    // Recipes page
+    if(p.includes("recipes")){
+      try{
+        const tabSaves = document.getElementById("tabSaves");
+        const tabRecipes = document.getElementById("tabRecipes");
+        if(tabSaves) tabSaves.textContent = t("recipes.tab.saves", tabSaves.textContent);
+        if(tabRecipes) tabRecipes.textContent = t("recipes.tab.recipes", tabRecipes.textContent);
+        const modalTitle = document.getElementById("modalTitle");
+        if(modalTitle) modalTitle.textContent = t("recipes.preview", modalTitle.textContent);
+        const modalClose = document.getElementById("modalClose");
+        if(modalClose) modalClose.textContent = t("recipes.close", modalClose.textContent);
+        const statusLine = document.getElementById("statusLine");
+        if(statusLine && /讀取中|loading/i.test(statusLine.textContent||"")) statusLine.textContent = t("gallery.loading", statusLine.textContent);
+      }catch(_){}
+    }
+
+    // Apply attributes everywhere (optional)
+    applyI18nAttrs(document);
+  }
+
+  function init(){
+    const l = getLang();
+    applyLang(l);
+  }
+
+  window.ACF_getLang = getLang;
+  window.ACF_setLang = setLang;
+  window.ACF_t = t;
+  window.ACF_applyLang = applyLang;
+
+  if(document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded", init, { once:true });
+  }else{
+    init();
+  }
+})();
+
 function toast(msg){
   let el = q("#toast");
   if(!el){
@@ -331,6 +671,29 @@ window.getName = getName;
         flex-wrap: nowrap;
         min-width: 0;
       }
+       .acf-masterRight{
+         display:flex;
+         align-items:center;
+         justify-content:flex-end;
+         gap: 10px;
+         min-width: 0;
+         pointer-events: auto;
+       }
+       .acf-langSel{
+         pointer-events:auto;
+         height: 36px;
+         padding: 0 10px;
+         border-radius: 12px;
+         border: 1px solid rgba(255,214,102,0.55);
+         background: rgba(12,14,18,0.45);
+         color: rgba(255,245,220,0.92);
+         font-weight: 800;
+         letter-spacing: 0.2px;
+         outline: none;
+         backdrop-filter: blur(8px);
+       }
+       .acf-langSel option{ color: #0b0d12; }
+
 
       /* divider: single centered, no repeat, no cut, no thin border line */
       .acf-masterDivider{
@@ -566,7 +929,7 @@ white-space: nowrap;
 
     const net = el("div","acf-masterNet");
     net.id = "acfMasterNet";
-    net.textContent = "Connecting";
+    net.textContent = (window.ACF_t ? window.ACF_t("net.connecting","Connecting") : "Connecting");
 
     txt.appendChild(name);
     txt.appendChild(sub);
@@ -578,18 +941,33 @@ white-space: nowrap;
     const stats = el("div","acf-masterStats");
     stats.id = "acfMasterStats";
 
-    const ariaBtn = el("div","acf-ariaBtn");
-    ariaBtn.id = "acfAriaBtn";
-    ariaBtn.title = "ARIA";
-    ariaBtn.innerHTML = `<img src="/ui/icon/aria_default.webp" alt="ARIA">`;
-    ariaBtn.onclick = ()=>{
-      if(typeof window.openAriaPanel === "function") return window.openAriaPanel();
-      toast("ARIA 任務系統尚未接入");
-    };
-    stats.appendChild(ariaBtn);
+    const right = el("div","acf-masterRight");
 
-    bar.appendChild(left);
-    bar.appendChild(stats);
+// language select
+const langSel = el("select","acf-langSel");
+langSel.id = "acfLangSel";
+langSel.innerHTML = `
+  <option value="en">EN</option>
+  <option value="zh-Hant">繁</option>
+  <option value="zh-Hans">简</option>
+  <option value="ja">JP</option>
+  <option value="ko">KR</option>
+`;
+// init + bind
+try{
+  if(typeof window.ACF_getLang === "function") langSel.value = window.ACF_getLang();
+}catch(_){}
+langSel.addEventListener("change", ()=>{
+  try{
+    if(typeof window.ACF_setLang === "function") window.ACF_setLang(langSel.value);
+  }catch(_){}
+});
+
+right.appendChild(stats);
+right.appendChild(langSel);
+
+bar.appendChild(left);
+bar.appendChild(right);
     fixed.appendChild(bar);
 
     const div = el("div","acf-masterDivider");
@@ -634,13 +1012,13 @@ white-space: nowrap;
     if(!n) return;
     injectMasterNetStyles();
     const s = String(state || "").toLowerCase();
-    let label = "Connecting";
+    let label = (window.ACF_t ? window.ACF_t("net.connecting","Connecting") : "Connecting");
     let cls = "net-connecting";
     if(s === "online"){
-      label = "Online";
+      label = (window.ACF_t ? window.ACF_t("net.online","Online") : "Online");
       cls = "net-online";
     }else if(s === "offline"){
-      label = "Offline";
+      label = (window.ACF_t ? window.ACF_t("net.offline","Offline") : "Offline");
       cls = "net-offline";
     }
     n.textContent = label;
@@ -685,8 +1063,8 @@ white-space: nowrap;
     const acc = me.account || {};
 
     box.style.display = "block";
-    nameEl.textContent = String(acc.userName || "Player");
-    subEl.textContent = "Lv " + String(Number(acc.level || 1)) + (acc.userRegion ? (" · " + String(acc.userRegion)) : "") + " · Score " + String(Number(acc.accountScore||0));
+    nameEl.textContent = String(acc.userName || (window.ACF_t ? window.ACF_t("master.player","Player") : "Player"));
+    subEl.textContent = (window.ACF_t ? (window.ACF_t("master.lv","Lv") + " ") : "Lv ") + String(Number(acc.level || 1)) + (acc.userRegion ? (" · " + String(acc.userRegion)) : "") + " · " + (window.ACF_t ? window.ACF_t("master.score","Score") : "Score") + " " + String(Number(acc.accountScore||0));
 
     avEl.innerHTML = "";
     if(me.avatarSave){

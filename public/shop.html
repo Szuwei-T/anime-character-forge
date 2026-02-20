@@ -504,13 +504,13 @@ body{
           <div class="packItem">
             <div class="packTop">
               <div class="packPrice">$${p.priceUsd}</div>
-              <div class="packTag">加送 ${p.bonusGems} Gem</div>
+              <div class="packTag">${(window.ACF_t?window.ACF_t("shop.bonus","加送 {n} Gem",{n:p.bonusGems}):("加送 "+p.bonusGems+" Gem"))}</div>
             </div>
             <div class="packLines">
               <div class="packLine">Gold <b>${p.coins}</b></div>
               <div class="packLine">Gem <b>${p.gems}</b></div>
             </div>
-            <button class="packBtn" data-pack="${p.id}">立即購買</button>
+            <button class="packBtn" data-pack="${p.id}">${window.ACF_t?window.ACF_t("shop.buyNow","立即購買"):"立即購買"}</button>
           </div>
         `;
       }
@@ -531,7 +531,7 @@ body{
         const packId = btn.getAttribute("data-pack");
 
         if(!apiBase){
-          showErr("Worker API Base 為空（看起來你在本機離線模式，或 app.js 的 WORKER_BASE 沒設定）。");
+          showErr(window.ACF_t?window.ACF_t("shop.noWorker","Worker API Base 為空（看起來你在本機離線模式，或 app.js 的 WORKER_BASE 沒設定）。"):"Worker API Base 為空（看起來你在本機離線模式，或 app.js 的 WORKER_BASE 沒設定）。");
           return;
         }
 
@@ -550,8 +550,7 @@ body{
               method:"POST",
               headers:{
                 "content-type":"application/json",
-                "x-user-id": uid,
-      "x-session-token": (localStorage.getItem("acf_token") || "")
+                "x-user-id": uid
               },
               body: JSON.stringify({ packId })
             });
@@ -560,7 +559,7 @@ body{
           }
 
           if(!data || !data.url) throw new Error("missing_checkout_url");
-          showOk("已建立 Stripe Checkout，轉跳中");
+          showOk(window.ACF_t?window.ACF_t("shop.created","已建立 Stripe Checkout，轉跳中"):"已建立 Stripe Checkout，轉跳中");
           location.href = data.url;
         }catch(e){
           showErr(String(e && e.message ? e.message : e));
