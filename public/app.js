@@ -12,6 +12,344 @@ const WORKER_BASE =
 
 const IS_OFFLINE = WORKER_BASE === "";
 
+
+/* =========================
+   ACF i18n (production)
+   - Auto detect + manual switch (stored in localStorage: acf_lang)
+   - window.ACF_t(key, vars)
+   - window.ACF_setLang(lang)
+   - window.ACF_getLang()
+   ========================= */
+(function(){
+  const STR = {
+    en: {
+      lang_english: "English",
+      lang_zh_hant: "繁體中文",
+      lang_zh_hans: "简体中文",
+      lang_ja: "日本語",
+      lang_ko: "한국어",
+
+      net_connecting: "Connecting",
+      net_online: "Online",
+      net_offline: "Offline",
+
+      player: "Player",
+      lv: "Lv",
+      score: "Score",
+
+      // common actions
+      follow: "Follow",
+      following: "Following",
+      favorite: "Favorite",
+      favorited: "Favorited",
+      recommend: "Recommend",
+      recommended: "Recommended",
+      vote: "Vote",
+      voted: "Voted",
+
+      // studio / recipes / gallery
+      not_selectable: "Not selectable",
+      insufficient_materials: "Not enough materials",
+      loading: "Loading",
+      locked: "Locked",
+
+      total_builds: "Total {n} builds",
+      total_recipes: "Total {n} recipes",
+
+      set_avatar: "Set as Avatar",
+      current_avatar: "Current Avatar",
+      showcase: "Showcase",
+      showcasing: "Showcasing",
+
+      // gacha / shop
+      go_to: "Go",
+      go_to_shop: "Go to Shop",
+      improve_pulls: "Top up Gold and Gems to enhance your pulls",
+      drop_rate: "Drop Rate",
+      guaranteed_in: "Guaranteed in {n} pulls",
+      guaranteed: "Guaranteed",
+      and_above: "and above",
+      bonus: "Bonus",
+      buy_now: "Buy Now",
+    },
+
+    "zh-Hant": {
+      lang_english: "English",
+      lang_zh_hant: "繁體中文",
+      lang_zh_hans: "简体中文",
+      lang_ja: "日本語",
+      lang_ko: "한국어",
+
+      net_connecting: "連線中",
+      net_online: "Online",
+      net_offline: "Offline",
+
+      player: "玩家",
+      lv: "Lv",
+      score: "評分",
+
+      follow: "關注",
+      following: "已關注",
+      favorite: "收藏",
+      favorited: "已收藏",
+      recommend: "推薦",
+      recommended: "已推薦",
+      vote: "投票",
+      voted: "已投票",
+
+      not_selectable: "不可選",
+      insufficient_materials: "素材不足",
+      loading: "讀取中",
+      locked: "未解鎖",
+
+      total_builds: "共 {n} 個成品",
+      total_recipes: "共 {n} 張 Recipes",
+
+      set_avatar: "設為頭像",
+      current_avatar: "當前頭像",
+      showcase: "展示",
+      showcasing: "展示中",
+
+      go_to: "前往",
+      go_to_shop: "前往 Shop",
+      improve_pulls: "補充 Gold 與 Gem 立刻提升抽卡體驗",
+      drop_rate: "獲得素材機率",
+      guaranteed_in: "再抽 {n} 次必出",
+      guaranteed: "必出",
+      and_above: "以上",
+      bonus: "加送",
+      buy_now: "立即購買",
+    },
+
+    "zh-Hans": {
+      lang_english: "English",
+      lang_zh_hant: "繁體中文",
+      lang_zh_hans: "简体中文",
+      lang_ja: "日本語",
+      lang_ko: "한국어",
+
+      net_connecting: "连接中",
+      net_online: "Online",
+      net_offline: "Offline",
+
+      player: "玩家",
+      lv: "Lv",
+      score: "评分",
+
+      follow: "关注",
+      following: "已关注",
+      favorite: "收藏",
+      favorited: "已收藏",
+      recommend: "推荐",
+      recommended: "已推荐",
+      vote: "投票",
+      voted: "已投票",
+
+      not_selectable: "不可选",
+      insufficient_materials: "素材不足",
+      loading: "读取中",
+      locked: "未解锁",
+
+      total_builds: "共 {n} 个成品",
+      total_recipes: "共 {n} 张 Recipes",
+
+      set_avatar: "设为头像",
+      current_avatar: "当前头像",
+      showcase: "展示",
+      showcasing: "展示中",
+
+      go_to: "前往",
+      go_to_shop: "前往 Shop",
+      improve_pulls: "补充 Gold 与 Gem 立刻提升抽卡体验",
+      drop_rate: "获得素材概率",
+      guaranteed_in: "再抽 {n} 次必出",
+      guaranteed: "必出",
+      and_above: "以上",
+      bonus: "加送",
+      buy_now: "立即购买",
+    },
+
+    ja: {
+      lang_english: "English",
+      lang_zh_hant: "繁體中文",
+      lang_zh_hans: "简体中文",
+      lang_ja: "日本語",
+      lang_ko: "한국어",
+
+      net_connecting: "接続中",
+      net_online: "オンライン",
+      net_offline: "オフライン",
+
+      player: "プレイヤー",
+      lv: "Lv",
+      score: "スコア",
+
+      follow: "フォロー",
+      following: "フォロー中",
+      favorite: "お気に入り",
+      favorited: "お気に入り済み",
+      recommend: "おすすめ",
+      recommended: "おすすめ済み",
+      vote: "投票",
+      voted: "投票済み",
+
+      not_selectable: "選択不可",
+      insufficient_materials: "素材不足",
+      loading: "読み込み中",
+      locked: "未解放",
+
+      total_builds: "合計 {n} 件",
+      total_recipes: "合計 {n} 件",
+
+      set_avatar: "アバターに設定",
+      current_avatar: "現在のアバター",
+      showcase: "表示",
+      showcasing: "表示中",
+
+      go_to: "移動",
+      go_to_shop: "ショップへ",
+      improve_pulls: "Gold と Gem を補充してガチャ体験を向上",
+      drop_rate: "ドロップ率",
+      guaranteed_in: "保証まであと {n} 回",
+      guaranteed: "確定",
+      and_above: "以上",
+      bonus: "ボーナス",
+      buy_now: "購入",
+    },
+
+    ko: {
+      lang_english: "English",
+      lang_zh_hant: "繁體中文",
+      lang_zh_hans: "简体中文",
+      lang_ja: "日本語",
+      lang_ko: "한국어",
+
+      net_connecting: "연결 중",
+      net_online: "온라인",
+      net_offline: "오프라인",
+
+      player: "플레이어",
+      lv: "Lv",
+      score: "점수",
+
+      follow: "팔로우",
+      following: "팔로잉",
+      favorite: "즐겨찾기",
+      favorited: "즐겨찾기됨",
+      recommend: "추천",
+      recommended: "추천됨",
+      vote: "투표",
+      voted: "투표됨",
+
+      not_selectable: "선택 불가",
+      insufficient_materials: "소재 부족",
+      loading: "로딩 중",
+      locked: "잠김",
+
+      total_builds: "총 {n}개",
+      total_recipes: "총 {n}개",
+
+      set_avatar: "아바타로 설정",
+      current_avatar: "현재 아바타",
+      showcase: "전시",
+      showcasing: "전시 중",
+
+      go_to: "이동",
+      go_to_shop: "상점으로",
+      improve_pulls: "Gold와 Gem을 충전하여 가챠 경험 향상",
+      drop_rate: "드롭 확률",
+      guaranteed_in: "보장까지 {n}회",
+      guaranteed: "확정",
+      and_above: "이상",
+      bonus: "보너스",
+      buy_now: "구매",
+    }
+  };
+
+  function normalizeLang(l){
+    if(!l) return "en";
+    const s = String(l).toLowerCase();
+    if(s === "en" || s.startsWith("en-")) return "en";
+    if(s === "ja" || s.startsWith("ja-")) return "ja";
+    if(s === "ko" || s.startsWith("ko-")) return "ko";
+    if(s === "zh-hans" || s === "zh-cn" || s === "zh-sg" || s === "zh-hans-cn") return "zh-Hans";
+    if(s === "zh-hant" || s === "zh-tw" || s === "zh-hk" || s === "zh-mo" || s === "zh-hant-tw") return "zh-Hant";
+    if(s.startsWith("zh")) return "zh-Hant";
+    return "en";
+  }
+
+  function detectLang(){
+    const saved = localStorage.getItem("acf_lang");
+    if(saved) return normalizeLang(saved);
+    return normalizeLang(navigator.language || "en");
+  }
+
+  let LANG = detectLang();
+
+  function t(key, vars){
+    let s = (STR[LANG] && STR[LANG][key]) || (STR.en && STR.en[key]) || key;
+    if(vars){
+      for(const k in vars){
+        s = s.replace(new RegExp("\\{"+k+"\\}","g"), String(vars[k]));
+      }
+    }
+    return s;
+  }
+
+  function setLang(l){
+    LANG = normalizeLang(l);
+    localStorage.setItem("acf_lang", LANG);
+  }
+
+  window.ACF_getLang = ()=>LANG;
+  window.ACF_setLang = (l)=>{ setLang(l); location.reload(); };
+  window.ACF_t = (key, vars)=>t(key, vars);
+
+  window.ACF_applyI18n = function(root=document){
+    // data-i18n="key"
+    root.querySelectorAll("[data-i18n]").forEach(el=>{
+      const key = el.getAttribute("data-i18n");
+      if(!key) return;
+      el.textContent = t(key);
+    });
+    // data-i18n-placeholder="key"
+    root.querySelectorAll("[data-i18n-placeholder]").forEach(el=>{
+      const key = el.getAttribute("data-i18n-placeholder");
+      if(!key) return;
+      el.setAttribute("placeholder", t(key));
+    });
+    // data-i18n-title="key"
+    root.querySelectorAll("[data-i18n-title]").forEach(el=>{
+      const key = el.getAttribute("data-i18n-title");
+      if(!key) return;
+      el.setAttribute("title", t(key));
+    });
+  };
+
+  // Lightweight legacy text fixups for pages where strings are generated as plain text
+  window.ACF_i18nFixups = function(){
+    try{
+      const path = location.pathname || "";
+      if(path.includes("/recipes")){
+        // "Total 23 builds" => total_builds
+        const candidates = Array.from(document.querySelectorAll("body *"))
+          .filter(n=>n.children.length===0 && n.textContent && /Total\s+\d+\s+builds/i.test(n.textContent));
+        for(const n of candidates){
+          const m = n.textContent.match(/Total\s+(\d+)\s+builds/i);
+          if(m){ n.textContent = t("total_builds",{n:m[1]}); break; }
+        }
+        // "共 4 張 Recipes" already, but ensure style for other langs
+        const c2 = Array.from(document.querySelectorAll("body *"))
+          .filter(n=>n.children.length===0 && n.textContent && /(共\s*\d+\s*張\s*Recipes)/.test(n.textContent));
+        for(const n of c2){
+          const m = n.textContent.match(/共\s*(\d+)\s*張\s*Recipes/);
+          if(m){ n.textContent = t("total_recipes",{n:m[1]}); break; }
+        }
+      }
+    }catch(_e){}
+  };
+
+})();
 function q(sel, root=document){ return root.querySelector(sel); }
 function qa(sel, root=document){ return Array.from(root.querySelectorAll(sel)); }
 
@@ -66,39 +404,6 @@ function getOrCreateUid(){
   syncUidAliases(uid);
   return uid;
 }
-
-
-/* ===== Login gate (production) ===== */
-function isLoggedIn(){
-  try{ return localStorage.getItem("acf_logged_in")==="1"; }catch(_){ return false; }
-}
-
-function setLoggedIn(flag){
-  try{ localStorage.setItem("acf_logged_in", flag ? "1" : "0"); }catch(_){}
-}
-
-function logoutAndReturnToIndex(){
-  try{
-    setLoggedIn(false);
-    sessionStorage.setItem("acf_just_logged_out","1");
-  }catch(_){}
-  const to = (location.pathname || "").toLowerCase().includes("index") ? "index.html" : "index.html";
-  location.replace(to);
-}
-
-function requireLoginGate(){
-  const path = (location.pathname || "").toLowerCase();
-  const isIndex = path.endsWith("/index.html") || path.endsWith("/index") || path === "/" || path.endsWith("/");
-  if(isIndex) return;
-
-  if(!isLoggedIn()){
-    try{ sessionStorage.setItem("acf_login_redirect", location.pathname + location.search + location.hash); }catch(_){}
-    location.replace("index.html");
-  }
-}
-
-/* run gate ASAP */
-try{ requireLoginGate(); }catch(_){}
 
 function getName(){
   return localStorage.getItem("acf_name") || "Player";
@@ -198,6 +503,7 @@ async function apiFetch(path, options={}){
 
   const headers = Object.assign({}, (options && options.headers) ? options.headers : {});
   if(uid) headers["x-user-id"] = headers["x-user-id"] || headers["X-User-Id"] || headers["X-USER-ID"] || uid;
+  try{ const tok = localStorage.getItem("acf_token"); if(tok && !headers["x-session-token"]) headers["x-session-token"] = tok; }catch(_e){}
 
   const hasBody = options && options.body !== undefined && options.body !== null;
 
@@ -533,6 +839,42 @@ white-space: nowrap;
         .acf-masterDivider{
          display: none !important; height: 16px; }
       }
+
+      .acf-masterRight{
+        pointer-events: auto;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .acf-langSelect{
+        pointer-events: auto;
+        display: flex;
+        align-items: center;
+      }
+      .acf-langSelect select{
+        appearance: none;
+        -webkit-appearance: none;
+        background: rgba(0,0,0,0.35);
+        color: rgba(255,255,255,0.92);
+        border: 1px solid rgba(255,215,0,0.75);
+        padding: 6px 28px 6px 12px;
+        border-radius: 999px;
+        font-weight: 800;
+        font-size: 13px;
+        cursor: pointer;
+        outline: none;
+      }
+      .acf-langSelect select:hover{
+        background: rgba(0,0,0,0.42);
+      }
+      .acf-langSelect:after{
+        content: "▾";
+        color: rgba(255,255,255,0.8);
+        margin-left: -20px;
+        pointer-events: none;
+        font-weight: 900;
+      }
+
 `;
     document.head.appendChild(s);
   }
@@ -599,7 +941,7 @@ white-space: nowrap;
 
     const net = el("div","acf-masterNet");
     net.id = "acfMasterNet";
-    net.textContent = "Connecting";
+    net.textContent = (window.ACF_t ? window.ACF_t("net_connecting") : "Connecting");
 
     txt.appendChild(name);
     txt.appendChild(sub);
@@ -608,12 +950,22 @@ white-space: nowrap;
     left.appendChild(avatar);
     left.appendChild(txt);
 
-    const stats = el("div","acf-masterStats");
+    
+const stats = el("div","acf-masterStats");
     stats.id = "acfMasterStats";
+
+    const right = el("div","acf-masterRight");
+
+    const langWrap = el("div","acf-langSelect");
+    langWrap.id = "acfLangSelect";
+
+    right.appendChild(langWrap);
 
     bar.appendChild(left);
     bar.appendChild(stats);
-    fixed.appendChild(bar);
+    bar.appendChild(right);
+
+fixed.appendChild(bar);
 
     const div = el("div","acf-masterDivider");
     fixed.appendChild(div);
@@ -735,7 +1087,34 @@ white-space: nowrap;
     setBodyOffset();
   }
 
-  async function initMasterHeader(){
+  
+function makeLangSelect(){
+  const el = document.getElementById("acfLangSelect");
+  if(!el) return;
+
+  const current = (window.ACF_getLang ? window.ACF_getLang() : (localStorage.getItem("acf_lang") || "en"));
+
+  el.innerHTML = `
+    <select id="acfLangDropdown" aria-label="Language">
+      <option value="en">${(window.ACF_t?window.ACF_t("lang_english"):"English")}</option>
+      <option value="zh-Hant">${(window.ACF_t?window.ACF_t("lang_zh_hant"):"繁體中文")}</option>
+      <option value="zh-Hans">${(window.ACF_t?window.ACF_t("lang_zh_hans"):"简体中文")}</option>
+      <option value="ja">${(window.ACF_t?window.ACF_t("lang_ja"):"日本語")}</option>
+      <option value="ko">${(window.ACF_t?window.ACF_t("lang_ko"):"한국어")}</option>
+    </select>
+  `;
+
+  const dd = document.getElementById("acfLangDropdown");
+  if(!dd) return;
+  dd.value = current;
+  dd.addEventListener("change", ()=>{
+    const v = dd.value;
+    if(window.ACF_setLang) window.ACF_setLang(v);
+    else{ localStorage.setItem("acf_lang", v); location.reload(); }
+  }, { passive:true });
+}
+
+async function initMasterHeader(){
     if(window.ACF_DISABLE_MASTER) return;
     if(document.getElementById("acfMasterHeader")) return;
 
@@ -752,6 +1131,9 @@ white-space: nowrap;
     const dom = buildHeaderDom();
     mount.appendChild(dom);
     setBodyOffset();
+    makeLangSelect();
+    try{ window.ACF_applyI18n && window.ACF_applyI18n(document); }catch(_e){}
+    try{ window.ACF_i18nFixups && window.ACF_i18nFixups(); }catch(_e){}
 
     setNetBadge("connecting");
     clearInterval(window.__acfNetPoll);
@@ -779,6 +1161,3 @@ white-space: nowrap;
     initMasterHeader();
   }
 })();
-
-
-window.ACF_logout = logoutAndReturnToIndex;
