@@ -46,6 +46,11 @@ const IS_OFFLINE = WORKER_BASE === "";
       recommended: "Recommended",
       vote: "Vote",
       voted: "Voted",
+      login: "Login",
+      register: "Register",
+      guest: "Guest",
+      guest_sub: "New",
+      need_login: "Please login to continue",
 
       // studio / recipes / gallery
       not_selectable: "Not selectable",
@@ -96,6 +101,11 @@ const IS_OFFLINE = WORKER_BASE === "";
       recommended: "已推薦",
       vote: "投票",
       voted: "已投票",
+      login: "登入",
+      register: "註冊",
+      guest: "遊客",
+      guest_sub: "新註冊",
+      need_login: "請先登入再進行操作",
 
       not_selectable: "不可選",
       insufficient_materials: "素材不足",
@@ -144,6 +154,11 @@ const IS_OFFLINE = WORKER_BASE === "";
       recommended: "已推荐",
       vote: "投票",
       voted: "已投票",
+      login: "登录",
+      register: "注册",
+      guest: "游客",
+      guest_sub: "新注册",
+      need_login: "请先登录再进行操作",
 
       not_selectable: "不可选",
       insufficient_materials: "素材不足",
@@ -192,6 +207,11 @@ const IS_OFFLINE = WORKER_BASE === "";
       recommended: "おすすめ済み",
       vote: "投票",
       voted: "投票済み",
+      login: "ログイン",
+      register: "登録",
+      guest: "ゲスト",
+      guest_sub: "新規",
+      need_login: "続行するにはログインしてください",
 
       not_selectable: "選択不可",
       insufficient_materials: "素材不足",
@@ -240,6 +260,11 @@ const IS_OFFLINE = WORKER_BASE === "";
       recommended: "추천됨",
       vote: "투표",
       voted: "투표됨",
+      login: "로그인",
+      register: "회원가입",
+      guest: "게스트",
+      guest_sub: "신규",
+      need_login: "계속하려면 로그인하세요",
 
       not_selectable: "선택 불가",
       insufficient_materials: "소재 부족",
@@ -504,6 +529,59 @@ async function apiFetch(path, options={}){
   const headers = Object.assign({}, (options && options.headers) ? options.headers : {});
   if(uid) headers["x-user-id"] = headers["x-user-id"] || headers["X-User-Id"] || headers["X-USER-ID"] || uid;
   try{ const tok = localStorage.getItem("acf_token"); if(tok && !headers["x-session-token"]) headers["x-session-token"] = tok; }catch(_e){}
+
+  function isLoggedIn(){
+    try{ return !!localStorage.getItem("acf_token"); }catch(_e){ return false; }
+  }
+  window.ACF_isLoggedIn = isLoggedIn;
+
+  function openAuthOverlay(mode){
+    return new Promise((resolve)=>{
+      try{ document.getElementById("acfAuthOverlay")?.remove(); }catch(_e){}
+      const ov = el("div","acf-authOverlay");
+      ov.id = "acfAuthOverlay";
+      const m = encodeURIComponent(String(mode||"login"));
+      ov.innerHTML = `
+        <div class="acf-authBackdrop"></div>
+        <div class="acf-authPanel">
+          <button class="acf-authClose" type="button" aria-label="Close">×</button>
+          <iframe class="acf-authFrame" src="index.html?overlay=1&mode=${m}" title="Auth"></iframe>
+        </div>
+      `;
+      document.body.appendChild(ov);
+
+      const close = (ok)=>{
+        window.removeEventListener("message", onMsg);
+        try{ ov.remove(); }catch(_e){}
+        resolve(!!ok);
+      };
+
+      const onMsg = (ev)=>{
+        try{
+          if(!ev || !ev.data) return;
+          if(ev.data && ev.data.type === "acf_auth_ok"){
+            close(true);
+            // refresh master header without forcing a full reload
+            try{ fetchMeAccount().then(renderMaster).catch(()=>renderMaster(null)); }catch(_e){}
+          }
+        }catch(_e){}
+      };
+
+      window.addEventListener("message", onMsg);
+
+      ov.querySelector(".acf-authBackdrop")?.addEventListener("click", ()=>close(false));
+      ov.querySelector(".acf-authClose")?.addEventListener("click", ()=>close(false));
+    });
+  }
+  window.ACF_openAuthOverlay = openAuthOverlay;
+
+  async function ensureAuth(){
+    if(isLoggedIn()) return true;
+    const ok = await openAuthOverlay("login");
+    return ok && isLoggedIn();
+  }
+  window.ACF_ensureAuth = ensureAuth;
+
 
   const hasBody = options && options.body !== undefined && options.body !== null;
 
@@ -1052,7 +1130,18 @@ fixed.appendChild(bar);
     const statsEl = document.getElementById("acfMasterStats");
 
     if(!me || !me.account){
-      box.style.display = "none";
+      box.style.display = "block";
+      nameEl.textContent = t("guest");
+      subEl.textContent = t("guest_sub");
+      avEl.innerHTML = '<div class="acf-guestCircle">G</div>';
+
+      statsEl.innerHTML = `
+        <button class="acf-authBtn" id="acfBtnLogin">${t("login")}</button>
+        <button class="acf-authBtn" id="acfBtnRegister">${t("register")}</button>
+      `;
+      q("#acfBtnLogin", statsEl)?.addEventListener("click", ()=>openAuthOverlay("login"));
+      q("#acfBtnRegister", statsEl)?.addEventListener("click", ()=>openAuthOverlay("register"));
+
       setBodyOffset();
       return;
     }
@@ -1150,6 +1239,21 @@ async function initMasterHeader(){
       refreshNetBadge();
     }
 
+
+    // guest access rule: allow browsing gallery without login.
+    try{
+      if(!isLoggedIn()){
+        const fn = (location.pathname || "").split("/").pop().toLowerCase();
+        const allow = (fn === "" || fn === "index.html" || fn === "gallery.html" || fn === "gallery");
+        if(!allow){
+          openAuthOverlay("login").then((ok)=>{
+            if(!ok && !isLoggedIn()){
+              try{ location.href = "gallery.html"; }catch(_e){}
+            }
+          });
+        }
+      }
+    }catch(_e){}
     window.addEventListener("resize", ()=>setBodyOffset(), { passive:true });
   }
 

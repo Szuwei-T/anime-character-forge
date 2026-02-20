@@ -245,10 +245,9 @@ body{
   // 如果已登入（已有 uid），立刻跳轉到作品庫，避免停留在 index
   (function(){
     try{
-      const loggedIn = localStorage.getItem("acf_logged_in")==="1";
       const uid = localStorage.getItem("acf_uid") || localStorage.getItem("uid") || "";
       const justLoggedOut = sessionStorage.getItem("acf_just_logged_out")==="1";
-      if(loggedIn && uid && !justLoggedOut){
+      if(uid && !justLoggedOut){
         window.location.replace("gallery.html");
       }
     }catch(_e){}
@@ -277,7 +276,6 @@ body{
       <div id="stepLogin">
         <div class="row">
           <button class="btn primary" id="btnGoogle">使用 Google 登入</button>
-          <button class="btn" id="btnAnon">匿名登入</button>
           <button class="btn" id="btnMicrosoft">使用 Microsoft 登入</button>
           <button class="btn" id="btnApple">使用 Apple 登入</button>
         </div>
@@ -374,8 +372,6 @@ body{
 
         // 讓 app.js 的 getOrCreateUid() 用 Firebase uid
         localStorage.setItem("acf_uid", user.uid);
-        localStorage.setItem("acf_logged_in","1");
-        localStorage.removeItem("acf_is_anon");
 
         showStep(true);
         setStatus("", "");
@@ -406,7 +402,11 @@ body{
 
         try{ sessionStorage.removeItem("acf_just_logged_out"); }catch(_e){}
         setStatus("登入成功，正在進入作品庫…", "ok");
-        setTimeout(() => (window.location.href = "gallery.html"), 250);
+        if(new URLSearchParams(location.search).get("overlay")==="1"){
+          try{ parent.postMessage({ type: "acf_auth_ok" }, "*"); }catch(_e){}
+        }else{
+          setTimeout(() => (window.location.href = "gallery.html"), 250);
+        }
 
 } else {
         $("userEmail").textContent = "未登入";
@@ -430,23 +430,6 @@ body{
         setBusy(false);
       }
     };
-
-
-$("btnAnon").onclick = async () => {
-  setStatus("", "");
-  try{
-    const uid = localStorage.getItem("acf_uid") || (crypto.randomUUID ? crypto.randomUUID() : ("anon_"+Date.now()));
-    localStorage.setItem("acf_uid", uid);
-    localStorage.setItem("acf_is_anon","1");
-    localStorage.setItem("acf_logged_in","1");
-    sessionStorage.removeItem("acf_just_logged_out");
-    // 初始化 session（建立帳號預設資料）
-    try{ if(window.initSession) await window.initSession(); }catch(_e){}
-    window.location.replace("gallery.html");
-  }catch(e){
-    setStatus("匿名登入失敗\n" + (e?.message || e), "err");
-  }
-};
 
     $("btnMicrosoft").onclick = async () => {
       setStatus("", "");
@@ -509,8 +492,6 @@ $("btnAnon").onclick = async () => {
         await signOut(auth);
         // optional: 保留 acf_uid 也行 但登出時清掉比較直覺
         localStorage.removeItem("acf_uid");
-        localStorage.setItem("acf_logged_in","0");
-        localStorage.removeItem("acf_is_anon");
       } finally {
         setBusy(false);
       }

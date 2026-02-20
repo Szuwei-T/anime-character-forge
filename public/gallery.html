@@ -884,6 +884,20 @@ body{
         }
 
         let uid = (localStorage.getItem("acf_uid") || localStorage.getItem("uid") || localStorage.getItem("userId") || localStorage.getItem("userid") || "").trim();
+
+        function isLoggedIn(){
+          try{ return (window.ACF_isLoggedIn ? window.ACF_isLoggedIn() : !!localStorage.getItem("acf_token")); }catch(_e){ return false; }
+        }
+
+        async function ensureAuth(){
+          if(isLoggedIn()) return true;
+          if(window.ACF_openAuthOverlay){
+            const ok = await window.ACF_openAuthOverlay("login");
+            return ok && isLoggedIn();
+          }
+          return false;
+        }
+
         if(!uid) uid = getOrCreateUid();
         try{ const u = new URL(location.href).searchParams.get("uid"); if(u) uid = String(u).trim(); }catch(_){}
 
@@ -917,9 +931,9 @@ body{
       }
 
       async function toggleFollow(targetUserId){
-        if(!uid){
-          showToast("請先登入");
-          return showError("請先登入");
+        if(!isLoggedIn()){
+          const ok = await ensureAuth();
+          if(!ok) return;
         }
         const tid = String(targetUserId||"").trim();
         if(!tid) return;
@@ -1248,7 +1262,7 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
 
         async function loadFavorites(){
           favoriteSet = new Set();
-          if(!uid) return;
+          if(!isLoggedIn()) return;
           try{
             const r = await api("/api/me/favorites", { method:"GET" });
             const arr = Array.isArray(r.items) ? r.items : [];
@@ -1260,7 +1274,10 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
         }
 
         async function vote(showcaseId){
-          if(!uid) return showError("請先登入");
+          if(!isLoggedIn()){
+          const ok = await ensureAuth();
+          if(!ok) return;
+        }
           if(userVote <= 0) return showError("票數不足");
           try{
             await api("/api/vote", { method:"POST", body:{ showcaseId } });
@@ -1272,7 +1289,10 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
         }
 
         async function toggleFav(showcaseId){
-          if(!uid) return showError("請先登入");
+          if(!isLoggedIn()){
+          const ok = await ensureAuth();
+          if(!ok) return;
+        }
           try{
             if(favoriteSet.has(showcaseId)){
               await api("/api/favorite", { method:"DELETE", body:{ showcaseId } });
@@ -1289,7 +1309,10 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
         }
 
         async function recommend(showcaseId){
-          if(!uid) return showError("請先登入");
+          if(!isLoggedIn()){
+          const ok = await ensureAuth();
+          if(!ok) return;
+        }
           if(userGem < 50) return showError("GEM 不足");
           try{
             await api("/api/recommend", { method:"POST", body:{ showcaseId } });
@@ -1488,16 +1511,16 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
               const isFollow = tid && followingSet.has(tid);
               if(isFollow) followBtn.classList.add("on");
               if(isSelf){ followBtn.style.display = "none"; }
-              followBtn.dataset.tip = (isFollow ? ACF_t("gallery_followed") : ACF_t("gallery_follow"));
-              followBtn.innerHTML = (isFollow ? ICON_FOLLOW_ON : ICON_FOLLOW) + `<span class="btnLabel">${isFollow ? ACF_t("gallery_followed") : ACF_t("gallery_follow")}</span>`;
+              followBtn.dataset.tip = (isFollow ? "已關注" : "關注");
+              followBtn.innerHTML = (isFollow ? ICON_FOLLOW_ON : ICON_FOLLOW) + `<span class="btnLabel">${isFollow ? "已關注" : "關注"}</span>`;
 
               followBtn.onclick = async (e)=>{
                 e.stopPropagation();
                 if(isSelf) return;
                 await toggleFollow(tid);
                 const on = followingSet.has(tid);
-                followBtn.dataset.tip = on ? ACF_t("gallery_followed") : ACF_t("gallery_follow");
-                followBtn.innerHTML = (on ? ICON_FOLLOW_ON : ICON_FOLLOW) + `<span class="btnLabel">${on ? ACF_t("gallery_followed") : ACF_t("gallery_follow")}</span>`;
+                followBtn.dataset.tip = on ? "已關注" : "關注";
+                followBtn.innerHTML = (on ? ICON_FOLLOW_ON : ICON_FOLLOW) + `<span class="btnLabel">${on ? "已關注" : "關注"}</span>`;
                 followBtn.classList.toggle("on", on);
               };
 
@@ -1723,8 +1746,8 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
             favBtn.type = "button";
             const isFav = favoriteSet.has(sid);
             if(isFav) favBtn.classList.add("on");
-            favBtn.dataset.tip = isFav ? ACF_t("gallery_favorited") : ACF_t("gallery_favorite");
-            favBtn.innerHTML = ICON_HEART + `<span class="btnLabel">${isFav ? ACF_t("gallery_favorited") : ACF_t("gallery_favorite")}</span>`;
+            favBtn.dataset.tip = isFav ? "已收藏" : "收藏";
+            favBtn.innerHTML = ICON_HEART + `<span class="btnLabel">${isFav ? "已收藏" : "收藏"}</span>`;
             favBtn.onclick = async (e)=>{
               e.stopPropagation();
               clearError();
@@ -1887,16 +1910,16 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
               const followBtn = document.createElement("button");
               followBtn.type = "button";
               followBtn.className = "iconBtn";
-              followBtn.dataset.tip = (isFollow ? ACF_t("gallery_followed") : ACF_t("gallery_follow"));
-              followBtn.innerHTML = (isFollow ? ICON_FOLLOW_ON : ICON_FOLLOW) + `<span class="btnLabel">${isFollow ? ACF_t("gallery_followed") : ACF_t("gallery_follow")}</span>`;
+              followBtn.dataset.tip = (isFollow ? "已關注" : "關注");
+              followBtn.innerHTML = (isFollow ? ICON_FOLLOW_ON : ICON_FOLLOW) + `<span class="btnLabel">${isFollow ? "已關注" : "關注"}</span>`;
               if(isSelf){ followBtn.style.display = "none"; }
               followBtn.onclick = async (e)=>{
                 e.stopPropagation();
                 if(isSelf) return;
                 await toggleFollow(tid);
                 const on = followingSet.has(tid);
-                followBtn.dataset.tip = on ? ACF_t("gallery_followed") : ACF_t("gallery_follow");
-                followBtn.innerHTML = (on ? ICON_FOLLOW_ON : ICON_FOLLOW) + `<span class="btnLabel">${on ? ACF_t("gallery_followed") : ACF_t("gallery_follow")}</span>`;
+                followBtn.dataset.tip = on ? "已關注" : "關注";
+                followBtn.innerHTML = (on ? ICON_FOLLOW_ON : ICON_FOLLOW) + `<span class="btnLabel">${on ? "已關注" : "關注"}</span>`;
                 followBtn.classList.toggle("on", on);
               };
 
@@ -1933,8 +1956,8 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
               favBtn.type = "button";
               const isFav = favoriteSet.has(sid);
               if(isFav) favBtn.classList.add("on");
-              favBtn.dataset.tip = isFav ? ACF_t("gallery_favorited") : ACF_t("gallery_favorite");
-              favBtn.innerHTML = ICON_HEART + `<span class="btnLabel">${isFav ? ACF_t("gallery_favorited") : ACF_t("gallery_favorite")}</span>`;
+              favBtn.dataset.tip = isFav ? "已收藏" : "收藏";
+              favBtn.innerHTML = ICON_HEART + `<span class="btnLabel">${isFav ? "已收藏" : "收藏"}</span>`;
               favBtn.onclick = async (e)=>{
                 e.stopPropagation();
                 clearError();
@@ -2074,7 +2097,7 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
 
         async function load(){
           clearError();
-          statusLine.textContent = ACF_t("loading");
+          statusLine.textContent = "讀取中";
           try{
             await loadMeLight();
           await loadFollowing();
@@ -2144,7 +2167,5 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
 })();
 </script>
 
-
-<script>try{ if(window.ACF_applyI18n) window.ACF_applyI18n(document); }catch(e){}<\/script>
 </body>
 </html>

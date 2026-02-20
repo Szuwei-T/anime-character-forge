@@ -123,6 +123,19 @@
     const url = new URL(location.href);
     const uid = String(url.searchParams.get("uid") || "").trim();
 
+    function isLoggedIn(){
+      try{ return (window.ACF_isLoggedIn ? window.ACF_isLoggedIn() : !!localStorage.getItem("acf_token")); }catch(_e){ return false; }
+    }
+    async function ensureAuth(){
+      if(isLoggedIn()) return true;
+      if(window.ACF_openAuthOverlay){
+        const ok = await window.ACF_openAuthOverlay("login");
+        return ok && isLoggedIn();
+      }
+      return false;
+    }
+
+
     const grid = document.getElementById("grid");
     const btnBack = document.getElementById("btnBack");
     const btnFollow = document.getElementById("btnFollow");
@@ -237,7 +250,15 @@
     }
 
     async function toggleFollow(){
-      if(!me) return showError("請先登入");
+      if(!isLoggedIn()){
+        const ok = await ensureAuth();
+        if(!ok) return;
+      }
+      if(!me){
+        // after login, reload profile state
+        try{ await loadMe(); }catch(_e){}
+      }
+      if(!me) return;
       clearError();
       try{
         if(followingSet.has(uid)){
@@ -313,7 +334,15 @@
 
         favBtn.onclick = async (e)=>{
           e.stopPropagation();
-          if(!me) return showError("請先登入");
+          if(!isLoggedIn()){
+        const ok = await ensureAuth();
+        if(!ok) return;
+      }
+      if(!me){
+        // after login, reload profile state
+        try{ await loadMe(); }catch(_e){}
+      }
+      if(!me) return;
           clearError();
           try{
             await api("/api/favorite", { method:"POST", body:{ showcaseId: s.showcaseId } });
@@ -361,7 +390,5 @@
   </script>
 
   <script src="app.js"></script>
-
-<script>try{ if(window.ACF_applyI18n) window.ACF_applyI18n(document); }catch(e){}<\/script>
 </body>
 </html>
