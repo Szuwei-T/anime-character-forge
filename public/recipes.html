@@ -1,12 +1,13 @@
-<!doctype html>
+<!DOCTYPE html>
+
 <html lang="zh-Hant">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>成品庫</title>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="ui_fx.css" />
-  <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title data-i18n="recipes_gallery">成品庫</title>
+<link href="style.css" rel="stylesheet"/>
+<link href="ui_fx.css" rel="stylesheet"/>
+<style>
     .page-wrap{max-width:1180px;margin:0 auto;padding:22px 18px 44px;}
     .statusline{margin:10px 0 12px;opacity:.9}
     .errorbox{margin:10px 0 12px;padding:10px 12px;border-radius:12px;background:rgba(255,0,0,.10);border:1px solid rgba(255,0,0,.25);color:#ffb3b3}
@@ -436,34 +437,29 @@
 </style>
 </head>
 <body>
-  <div class="acf-page ui-panel"><div id="acfMasterMount"></div>
-  <div class="page-wrap">
-
-    <div class="tabs">
-      <div class="tabbtn active" id="tabSaves">我的成品</div>
-      <div class="tabbtn" id="tabRecipes">我的收藏</div>
-    </div>
-
-    <div class="statusline" id="statusLine">讀取中</div>
-    <div id="errorBox" class="errorbox" style="display:none;"></div>
-
-    <div class="grid" id="gridSaves"></div>
-    <div class="grid" id="gridRecipes" style="display:none;"></div>
-  </div>
-
-  <div class="modal" id="modal">
-    <div class="modalbox">
-      <div class="modalhead">
-        <div class="h" id="modalTitle">預覽</div>
-        <div class="x" id="modalClose">關閉</div>
-      </div>
-      <div class="modalbody">
-        <div class="bigwrap" id="bigwrap"></div>
-        <div class="footnote" id="modalMeta"></div>
-      </div>
-    </div>
-  </div>
-
+<div class="acf-page ui-panel"><div id="acfMasterMount"></div>
+<div class="page-wrap">
+<div class="tabs">
+<div class="tabbtn active" data-i18n="recipes_my_builds" id="tabSaves">我的成品</div>
+<div class="tabbtn" data-i18n="recipes_my_favs" id="tabRecipes">我的收藏</div>
+</div>
+<div class="statusline" data-i18n="common_loading" id="statusLine">讀取中</div>
+<div class="errorbox" id="errorBox" style="display:none;"></div>
+<div class="grid" id="gridSaves"></div>
+<div class="grid" id="gridRecipes" style="display:none;"></div>
+</div>
+<div class="modal" id="modal">
+<div class="modalbox">
+<div class="modalhead">
+<div class="h" data-i18n="common_preview" id="modalTitle">預覽</div>
+<div class="x" data-i18n="common_close" id="modalClose">關閉</div>
+</div>
+<div class="modalbody">
+<div class="bigwrap" id="bigwrap"></div>
+<div class="footnote" id="modalMeta"></div>
+</div>
+</div>
+</div>
 <script>
 (function(){
   const DEFAULT_WORKER = "https://acf-api.dream-league-baseball.workers.dev";
@@ -481,47 +477,6 @@
   const tabRecipes = document.getElementById("tabRecipes");
 
   const modal = document.getElementById("modal");
-  // ===== Modal fixed overlay stability (prevents "modal jumps to page bottom") =====
-  function ensureModalRoot(){
-    try{
-      if(modal && modal.parentElement !== document.body){
-        document.body.appendChild(modal);
-      }
-    }catch(_){}
-  }
-
-  let __modalScrollY = 0;
-  function lockScroll(){
-    try{
-      __modalScrollY = window.scrollY || 0;
-      document.body.style.position = "fixed";
-      document.body.style.top = "-" + __modalScrollY + "px";
-      document.body.style.left = "0";
-      document.body.style.right = "0";
-      document.body.style.width = "100%";
-    }catch(_){}
-  }
-  function unlockScroll(){
-    try{
-      const y = __modalScrollY || 0;
-      document.body.style.position = "";
-      document.body.style.top = "";
-      document.body.style.left = "";
-      document.body.style.right = "";
-      document.body.style.width = "";
-      window.scrollTo(0, y);
-    }catch(_){}
-  }
-  function openModal(){
-    ensureModalRoot();
-    lockScroll();
-    openModal();
-  }
-  function closeModal(){
-    modal.classList.remove("show");
-    unlockScroll();
-  }
-
   const modalClose = document.getElementById("modalClose");
   const modalTitle = document.getElementById("modalTitle");
   const modalMeta = document.getElementById("modalMeta");
@@ -745,7 +700,7 @@ function fmtTime(ts){
       bigwrap.appendChild(div);
     });
 
-    openModal();
+    modal.classList.add("show");
   }
 
   function openModalSingle(title, metaText, imageUrl){
@@ -757,12 +712,12 @@ function fmtTime(ts){
     img.loading = "lazy";
     img.src = imageUrl;
     bigwrap.appendChild(img);
-    openModal();
+    modal.classList.add("show");
   }
 
-  modalClose.onclick = () => closeModal();
-  modal.onclick = (e) => { if (e.target === modal) closeModal(); };
-  window.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
+  modalClose.onclick = () => modal.classList.remove("show");
+  modal.onclick = (e) => { if (e.target === modal) modal.classList.remove("show"); };
+  window.addEventListener("keydown", (e) => { if (e.key === "Escape") modal.classList.remove("show"); });
 
   function markCardIn(card){
     const delay = Math.min(240, (markCardIn._i = (markCardIn._i || 0) + 1) * 18);
@@ -1137,9 +1092,8 @@ const meta = document.createElement("div");
   setTab("saves");
 })();
 </script>
-  <script src="app.js"></script>
-  </div>
-
+<script src="app.js"></script>
+</div>
 <script>
 (function(){
   function updateMasterHeightStable(){
@@ -1157,6 +1111,5 @@ const meta = document.createElement("div");
   window.addEventListener("load", updateMasterHeightStable);
 })();
 </script>
-
 </body>
 </html>

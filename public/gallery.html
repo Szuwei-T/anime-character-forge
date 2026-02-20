@@ -1,11 +1,11 @@
-<!doctype html>
+<!DOCTYPE html>
+
 <html lang="zh-Hant">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Gallery</title>
-
-  <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<title>Gallery</title>
+<style>
     :root{
       --bg1:#0b1020;
       --bg2:#0a2231;
@@ -757,94 +757,78 @@ body{
 }
 
 </style>
-
-  <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="ui_fx.css" />
+<link href="style.css" rel="stylesheet"/>
+<link href="ui_fx.css" rel="stylesheet"/>
 </head>
-
 <body>
-  <div class="acf-page ui-panel">
-    <div id="acfMasterMount"></div>
-
-    <div class="wrap">
-      <div class="toolbar">
-        <div class="seg">
-          <select id="sortSel" class="select">
-            <option value="new">最新</option>
-            <option value="top">最高分</option>
-          </select>
-          <select id="seasonSel" class="select">
-            <option value="">全部 Season</option>
-          </select>
-        </div>
-        <div class="status" id="statusLine">讀取中</div>
-      </div>
-
-      <div class="error" id="errorBox"></div>
-
-      <div class="sectionTitle" id="podiumTitle">🏆 本期頒獎台</div>
-      <div class="podiumWrap" id="podiumWrap">
-        <div class="podiumGrid" id="podiumGrid"></div>
-      </div>
-
-      <div class="recWrap" id="recWrap">
-        <div class="recTitle">
-          <div class="h">🔥 本期推薦</div>
-          <div class="sub" id="recSub">推薦次數 ≥ 1 · 依推薦次數排序</div>
-        </div>
-        <div class="recGrid" id="recGrid"></div>
-      </div>
-
-      <div class="rankRow" id="favAuthorRow">
-
-      <div class="recWrap" id="favRankWrap">
-        <div class="recTitle">
-          <div class="h">💖 收藏榜</div>
-          <div class="sub">不限賽季 · 依被收藏數排序</div>
-        </div>
-        <div class="recGrid" id="favRankGrid"></div>
-      </div>
-
-      <div class="recWrap" id="newRankWrap">
-        <div class="recTitle">
-          <div class="h">🆕 新人榜</div>
-          <div class="sub">註冊 1 個月內 · 依被收藏數排序</div>
-        </div>
-        <div class="recGrid" id="newRankGrid"></div>
-      </div>
-
-      <div class="recWrap" id="authorRankWrap">
-        <div class="recTitle">
-          <div class="h">👑 熱門作者榜</div>
-          <div class="sub">不限賽季 · 依被關注數排序</div>
-        </div>
-        <div class="authorGrid" id="authorRankGrid"></div>
-      </div>
-
-
-    </div>
-
-      <div class="entries" id="grid"></div>
-    </div>
-
-    <div class="toast" id="toast"></div>
-
-    <div class="modal" id="modal">
-      <div class="panel">
-        <div class="panelHead">
-          <div>
-            <div class="t" id="mTitle">作品</div>
-            <div class="s" id="mSub"></div>
-          </div>
-          <button class="close" id="mClose">關閉</button>
-        </div>
-        <div class="big">
-          <div class="bigThumb" id="mThumb"></div>
-        </div>
-      </div>
-    </div>
-
-    <script>
+<div class="acf-page ui-panel">
+<div id="acfMasterMount"></div>
+<div class="wrap">
+<div class="toolbar">
+<div class="seg">
+<select class="select" id="sortSel">
+<option data-i18n="filter_latest" value="new">最新</option>
+<option data-i18n="filter_topscore" value="top">最高分</option>
+</select>
+<select class="select" id="seasonSel">
+<option data-i18n="gallery_season_all" value="">全部 Season</option>
+</select>
+</div>
+<div class="status" data-i18n="common_loading" id="statusLine">讀取中</div>
+</div>
+<div class="error" id="errorBox"></div>
+<div class="sectionTitle" data-i18n="gallery_podium" id="podiumTitle">🏆 本期頒獎台</div>
+<div class="podiumWrap" id="podiumWrap">
+<div class="podiumGrid" id="podiumGrid"></div>
+</div>
+<div class="recWrap" id="recWrap">
+<div class="recTitle">
+<div class="h" data-i18n="gallery_recommended">🔥 本期推薦</div>
+<div class="sub" data-i18n="gallery_recommended_desc" id="recSub">推薦次數 ≥ 1 · 依推薦次數排序</div>
+</div>
+<div class="recGrid" id="recGrid"></div>
+</div>
+<div class="rankRow" id="favAuthorRow">
+<div class="recWrap" id="favRankWrap">
+<div class="recTitle">
+<div class="h" data-i18n="gallery_favorites">💖 收藏榜</div>
+<div class="sub" data-i18n="gallery_favorites_desc">不限賽季 · 依被收藏數排序</div>
+</div>
+<div class="recGrid" id="favRankGrid"></div>
+</div>
+<div class="recWrap" id="newRankWrap">
+<div class="recTitle">
+<div class="h" data-i18n="gallery_newcomers">🆕 新人榜</div>
+<div class="sub" data-i18n="gallery_newcomers_desc">註冊 1 個月內 · 依被收藏數排序</div>
+</div>
+<div class="recGrid" id="newRankGrid"></div>
+</div>
+<div class="recWrap" id="authorRankWrap">
+<div class="recTitle">
+<div class="h" data-i18n="gallery_authors">👑 熱門作者榜</div>
+<div class="sub" data-i18n="gallery_authors_desc">不限賽季 · 依被關注數排序</div>
+</div>
+<div class="authorGrid" id="authorRankGrid"></div>
+</div>
+</div>
+<div class="entries" id="grid"></div>
+</div>
+<div class="toast" id="toast"></div>
+<div class="modal" id="modal">
+<div class="panel">
+<div class="panelHead">
+<div>
+<div class="t" data-i18n="common_works" id="mTitle">作品</div>
+<div class="s" id="mSub"></div>
+</div>
+<button class="close" data-i18n="common_close" id="mClose">關閉</button>
+</div>
+<div class="big">
+<div class="bigThumb" id="mThumb"></div>
+</div>
+</div>
+</div>
+<script>
       (function(){
         const grid = document.getElementById("grid");
         const recWrap = document.getElementById("recWrap");
@@ -1053,7 +1037,6 @@ body{
           const o = opts || {};
           const headers = Object.assign({}, o.headers || {});
           if(uid) headers["x-user-id"] = uid;
-    headers["x-session-token"] = headers["x-session-token"] || (localStorage.getItem("acf_token") || "");
 
           const hasBody = o.body !== undefined && o.body !== null;
           if(hasBody) headers["content-type"] = "application/json";
@@ -2123,10 +2106,8 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
         load();
       })();
     </script>
-
-    <script src="app.js"></script>
-  </div>
-
+<script src="app.js"></script>
+</div>
 <script>
 (function(){
   function updateMasterHeightStable(){
@@ -2144,6 +2125,5 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
   window.addEventListener("load", updateMasterHeightStable);
 })();
 </script>
-
 </body>
 </html>

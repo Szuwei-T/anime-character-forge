@@ -1919,52 +1919,49 @@ body, .wrap, .page, .acf-page, .container{
 <div class="particles"></div>
 <div class="wrap">
 <div class="heroStage" id="heroStage">
-  <img src="/ui/icon/Featured.webp" class="featuredIconOverlay" alt="Featured">
-  <div class="gachaRateOverlay" style="border:#141414; border-width: 2px;"><span>素材獲得機率</span></div>
-
+<img alt="Featured" class="featuredIconOverlay" src="/ui/icon/Featured.webp"/>
+<div class="gachaRateOverlay" style="border:#141414; border-width: 2px;"><span>素材獲得機率</span></div>
 <div class="featureStage" id="featureStage" style="border: #c084fc; border-width: 2px;">
-
-
 <video autoplay="" class="bgVideo" id="featuredVideoBg" loop="" muted="" playsinline=""></video>
 <video autoplay="" class="fgVideo stageVideo" id="featuredVideo" loop="" muted="" playsinline=""></video>
-<img alt="" class="bgVideo" id="featuredFallbackBg" src="/assets/feature_character.png" style="display:none;"/>
+<img alt="" class="bgVideo" id="featuredFallbackBg" src="/assets/feature_character.png" style="display:none;">
 <img alt="" id="featuredFallback" src="/assets/feature_character.png" style="display:none; position:absolute; inset:0; width:100%; height:100%; object-fit:contain; z-index:1;"/>
 <div class="leftOverlay side" id="leftOverlay">
 <div class="sideCard goldPanel">
-<div class="title"><span>抽角色</span><span style="opacity:0.7;font-weight:800">head</span></div>
+<div class="title"><span data-i18n="gacha_draw_char">抽角色</span><span style="opacity:0.7;font-weight:800">head</span></div>
 <div class="miniRow">
-<button class="btn gray small" id="btnHead1">1次</button>
-<button class="btn gray small" id="btnHead10">10次</button>
+<button class="btn gray small" data-i18n="gacha_one" id="btnHead1">1次</button>
+<button class="btn gray small" data-i18n="gacha_ten" id="btnHead10">10次</button>
 </div>
 <div class="pity">1次 消耗 150 gold · 10次 消耗 1300 gold</div>
 </div>
 <div class="sideCard goldPanel">
-<div class="title"><span>抽服裝</span><span style="opacity:0.7;font-weight:800">body</span></div>
+<div class="title"><span data-i18n="gacha_draw_outfit">抽服裝</span><span style="opacity:0.7;font-weight:800">body</span></div>
 <div class="miniRow">
-<button class="btn gray small" id="btnBody1">1次</button>
-<button class="btn gray small" id="btnBody10">10次</button>
+<button class="btn gray small" data-i18n="gacha_one" id="btnBody1">1次</button>
+<button class="btn gray small" data-i18n="gacha_ten" id="btnBody10">10次</button>
 </div>
 <div class="pity">1次 消耗 150 gold · 10次 消耗 1300 gold</div>
 </div>
 <div class="sideCard goldPanel">
-<div class="title"><span>抽背景</span><span style="opacity:0.7;font-weight:800">background</span></div>
+<div class="title"><span data-i18n="gacha_draw_bg">抽背景</span><span style="opacity:0.7;font-weight:800">background</span></div>
 <div class="miniRow">
-<button class="btn gray small" id="btnBg1">1次</button>
-<button class="btn gray small" id="btnBg10">10次</button>
+<button class="btn gray small" data-i18n="gacha_one" id="btnBg1">1次</button>
+<button class="btn gray small" data-i18n="gacha_ten" id="btnBg10">10次</button>
 </div>
 <div class="pity">1次 消耗 150 gold · 10次 消耗 1300 gold</div>
 </div><div class="sideCard goldPanel">
-<div class="title"><span>抽特效1</span><span style="opacity:0.7;font-weight:800">addon1</span></div>
+<div class="title"><span data-i18n="gacha_draw_fx1">抽特效1</span><span style="opacity:0.7;font-weight:800">addon1</span></div>
 <div class="miniRow">
-<button class="btn gray small" id="btnAddon11">1次</button>
-<button class="btn gray small" id="btnAddon110">10次</button>
+<button class="btn gray small" data-i18n="gacha_one" id="btnAddon11">1次</button>
+<button class="btn gray small" data-i18n="gacha_ten" id="btnAddon110">10次</button>
 </div>
 <div class="pity">1次 消耗 150 gold · 10次 消耗 1300 gold</div>
 </div><div class="sideCard goldPanel">
-<div class="title"><span>抽特效2</span><span style="opacity:0.7;font-weight:800">addon2</span></div>
+<div class="title"><span data-i18n="gacha_draw_fx2">抽特效2</span><span style="opacity:0.7;font-weight:800">addon2</span></div>
 <div class="miniRow">
-<button class="btn gray small" id="btnAddon21">1次</button>
-<button class="btn gray small" id="btnAddon210">10次</button>
+<button class="btn gray small" data-i18n="gacha_one" id="btnAddon21">1次</button>
+<button class="btn gray small" data-i18n="gacha_ten" id="btnAddon210">10次</button>
 </div>
 <div class="pity">1次 消耗 150 gold · 10次 消耗 1300 gold</div>
 </div>
@@ -1972,67 +1969,67 @@ body, .wrap, .page, .acf-page, .container{
 <div class="rightOverlay side" id="rightOverlay">
 <div class="sideCard shopCta goldPanel">
 <div class="title">
-<span>想抽更爽</span>
-<span style="opacity:0.8;font-weight:900">去充值</span>
+<span data-i18n="gacha_want_more">想抽更爽</span>
+<span data-i18n="gacha_go_shop" style="opacity:0.8;font-weight:900">去充值</span>
 </div>
 <div class="shopCtaBody">
 <div class="shopLine">補充 <b>Gold</b> 與 <b>Gem</b> 立刻提升抽卡體驗</div>
 <a class="shopBtn" href="shop.html">前往 Shop</a>
 </div>
-</div><div class="sideCard gachaSide"><div class="title"><span>抽卡</span><span style="opacity:0.7;font-weight:800">normal / premium</span></div><div class="gachaStack">
+</div><div class="sideCard gachaSide"><div class="title"><span data-i18n="gacha_title">抽卡</span><span style="opacity:0.7;font-weight:800">normal / premium</span></div><div class="gachaStack">
 <div class="gachaCard goldPanel">
 <div class="gachaHead">
-<div class="gachaName">普通抽卡</div>
+<div class="gachaName" data-i18n="gacha_normal">普通抽卡</div>
 <div class="gachaDesc">單次 或 10 連抽</div>
 </div>
 <div class="drawRow">
 <div class="drawCol">
-<button class="btn orange small" id="btnNormal1">1次</button>
+<button class="btn orange small" data-i18n="gacha_one" id="btnNormal1">1次</button>
 <div class="cost">cost 100gold</div>
 </div>
 <div class="drawCol">
-<button class="btn orange small" id="btnNormal10">10次</button>
+<button class="btn orange small" data-i18n="gacha_ten" id="btnNormal10">10次</button>
 <div class="cost">cost 1000gold</div>
-<div class="guarantee"><img src="/ui/icon/Rarity_SR.webp" class="rarityBadge" alt="SR"></div>
+<div class="guarantee"><img alt="SR" class="rarityBadge" src="/ui/icon/Rarity_SR.webp"/></div>
 </div>
 </div>
-<div class="pity" id="pityNormal">再抽200次</div> 必出<img src="/ui/icon/Rarity_SSR.webp" class="rarityBadge" alt="SSR">
+<div class="pity" id="pityNormal">再抽200次</div> 必出<img alt="SSR" class="rarityBadge" src="/ui/icon/Rarity_SSR.webp"/>
 </div>
 <div class="gachaCard goldPanel">
 <div class="gachaHead">
-<div class="gachaName">高級抽卡</div>
+<div class="gachaName" data-i18n="gacha_premium">高級抽卡</div>
 <div class="gachaDesc">單次 或 10 連抽</div>
 </div>
 <div class="drawRow">
 <div class="drawCol">
-<button class="btn blue small" id="btnPremium1">1次</button>
+<button class="btn blue small" data-i18n="gacha_one" id="btnPremium1">1次</button>
 <div class="cost">Gem x10</div>
 </div>
 <div class="drawCol">
-<button class="btn blue small" id="btnPremium10">10次</button>
+<button class="btn blue small" data-i18n="gacha_ten" id="btnPremium10">10次</button>
 <div class="cost">Gem x100</div>
-<div class="guarantee">必出<img src="/ui/icon/Rarity_SSR.webp" class="rarityBadge" alt="SSR">以上</div>
+<div class="guarantee">必出<img alt="SSR" class="rarityBadge" src="/ui/icon/Rarity_SSR.webp"/>以上</div>
 </div>
 </div>
-<div class="pity" id="pityPremium">再抽200次</div> 必出<img src="/ui/icon/Rarity_UR.webp" class="rarityBadge" alt="UR">
+<div class="pity" id="pityPremium">再抽200次</div> 必出<img alt="UR" class="rarityBadge" src="/ui/icon/Rarity_UR.webp"/>
 </div>
 </div></div>
 </div>
-</div>
+</img></div>
 </div>
 <div class="overlay" id="overlay">
 <div class="panel">
 <div class="gacha-stage">
 <div class="grid32" id="grid32"></div>
 <div class="framesLayer" id="framesLayer"></div>
-<div class="loadCover" id="loadCover"><div class="spinner"></div><div class="txt" id="loadTxt">載入中</div></div>
+<div class="loadCover" id="loadCover"><div class="spinner"></div><div class="txt" data-i18n="common_loading" id="loadTxt">載入中</div></div>
 </div>
 <div class="actionBar mode-loading" id="actionBar">
 <div class="statusText">
-<div id="rollingText">抽卡中</div>
+<div data-i18n="gacha_drawing" id="rollingText">抽卡中</div>
 <div class="muted" id="rollSub" style="display:none;"></div>
 </div>
-<button class="confirm" id="confirmBtn">確認</button>
+<button class="confirm" data-i18n="common_confirm" id="confirmBtn">確認</button>
 </div>
 </div>
 <script src="app.js"></script>
@@ -2887,9 +2884,8 @@ function assetFullUrl(a){
             if (typeof window.api === "function") return window.api(url, fetchOpts);
             return fetch(url, fetchOpts);
           };
-          const base = (typeof WORKER_BASE === "string") ? WORKER_BASE : ((location.hostname === "127.0.0.1" || location.hostname === "localhost") ? "" : "https://acf-api.dream-league-baseball.workers.dev");
-           const res = await fetch(base + "/api/share/reward", {
-             method:"POST",
+          const res = await apiFetch("/api/share/reward", {
+            method:"POST",
             headers: buildUidHeaders(),
             body: JSON.stringify({ shareId:_shareState.shareId, rarity:_shareState.rarity, assetId:_shareState.assetId }),
           });
@@ -3338,33 +3334,32 @@ function renderGridDecoys(list){
 <div class="cine-glow"></div>
 <div aria-modal="true" class="cine-core" role="dialog">
 <div class="cine-rarity" id="cineRarity">UR</div>
-<div class="cine-sub" id="cineSub">恭喜獲得</div>
+<div class="cine-sub" data-i18n="gacha_congrats" id="cineSub">恭喜獲得</div>
 <div class="cine-mainRow" id="cineMainRow">
 <div class="cine-leftCol">
 <div class="cine-card" id="cineCard">
 <div class="fx fx-ray"></div>
 <div class="fx fx-spark"></div>
 <div class="fx fx-burst"></div>
-<img alt="reward" id="cineImg"/>
-</div>
-<div class="cine-ten" id="cineTen"><div class="cine-ten-title" id="cineTenTitle">10連抽結果</div><div class="results-container"><div class="results-top"><div class="results-top-left cine-ten-g" id="cineTenGuarantee"></div><div class="sharePanel results-top-right" id="sharePanel" style="display:none;">
+<img alt="reward" id="cineImg">
+</img></div>
+<div class="cine-ten" id="cineTen"><div class="cine-ten-title" data-i18n="gacha_results_10" id="cineTenTitle">10連抽結果</div><div class="results-container"><div class="results-top"><div class="results-top-left cine-ten-g" id="cineTenGuarantee"></div><div class="sharePanel results-top-right" id="sharePanel" style="display:none;">
 <div class="shareTitle">分享抽卡結果</div>
 <div class="shareBody">
-<img alt="share preview" id="sharePreview"/>
+<img alt="share preview" id="sharePreview">
 <div class="shareBtns">
-<button class="shareBtn" id="shareDownload" type="button">下載圖片</button>
-<button class="shareBtn" id="shareCopy" type="button">複製文案</button>
-<button class="shareBtn" id="shareShare" type="button">一鍵分享</button>
+<button class="shareBtn" data-i18n="gacha_download" id="shareDownload" type="button">下載圖片</button>
+<button class="shareBtn" data-i18n="gacha_copy" id="shareCopy" type="button">複製文案</button>
+<button class="shareBtn" data-i18n="gacha_share" id="shareShare" type="button">一鍵分享</button>
 <button class="shareBtn" id="shareReddit" type="button">Reddit</button>
-<button class="shareBtn shareClaim" id="shareClaim" type="button">領取獎勵</button>
+<button class="shareBtn shareClaim" data-i18n="gacha_claim_reward" id="shareClaim" type="button">領取獎勵</button>
 </div>
-</div>
+</img></div>
 <div class="shareHint" id="shareHint">抽到 SSR 或 UR 才會出現分享圖，分享到 Discord Reddit 朋友圈後再點領取獎勵，每天最多 5 次</div>
 </div></div><div class="cine-ten-grid results-bottom" id="cineTenGrid"></div></div></div>
 </div>
-
 </div>
-<button class="cine-ok confirm" id="cineOk" type="button">確認</button>
+<button class="cine-ok confirm" data-i18n="common_confirm" id="cineOk" type="button">確認</button>
 <div class="cine-cta" id="cineCta">點擊確認繼續</div>
 </div>
 <canvas height="1080" id="shareCanvas" style="display:none;" width="1080"></canvas>

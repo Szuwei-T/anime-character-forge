@@ -1,10 +1,11 @@
 <!DOCTYPE html>
+
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8" />
-  <title>Anime Character Forge 登入</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
+<meta charset="utf-8"/>
+<title data-i18n="login_title">Anime Character Forge 登入</title>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<style>
     :root {
       --bg1: rgba(3, 7, 18, 0.88);
       --bg2: rgba(15, 23, 42, 0.97);
@@ -236,11 +237,10 @@ body{
 *{ backface-visibility: hidden; }
 
 </style>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="ui_fx.css" />
+<link href="style.css" rel="stylesheet"/>
+<link href="ui_fx.css" rel="stylesheet"/>
 </head>
 <body>
-
 <script>
   // 如果已登入（已有 uid），立刻跳轉到作品庫，避免停留在 index
   (function(){
@@ -253,64 +253,54 @@ body{
     }catch(_e){}
   })();
 </script>
-
-  <div class="acf-page ui-panel"><div id="acfMasterMount"></div>
-  <div class="card">
-    <div class="head">
-      <div class="logo"></div>
-      <div class="title">
-        <h1>Anime Character Forge</h1>
-        <p>先登入，登入後會直接進入作品庫</p>
-      </div>
-    </div>
-
-    <div class="body">
-      <div class="userbar" id="userbar">
-        <div>
-          目前登入 <b id="userEmail">未登入</b>
-          <div class="small">uid <span id="userUid"></span></div>
-        </div>
-        <span class="link" id="btnLogout">登出</span>
-      </div>
-
-      <div id="stepLogin">
-        <div class="row">
-          <button class="btn primary" id="btnGoogle">使用 Google 登入</button>
-          <button class="btn" id="btnMicrosoft">使用 Microsoft 登入</button>
-          <button class="btn" id="btnApple">使用 Apple 登入</button>
-        </div>
-
-        <div class="split">或</div>
-
-        <div class="row">
-          <div class="field">
-            <label>Email</label>
-            <input id="email" type="email" placeholder="you@example.com" autocomplete="username" />
-          </div>
-          <div class="field">
-            <label>Password</label>
-            <input id="password" type="password" placeholder="password" autocomplete="current-password" />
-          </div>
-          <div class="mini">
-            <button class="btn" id="btnEmailLogin">Email 登入</button>
-            <button class="btn" id="btnEmailSignup">Email 註冊</button>
-          </div>
-        </div>
-
-        <div class="note">
+<div class="acf-page ui-panel"><div id="acfMasterMount"></div>
+<div class="card">
+<div class="head">
+<div class="logo"></div>
+<div class="title">
+<h1>Anime Character Forge</h1>
+<p data-i18n="login_hint">先登入，登入後會直接進入作品庫</p>
+</div>
+</div>
+<div class="body">
+<div class="userbar" id="userbar">
+<div>
+          目前登入 <b data-i18n="status_not_logged_in" id="userEmail">未登入</b>
+<div class="small">uid <span id="userUid"></span></div>
+</div>
+<span class="link" data-i18n="btn_logout" id="btnLogout">登出</span>
+</div>
+<div id="stepLogin">
+<div class="row">
+<button class="btn primary" data-i18n="login_google" id="btnGoogle">使用 Google 登入</button>
+<button class="btn" data-i18n="login_microsoft" id="btnMicrosoft">使用 Microsoft 登入</button>
+<button class="btn" data-i18n="login_apple" id="btnApple">使用 Apple 登入</button>
+</div>
+<div class="split" data-i18n="common_or">或</div>
+<div class="row">
+<div class="field">
+<label>Email</label>
+<input autocomplete="username" id="email" placeholder="you@example.com" type="email"/>
+</div>
+<div class="field">
+<label>Password</label>
+<input autocomplete="current-password" id="password" placeholder="password" type="password"/>
+</div>
+<div class="mini">
+<button class="btn" data-i18n="login_email_signin" id="btnEmailLogin">Email 登入</button>
+<button class="btn" data-i18n="login_email_signup" id="btnEmailSignup">Email 註冊</button>
+</div>
+</div>
+<div class="note" data-i18n="login_provider_hint">
           如果你用 Microsoft 或 Apple 登入，需要先在 Firebase Auth 裡啟用對應的 Provider，否則會顯示錯誤。
         </div>
-      </div>
-
-      <div class="status" id="status"></div>
-    </div>
-  </div>
-
-  <script src="app.js"></script>
-
-
-  <!-- Firebase (modular CDN) -->
-  <script type="module">
+</div>
+<div class="status" id="status"></div>
+</div>
+</div>
+<script src="app.js"></script>
+<!-- Firebase (modular CDN) -->
+<script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import {
       getAuth,
@@ -512,8 +502,7 @@ body{
     };
 
     </script>
-  </div>
-
+</div>
 <script>
 (function(){
   function updateMasterHeightStable(){
@@ -530,6 +519,5 @@ body{
   window.addEventListener("load", updateMasterHeightStable);
 })();
 </script>
-
 </body>
 </html>

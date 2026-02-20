@@ -15,345 +15,567 @@ const IS_OFFLINE = WORKER_BASE === "";
 function q(sel, root=document){ return root.querySelector(sel); }
 function qa(sel, root=document){ return Array.from(root.querySelectorAll(sel)); }
 
-/* === ACF i18n (auto language + in-game switch) === */
-(function(){
-  const LANG_KEY = "acf_lang";
-  const SUPPORTED = ["en","zh-Hant","zh-Hans","ja","ko"];
+
+/* i18n */
+const ACF_I18N = (() => {
+  const KEY = "acf_lang";
 
   const STR = {
     "en": {
-      "lang.name": "English",
-      "net.connecting": "Connecting",
-      "net.online": "Online",
-      "net.offline": "Offline",
-      "master.lv": "Lv",
-      "master.score": "Score",
-      "master.player": "Player",
-      "lang.label": "Language",
+      login_title: "Anime Character Forge Sign In",
+      login_email_signin: "Email Sign In",
+      login_email_signup: "Email Sign Up",
+      login_google: "Sign in with Google",
+      login_microsoft: "Sign in with Microsoft",
+      login_apple: "Sign in with Apple",
+      common_or: "or",
+      login_hint: "Sign in first. After signing in, you will go straight to your gallery.",
+      login_provider_hint: "If you use Microsoft or Apple, enable the provider in Firebase Auth first, or it will show an error.",
+      status_logged_in: "Signed in",
+      status_not_logged_in: "Not signed in",
+      btn_logout: "Sign out",
 
-      "gallery.sort.new": "Newest",
-      "gallery.sort.top": "Top Score",
-      "gallery.season.all": "All Seasons",
-      "gallery.loading": "Loading",
-      "gallery.podium": "🏆 Season Podium",
-      "gallery.recommended": "🔥 Recommended",
-      "gallery.recommended.sub": "Recommendations ≥ 1 · Sorted by recommendations",
-      "gallery.favRank": "💖 Favorites",
-      "gallery.favRank.sub": "All seasons · Sorted by favorites",
-      "gallery.newcomerRank": "🆕 Newcomers",
-      "gallery.newcomerRank.sub": "Accounts within 30 days · Sorted by favorites",
-      "gallery.authorRank": "👑 Popular Creators",
-      "gallery.authorRank.sub": "All seasons · Sorted by followers",
+      filter_latest: "Latest",
+      filter_topscore: "Top Score",
+      common_loading: "Loading",
+      common_works: "Works",
+      common_close: "Close",
+      gallery_podium: "Season Podium",
+      gallery_recommended: "Recommended",
+      gallery_favorites: "Favorites",
+      gallery_newcomers: "Newcomers",
+      gallery_authors: "Top Authors",
+      gallery_season_all: "All Seasons",
+      gallery_recommended_desc: "Recommended 1+ times, sorted by recommendations",
+      gallery_favorites_desc: "All seasons, sorted by favorites",
+      gallery_newcomers_desc: "Accounts within 1 month, sorted by favorites",
+      gallery_authors_desc: "All seasons, sorted by followers",
 
-      "recipes.tab.saves": "My Works",
-      "recipes.tab.recipes": "My Collection",
-      "recipes.preview": "Preview",
-      "recipes.close": "Close",
+      gacha_title: "Gacha",
+      gacha_drawing: "Drawing",
+      gacha_congrats: "Congrats!",
+      common_confirm: "Confirm",
+      gacha_normal: "Standard",
+      gacha_premium: "Premium",
+      gacha_one: "1x",
+      gacha_ten: "10x",
+      gacha_results_10: "10 Draw Results",
+      gacha_guarantee: "Guaranteed",
+      gacha_or_higher: "or higher",
+      gacha_recharge: "Top up",
+      gacha_go_shop: "Go to Shop",
+      gacha_share: "One click share",
+      gacha_copy: "Copy caption",
+      gacha_download: "Download image",
+      gacha_claim_reward: "Claim reward",
+      gacha_want_more: "Want more pulls",
+      common_and: "and",
+      gacha_draw_char: "Draw Character",
+      gacha_draw_outfit: "Draw Outfit",
+      gacha_draw_bg: "Draw Background",
+      gacha_draw_fx1: "Draw FX 1",
+      gacha_draw_fx2: "Draw FX 2",
 
-      "shop.buyNow": "Buy Now",
-      "shop.bonus": "Bonus {n} Gems",
-      "shop.created": "Checkout created. Redirecting",
-      "shop.noWorker": "Worker API Base is empty (offline or WORKER_BASE not set)."
+      recipes_my_builds: "My Builds",
+      recipes_my_favs: "My Favorites",
+      recipes_gallery: "Gallery",
+      common_preview: "Preview",
+
+      studio_title: "Studio",
+      studio_head: "Head",
+      studio_body: "Body",
+      studio_bg: "Background",
+      studio_save: "Save",
+      studio_random: "Random",
+      studio_to_gallery: "Go to Gallery",
+
+      user_title: "Player",
+      common_back: "Back",
+      btn_follow: "Follow",
+      user_preview: "Work Preview",
+      user_followers0: "Followers 0",
+      user_following0: "Following 0",
+
+      shop_title: "Shop",
+      shop_plans: "Top up plans",
+      shop_page_title: "DREAM LEAGUE BASEBALL Shop",
+      shop_redirect_hint: "If it does not redirect automatically, check whether your browser blocked the redirect.",
+      shop_offline_hint: "If you are in offline mode, use the online site or make sure WORKER_BASE is set.",
+      shop_webhook_hint: "Balance will not update instantly. It will update after Stripe webhook is received to prevent client-side cheating.",
+
+      net_connecting: "Connecting",
+      net_online: "Online",
+      net_offline: "Offline",
+      label_lv: "Lv",
+      label_score: "Score",
+      label_player: "Player",
+      label_lang: "Language",
+      lang_en: "English",
+      lang_zh_hant: "繁體中文",
+      lang_zh_hans: "简体中文",
+      lang_ja: "日本語",
+      lang_ko: "한국어",
     },
     "zh-Hant": {
-      "lang.name": "繁體中文",
-      "net.connecting": "連線中",
-      "net.online": "線上",
-      "net.offline": "離線",
-      "master.lv": "Lv",
-      "master.score": "評分",
-      "master.player": "玩家",
-      "lang.label": "語言",
+      login_title: "Anime Character Forge 登入",
+      login_email_signin: "Email 登入",
+      login_email_signup: "Email 註冊",
+      login_google: "使用 Google 登入",
+      login_microsoft: "使用 Microsoft 登入",
+      login_apple: "使用 Apple 登入",
+      common_or: "或",
+      login_hint: "先登入，登入後會直接進入作品庫",
+      login_provider_hint: "如果你用 Microsoft 或 Apple 登入，需要先在 Firebase Auth 裡啟用對應的 Provider，否則會顯示錯誤。",
+      status_logged_in: "目前登入",
+      status_not_logged_in: "未登入",
+      btn_logout: "登出",
 
-      "gallery.sort.new": "最新",
-      "gallery.sort.top": "最高分",
-      "gallery.season.all": "全部 Season",
-      "gallery.loading": "讀取中",
-      "gallery.podium": "🏆 本期頒獎台",
-      "gallery.recommended": "🔥 本期推薦",
-      "gallery.recommended.sub": "推薦次數 ≥ 1 · 依推薦次數排序",
-      "gallery.favRank": "💖 收藏榜",
-      "gallery.favRank.sub": "不限賽季 · 依被收藏數排序",
-      "gallery.newcomerRank": "🆕 新手衝分榜",
-      "gallery.newcomerRank.sub": "註冊 30 天內 · 依帳號評分排序",
-      "gallery.authorRank": "👑 熱門作者榜",
-      "gallery.authorRank.sub": "不限賽季 · 依被關注數排序",
+      filter_latest: "最新",
+      filter_topscore: "最高分",
+      common_loading: "讀取中",
+      common_works: "作品",
+      common_close: "關閉",
+      gallery_podium: "🏆 本期頒獎台",
+      gallery_recommended: "🔥 本期推薦",
+      gallery_favorites: "💖 收藏榜",
+      gallery_newcomers: "🆕 新人榜",
+      gallery_authors: "👑 熱門作者榜",
+      gallery_season_all: "全部 Season",
+      gallery_recommended_desc: "推薦次數 ≥ 1 · 依推薦次數排序",
+      gallery_favorites_desc: "不限賽季 · 依被收藏數排序",
+      gallery_newcomers_desc: "註冊 1 個月內 · 依被收藏數排序",
+      gallery_authors_desc: "不限賽季 · 依被關注數排序",
 
-      "recipes.tab.saves": "我的成品",
-      "recipes.tab.recipes": "我的收藏",
-      "recipes.preview": "預覽",
-      "recipes.close": "關閉",
+      gacha_title: "抽卡",
+      gacha_drawing: "抽卡中",
+      gacha_congrats: "恭喜獲得",
+      common_confirm: "確認",
+      gacha_normal: "普通抽卡",
+      gacha_premium: "高級抽卡",
+      gacha_one: "1次",
+      gacha_ten: "10次",
+      gacha_results_10: "10連抽結果",
+      gacha_guarantee: "必出",
+      gacha_or_higher: "以上",
+      gacha_recharge: "補充",
+      gacha_go_shop: "去充值",
+      gacha_share: "一鍵分享",
+      gacha_copy: "複製文案",
+      gacha_download: "下載圖片",
+      gacha_claim_reward: "領取獎勵",
+      gacha_want_more: "想抽更爽",
+      common_and: "與",
+      gacha_draw_char: "抽角色",
+      gacha_draw_outfit: "抽服裝",
+      gacha_draw_bg: "抽背景",
+      gacha_draw_fx1: "抽特效1",
+      gacha_draw_fx2: "抽特效2",
 
-      "shop.buyNow": "立即購買",
-      "shop.bonus": "加送 {n} Gem",
-      "shop.created": "已建立 Stripe Checkout，轉跳中",
-      "shop.noWorker": "Worker API Base 為空（看起來你在本機離線模式，或 app.js 的 WORKER_BASE 沒設定）。"
+      recipes_my_builds: "我的成品",
+      recipes_my_favs: "我的收藏",
+      recipes_gallery: "成品庫",
+      common_preview: "預覽",
+
+      studio_title: "工作室 - 進階版",
+      studio_head: "頭部",
+      studio_body: "身體",
+      studio_bg: "背景",
+      studio_save: "保存",
+      studio_random: "隨機搭配",
+      studio_to_gallery: "去看成品庫",
+
+      user_title: "玩家",
+      common_back: "返回",
+      btn_follow: "關注",
+      user_preview: "作品預覽",
+      user_followers0: "粉絲 0",
+      user_following0: "關注 0",
+
+      shop_title: "商城",
+      shop_plans: "充值方案",
+      shop_page_title: "DREAM LEAGUE BASEBALL 商城",
+      shop_redirect_hint: "如果沒有自動跳轉，請確認瀏覽器沒有阻擋重新導向。",
+      shop_offline_hint: "若你在本機離線模式，請用線上環境或確認 WORKER_BASE 已設定。",
+      shop_webhook_hint: "付款完成後不會立刻入帳。後端收到 Stripe webhook 才入帳，避免前端作弊。",
+
+      net_connecting: "Connecting",
+      net_online: "Online",
+      net_offline: "Offline",
+      label_lv: "Lv",
+      label_score: "Score",
+      label_player: "Player",
+      label_lang: "語言",
+      lang_en: "English",
+      lang_zh_hant: "繁體中文",
+      lang_zh_hans: "简体中文",
+      lang_ja: "日本語",
+      lang_ko: "한국어",
     },
     "zh-Hans": {
-      "lang.name": "简体中文",
-      "net.connecting": "连接中",
-      "net.online": "在线",
-      "net.offline": "离线",
-      "master.lv": "Lv",
-      "master.score": "评分",
-      "master.player": "玩家",
-      "lang.label": "语言",
+      login_title: "Anime Character Forge 登录",
+      login_email_signin: "Email 登录",
+      login_email_signup: "Email 注册",
+      login_google: "使用 Google 登录",
+      login_microsoft: "使用 Microsoft 登录",
+      login_apple: "使用 Apple 登录",
+      common_or: "或",
+      login_hint: "先登录，登录后会直接进入作品库",
+      login_provider_hint: "如果你用 Microsoft 或 Apple 登录，需要先在 Firebase Auth 里启用对应的 Provider，否则会显示错误。",
+      status_logged_in: "当前已登录",
+      status_not_logged_in: "未登录",
+      btn_logout: "退出登录",
 
-      "gallery.sort.new": "最新",
-      "gallery.sort.top": "最高分",
-      "gallery.season.all": "全部 赛季",
-      "gallery.loading": "读取中",
-      "gallery.podium": "🏆 本期领奖台",
-      "gallery.recommended": "🔥 本期推荐",
-      "gallery.recommended.sub": "推荐次数 ≥ 1 · 按推荐次数排序",
-      "gallery.favRank": "💖 收藏榜",
-      "gallery.favRank.sub": "不限赛季 · 按被收藏数排序",
-      "gallery.newcomerRank": "🆕 新手冲分榜",
-      "gallery.newcomerRank.sub": "注册 30 天内 · 按账号评分排序",
-      "gallery.authorRank": "👑 热门作者榜",
-      "gallery.authorRank.sub": "不限赛季 · 按被关注数排序",
+      filter_latest: "最新",
+      filter_topscore: "最高分",
+      common_loading: "读取中",
+      common_works: "作品",
+      common_close: "关闭",
+      gallery_podium: "🏆 本期领奖台",
+      gallery_recommended: "🔥 本期推荐",
+      gallery_favorites: "💖 收藏榜",
+      gallery_newcomers: "🆕 新人榜",
+      gallery_authors: "👑 热门作者榜",
+      gallery_season_all: "全部 Season",
+      gallery_recommended_desc: "推荐次数 ≥ 1 · 按推荐次数排序",
+      gallery_favorites_desc: "不限赛季 · 按被收藏数排序",
+      gallery_newcomers_desc: "注册 1 个月内 · 按被收藏数排序",
+      gallery_authors_desc: "不限赛季 · 按被关注数排序",
 
-      "recipes.tab.saves": "我的作品",
-      "recipes.tab.recipes": "我的收藏",
-      "recipes.preview": "预览",
-      "recipes.close": "关闭",
+      gacha_title: "抽卡",
+      gacha_drawing: "抽卡中",
+      gacha_congrats: "恭喜获得",
+      common_confirm: "确认",
+      gacha_normal: "普通抽卡",
+      gacha_premium: "高级抽卡",
+      gacha_one: "1次",
+      gacha_ten: "10次",
+      gacha_results_10: "10连抽结果",
+      gacha_guarantee: "必出",
+      gacha_or_higher: "以上",
+      gacha_recharge: "补充",
+      gacha_go_shop: "去充值",
+      gacha_share: "一键分享",
+      gacha_copy: "复制文案",
+      gacha_download: "下载图片",
+      gacha_claim_reward: "领取奖励",
+      gacha_want_more: "想抽更爽",
+      common_and: "与",
+      gacha_draw_char: "抽角色",
+      gacha_draw_outfit: "抽服装",
+      gacha_draw_bg: "抽背景",
+      gacha_draw_fx1: "抽特效1",
+      gacha_draw_fx2: "抽特效2",
 
-      "shop.buyNow": "立即购买",
-      "shop.bonus": "加送 {n} 宝石",
-      "shop.created": "已创建结账页面，正在跳转",
-      "shop.noWorker": "Worker API Base 为空（可能是离线模式，或未设置 WORKER_BASE）。"
+      recipes_my_builds: "我的成品",
+      recipes_my_favs: "我的收藏",
+      recipes_gallery: "成品库",
+      common_preview: "预览",
+
+      studio_title: "工作室",
+      studio_head: "头部",
+      studio_body: "身体",
+      studio_bg: "背景",
+      studio_save: "保存",
+      studio_random: "随机搭配",
+      studio_to_gallery: "去看成品库",
+
+      user_title: "玩家",
+      common_back: "返回",
+      btn_follow: "关注",
+      user_preview: "作品预览",
+      user_followers0: "粉丝 0",
+      user_following0: "关注 0",
+
+      shop_title: "商城",
+      shop_plans: "充值方案",
+      shop_page_title: "DREAM LEAGUE BASEBALL 商城",
+      shop_redirect_hint: "如果没有自动跳转，请确认浏览器没有阻止重定向。",
+      shop_offline_hint: "如果你在本机离线模式，请使用线上环境或确认 WORKER_BASE 已设置。",
+      shop_webhook_hint: "付款完成后不会立刻入账。后端收到 Stripe webhook 才入账，避免前端作弊。",
+
+      net_connecting: "Connecting",
+      net_online: "Online",
+      net_offline: "Offline",
+      label_lv: "Lv",
+      label_score: "Score",
+      label_player: "Player",
+      label_lang: "语言",
+      lang_en: "English",
+      lang_zh_hant: "繁體中文",
+      lang_zh_hans: "简体中文",
+      lang_ja: "日本語",
+      lang_ko: "한국어",
     },
     "ja": {
-      "lang.name": "日本語",
-      "net.connecting": "接続中",
-      "net.online": "オンライン",
-      "net.offline": "オフライン",
-      "master.lv": "Lv",
-      "master.score": "スコア",
-      "master.player": "プレイヤー",
-      "lang.label": "言語",
+      login_title: "Anime Character Forge ログイン",
+      login_email_signin: "メールでログイン",
+      login_email_signup: "メールで登録",
+      login_google: "Google でログイン",
+      login_microsoft: "Microsoft でログイン",
+      login_apple: "Apple でログイン",
+      common_or: "または",
+      login_hint: "先にログインしてください。ログイン後はギャラリーへ移動します。",
+      login_provider_hint: "Microsoft または Apple を使う場合、Firebase Auth で Provider を有効にしてください。無効だとエラーになります。",
+      status_logged_in: "ログイン中",
+      status_not_logged_in: "未ログイン",
+      btn_logout: "ログアウト",
 
-      "gallery.sort.new": "新着",
-      "gallery.sort.top": "最高スコア",
-      "gallery.season.all": "全シーズン",
-      "gallery.loading": "読み込み中",
-      "gallery.podium": "🏆 シーズン表彰台",
-      "gallery.recommended": "🔥 おすすめ",
-      "gallery.recommended.sub": "おすすめ回数 ≥ 1 · おすすめ順",
-      "gallery.favRank": "💖 お気に入り",
-      "gallery.favRank.sub": "全シーズン · お気に入り数順",
-      "gallery.newcomerRank": "🆕 新規ランキング",
-      "gallery.newcomerRank.sub": "30日以内 · アカウントスコア順",
-      "gallery.authorRank": "👑 人気クリエイター",
-      "gallery.authorRank.sub": "全シーズン · フォロー数順",
+      filter_latest: "最新",
+      filter_topscore: "最高スコア",
+      common_loading: "読み込み中",
+      common_works: "作品",
+      common_close: "閉じる",
+      gallery_podium: "🏆 今季の表彰台",
+      gallery_recommended: "🔥 おすすめ",
+      gallery_favorites: "💖 お気に入り",
+      gallery_newcomers: "🆕 新人",
+      gallery_authors: "👑 人気作者",
+      gallery_season_all: "全シーズン",
+      gallery_recommended_desc: "おすすめ 1 回以上 · おすすめ回数順",
+      gallery_favorites_desc: "全シーズン · お気に入り数順",
+      gallery_newcomers_desc: "登録 1 か月以内 · お気に入り数順",
+      gallery_authors_desc: "全シーズン · フォロワー数順",
 
-      "recipes.tab.saves": "作品",
-      "recipes.tab.recipes": "コレクション",
-      "recipes.preview": "プレビュー",
-      "recipes.close": "閉じる",
+      gacha_title: "ガチャ",
+      gacha_drawing: "抽選中",
+      gacha_congrats: "獲得おめでとう",
+      common_confirm: "確認",
+      gacha_normal: "通常ガチャ",
+      gacha_premium: "プレミアムガチャ",
+      gacha_one: "1 回",
+      gacha_ten: "10 回",
+      gacha_results_10: "10 連結果",
+      gacha_guarantee: "確定",
+      gacha_or_higher: "以上",
+      gacha_recharge: "補充",
+      gacha_go_shop: "チャージへ",
+      gacha_share: "ワンクリック共有",
+      gacha_copy: "文言をコピー",
+      gacha_download: "画像を保存",
+      gacha_claim_reward: "報酬を受け取る",
+      gacha_want_more: "もっと引きたい",
+      common_and: "と",
+      gacha_draw_char: "キャラ",
+      gacha_draw_outfit: "衣装",
+      gacha_draw_bg: "背景",
+      gacha_draw_fx1: "エフェクト 1",
+      gacha_draw_fx2: "エフェクト 2",
 
-      "shop.buyNow": "購入",
-      "shop.bonus": "ボーナス {n} ジェム",
-      "shop.created": "チェックアウト作成済み。移動中",
-      "shop.noWorker": "Worker API Base が空です（オフライン、または WORKER_BASE 未設定）。"
+      recipes_my_builds: "自分の作品",
+      recipes_my_favs: "自分のお気に入り",
+      recipes_gallery: "ギャラリー",
+      common_preview: "プレビュー",
+
+      studio_title: "スタジオ",
+      studio_head: "頭",
+      studio_body: "体",
+      studio_bg: "背景",
+      studio_save: "保存",
+      studio_random: "ランダム",
+      studio_to_gallery: "ギャラリーへ",
+
+      user_title: "プレイヤー",
+      common_back: "戻る",
+      btn_follow: "フォロー",
+      user_preview: "作品プレビュー",
+      user_followers0: "フォロワー 0",
+      user_following0: "フォロー中 0",
+
+      shop_title: "ショップ",
+      shop_plans: "チャージプラン",
+      shop_page_title: "DREAM LEAGUE BASEBALL ショップ",
+      shop_redirect_hint: "自動で移動しない場合、ブラウザのリダイレクトブロックを確認してください。",
+      shop_offline_hint: "オフラインの場合はオンライン環境を使うか、WORKER_BASE を確認してください。",
+      shop_webhook_hint: "即時反映されません。Stripe webhook 受信後に反映され、クライアント側の不正を防ぎます。",
+
+      net_connecting: "接続中",
+      net_online: "オンライン",
+      net_offline: "オフライン",
+      label_lv: "Lv",
+      label_score: "Score",
+      label_player: "Player",
+      label_lang: "言語",
+      lang_en: "English",
+      lang_zh_hant: "繁體中文",
+      lang_zh_hans: "简体中文",
+      lang_ja: "日本語",
+      lang_ko: "한국어",
     },
     "ko": {
-      "lang.name": "한국어",
-      "net.connecting": "연결 중",
-      "net.online": "온라인",
-      "net.offline": "오프라인",
-      "master.lv": "Lv",
-      "master.score": "점수",
-      "master.player": "플레이어",
-      "lang.label": "언어",
+      login_title: "Anime Character Forge 로그인",
+      login_email_signin: "이메일 로그인",
+      login_email_signup: "이메일 가입",
+      login_google: "Google로 로그인",
+      login_microsoft: "Microsoft로 로그인",
+      login_apple: "Apple로 로그인",
+      common_or: "또는",
+      login_hint: "먼저 로그인하세요. 로그인 후 바로 갤러리로 이동합니다.",
+      login_provider_hint: "Microsoft 또는 Apple을 사용한다면 Firebase Auth에서 Provider를 먼저 활성화하세요. 아니면 오류가 납니다.",
+      status_logged_in: "로그인됨",
+      status_not_logged_in: "로그인 안 됨",
+      btn_logout: "로그아웃",
 
-      "gallery.sort.new": "최신",
-      "gallery.sort.top": "최고 점수",
-      "gallery.season.all": "전체 시즌",
-      "gallery.loading": "불러오는 중",
-      "gallery.podium": "🏆 시즌 시상대",
-      "gallery.recommended": "🔥 추천",
-      "gallery.recommended.sub": "추천 ≥ 1 · 추천순",
-      "gallery.favRank": "💖 즐겨찾기",
-      "gallery.favRank.sub": "전체 시즌 · 즐겨찾기 수",
-      "gallery.newcomerRank": "🆕 신규 랭킹",
-      "gallery.newcomerRank.sub": "30일 이내 · 계정 점수",
-      "gallery.authorRank": "👑 인기 제작자",
-      "gallery.authorRank.sub": "전체 시즌 · 팔로우 수",
+      filter_latest: "최신",
+      filter_topscore: "최고 점수",
+      common_loading: "불러오는 중",
+      common_works: "작품",
+      common_close: "닫기",
+      gallery_podium: "🏆 시즌 시상대",
+      gallery_recommended: "🔥 추천",
+      gallery_favorites: "💖 즐겨찾기",
+      gallery_newcomers: "🆕 신규",
+      gallery_authors: "👑 인기 작가",
+      gallery_season_all: "전체 시즌",
+      gallery_recommended_desc: "추천 1회 이상 · 추천 수 기준",
+      gallery_favorites_desc: "전체 시즌 · 즐겨찾기 수 기준",
+      gallery_newcomers_desc: "가입 1개월 이내 · 즐겨찾기 수 기준",
+      gallery_authors_desc: "전체 시즌 · 팔로워 수 기준",
 
-      "recipes.tab.saves": "내 작품",
-      "recipes.tab.recipes": "내 컬렉션",
-      "recipes.preview": "미리보기",
-      "recipes.close": "닫기",
+      gacha_title: "가챠",
+      gacha_drawing: "뽑는 중",
+      gacha_congrats: "획득 축하",
+      common_confirm: "확인",
+      gacha_normal: "일반 가챠",
+      gacha_premium: "프리미엄 가챠",
+      gacha_one: "1회",
+      gacha_ten: "10회",
+      gacha_results_10: "10연 결과",
+      gacha_guarantee: "확정",
+      gacha_or_higher: "이상",
+      gacha_recharge: "충전",
+      gacha_go_shop: "상점으로",
+      gacha_share: "원클릭 공유",
+      gacha_copy: "문구 복사",
+      gacha_download: "이미지 다운로드",
+      gacha_claim_reward: "보상 받기",
+      gacha_want_more: "더 뽑고 싶어",
+      common_and: "와",
+      gacha_draw_char: "캐릭터",
+      gacha_draw_outfit: "의상",
+      gacha_draw_bg: "배경",
+      gacha_draw_fx1: "이펙트1",
+      gacha_draw_fx2: "이펙트2",
 
-      "shop.buyNow": "구매",
-      "shop.bonus": "보너스 {n} 젬",
-      "shop.created": "결제 생성됨. 이동 중",
-      "shop.noWorker": "Worker API Base가 비어 있습니다(오프라인 또는 WORKER_BASE 미설정)."
-    }
+      recipes_my_builds: "내 작품",
+      recipes_my_favs: "내 즐겨찾기",
+      recipes_gallery: "갤러리",
+      common_preview: "미리보기",
+
+      studio_title: "스튜디오",
+      studio_head: "머리",
+      studio_body: "몸",
+      studio_bg: "배경",
+      studio_save: "저장",
+      studio_random: "랜덤",
+      studio_to_gallery: "갤러리로",
+
+      user_title: "플레이어",
+      common_back: "뒤로",
+      btn_follow: "팔로우",
+      user_preview: "작품 미리보기",
+      user_followers0: "팔로워 0",
+      user_following0: "팔로잉 0",
+
+      shop_title: "상점",
+      shop_plans: "충전 상품",
+      shop_page_title: "DREAM LEAGUE BASEBALL 상점",
+      shop_redirect_hint: "자동으로 이동하지 않으면 브라우저가 리다이렉트를 차단했는지 확인하세요.",
+      shop_offline_hint: "오프라인이라면 온라인 환경을 사용하거나 WORKER_BASE 설정을 확인하세요.",
+      shop_webhook_hint: "즉시 반영되지 않습니다. Stripe webhook 수신 후 반영되어 클라이언트 부정을 방지합니다.",
+
+      net_connecting: "연결 중",
+      net_online: "온라인",
+      net_offline: "오프라인",
+      label_lv: "Lv",
+      label_score: "Score",
+      label_player: "Player",
+      label_lang: "언어",
+      lang_en: "English",
+      lang_zh_hant: "繁體中文",
+      lang_zh_hans: "简体中文",
+      lang_ja: "日本語",
+      lang_ko: "한국어",
+    },
   };
 
-  function normLang(raw){
-    const s = String(raw||"").trim();
-    if(!s) return "";
+  function normalizeLang(raw){
+    const s = String(raw || "").trim();
+    if(!s) return "en";
     const low = s.toLowerCase();
-    if(low.startsWith("zh-tw") || low.startsWith("zh-hk") || low.startsWith("zh-mo") || low.includes("hant")) return "zh-Hant";
-    if(low.startsWith("zh")) return "zh-Hans";
+    if(low.startsWith("zh")){
+      if(low.includes("hans") || low.includes("cn") || low.includes("sg")) return "zh-Hans";
+      if(low.includes("hant") || low.includes("tw") || low.includes("hk") || low.includes("mo")) return "zh-Hant";
+      return "zh-Hant";
+    }
     if(low.startsWith("ja")) return "ja";
     if(low.startsWith("ko")) return "ko";
+    if(low.startsWith("en")) return "en";
     return "en";
   }
 
   function getLang(){
-    const saved = localStorage.getItem(LANG_KEY);
-    if(saved && SUPPORTED.includes(saved)) return saved;
-    const detected = normLang(navigator.language || navigator.userLanguage || "en");
-    return SUPPORTED.includes(detected) ? detected : "en";
+    const saved = localStorage.getItem(KEY);
+    if(saved) return normalizeLang(saved);
+    const nav = (navigator.languages && navigator.languages.length) ? navigator.languages[0] : navigator.language;
+    return normalizeLang(nav);
   }
 
   function setLang(lang){
-    const l = SUPPORTED.includes(lang) ? lang : "en";
-    localStorage.setItem(LANG_KEY, l);
-    applyLang(l);
+    const n = normalizeLang(lang);
+    localStorage.setItem(KEY, n);
+    applyI18n(document);
+    window.dispatchEvent(new CustomEvent("acf:lang", { detail: { lang: n }}));
   }
 
-  function fmt(s, vars){
-    let out = String(s||"");
-    const v = vars || {};
-    out = out.replace(/\{(\w+)\}/g, (_,k)=> (v[k]!==undefined ? String(v[k]) : `{${k}}`));
-    return out;
-  }
-
-  function t(key, fallback, vars){
+  function t(key, fallback){
     const lang = getLang();
-    const dict = STR[lang] || STR["en"] || {};
-    const base = (dict[key] !== undefined) ? dict[key] : ((STR["en"]||{})[key]);
-    const val = (base !== undefined) ? base : (fallback !== undefined ? fallback : key);
-    return fmt(val, vars);
+    const dict = STR[lang] || STR["en"];
+    const en = STR["en"] || {};
+    if(dict && key in dict) return dict[key];
+    if(en && key in en) return en[key];
+    return fallback !== undefined ? fallback : key;
   }
 
-  function applyI18nAttrs(root){
-    const r = root || document;
-    r.querySelectorAll("[data-i18n]").forEach(el=>{
-      const key = el.getAttribute("data-i18n");
-      const fb = el.getAttribute("data-i18n-fallback") || el.textContent;
-      el.textContent = t(key, fb);
-    });
-    r.querySelectorAll("[data-i18n-placeholder]").forEach(el=>{
-      const key = el.getAttribute("data-i18n-placeholder");
-      const fb = el.getAttribute("placeholder") || "";
-      el.setAttribute("placeholder", t(key, fb));
-    });
-    r.querySelectorAll("[data-i18n-title]").forEach(el=>{
-      const key = el.getAttribute("data-i18n-title");
-      const fb = el.getAttribute("title") || "";
-      el.setAttribute("title", t(key, fb));
-    });
-  }
-
-  function applyLang(lang){
-    try{ document.documentElement.setAttribute("lang", lang); }catch(_){}
-
-    // Master header bits
-    try{
-      const net = document.getElementById("acfMasterNet");
-      if(net){
-        const s = net.textContent || "";
-        if(s.toLowerCase().includes("connect")) net.textContent = t("net.connecting", s);
-        if(s.toLowerCase() === "online") net.textContent = t("net.online", s);
-        if(s.toLowerCase() === "offline") net.textContent = t("net.offline", s);
+  function applyI18n(root){
+    const lang = getLang();
+    const nodes = (root || document).querySelectorAll("[data-i18n]");
+    nodes.forEach(n => {
+      const k = n.getAttribute("data-i18n");
+      const v = t(k, n.textContent);
+      if(n.tagName === "TITLE"){
+        document.title = v;
+      }else{
+        n.textContent = v;
       }
-    }catch(_){}
+    });
 
-    // Gallery page (id-based)
-    const p = (location.pathname || "").toLowerCase();
-    if(p.includes("gallery")){
-      try{
-        const sortSel = document.getElementById("sortSel");
-        if(sortSel){
-          const optNew = sortSel.querySelector("option[value='new']");
-          const optTop = sortSel.querySelector("option[value='top']");
-          if(optNew) optNew.textContent = t("gallery.sort.new", optNew.textContent);
-          if(optTop) optTop.textContent = t("gallery.sort.top", optTop.textContent);
-        }
-        const seasonSel = document.getElementById("seasonSel");
-        if(seasonSel){
-          const optAll = seasonSel.querySelector("option[value='']");
-          if(optAll) optAll.textContent = t("gallery.season.all", optAll.textContent);
-        }
-        const statusLine = document.getElementById("statusLine");
-        if(statusLine && /讀取中|loading/i.test(statusLine.textContent||"")) statusLine.textContent = t("gallery.loading", statusLine.textContent);
+    const ph = (root || document).querySelectorAll("[data-i18n-placeholder]");
+    ph.forEach(n => {
+      const k = n.getAttribute("data-i18n-placeholder");
+      n.setAttribute("placeholder", t(k, n.getAttribute("placeholder") || ""));
+    });
 
-        const podiumTitle = document.getElementById("podiumTitle");
-        if(podiumTitle) podiumTitle.textContent = t("gallery.podium", podiumTitle.textContent);
+    const tt = (root || document).querySelectorAll("[data-i18n-title]");
+    tt.forEach(n => {
+      const k = n.getAttribute("data-i18n-title");
+      n.setAttribute("title", t(k, n.getAttribute("title") || ""));
+    });
 
-        const recWrap = document.getElementById("recWrap");
-        if(recWrap){
-          const h = recWrap.querySelector(".recTitle .h");
-          const sub = document.getElementById("recSub") || recWrap.querySelector(".recTitle .sub");
-          if(h) h.textContent = t("gallery.recommended", h.textContent);
-          if(sub) sub.textContent = t("gallery.recommended.sub", sub.textContent);
-        }
-        const favRankWrap = document.getElementById("favRankWrap");
-        if(favRankWrap){
-          const h = favRankWrap.querySelector(".recTitle .h");
-          const sub = favRankWrap.querySelector(".recTitle .sub");
-          if(h) h.textContent = t("gallery.favRank", h.textContent);
-          if(sub) sub.textContent = t("gallery.favRank.sub", sub.textContent);
-        }
-        const newRankWrap = document.getElementById("newRankWrap");
-        if(newRankWrap){
-          const h = newRankWrap.querySelector(".recTitle .h");
-          const sub = newRankWrap.querySelector(".recTitle .sub");
-          if(h) h.textContent = t("gallery.newcomerRank", h.textContent);
-          if(sub) sub.textContent = t("gallery.newcomerRank.sub", sub.textContent);
-        }
-        const authorRankWrap = document.getElementById("authorRankWrap");
-        if(authorRankWrap){
-          const h = authorRankWrap.querySelector(".recTitle .h");
-          const sub = authorRankWrap.querySelector(".recTitle .sub");
-          if(h) h.textContent = t("gallery.authorRank", h.textContent);
-          if(sub) sub.textContent = t("gallery.authorRank.sub", sub.textContent);
-        }
-      }catch(_){}
+    const sel = document.getElementById("acfLangSel");
+    if(sel){
+      sel.value = lang;
+      sel.setAttribute("aria-label", t("label_lang","Language"));
     }
-
-    // Recipes page
-    if(p.includes("recipes")){
-      try{
-        const tabSaves = document.getElementById("tabSaves");
-        const tabRecipes = document.getElementById("tabRecipes");
-        if(tabSaves) tabSaves.textContent = t("recipes.tab.saves", tabSaves.textContent);
-        if(tabRecipes) tabRecipes.textContent = t("recipes.tab.recipes", tabRecipes.textContent);
-        const modalTitle = document.getElementById("modalTitle");
-        if(modalTitle) modalTitle.textContent = t("recipes.preview", modalTitle.textContent);
-        const modalClose = document.getElementById("modalClose");
-        if(modalClose) modalClose.textContent = t("recipes.close", modalClose.textContent);
-        const statusLine = document.getElementById("statusLine");
-        if(statusLine && /讀取中|loading/i.test(statusLine.textContent||"")) statusLine.textContent = t("gallery.loading", statusLine.textContent);
-      }catch(_){}
-    }
-
-    // Apply attributes everywhere (optional)
-    applyI18nAttrs(document);
   }
 
-  function init(){
-    const l = getLang();
-    applyLang(l);
-  }
-
-  window.ACF_getLang = getLang;
-  window.ACF_setLang = setLang;
-  window.ACF_t = t;
-  window.ACF_applyLang = applyLang;
-
-  if(document.readyState === "loading"){
-    document.addEventListener("DOMContentLoaded", init, { once:true });
-  }else{
-    init();
-  }
+  return { getLang, setLang, t, applyI18n, normalizeLang };
 })();
+
+window.ACF_t = ACF_I18N.t;
+window.ACF_getLang = ACF_I18N.getLang;
+window.ACF_setLang = ACF_I18N.setLang;
+window.ACF_applyI18n = ACF_I18N.applyI18n;
+
 
 function toast(msg){
   let el = q("#toast");
@@ -671,28 +893,41 @@ window.getName = getName;
         flex-wrap: nowrap;
         min-width: 0;
       }
-       .acf-masterRight{
-         display:flex;
-         align-items:center;
-         justify-content:flex-end;
-         gap: 10px;
-         min-width: 0;
-         pointer-events: auto;
-       }
-       .acf-langSel{
-         pointer-events:auto;
-         height: 36px;
-         padding: 0 10px;
-         border-radius: 12px;
-         border: 1px solid rgba(255,214,102,0.55);
-         background: rgba(12,14,18,0.45);
-         color: rgba(255,245,220,0.92);
-         font-weight: 800;
-         letter-spacing: 0.2px;
-         outline: none;
-         backdrop-filter: blur(8px);
-       }
-       .acf-langSel option{ color: #0b0d12; }
+
+      .acf-masterRight{
+        display:flex;
+        align-items:center;
+        justify-content:flex-end;
+        gap: 12px;
+        min-width: 0;
+      }
+
+      .acf-langWrap{
+        display:flex;
+        align-items:center;
+        justify-content:flex-end;
+        pointer-events:auto;
+      }
+
+      .acf-langSel{
+        appearance:none;
+        -webkit-appearance:none;
+        border-radius: 999px;
+        padding: 8px 12px;
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: 0.3px;
+        color: rgba(255,255,255,0.95);
+        background: rgba(0,0,0,0.32);
+        border: 1px solid rgba(255,255,255,0.18);
+        box-shadow: 0 10px 22px rgba(0,0,0,0.25);
+        outline: none;
+        cursor: pointer;
+      }
+      .acf-langSel:focus{
+        border-color: rgba(255,255,255,0.35);
+        box-shadow: 0 0 0 2px rgba(255,255,255,0.12), 0 10px 22px rgba(0,0,0,0.25);
+      }
 
 
       /* divider: single centered, no repeat, no cut, no thin border line */
@@ -929,7 +1164,7 @@ white-space: nowrap;
 
     const net = el("div","acf-masterNet");
     net.id = "acfMasterNet";
-    net.textContent = (window.ACF_t ? window.ACF_t("net.connecting","Connecting") : "Connecting");
+    net.textContent = ACF_t("net_connecting","Connecting");
 
     txt.appendChild(name);
     txt.appendChild(sub);
@@ -938,36 +1173,33 @@ white-space: nowrap;
     left.appendChild(avatar);
     left.appendChild(txt);
 
+    const right = el("div","acf-masterRight");
+
     const stats = el("div","acf-masterStats");
     stats.id = "acfMasterStats";
 
-    const right = el("div","acf-masterRight");
+    const langWrap = el("div","acf-langWrap");
+    const langSel = el("select","acf-langSel");
+    langSel.id = "acfLangSel";
+    langSel.innerHTML = `
+      <option value="en">${ACF_t("lang_en","English")}</option>
+      <option value="zh-Hant">${ACF_t("lang_zh_hant","繁體中文")}</option>
+      <option value="zh-Hans">${ACF_t("lang_zh_hans","简体中文")}</option>
+      <option value="ja">${ACF_t("lang_ja","日本語")}</option>
+      <option value="ko">${ACF_t("lang_ko","한국어")}</option>
+    `;
+    langSel.addEventListener("change", (e)=>{
+      ACF_setLang(e.target.value);
+      if(window.__acfMe) renderMaster(window.__acfMe);
+      refreshNetBadge();
+    });
+    langWrap.appendChild(langSel);
 
-// language select
-const langSel = el("select","acf-langSel");
-langSel.id = "acfLangSel";
-langSel.innerHTML = `
-  <option value="en">EN</option>
-  <option value="zh-Hant">繁</option>
-  <option value="zh-Hans">简</option>
-  <option value="ja">JP</option>
-  <option value="ko">KR</option>
-`;
-// init + bind
-try{
-  if(typeof window.ACF_getLang === "function") langSel.value = window.ACF_getLang();
-}catch(_){}
-langSel.addEventListener("change", ()=>{
-  try{
-    if(typeof window.ACF_setLang === "function") window.ACF_setLang(langSel.value);
-  }catch(_){}
-});
+    right.appendChild(stats);
+    right.appendChild(langWrap);
 
-right.appendChild(stats);
-right.appendChild(langSel);
-
-bar.appendChild(left);
-bar.appendChild(right);
+    bar.appendChild(left);
+    bar.appendChild(right);
     fixed.appendChild(bar);
 
     const div = el("div","acf-masterDivider");
@@ -1012,13 +1244,13 @@ bar.appendChild(right);
     if(!n) return;
     injectMasterNetStyles();
     const s = String(state || "").toLowerCase();
-    let label = (window.ACF_t ? window.ACF_t("net.connecting","Connecting") : "Connecting");
+    let label = ACF_t("net_connecting","Connecting");
     let cls = "net-connecting";
     if(s === "online"){
-      label = (window.ACF_t ? window.ACF_t("net.online","Online") : "Online");
+      label = ACF_t("net_online","Online");
       cls = "net-online";
     }else if(s === "offline"){
-      label = (window.ACF_t ? window.ACF_t("net.offline","Offline") : "Offline");
+      label = ACF_t("net_offline","Offline");
       cls = "net-offline";
     }
     n.textContent = label;
@@ -1030,7 +1262,7 @@ bar.appendChild(right);
   function refreshNetBadge(){
     if(!window.APP) { setNetBadge("connecting"); return; }
     const desired = window.APP.offline ? "offline" : "online";
-    const desiredLabel = desired === "offline" ? "Offline" : "Online";
+    const desiredLabel = desired === "offline" ? ACF_t("net_offline","Offline") : ACF_t("net_online","Online");
     if(_lastNetState !== desiredLabel){
       setNetBadge(desired);
     }
@@ -1063,8 +1295,8 @@ bar.appendChild(right);
     const acc = me.account || {};
 
     box.style.display = "block";
-    nameEl.textContent = String(acc.userName || (window.ACF_t ? window.ACF_t("master.player","Player") : "Player"));
-    subEl.textContent = (window.ACF_t ? (window.ACF_t("master.lv","Lv") + " ") : "Lv ") + String(Number(acc.level || 1)) + (acc.userRegion ? (" · " + String(acc.userRegion)) : "") + " · " + (window.ACF_t ? window.ACF_t("master.score","Score") : "Score") + " " + String(Number(acc.accountScore||0));
+    nameEl.textContent = String(acc.userName || ACF_t("label_player","Player"));
+    subEl.textContent = ACF_t("label_lv","Lv") + " " + String(Number(acc.level || 1)) + (acc.userRegion ? (" · " + String(acc.userRegion)) : "") + " · " + ACF_t("label_score","Score") + " " + String(Number(acc.accountScore||0));
 
     avEl.innerHTML = "";
     if(me.avatarSave){
@@ -1077,7 +1309,7 @@ bar.appendChild(right);
       ]);
     }else{
       const d = el("div","acf-initials");
-      d.textContent = initials(acc.userName || "Player");
+      d.textContent = initials(acc.userName || ACF_t("label_player","Player"));
       avEl.appendChild(d);
     }
 
@@ -1116,17 +1348,27 @@ bar.appendChild(right);
 
     try{
       const me = await fetchMeAccount();
+      window.__acfMe = me;
       renderMaster(me);
       refreshNetBadge();
+      ACF_applyI18n(document);
     }catch(_e){
+      window.__acfMe = null;
       renderMaster(null);
       refreshNetBadge();
+      ACF_applyI18n(document);
     }
 
     window.addEventListener("resize", ()=>setBodyOffset(), { passive:true });
   }
 
   window.ACF_initMasterHeader = initMasterHeader;
+
+  if(document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded", ()=>ACF_applyI18n(document));
+  }else{
+    ACF_applyI18n(document);
+  }
 
   if(document.readyState === "loading"){
     document.addEventListener("DOMContentLoaded", initMasterHeader);
