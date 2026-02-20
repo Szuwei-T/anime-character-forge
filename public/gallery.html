@@ -1,11 +1,11 @@
-<!DOCTYPE html>
-
+<!doctype html>
 <html lang="zh-Hant">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width,initial-scale=1" name="viewport"/>
-<title>Gallery</title>
-<style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Gallery</title>
+
+  <style>
     :root{
       --bg1:#0b1020;
       --bg2:#0a2231;
@@ -757,78 +757,94 @@ body{
 }
 
 </style>
-<link href="style.css" rel="stylesheet"/>
-<link href="ui_fx.css" rel="stylesheet"/>
+
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="ui_fx.css" />
 </head>
+
 <body>
-<div class="acf-page ui-panel">
-<div id="acfMasterMount"></div>
-<div class="wrap">
-<div class="toolbar">
-<div class="seg">
-<select class="select" id="sortSel">
-<option data-i18n="filter_latest" value="new">最新</option>
-<option data-i18n="filter_topscore" value="top">最高分</option>
-</select>
-<select class="select" id="seasonSel">
-<option data-i18n="gallery_season_all" value="">全部 Season</option>
-</select>
-</div>
-<div class="status" data-i18n="common_loading" id="statusLine">讀取中</div>
-</div>
-<div class="error" id="errorBox"></div>
-<div class="sectionTitle" data-i18n="gallery_podium" id="podiumTitle">🏆 本期頒獎台</div>
-<div class="podiumWrap" id="podiumWrap">
-<div class="podiumGrid" id="podiumGrid"></div>
-</div>
-<div class="recWrap" id="recWrap">
-<div class="recTitle">
-<div class="h" data-i18n="gallery_recommended">🔥 本期推薦</div>
-<div class="sub" data-i18n="gallery_recommended_desc" id="recSub">推薦次數 ≥ 1 · 依推薦次數排序</div>
-</div>
-<div class="recGrid" id="recGrid"></div>
-</div>
-<div class="rankRow" id="favAuthorRow">
-<div class="recWrap" id="favRankWrap">
-<div class="recTitle">
-<div class="h" data-i18n="gallery_favorites">💖 收藏榜</div>
-<div class="sub" data-i18n="gallery_favorites_desc">不限賽季 · 依被收藏數排序</div>
-</div>
-<div class="recGrid" id="favRankGrid"></div>
-</div>
-<div class="recWrap" id="newRankWrap">
-<div class="recTitle">
-<div class="h" data-i18n="gallery_newcomers">🆕 新人榜</div>
-<div class="sub" data-i18n="gallery_newcomers_desc">註冊 1 個月內 · 依被收藏數排序</div>
-</div>
-<div class="recGrid" id="newRankGrid"></div>
-</div>
-<div class="recWrap" id="authorRankWrap">
-<div class="recTitle">
-<div class="h" data-i18n="gallery_authors">👑 熱門作者榜</div>
-<div class="sub" data-i18n="gallery_authors_desc">不限賽季 · 依被關注數排序</div>
-</div>
-<div class="authorGrid" id="authorRankGrid"></div>
-</div>
-</div>
-<div class="entries" id="grid"></div>
-</div>
-<div class="toast" id="toast"></div>
-<div class="modal" id="modal">
-<div class="panel">
-<div class="panelHead">
-<div>
-<div class="t" data-i18n="common_works" id="mTitle">作品</div>
-<div class="s" id="mSub"></div>
-</div>
-<button class="close" data-i18n="common_close" id="mClose">關閉</button>
-</div>
-<div class="big">
-<div class="bigThumb" id="mThumb"></div>
-</div>
-</div>
-</div>
-<script>
+  <div class="acf-page ui-panel">
+    <div id="acfMasterMount"></div>
+
+    <div class="wrap">
+      <div class="toolbar">
+        <div class="seg">
+          <select id="sortSel" class="select">
+            <option value="new">最新</option>
+            <option value="top">最高分</option>
+          </select>
+          <select id="seasonSel" class="select">
+            <option value="">全部 Season</option>
+          </select>
+        </div>
+        <div class="status" id="statusLine">讀取中</div>
+      </div>
+
+      <div class="error" id="errorBox"></div>
+
+      <div class="sectionTitle" id="podiumTitle">🏆 本期頒獎台</div>
+      <div class="podiumWrap" id="podiumWrap">
+        <div class="podiumGrid" id="podiumGrid"></div>
+      </div>
+
+      <div class="recWrap" id="recWrap">
+        <div class="recTitle">
+          <div class="h">🔥 本期推薦</div>
+          <div class="sub" id="recSub">推薦次數 ≥ 1 · 依推薦次數排序</div>
+        </div>
+        <div class="recGrid" id="recGrid"></div>
+      </div>
+
+      <div class="rankRow" id="favAuthorRow">
+
+      <div class="recWrap" id="favRankWrap">
+        <div class="recTitle">
+          <div class="h">💖 收藏榜</div>
+          <div class="sub">不限賽季 · 依被收藏數排序</div>
+        </div>
+        <div class="recGrid" id="favRankGrid"></div>
+      </div>
+
+      <div class="recWrap" id="newRankWrap">
+        <div class="recTitle">
+          <div class="h">🆕 新人榜</div>
+          <div class="sub">註冊 1 個月內 · 依被收藏數排序</div>
+        </div>
+        <div class="recGrid" id="newRankGrid"></div>
+      </div>
+
+      <div class="recWrap" id="authorRankWrap">
+        <div class="recTitle">
+          <div class="h">👑 熱門作者榜</div>
+          <div class="sub">不限賽季 · 依被關注數排序</div>
+        </div>
+        <div class="authorGrid" id="authorRankGrid"></div>
+      </div>
+
+
+    </div>
+
+      <div class="entries" id="grid"></div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <div class="modal" id="modal">
+      <div class="panel">
+        <div class="panelHead">
+          <div>
+            <div class="t" id="mTitle">作品</div>
+            <div class="s" id="mSub"></div>
+          </div>
+          <button class="close" id="mClose">關閉</button>
+        </div>
+        <div class="big">
+          <div class="bigThumb" id="mThumb"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
       (function(){
         const grid = document.getElementById("grid");
         const recWrap = document.getElementById("recWrap");
@@ -917,10 +933,10 @@ body{
           }else{
             await api("/api/follow", { method:"POST", body:{ targetUserId: tid } });
             followingSet.add(tid);
-            showToast(ACF_t("toast_followed","已關注"));
+            showToast("已關注");
           }
         }catch(e){
-          showError(String(e.error || e.message || ACF_t("err_action_failed","操作失敗")));
+          showError(String(e.error || e.message || "操作失敗"));
         }
       }
         const ICON_FIRE = `<svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M13 3s1 3-1 5-1 4 2 5 4 6 0 8-4 1-6-1-2-4-2-6c0-4 3-5 3-8 0-2-1-3-1-3s4 1 5 3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>`;
@@ -1248,10 +1264,10 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
           if(userVote <= 0) return showError("票數不足");
           try{
             await api("/api/vote", { method:"POST", body:{ showcaseId } });
-            showToast(ACF_t("toast_voted","已投票"));
+            showToast("已投票");
             await loadMeLight();
           }catch(e){
-            showError(String(e.error || e.message || ACF_t("err_vote_failed","投票失敗")));
+            showError(String(e.error || e.message || "投票失敗"));
           }
         }
 
@@ -1265,10 +1281,10 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
             }else{
               await api("/api/favorite", { method:"POST", body:{ showcaseId } });
               favoriteSet.add(showcaseId);
-              showToast(ACF_t("toast_favorited","已收藏"));
+              showToast("已收藏");
             }
           }catch(e){
-            showError(String(e.error || e.message || ACF_t("err_favorite_failed","收藏失敗")));
+            showError(String(e.error || e.message || "收藏失敗"));
           }
         }
 
@@ -1277,14 +1293,14 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
           if(userGem < 50) return showError("GEM 不足");
           try{
             await api("/api/recommend", { method:"POST", body:{ showcaseId } });
-            showToast(ACF_t("toast_recommended","已推薦 1 次 (花費 50 GEM)"));
+            showToast("已推薦 1 次 (花費 50 GEM)");
             await loadMeLight();
           }catch(e){
             const code = String(e.error || e.code || "");
             if(code === "max_per_showcase_reached" || code === "recommend_limit") return showError("同一作品同一賽季最多推薦 5 次");
             if(code === "insufficient_gem" || code === "no_gem") return showError("GEM 不足");
             if(code === "unauthorized") return showError("請先登入");
-            showError(String(e.error || e.message || ACF_t("err_recommend_failed","推薦失敗")));
+            showError(String(e.error || e.message || "推薦失敗"));
           }
         }
 
@@ -1472,16 +1488,16 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
               const isFollow = tid && followingSet.has(tid);
               if(isFollow) followBtn.classList.add("on");
               if(isSelf){ followBtn.style.display = "none"; }
-              followBtn.dataset.tip = (isFollow ? "已關注" : ACF_t("gallery_btn_follow","關注"));
-              followBtn.innerHTML = (isFollow ? ICON_FOLLOW_ON : ICON_FOLLOW) + `<span class="btnLabel">${isFollow ? "已關注" : ACF_t("gallery_btn_follow","關注")}</span>`;
+              followBtn.dataset.tip = (isFollow ? ACF_t("gallery_followed") : ACF_t("gallery_follow"));
+              followBtn.innerHTML = (isFollow ? ICON_FOLLOW_ON : ICON_FOLLOW) + `<span class="btnLabel">${isFollow ? ACF_t("gallery_followed") : ACF_t("gallery_follow")}</span>`;
 
               followBtn.onclick = async (e)=>{
                 e.stopPropagation();
                 if(isSelf) return;
                 await toggleFollow(tid);
                 const on = followingSet.has(tid);
-                followBtn.dataset.tip = on ? "已關注" : ACF_t("gallery_btn_follow","關注");
-                followBtn.innerHTML = (on ? ICON_FOLLOW_ON : ICON_FOLLOW) + `<span class="btnLabel">${on ? "已關注" : ACF_t("gallery_btn_follow","關注")}</span>`;
+                followBtn.dataset.tip = on ? ACF_t("gallery_followed") : ACF_t("gallery_follow");
+                followBtn.innerHTML = (on ? ICON_FOLLOW_ON : ICON_FOLLOW) + `<span class="btnLabel">${on ? ACF_t("gallery_followed") : ACF_t("gallery_follow")}</span>`;
                 followBtn.classList.toggle("on", on);
               };
 
@@ -1494,7 +1510,7 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
               const voteBtn = document.createElement("button");
               voteBtn.className = "iconBtn";
               voteBtn.type = "button";
-              voteBtn.dataset.tip = ACF_t("gallery_btn_vote","投票");
+              voteBtn.dataset.tip = "投票";
               voteBtn.innerHTML = ICON_VOTE + `<span class="btnLabel">投票</span>`;
               if(isSelf){ voteBtn.style.display = "none"; }
               if((!uid) || userVote <= 0) voteBtn.style.opacity = ".6";
@@ -1525,8 +1541,8 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
               const sid2 = String(s.showcaseId || s.id || "");
               const isFav2 = favoriteSet.has(sid2);
               if(isFav2) favBtn.classList.add("on");
-              favBtn.dataset.tip = isFav2 ? "已收藏" : ACF_t("gallery_btn_favorite","收藏");
-              favBtn.innerHTML = ICON_HEART + `<span class="btnLabel">${isFav2 ? "已收藏" : ACF_t("gallery_btn_favorite","收藏")}</span>`;
+              favBtn.dataset.tip = isFav2 ? "已收藏" : "收藏";
+              favBtn.innerHTML = ICON_HEART + `<span class="btnLabel">${isFav2 ? "已收藏" : "收藏"}</span>`;
               if(isSelf){ favBtn.style.display = "none"; }
               favBtn.onclick = async (e)=>{
                 e.stopPropagation();
@@ -1543,7 +1559,7 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
               const recBtn = document.createElement("button");
               recBtn.className = "iconBtn";
               recBtn.type = "button";
-              recBtn.dataset.tip = ACF_t("gallery_btn_recommend","推薦");
+              recBtn.dataset.tip = "推薦";
               recBtn.innerHTML = ICON_RECOMMEND + `<span class="btnLabel">推薦</span>`;
               if((!uid) || userGem < 50) recBtn.style.opacity = ".6";
               recBtn.onclick = async (e)=>{
@@ -1678,7 +1694,7 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
             const voteBtn = document.createElement("button");
             voteBtn.className = "iconBtn";
             voteBtn.type = "button";
-            voteBtn.dataset.tip = ACF_t("gallery_btn_vote","投票");
+            voteBtn.dataset.tip = "投票";
               voteBtn.innerHTML = ICON_VOTE + `<span class="btnLabel">投票</span>`;
             if((!uid) || userVote <= 0) voteBtn.style.opacity = ".6";
             voteBtn.onclick = async (e)=>{
@@ -1707,8 +1723,8 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
             favBtn.type = "button";
             const isFav = favoriteSet.has(sid);
             if(isFav) favBtn.classList.add("on");
-            favBtn.dataset.tip = isFav ? "已收藏" : ACF_t("gallery_btn_favorite","收藏");
-            favBtn.innerHTML = ICON_HEART + `<span class="btnLabel">${isFav ? "已收藏" : ACF_t("gallery_btn_favorite","收藏")}</span>`;
+            favBtn.dataset.tip = isFav ? ACF_t("gallery_favorited") : ACF_t("gallery_favorite");
+            favBtn.innerHTML = ICON_HEART + `<span class="btnLabel">${isFav ? ACF_t("gallery_favorited") : ACF_t("gallery_favorite")}</span>`;
             favBtn.onclick = async (e)=>{
               e.stopPropagation();
               clearError();
@@ -1871,23 +1887,23 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
               const followBtn = document.createElement("button");
               followBtn.type = "button";
               followBtn.className = "iconBtn";
-              followBtn.dataset.tip = (isFollow ? "已關注" : ACF_t("gallery_btn_follow","關注"));
-              followBtn.innerHTML = (isFollow ? ICON_FOLLOW_ON : ICON_FOLLOW) + `<span class="btnLabel">${isFollow ? "已關注" : ACF_t("gallery_btn_follow","關注")}</span>`;
+              followBtn.dataset.tip = (isFollow ? ACF_t("gallery_followed") : ACF_t("gallery_follow"));
+              followBtn.innerHTML = (isFollow ? ICON_FOLLOW_ON : ICON_FOLLOW) + `<span class="btnLabel">${isFollow ? ACF_t("gallery_followed") : ACF_t("gallery_follow")}</span>`;
               if(isSelf){ followBtn.style.display = "none"; }
               followBtn.onclick = async (e)=>{
                 e.stopPropagation();
                 if(isSelf) return;
                 await toggleFollow(tid);
                 const on = followingSet.has(tid);
-                followBtn.dataset.tip = on ? "已關注" : ACF_t("gallery_btn_follow","關注");
-                followBtn.innerHTML = (on ? ICON_FOLLOW_ON : ICON_FOLLOW) + `<span class="btnLabel">${on ? "已關注" : ACF_t("gallery_btn_follow","關注")}</span>`;
+                followBtn.dataset.tip = on ? ACF_t("gallery_followed") : ACF_t("gallery_follow");
+                followBtn.innerHTML = (on ? ICON_FOLLOW_ON : ICON_FOLLOW) + `<span class="btnLabel">${on ? ACF_t("gallery_followed") : ACF_t("gallery_follow")}</span>`;
                 followBtn.classList.toggle("on", on);
               };
 
               const voteBtn = document.createElement("button");
               voteBtn.className = "iconBtn";
               voteBtn.type = "button";
-              voteBtn.dataset.tip = ACF_t("gallery_btn_vote","投票");
+              voteBtn.dataset.tip = "投票";
               voteBtn.innerHTML = ICON_VOTE + `<span class="btnLabel">投票</span>`;
               if(isSelf){ voteBtn.style.display = "none"; }
               if((!uid) || userVote <= 0) voteBtn.style.opacity = ".6";
@@ -1917,8 +1933,8 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
               favBtn.type = "button";
               const isFav = favoriteSet.has(sid);
               if(isFav) favBtn.classList.add("on");
-              favBtn.dataset.tip = isFav ? "已收藏" : ACF_t("gallery_btn_favorite","收藏");
-              favBtn.innerHTML = ICON_HEART + `<span class="btnLabel">${isFav ? "已收藏" : ACF_t("gallery_btn_favorite","收藏")}</span>`;
+              favBtn.dataset.tip = isFav ? ACF_t("gallery_favorited") : ACF_t("gallery_favorite");
+              favBtn.innerHTML = ICON_HEART + `<span class="btnLabel">${isFav ? ACF_t("gallery_favorited") : ACF_t("gallery_favorite")}</span>`;
               favBtn.onclick = async (e)=>{
                 e.stopPropagation();
                 clearError();
@@ -1934,7 +1950,7 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
               const recBtn = document.createElement("button");
               recBtn.className = "iconBtn warn";
               recBtn.type = "button";
-              recBtn.dataset.tip = ACF_t("gallery_btn_recommend","推薦");
+              recBtn.dataset.tip = "推薦";
               recBtn.innerHTML = ICON_FIRE + `<span class="btnLabel">推薦</span>`;
               if(isSelf){ recBtn.style.display = "none"; }
               recBtn.onclick = async (e)=>{
@@ -2058,7 +2074,7 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
 
         async function load(){
           clearError();
-          statusLine.textContent = "讀取中";
+          statusLine.textContent = ACF_t("loading");
           try{
             await loadMeLight();
           await loadFollowing();
@@ -2106,8 +2122,10 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
         load();
       })();
     </script>
-<script src="app.js"></script>
-</div>
+
+    <script src="app.js"></script>
+  </div>
+
 <script>
 (function(){
   function updateMasterHeightStable(){
@@ -2125,5 +2143,8 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
   window.addEventListener("load", updateMasterHeightStable);
 })();
 </script>
+
+
+<script>try{ if(window.ACF_applyI18n) window.ACF_applyI18n(document); }catch(e){}<\/script>
 </body>
 </html>

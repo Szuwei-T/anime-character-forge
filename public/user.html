@@ -1,11 +1,10 @@
-<!DOCTYPE html>
-
+<!doctype html>
 <html lang="zh-Hant">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width,initial-scale=1" name="viewport"/>
-<title data-i18n="user_title">玩家</title>
-<style>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>玩家</title>
+  <style>
     body{margin:0;background:#0b0f16;color:#e8eefc;font-family:system-ui,-apple-system,Segoe UI,Roboto,"Noto Sans TC",sans-serif;}
     .wrap{max-width:1600px;width:96%;margin:0 auto;padding:18px;box-sizing:border-box;}
     .btn{cursor:pointer;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#e8eefc;padding:10px 12px;border-radius:12px}
@@ -59,55 +58,63 @@
     /* Avoid 1px jitter from transforms */
     *{backface-visibility:hidden;}
   </style>
-<link href="style.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-<div class="wrap">
-<div class="card">
-<div style="padding:14px 14px 0 14px; display:none">
-<div class="headRow">
-<div class="headLeft">
-<button class="btn" data-i18n="common_back" id="btnBack">返回</button>
-<div class="uidText" id="uidText"></div>
-</div>
-</div>
-</div>
-<div class="profile">
-<div class="avatar" id="avatar">?</div>
-<div class="pinfo">
-<div class="authorRow">
-<div class="authorLeft">
-<div class="name" data-i18n="user_title" id="name">玩家</div>
-<div class="sub" id="sub"></div>
-</div>
-<div class="authorRight">
-<button class="btn" data-i18n="btn_follow" id="btnFollow">關注</button>
-</div>
-</div>
-<div class="badges">
-<div class="badge" id="lv">Lv.1</div>
-<div class="badge" data-i18n="user_followers0" id="followers">粉絲 0</div>
-<div class="badge" data-i18n="user_following0" id="following">關注 0</div>
-</div>
-</div>
-</div>
-</div>
-<div class="error" id="error"></div>
-<div class="grid" id="grid"></div>
-</div>
-<div class="modal" id="modal" style="display:none">
-<div class="modalBack" id="modalBack"></div>
-<div class="modalCard">
-<div class="modalTop">
-<div class="modalTitle" data-i18n="user_preview" id="modalTitle">作品預覽</div>
-<button class="btn" data-i18n="common_close" id="modalClose">關閉</button>
-</div>
-<div class="modalBody">
-<div class="preview" id="preview"></div>
-</div>
-</div>
-</div>
-<script>
+  <div class="wrap">
+
+    <div class="card">
+      <div style="padding:14px 14px 0 14px; display:none">
+        <div class="headRow">
+          <div class="headLeft">
+            <button class="btn" id="btnBack">返回</button>
+            <div class="uidText" id="uidText"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="profile">
+        <div class="avatar" id="avatar">?</div>
+
+        <div class="pinfo">
+          <div class="authorRow">
+            <div class="authorLeft">
+              <div class="name" id="name">玩家</div>
+              <div class="sub" id="sub"></div>
+            </div>
+            <div class="authorRight">
+              <button class="btn" id="btnFollow">關注</button>
+            </div>
+          </div>
+
+          <div class="badges">
+            <div class="badge" id="lv">Lv.1</div>
+            <div class="badge" id="followers">粉絲 0</div>
+            <div class="badge" id="following">關注 0</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="error" id="error"></div>
+
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <div class="modal" id="modal" style="display:none">
+    <div class="modalBack" id="modalBack"></div>
+    <div class="modalCard">
+      <div class="modalTop">
+        <div class="modalTitle" id="modalTitle">作品預覽</div>
+        <button class="btn" id="modalClose">關閉</button>
+      </div>
+      <div class="modalBody">
+        <div class="preview" id="preview"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
   (function(){
     const DEFAULT_WORKER = "https://acf-api.dream-league-baseball.workers.dev";
     const WORKER_BASE = window.WORKER_BASE || localStorage.getItem("acf_worker_base") || DEFAULT_WORKER;
@@ -352,6 +359,9 @@
     })();
   })();
   </script>
-<script src="app.js"></script>
+
+  <script src="app.js"></script>
+
+<script>try{ if(window.ACF_applyI18n) window.ACF_applyI18n(document); }catch(e){}<\/script>
 </body>
 </html>

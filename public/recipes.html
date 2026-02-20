@@ -1,13 +1,12 @@
-<!DOCTYPE html>
-
+<!doctype html>
 <html lang="zh-Hant">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1" name="viewport"/>
-<title data-i18n="recipes_gallery">成品庫</title>
-<link href="style.css" rel="stylesheet"/>
-<link href="ui_fx.css" rel="stylesheet"/>
-<style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>成品庫</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="ui_fx.css" />
+  <style>
     .page-wrap{max-width:1180px;margin:0 auto;padding:22px 18px 44px;}
     .statusline{margin:10px 0 12px;opacity:.9}
     .errorbox{margin:10px 0 12px;padding:10px 12px;border-radius:12px;background:rgba(255,0,0,.10);border:1px solid rgba(255,0,0,.25);color:#ffb3b3}
@@ -437,29 +436,34 @@
 </style>
 </head>
 <body>
-<div class="acf-page ui-panel"><div id="acfMasterMount"></div>
-<div class="page-wrap">
-<div class="tabs">
-<div class="tabbtn active" data-i18n="recipes_my_builds" id="tabSaves">我的成品</div>
-<div class="tabbtn" data-i18n="recipes_my_favs" id="tabRecipes">我的收藏</div>
-</div>
-<div class="statusline" data-i18n="common_loading" id="statusLine">讀取中</div>
-<div class="errorbox" id="errorBox" style="display:none;"></div>
-<div class="grid" id="gridSaves"></div>
-<div class="grid" id="gridRecipes" style="display:none;"></div>
-</div>
-<div class="modal" id="modal">
-<div class="modalbox">
-<div class="modalhead">
-<div class="h" data-i18n="common_preview" id="modalTitle">預覽</div>
-<div class="x" data-i18n="common_close" id="modalClose">關閉</div>
-</div>
-<div class="modalbody">
-<div class="bigwrap" id="bigwrap"></div>
-<div class="footnote" id="modalMeta"></div>
-</div>
-</div>
-</div>
+  <div class="acf-page ui-panel"><div id="acfMasterMount"></div>
+  <div class="page-wrap">
+
+    <div class="tabs">
+      <div class="tabbtn active" id="tabSaves">我的成品</div>
+      <div class="tabbtn" id="tabRecipes">我的收藏</div>
+    </div>
+
+    <div class="statusline" id="statusLine"><span data-i18n="loading"></span></div>
+    <div id="errorBox" class="errorbox" style="display:none;"></div>
+
+    <div class="grid" id="gridSaves"></div>
+    <div class="grid" id="gridRecipes" style="display:none;"></div>
+  </div>
+
+  <div class="modal" id="modal">
+    <div class="modalbox">
+      <div class="modalhead">
+        <div class="h" id="modalTitle">預覽</div>
+        <div class="x" id="modalClose">關閉</div>
+      </div>
+      <div class="modalbody">
+        <div class="bigwrap" id="bigwrap"></div>
+        <div class="footnote" id="modalMeta"></div>
+      </div>
+    </div>
+  </div>
+
 <script>
 (function(){
   const DEFAULT_WORKER = "https://acf-api.dream-league-baseball.workers.dev";
@@ -800,7 +804,7 @@ function fmtTime(ts){
       }
 
       const saves = res.saves || [];
-      statusLine.textContent = ACF_t("recipes_total_builds","共 {n} 個成品").replace("{n}", String(saves.length));
+      statusLine.textContent = ACF_t("recipes_total_builds",{n:saves.length});
 
       if (saves.length === 0){
         gridSaves.innerHTML = '<div class="empty">尚未儲存任何成品</div>';
@@ -862,11 +866,11 @@ const meta = document.createElement("div");
         btnAvatar.className = "showBtn";
         btnAvatar.setAttribute("data-role","avatar");
         btnAvatar.setAttribute("data-savedon", String(Number(s.savedOn||0)||0));
-        btnAvatar.textContent = ACF_t("recipes_btn_set_avatar","設為頭像");
+        btnAvatar.textContent = ACF_t("recipes_set_avatar");
         // If this is already the current avatar, lock the button like "展示中"
         const __savedOnNum = Number(s.savedOn || 0) || 0;
         if(__savedOnNum && currentAvatarSavedOn && __savedOnNum === currentAvatarSavedOn){
-          btnAvatar.textContent = ACF_t("recipes_btn_current_avatar","當前頭像");
+          btnAvatar.textContent = ACF_t("recipes_current_avatar");
           btnAvatar.classList.add("disabled");
         }
 
@@ -1037,7 +1041,7 @@ const meta = document.createElement("div");
       if (!unlocked){
         const mask = document.createElement("div");
         mask.className = "lockmask";
-        mask.innerHTML = '<div class="lock">🔒</div><div class="txt">未解鎖</div>';
+        mask.innerHTML = '<div class="lock">🔒</div><div class="txt">${ACF_t("recipes_locked")}</div>';
         card.appendChild(mask);
       }
 
@@ -1092,8 +1096,9 @@ const meta = document.createElement("div");
   setTab("saves");
 })();
 </script>
-<script src="app.js"></script>
-</div>
+  <script src="app.js"></script>
+  </div>
+
 <script>
 (function(){
   function updateMasterHeightStable(){
@@ -1111,5 +1116,8 @@ const meta = document.createElement("div");
   window.addEventListener("load", updateMasterHeightStable);
 })();
 </script>
+
+
+<script>try{ if(window.ACF_applyI18n) window.ACF_applyI18n(document); }catch(e){}<\/script>
 </body>
 </html>
