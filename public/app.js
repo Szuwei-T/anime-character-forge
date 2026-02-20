@@ -5,522 +5,99 @@ const APP = {
   name: null,
 };
 
-const WORKER_BASE =
-  (location.hostname === "127.0.0.1" || location.hostname === "localhost")
-    ? ""
-    : "https://acf-api.dream-league-baseball.workers.dev";
 
-
-// ===== i18n fallback (only if i18n module not loaded) =====
-(function(){
-  if(!window.ACF_getLang){
-    window.ACF_getLang = function(){ return localStorage.getItem("acf_lang") || "en"; };
-  }
-  if(!window.ACF_setLang){
-    window.ACF_setLang = function(lang){ localStorage.setItem("acf_lang", lang); location.reload(); };
-  }
-  if(!window.ACF_t){
-    const DICT = {
-      en: {
-        lang_english: "English",
-        lang_zh_hant: "繁體中文",
-        lang_zh_hans: "简体中文",
-        lang_ja: "日本語",
-        lang_ko: "한국어",
-        net_connecting: "Connecting",
-        net_online: "Online",
-        net_offline: "Offline",
-        guest_name: "Guest",
-        guest_sub: "Guest (new)",
-        btn_login: "Login",
-        btn_register: "Register",
-        auth_need_login: "Please login to continue",
-        auth_title: "Login required",
-        auth_desc: "To continue this action, please login or register.",
-        auth_go_index: "Go to Login Page",
-        auth_close: "Close"
-      },
-      "zh-Hant": {
-        lang_english: "English",
-        lang_zh_hant: "繁體中文",
-        lang_zh_hans: "简体中文",
-        lang_ja: "日本語",
-        lang_ko: "한국어",
-        net_connecting: "連線中",
-        net_online: "Online",
-        net_offline: "Offline",
-        guest_name: "遊客",
-        guest_sub: "遊客(新註冊)",
-        btn_login: "登入",
-        btn_register: "註冊",
-        auth_need_login: "請先登入",
-        auth_title: "需要登入",
-        auth_desc: "要進行這個操作，請先登入或註冊。",
-        auth_go_index: "前往登入頁",
-        auth_close: "關閉"
-      },
-      "zh-Hans": {
-        lang_english: "English",
-        lang_zh_hant: "繁體中文",
-        lang_zh_hans: "简体中文",
-        lang_ja: "日本語",
-        lang_ko: "한국어",
-        net_connecting: "连接中",
-        net_online: "Online",
-        net_offline: "Offline",
-        guest_name: "游客",
-        guest_sub: "游客(新注册)",
-        btn_login: "登录",
-        btn_register: "注册",
-        auth_need_login: "请先登录",
-        auth_title: "需要登录",
-        auth_desc: "要进行这个操作，请先登录或注册。",
-        auth_go_index: "前往登录页",
-        auth_close: "关闭"
-      },
-      ja: {
-        lang_english: "English",
-        lang_zh_hant: "繁體中文",
-        lang_zh_hans: "简体中文",
-        lang_ja: "日本語",
-        lang_ko: "한국어",
-        net_connecting: "接続中",
-        net_online: "オンライン",
-        net_offline: "オフライン",
-        guest_name: "ゲスト",
-        guest_sub: "ゲスト(新規)",
-        btn_login: "ログイン",
-        btn_register: "登録",
-        auth_need_login: "ログインしてください",
-        auth_title: "ログインが必要です",
-        auth_desc: "続行するにはログインまたは登録してください。",
-        auth_go_index: "ログイン画面へ",
-        auth_close: "閉じる"
-      },
-      ko: {
-        lang_english: "English",
-        lang_zh_hant: "繁體中文",
-        lang_zh_hans: "简体中文",
-        lang_ja: "日本語",
-        lang_ko: "한국어",
-        net_connecting: "연결 중",
-        net_online: "온라인",
-        net_offline: "오프라인",
-        guest_name: "게스트",
-        guest_sub: "게스트(신규)",
-        btn_login: "로그인",
-        btn_register: "가입",
-        auth_need_login: "로그인해 주세요",
-        auth_title: "로그인 필요",
-        auth_desc: "계속하려면 로그인 또는 가입이 필요합니다.",
-        auth_go_index: "로그인 페이지로",
-        auth_close: "닫기"
-      }
-    };
-    window.ACF_t = function(key){
-      const lang = (window.ACF_getLang ? window.ACF_getLang() : "en");
-      const d = DICT[lang] || DICT.en;
-      return d[key] || (DICT.en[key] || key);
-    };
-  }
-
-  window.ACF_isAuthed = function(){
-    const t = localStorage.getItem("acf_token");
-    return !!(t && String(t).trim());
-  };
-
-  window.ACF_openAuthOverlay = function(action){
-    try{
-      let ov = document.getElementById("acfAuthOverlay");
-      if(!ov){
-        ov = document.createElement("div");
-        ov.id = "acfAuthOverlay";
-        ov.style.position = "fixed";
-        ov.style.inset = "0";
-        ov.style.zIndex = "999999";
-        ov.style.background = "rgba(0,0,0,0.65)";
-        ov.style.display = "flex";
-        ov.style.alignItems = "center";
-        ov.style.justifyContent = "center";
-        ov.style.padding = "16px";
-        ov.innerHTML = `
-          <div style="width:420px;max-width:96vw;background:rgba(15,23,42,0.92);border:1px solid rgba(255,255,255,0.12);border-radius:18px;box-shadow:0 30px 90px rgba(0,0,0,0.65);overflow:hidden;">
-            <div style="padding:16px 18px;border-bottom:1px solid rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:space-between;gap:10px;">
-              <div style="font-weight:900;font-size:16px;">${window.ACF_t("auth_title")}</div>
-              <button id="acfAuthClose" style="border:none;background:transparent;color:rgba(255,255,255,0.85);font-size:14px;cursor:pointer;">${window.ACF_t("auth_close")}</button>
-            </div>
-            <div style="padding:16px 18px;color:rgba(255,255,255,0.85);font-size:13px;line-height:1.6;">
-              <div style="margin-bottom:12px;">${window.ACF_t("auth_desc")}</div>
-              <div style="display:grid;gap:10px;">
-                <button id="acfAuthGoIndex" style="width:100%;padding:12px 12px;border-radius:12px;border:1px solid rgba(255,255,255,0.14);background:linear-gradient(135deg, rgba(96,165,250,0.95), rgba(167,139,250,0.95));color:#fff;font-weight:900;cursor:pointer;">${window.ACF_t("auth_go_index")}</button>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-                  <button id="acfAuthLogin" style="width:100%;padding:12px 12px;border-radius:12px;border:1px solid rgba(255,255,255,0.14);background:rgba(2,6,23,0.55);color:#fff;font-weight:800;cursor:pointer;">${window.ACF_t("btn_login")}</button>
-                  <button id="acfAuthRegister" style="width:100%;padding:12px 12px;border-radius:12px;border:1px solid rgba(255,255,255,0.14);background:rgba(2,6,23,0.55);color:#fff;font-weight:800;cursor:pointer;">${window.ACF_t("btn_register")}</button>
-                </div>
-              </div>
-              <div style="margin-top:12px;color:rgba(255,255,255,0.65);font-size:12px;">${action ? ("Action: " + String(action)) : ""}</div>
-            </div>
-          </div>
-        `;
-        document.body.appendChild(ov);
-
-        const close = ()=>{ ov.remove(); };
-        ov.addEventListener("click", (e)=>{ if(e.target === ov) close(); });
-        ov.querySelector("#acfAuthClose").addEventListener("click", close);
-        const go = ()=>{ location.href = "/index"; };
-        ov.querySelector("#acfAuthGoIndex").addEventListener("click", go);
-        ov.querySelector("#acfAuthLogin").addEventListener("click", go);
-        ov.querySelector("#acfAuthRegister").addEventListener("click", go);
-      }
-    }catch(_e){}
-  };
-
-  window.ACF_requireAuth = function(action){
-    if(window.ACF_isAuthed()) return true;
-    window.ACF_openAuthOverlay(action || "");
-    return false;
-  };
-})();
-const IS_OFFLINE = WORKER_BASE === "";
-
-
-/* =========================
-   ACF i18n (production)
-   - Auto detect + manual switch (stored in localStorage: acf_lang)
-   - window.ACF_t(key, vars)
-   - window.ACF_setLang(lang)
-   - window.ACF_getLang()
-   ========================= */
-(function(){
-  const STR = {
-    en: {
-      lang_english: "English",
-      lang_zh_hant: "繁體中文",
-      lang_zh_hans: "简体中文",
-      lang_ja: "日本語",
-      lang_ko: "한국어",
-
-      net_connecting: "Connecting",
-      net_online: "Online",
-      net_offline: "Offline",
-
-      player: "Player",
+/* === ACF i18n (auto multi language) === */
+const I18N = (function(){
+  const dict = {
+    "en": {
+      lang_name: "English",
+      guest_name: "Guest",
+      guest_sub: "(New register)",
+      player_name: "Player",
+      login: "Login",
+      register: "Register",
+      close: "Close",
+      connecting: "Connecting",
+      online: "Online",
+      offline: "Offline",
       lv: "Lv",
       score: "Score",
-
-      // common actions
-      follow: "Follow",
-      following: "Following",
-      favorite: "Favorite",
-      favorited: "Favorited",
-      recommend: "Recommend",
-      recommended: "Recommended",
-      vote: "Vote",
-      voted: "Voted",
-
-      // studio / recipes / gallery
-      not_selectable: "Not selectable",
-      insufficient_materials: "Not enough materials",
-      loading: "Loading",
-      locked: "Locked",
-
-      total_builds: "Total {n} builds",
-      total_recipes: "Total {n} recipes",
-
-      set_avatar: "Set as Avatar",
-      current_avatar: "Current Avatar",
-      showcase: "Showcase",
-      showcasing: "Showcasing",
-
-      // gacha / shop
-      go_to: "Go",
-      go_to_shop: "Go to Shop",
-      improve_pulls: "Top up Gold and Gems to enhance your pulls",
-      drop_rate: "Drop Rate",
-      guaranteed_in: "Guaranteed in {n} pulls",
-      guaranteed: "Guaranteed",
-      and_above: "and above",
-      bonus: "Bonus",
-      buy_now: "Buy Now",
+      auth_required_title: "Login required",
+      auth_required_body: "Please login or register to continue.",
     },
-
-    "zh-Hant": {
-      lang_english: "English",
-      lang_zh_hant: "繁體中文",
-      lang_zh_hans: "简体中文",
-      lang_ja: "日本語",
-      lang_ko: "한국어",
-
-      net_connecting: "連線中",
-      net_online: "Online",
-      net_offline: "Offline",
-
-      player: "玩家",
+    "zh": {
+      lang_name: "中文",
+      guest_name: "遊客",
+      guest_sub: "（新註冊）",
+      player_name: "玩家",
+      login: "登入",
+      register: "註冊",
+      close: "關閉",
+      connecting: "連線中",
+      online: "Online",
+      offline: "Offline",
       lv: "Lv",
-      score: "評分",
-
-      follow: "關注",
-      following: "已關注",
-      favorite: "收藏",
-      favorited: "已收藏",
-      recommend: "推薦",
-      recommended: "已推薦",
-      vote: "投票",
-      voted: "已投票",
-
-      not_selectable: "不可選",
-      insufficient_materials: "素材不足",
-      loading: "讀取中",
-      locked: "未解鎖",
-
-      total_builds: "共 {n} 個成品",
-      total_recipes: "共 {n} 張 Recipes",
-
-      set_avatar: "設為頭像",
-      current_avatar: "當前頭像",
-      showcase: "展示",
-      showcasing: "展示中",
-
-      go_to: "前往",
-      go_to_shop: "前往 Shop",
-      improve_pulls: "補充 Gold 與 Gem 立刻提升抽卡體驗",
-      drop_rate: "獲得素材機率",
-      guaranteed_in: "再抽 {n} 次必出",
-      guaranteed: "必出",
-      and_above: "以上",
-      bonus: "加送",
-      buy_now: "立即購買",
-    },
-
-    "zh-Hans": {
-      lang_english: "English",
-      lang_zh_hant: "繁體中文",
-      lang_zh_hans: "简体中文",
-      lang_ja: "日本語",
-      lang_ko: "한국어",
-
-      net_connecting: "连接中",
-      net_online: "Online",
-      net_offline: "Offline",
-
-      player: "玩家",
-      lv: "Lv",
-      score: "评分",
-
-      follow: "关注",
-      following: "已关注",
-      favorite: "收藏",
-      favorited: "已收藏",
-      recommend: "推荐",
-      recommended: "已推荐",
-      vote: "投票",
-      voted: "已投票",
-
-      not_selectable: "不可选",
-      insufficient_materials: "素材不足",
-      loading: "读取中",
-      locked: "未解锁",
-
-      total_builds: "共 {n} 个成品",
-      total_recipes: "共 {n} 张 Recipes",
-
-      set_avatar: "设为头像",
-      current_avatar: "当前头像",
-      showcase: "展示",
-      showcasing: "展示中",
-
-      go_to: "前往",
-      go_to_shop: "前往 Shop",
-      improve_pulls: "补充 Gold 与 Gem 立刻提升抽卡体验",
-      drop_rate: "获得素材概率",
-      guaranteed_in: "再抽 {n} 次必出",
-      guaranteed: "必出",
-      and_above: "以上",
-      bonus: "加送",
-      buy_now: "立即购买",
-    },
-
-    ja: {
-      lang_english: "English",
-      lang_zh_hant: "繁體中文",
-      lang_zh_hans: "简体中文",
-      lang_ja: "日本語",
-      lang_ko: "한국어",
-
-      net_connecting: "接続中",
-      net_online: "オンライン",
-      net_offline: "オフライン",
-
-      player: "プレイヤー",
-      lv: "Lv",
-      score: "スコア",
-
-      follow: "フォロー",
-      following: "フォロー中",
-      favorite: "お気に入り",
-      favorited: "お気に入り済み",
-      recommend: "おすすめ",
-      recommended: "おすすめ済み",
-      vote: "投票",
-      voted: "投票済み",
-
-      not_selectable: "選択不可",
-      insufficient_materials: "素材不足",
-      loading: "読み込み中",
-      locked: "未解放",
-
-      total_builds: "合計 {n} 件",
-      total_recipes: "合計 {n} 件",
-
-      set_avatar: "アバターに設定",
-      current_avatar: "現在のアバター",
-      showcase: "表示",
-      showcasing: "表示中",
-
-      go_to: "移動",
-      go_to_shop: "ショップへ",
-      improve_pulls: "Gold と Gem を補充してガチャ体験を向上",
-      drop_rate: "ドロップ率",
-      guaranteed_in: "保証まであと {n} 回",
-      guaranteed: "確定",
-      and_above: "以上",
-      bonus: "ボーナス",
-      buy_now: "購入",
-    },
-
-    ko: {
-      lang_english: "English",
-      lang_zh_hant: "繁體中文",
-      lang_zh_hans: "简体中文",
-      lang_ja: "日本語",
-      lang_ko: "한국어",
-
-      net_connecting: "연결 중",
-      net_online: "온라인",
-      net_offline: "오프라인",
-
-      player: "플레이어",
-      lv: "Lv",
-      score: "점수",
-
-      follow: "팔로우",
-      following: "팔로잉",
-      favorite: "즐겨찾기",
-      favorited: "즐겨찾기됨",
-      recommend: "추천",
-      recommended: "추천됨",
-      vote: "투표",
-      voted: "투표됨",
-
-      not_selectable: "선택 불가",
-      insufficient_materials: "소재 부족",
-      loading: "로딩 중",
-      locked: "잠김",
-
-      total_builds: "총 {n}개",
-      total_recipes: "총 {n}개",
-
-      set_avatar: "아바타로 설정",
-      current_avatar: "현재 아바타",
-      showcase: "전시",
-      showcasing: "전시 중",
-
-      go_to: "이동",
-      go_to_shop: "상점으로",
-      improve_pulls: "Gold와 Gem을 충전하여 가챠 경험 향상",
-      drop_rate: "드롭 확률",
-      guaranteed_in: "보장까지 {n}회",
-      guaranteed: "확정",
-      and_above: "이상",
-      bonus: "보너스",
-      buy_now: "구매",
+      score: "Score",
+      auth_required_title: "需要登入",
+      auth_required_body: "請先登入或註冊後再進行操作。",
     }
   };
 
-  function normalizeLang(l){
-    if(!l) return "en";
-    const s = String(l).toLowerCase();
-    if(s === "en" || s.startsWith("en-")) return "en";
-    if(s === "ja" || s.startsWith("ja-")) return "ja";
-    if(s === "ko" || s.startsWith("ko-")) return "ko";
-    if(s === "zh-hans" || s === "zh-cn" || s === "zh-sg" || s === "zh-hans-cn") return "zh-Hans";
-    if(s === "zh-hant" || s === "zh-tw" || s === "zh-hk" || s === "zh-mo" || s === "zh-hant-tw") return "zh-Hant";
-    if(s.startsWith("zh")) return "zh-Hant";
+  const supported = ["en","zh"];
+
+  function detect(){
+    const saved = localStorage.getItem("acf_lang");
+    if(saved && supported.includes(saved)) return saved;
+    const n = (navigator.language || "").toLowerCase();
+    if(n.startsWith("zh")) return "zh";
     return "en";
   }
 
-  function detectLang(){
-    const saved = localStorage.getItem("acf_lang");
-    if(saved) return normalizeLang(saved);
-    return normalizeLang(navigator.language || "en");
+  let cur = detect();
+
+  function getLang(){ return cur; }
+
+  function setLang(lang){
+    const l = supported.includes(lang) ? lang : "en";
+    cur = l;
+    localStorage.setItem("acf_lang", l);
+    try{ document.documentElement.setAttribute("lang", l); }catch(_){}
+    try{ window.dispatchEvent(new CustomEvent("acf:lang", { detail:{ lang:l } })); }catch(_){}
+    return l;
   }
 
-  let LANG = detectLang();
-
   function t(key, vars){
-    let s = (STR[LANG] && STR[LANG][key]) || (STR.en && STR.en[key]) || key;
-    if(vars){
-      for(const k in vars){
-        s = s.replace(new RegExp("\\{"+k+"\\}","g"), String(vars[k]));
+    const table = dict[cur] || dict.en;
+    let s = table[key] ?? (dict.en[key] ?? key);
+    if(vars && typeof s === "string"){
+      for(const k of Object.keys(vars)){
+        s = s.replaceAll(`{${k}}`, String(vars[k]));
       }
     }
     return s;
   }
 
-  function setLang(l){
-    LANG = normalizeLang(l);
-    localStorage.setItem("acf_lang", LANG);
+  function apply(root=document){
+    const nodes = root.querySelectorAll("[data-i18n]");
+    for(const n of nodes){
+      const key = n.getAttribute("data-i18n");
+      if(!key) continue;
+      n.textContent = t(key);
+    }
   }
 
-  window.ACF_getLang = ()=>LANG;
-  window.ACF_setLang = (l)=>{ setLang(l); location.reload(); };
-  window.ACF_t = (key, vars)=>t(key, vars);
-
-  window.ACF_applyI18n = function(root=document){
-    // data-i18n="key"
-    root.querySelectorAll("[data-i18n]").forEach(el=>{
-      const key = el.getAttribute("data-i18n");
-      if(!key) return;
-      el.textContent = t(key);
-    });
-    // data-i18n-placeholder="key"
-    root.querySelectorAll("[data-i18n-placeholder]").forEach(el=>{
-      const key = el.getAttribute("data-i18n-placeholder");
-      if(!key) return;
-      el.setAttribute("placeholder", t(key));
-    });
-    // data-i18n-title="key"
-    root.querySelectorAll("[data-i18n-title]").forEach(el=>{
-      const key = el.getAttribute("data-i18n-title");
-      if(!key) return;
-      el.setAttribute("title", t(key));
-    });
-  };
-
-  // Lightweight legacy text fixups for pages where strings are generated as plain text
-  window.ACF_i18nFixups = function(){
-    try{
-      const path = location.pathname || "";
-      if(path.includes("/recipes")){
-        // "Total 23 builds" => total_builds
-        const candidates = Array.from(document.querySelectorAll("body *"))
-          .filter(n=>n.children.length===0 && n.textContent && /Total\s+\d+\s+builds/i.test(n.textContent));
-        for(const n of candidates){
-          const m = n.textContent.match(/Total\s+(\d+)\s+builds/i);
-          if(m){ n.textContent = t("total_builds",{n:m[1]}); break; }
-        }
-        // "共 4 張 Recipes" already, but ensure style for other langs
-        const c2 = Array.from(document.querySelectorAll("body *"))
-          .filter(n=>n.children.length===0 && n.textContent && /(共\s*\d+\s*張\s*Recipes)/.test(n.textContent));
-        for(const n of c2){
-          const m = n.textContent.match(/共\s*(\d+)\s*張\s*Recipes/);
-          if(m){ n.textContent = t("total_recipes",{n:m[1]}); break; }
-        }
-      }
-    }catch(_e){}
-  };
-
+  return { t, setLang, getLang, apply, supported, dict };
 })();
+window.I18N = I18N;
+window.t = I18N.t;
+
+const WORKER_BASE =
+  (location.hostname === "127.0.0.1" || location.hostname === "localhost")
+    ? ""
+    : "https://acf-api.dream-league-baseball.workers.dev";
+
+const IS_OFFLINE = WORKER_BASE === "";
+
 function q(sel, root=document){ return root.querySelector(sel); }
 function qa(sel, root=document){ return Array.from(root.querySelectorAll(sel)); }
 
@@ -576,12 +153,27 @@ function getOrCreateUid(){
   return uid;
 }
 
+
+function getSessionToken(){
+  return localStorage.getItem("acf_token") || localStorage.getItem("acf_session_token") || "";
+}
+function setSessionToken(tok){
+  if(tok) localStorage.setItem("acf_token", String(tok));
+}
+function isLoggedIn(){
+  return !!getSessionToken();
+}
+function isGuest(){
+  return !isLoggedIn();
+}
+
+
 function getName(){
-  return localStorage.getItem("acf_name") || "Player";
+  return localStorage.getItem("acf_name") || I18N.t("player_name");
 }
 
 function setName(n){
-  localStorage.setItem("acf_name", n || "Player");
+  localStorage.setItem("acf_name", n || I18N.t("player_name"));
 }
 
 function offlineDb(){
@@ -672,9 +264,19 @@ async function apiFetch(path, options={}){
 
   const uid = getOrCreateUid();
 
+  const method = String((options && options.method) || "GET").toUpperCase();
+  const isMutation = method !== "GET" && method !== "HEAD" && method !== "OPTIONS";
+  const allowGuest = ["/api/session/init","/api/auth/login","/api/auth/register"].some(p => String(path||"").startsWith(p));
+  if(isMutation && isGuest() && !allowGuest){
+    ACF_showAuthOverlay();
+    throw new Error("auth_required");
+  }
+
+
   const headers = Object.assign({}, (options && options.headers) ? options.headers : {});
   if(uid) headers["x-user-id"] = headers["x-user-id"] || headers["X-User-Id"] || headers["X-USER-ID"] || uid;
-  try{ const tok = localStorage.getItem("acf_token"); if(tok && !headers["x-session-token"]) headers["x-session-token"] = tok; }catch(_e){}
+  const token = getSessionToken();
+  if(token) headers["x-session-token"] = headers["x-session-token"] || headers["X-Session-Token"] || token;
 
   const hasBody = options && options.body !== undefined && options.body !== null;
 
@@ -708,9 +310,18 @@ async function initSession(){
   syncUidAliases(APP.uid);
   APP.name = getName();
 
+  if(isGuest()){
+    const db = offlineDb();
+    if(!db.users[APP.uid]){
+      db.users[APP.uid] = { uid: APP.uid, displayName: APP.name, createdAt: Date.now() };
+      saveOfflineDb(db);
+    }
+    return { ok:true, guest:true };
+  }
+
   const data = await apiFetch("/api/session/init", {
     method:"POST",
-    body: JSON.stringify({ uid: APP.uid, displayName: APP.name })
+    body: { uid: APP.uid, displayName: APP.name }
   });
   if(!data){
     const db = offlineDb();
@@ -761,7 +372,8 @@ async function api(path, opts){
     headers: {
       ...(opts?.headers || {}),
       "content-type": "application/json",
-      "x-user-id": getOrCreateUid()
+      "x-user-id": getOrCreateUid(),
+      ...(getSessionToken() ? { "x-session-token": getSessionToken() } : {})
     }
   });
   return await res.json();
@@ -783,6 +395,195 @@ window.normalizeAccessoryIds = normalizeAccessoryIds;
 window.sameSet = sameSet;
 window.setName = setName;
 window.getName = getName;
+
+
+
+/* === ACF auth overlay (guest guard) === */
+(function(){
+  function ensureAuthStyles(){
+    if(document.getElementById("acfAuthStyle")) return;
+    const s = document.createElement("style");
+    s.id = "acfAuthStyle";
+    s.textContent = `
+      .acf-authOverlay{
+        position: fixed;
+        inset: 0;
+        z-index: 100000;
+        display: none;
+        background: rgba(0,0,0,0.72);
+        backdrop-filter: blur(6px);
+      }
+      .acf-authOverlay.show{ display: block; }
+      .acf-authModal{
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: min(920px, calc(100vw - 32px));
+        height: min(640px, calc(100vh - 32px));
+        border-radius: 18px;
+        overflow: hidden;
+        border: 1px solid rgba(255,215,128,0.35);
+        box-shadow: 0 22px 80px rgba(0,0,0,0.65);
+        background: rgba(18,18,18,0.92);
+      }
+      .acf-authTop{
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 14px;
+        color: rgba(255,255,255,0.92);
+        font-weight: 900;
+        letter-spacing: 0.2px;
+        background: linear-gradient(to bottom, rgba(255,215,128,0.22), rgba(0,0,0,0));
+      }
+      .acf-authBtns{
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+      .acf-authBtn{
+        appearance: none;
+        border: 1px solid rgba(255,215,128,0.45);
+        background: rgba(255,215,128,0.12);
+        color: rgba(255,255,255,0.96);
+        font-weight: 900;
+        border-radius: 12px;
+        padding: 8px 12px;
+        cursor: pointer;
+      }
+      .acf-authBtn:hover{ background: rgba(255,215,128,0.18); }
+      .acf-authClose{
+        appearance: none;
+        border: 0;
+        background: rgba(255,255,255,0.10);
+        color: rgba(255,255,255,0.92);
+        font-weight: 900;
+        border-radius: 12px;
+        padding: 8px 12px;
+        cursor: pointer;
+      }
+      .acf-authClose:hover{ background: rgba(255,255,255,0.16); }
+      .acf-authFrame{
+        width: 100%;
+        height: calc(100% - 50px);
+        border: 0;
+        background: transparent;
+      }
+      .acf-authHint{
+        padding: 16px;
+        color: rgba(255,255,255,0.86);
+        font-size: 14px;
+      }
+    `;
+    document.head.appendChild(s);
+  }
+
+  function build(){
+    ensureAuthStyles();
+    let ov = document.getElementById("acfAuthOverlay");
+    if(ov) return ov;
+
+    ov = document.createElement("div");
+    ov.id = "acfAuthOverlay";
+    ov.className = "acf-authOverlay";
+    ov.innerHTML = `
+      <div class="acf-authModal" role="dialog" aria-modal="true">
+        <div class="acf-authTop">
+          <div id="acfAuthTitle">${I18N.t("auth_required_title")}</div>
+          <div class="acf-authBtns">
+            <button class="acf-authBtn" id="acfAuthLoginBtn">${I18N.t("login")}</button>
+            <button class="acf-authBtn" id="acfAuthRegBtn">${I18N.t("register")}</button>
+            <button class="acf-authClose" id="acfAuthCloseBtn">${I18N.t("close")}</button>
+          </div>
+        </div>
+        <iframe class="acf-authFrame" id="acfAuthFrame" src=""></iframe>
+      </div>
+    `;
+    document.body.appendChild(ov);
+
+    const close = () => ACF_hideAuthOverlay();
+
+    ov.addEventListener("click", (e)=>{ if(e.target === ov) close(); });
+    ov.querySelector("#acfAuthCloseBtn").addEventListener("click", close);
+
+    const openLogin = ()=>ACF_openAuthPage("login");
+    const openReg = ()=>ACF_openAuthPage("register");
+    ov.querySelector("#acfAuthLoginBtn").addEventListener("click", openLogin);
+    ov.querySelector("#acfAuthRegBtn").addEventListener("click", openReg);
+
+    return ov;
+  }
+
+  function open(mode){
+    const ov = build();
+    ov.classList.add("show");
+    ACF_openAuthPage(mode || "login");
+    ACF_watchAuthChange();
+  }
+
+  function hide(){
+    const ov = document.getElementById("acfAuthOverlay");
+    if(ov) ov.classList.remove("show");
+  }
+
+  function openPage(mode){
+    const frame = document.getElementById("acfAuthFrame");
+    if(!frame) return;
+    // use site root index page as auth page
+    const u = new URL(location.origin + "/");
+    u.searchParams.set("auth", "1");
+    u.searchParams.set("mode", mode || "login");
+    frame.src = u.toString();
+  }
+
+  let _watchT = null;
+  function watch(){
+    clearInterval(_watchT);
+    const before = getSessionToken();
+    _watchT = setInterval(()=>{
+      const now = getSessionToken();
+      if(now && now !== before){
+        clearInterval(_watchT);
+        try{ window.dispatchEvent(new Event("acf:login")); }catch(_){}
+        ACF_hideAuthOverlay();
+        // refresh header + page state
+        try{ if(window.ACF_initMasterHeader) window.ACF_initMasterHeader(); }catch(_){}
+        try{ location.reload(); }catch(_){}
+      }
+    }, 500);
+    setTimeout(()=>clearInterval(_watchT), 600000);
+  }
+
+  window.ACF_showAuthOverlay = open;
+  window.ACF_hideAuthOverlay = hide;
+  window.ACF_openAuthPage = openPage;
+  window.ACF_watchAuthChange = watch;
+
+  window.ACF_requireAuth = async function(){
+    if(isLoggedIn()) return true;
+    ACF_showAuthOverlay();
+    throw new Error("auth_required");
+  };
+
+  // Intercept direct fetch calls to worker for guest
+  const _fetch = window.fetch.bind(window);
+  window.fetch = async function(input, init){
+    try{
+      const url = typeof input === "string" ? input : (input && input.url) ? input.url : "";
+      const method = String((init && init.method) || (input && input.method) || "GET").toUpperCase();
+      const isMutation = method !== "GET" && method !== "HEAD" && method !== "OPTIONS";
+      const isWorkerCall = url.includes(".workers.dev") && url.includes("/api/");
+      const allowGuest = url.includes("/api/session/init") || url.includes("/api/auth/login") || url.includes("/api/auth/register");
+      if(isWorkerCall && isMutation && isGuest() && !allowGuest){
+        ACF_showAuthOverlay();
+        return Promise.reject(new Error("auth_required"));
+      }
+    }catch(_){}
+    return _fetch(input, init);
+  };
+})();
 
 
 /* === ACF MASTER HEADER (top_bar.webp + icon stats) === */
@@ -1010,42 +811,6 @@ white-space: nowrap;
         .acf-masterDivider{
          display: none !important; height: 16px; }
       }
-
-      .acf-masterRight{
-        pointer-events: auto;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-      .acf-langSelect{
-        pointer-events: auto;
-        display: flex;
-        align-items: center;
-      }
-      .acf-langSelect select{
-        appearance: none;
-        -webkit-appearance: none;
-        background: rgba(0,0,0,0.35);
-        color: rgba(255,255,255,0.92);
-        border: 1px solid rgba(255,215,0,0.75);
-        padding: 6px 28px 6px 12px;
-        border-radius: 999px;
-        font-weight: 800;
-        font-size: 13px;
-        cursor: pointer;
-        outline: none;
-      }
-      .acf-langSelect select:hover{
-        background: rgba(0,0,0,0.42);
-      }
-      .acf-langSelect:after{
-        content: "▾";
-        color: rgba(255,255,255,0.8);
-        margin-left: -20px;
-        pointer-events: none;
-        font-weight: 900;
-      }
-
 `;
     document.head.appendChild(s);
   }
@@ -1081,12 +846,12 @@ white-space: nowrap;
     const me = localStorage.getItem("acf_uid") || "";
     const res = await fetch(WORKER + "/api/me/account", {
       method:"GET",
-      headers: { "content-type":"application/json", "x-user-id": me }
+      headers: { "content-type":"application/json", "x-user-id": me, ...(getSessionToken() ? { "x-session-token": getSessionToken() } : {}) }
     });
     const t = await res.text();
     let data = {};
     try{ data = JSON.parse(t||"{}"); }catch(_){ data = { ok:false, error:t }; }
-    if(!res.ok || data.ok===false) throw data;
+    if(!res.ok || data.ok===false) return null;
     return data;
   }
 
@@ -1112,7 +877,7 @@ white-space: nowrap;
 
     const net = el("div","acf-masterNet");
     net.id = "acfMasterNet";
-    net.textContent = (window.ACF_t ? window.ACF_t("net_connecting") : "Connecting");
+    net.textContent = "Connecting";
 
     txt.appendChild(name);
     txt.appendChild(sub);
@@ -1121,22 +886,21 @@ white-space: nowrap;
     left.appendChild(avatar);
     left.appendChild(txt);
 
-    
-const stats = el("div","acf-masterStats");
+    const stats = el("div","acf-masterStats");
     stats.id = "acfMasterStats";
 
-    const right = el("div","acf-masterRight");
+    const langSel = el("select","acf-langSelect");
+    langSel.id = "acfLangSelect";
+    langSel.innerHTML = I18N.supported.map(l=>`<option value="${l}">${I18N.dict[l].lang_name || l}</option>`).join("");
+    langSel.value = I18N.getLang();
+    langSel.addEventListener("change", ()=>{ I18N.setLang(langSel.value); I18N.apply(document); try{ if(window.ACF_initMasterHeader) window.ACF_initMasterHeader(); }catch(_){} });
 
-    const langWrap = el("div","acf-langSelect");
-    langWrap.id = "acfLangSelect";
 
-    right.appendChild(langWrap);
+    stats.appendChild(langSel);
 
     bar.appendChild(left);
     bar.appendChild(stats);
-    bar.appendChild(right);
-
-fixed.appendChild(bar);
+    fixed.appendChild(bar);
 
     const div = el("div","acf-masterDivider");
     fixed.appendChild(div);
@@ -1180,13 +944,13 @@ fixed.appendChild(bar);
     if(!n) return;
     injectMasterNetStyles();
     const s = String(state || "").toLowerCase();
-    let label = "Connecting";
+    let label = I18N.t("connecting");
     let cls = "net-connecting";
     if(s === "online"){
-      label = "Online";
+      label = I18N.t("online");
       cls = "net-online";
     }else if(s === "offline"){
-      label = "Offline";
+      label = I18N.t("offline");
       cls = "net-offline";
     }
     n.textContent = label;
@@ -1198,7 +962,7 @@ fixed.appendChild(bar);
   function refreshNetBadge(){
     if(!window.APP) { setNetBadge("connecting"); return; }
     const desired = window.APP.offline ? "offline" : "online";
-    const desiredLabel = desired === "offline" ? "Offline" : "Online";
+    const desiredLabel = desired === "offline" ? I18N.t("offline") : I18N.t("online");
     if(_lastNetState !== desiredLabel){
       setNetBadge(desired);
     }
@@ -1222,43 +986,18 @@ fixed.appendChild(bar);
     const avEl = document.getElementById("acfMasterAvatar");
     const statsEl = document.getElementById("acfMasterStats");
 
-    const isAuthed = (window.ACF_isAuthed ? window.ACF_isAuthed() : !!localStorage.getItem("acf_token"));
-
-    // Guest browse mode: still show header even without account
     if(!me || !me.account){
-      box.style.display = "block";
-      const gName = (window.ACF_t ? window.ACF_t("guest_name") : "Guest");
-      const gSub = (window.ACF_t ? window.ACF_t("guest_sub") : "Guest");
-      nameEl.textContent = gName;
-      subEl.textContent = gSub;
-      avEl.innerHTML = "";
-      const d = document.createElement("div");
-      d.className = "acf-initials";
-      d.textContent = (gName||"G").slice(0,2).toUpperCase();
-      avEl.appendChild(d);
-
-      // stats area: login/register buttons
-      if(statsEl){
-        statsEl.innerHTML = `
-          <button class="acf-authBtn" id="acfBtnLogin">${window.ACF_t?window.ACF_t("btn_login"):"Login"}</button>
-          <button class="acf-authBtn" id="acfBtnRegister">${window.ACF_t?window.ACF_t("btn_register"):"Register"}</button>
-        `;
-        const go = ()=>{ location.href = "/index"; };
-        const bl = document.getElementById("acfBtnLogin");
-        const br = document.getElementById("acfBtnRegister");
-        bl && bl.addEventListener("click", go);
-        br && br.addEventListener("click", go);
-      }
-
-      setBodyOffset();
-      return;
+      // guest mode
+      me = { account: { userName: I18N.t("guest_name"), level: 1, userRegion: "", accountScore: 0, userGold: 0, userGem: 0, userVote: 0 }, avatarSave: null };
     }
 
     const acc = me.account || {};
 
+    const guest = isGuest();
+
     box.style.display = "block";
-    nameEl.textContent = String(acc.userName || "Player");
-    subEl.textContent = "Lv " + String(Number(acc.level || 1)) + (acc.userRegion ? (" · " + String(acc.userRegion)) : "") + " · Score " + String(Number(acc.accountScore||0));
+    nameEl.textContent = String(acc.userName || I18N.t("player_name"));
+    subEl.textContent = I18N.t("lv") + " " + String(Number(acc.level || 1)) + (acc.userRegion ? (" · " + String(acc.userRegion)) : "") + " · " + I18N.t("score") + " " + String(Number(acc.accountScore||0)) + (guest ? (" " + I18N.t("guest_sub")) : "");
 
     avEl.innerHTML = "";
     if(me.avatarSave){
@@ -1276,42 +1015,30 @@ fixed.appendChild(bar);
     }
 
     const html = [];
-    html.push(statCap("gold", acc.userGold));
-    html.push(statCap("gem", acc.userGem));
-    html.push(statCap("ticket", acc.userVote));
-    statsEl.innerHTML = html.join("");
+    if(guest){
+      html.push(`<div class="acf-authMini">
+        <button class="acf-miniBtn" id="acfBtnLogin" type="button">${I18N.t("login")}</button>
+        <button class="acf-miniBtn" id="acfBtnRegister" type="button">${I18N.t("register")}</button>
+      </div>`);
+      statsEl.innerHTML = html.join("");
+      const b1 = document.getElementById("acfBtnLogin");
+      const b2 = document.getElementById("acfBtnRegister");
+      if(b1) b1.addEventListener("click", ()=>ACF_showAuthOverlay("login"));
+      if(b2) b2.addEventListener("click", ()=>ACF_showAuthOverlay("register"));
+    }else{
+      html.push(statCap("gold", acc.userGold));
+      html.push(statCap("gem", acc.userGem));
+      html.push(statCap("ticket", acc.userVote));
+      statsEl.innerHTML = html.join("");
+    }
+
+    const sel = document.getElementById("acfLangSelect");
+    if(sel) sel.value = I18N.getLang();
 
     setBodyOffset();
   }
 
-  
-function makeLangSelect(){
-  const el = document.getElementById("acfLangSelect");
-  if(!el) return;
-
-  const current = (window.ACF_getLang ? window.ACF_getLang() : (localStorage.getItem("acf_lang") || "en"));
-
-  el.innerHTML = `
-    <select id="acfLangDropdown" aria-label="Language">
-      <option value="en">${(window.ACF_t?window.ACF_t("lang_english"):"English")}</option>
-      <option value="zh-Hant">${(window.ACF_t?window.ACF_t("lang_zh_hant"):"繁體中文")}</option>
-      <option value="zh-Hans">${(window.ACF_t?window.ACF_t("lang_zh_hans"):"简体中文")}</option>
-      <option value="ja">${(window.ACF_t?window.ACF_t("lang_ja"):"日本語")}</option>
-      <option value="ko">${(window.ACF_t?window.ACF_t("lang_ko"):"한국어")}</option>
-    </select>
-  `;
-
-  const dd = document.getElementById("acfLangDropdown");
-  if(!dd) return;
-  dd.value = current;
-  dd.addEventListener("change", ()=>{
-    const v = dd.value;
-    if(window.ACF_setLang) window.ACF_setLang(v);
-    else{ localStorage.setItem("acf_lang", v); location.reload(); }
-  }, { passive:true });
-}
-
-async function initMasterHeader(){
+  async function initMasterHeader(){
     if(window.ACF_DISABLE_MASTER) return;
     if(document.getElementById("acfMasterHeader")) return;
 
@@ -1328,9 +1055,6 @@ async function initMasterHeader(){
     const dom = buildHeaderDom();
     mount.appendChild(dom);
     setBodyOffset();
-    makeLangSelect();
-    try{ window.ACF_applyI18n && window.ACF_applyI18n(document); }catch(_e){}
-    try{ window.ACF_i18nFixups && window.ACF_i18nFixups(); }catch(_e){}
 
     setNetBadge("connecting");
     clearInterval(window.__acfNetPoll);
@@ -1347,6 +1071,9 @@ async function initMasterHeader(){
       refreshNetBadge();
     }
 
+    // keep texts in sync with language
+    window.addEventListener("acf:lang", ()=>{ try{ const me = null; renderMaster(me); }catch(_){} }, { passive:true });
+
     window.addEventListener("resize", ()=>setBodyOffset(), { passive:true });
   }
 
@@ -1358,3 +1085,6 @@ async function initMasterHeader(){
     initMasterHeader();
   }
 })();
+
+
+document.addEventListener("DOMContentLoaded", ()=>{ try{ I18N.apply(document); }catch(_){} });
