@@ -807,10 +807,10 @@ body{
 
       <div class="recWrap" id="newRankWrap">
         <div class="recTitle">
-          <div class="h">🆕 新手衝分榜</div>
-          <div class="sub">註冊 1 個月內 · 依帳號評分排序（取最高作品評分）</div>
+          <div class="h">🆕 新人榜</div>
+          <div class="sub">註冊 1 個月內 · 依被收藏數排序</div>
         </div>
-        <div class="authorGrid" id="newRankGrid"></div>
+        <div class="recGrid" id="newRankGrid"></div>
       </div>
 
       <div class="recWrap" id="authorRankWrap">
@@ -908,7 +908,6 @@ body{
             followingSet = new Set();
             return;
           }
-          if(IS_GUEST) return;
           const r = await api("/api/me/following");
           const items = r.items || [];
           followingSet = new Set(items.map(x => String(x.targetUserId || "").trim()).filter(Boolean));
@@ -928,13 +927,11 @@ body{
         const isOn = followingSet.has(tid);
         try{
           if(isOn){
-            if(!requireLogin()) return;
-          await api("/api/follow", { method:"DELETE", body:{ targetUserId: tid } });
+            await api("/api/follow", { method:"DELETE", body:{ targetUserId: tid } });
             followingSet.delete(tid);
             showToast("已取消關注");
           }else{
-            if(!requireLogin()) return;
-          await api("/api/follow", { method:"POST", body:{ targetUserId: tid } });
+            await api("/api/follow", { method:"POST", body:{ targetUserId: tid } });
             followingSet.add(tid);
             showToast("已關注");
           }
@@ -1056,7 +1053,6 @@ body{
           const o = opts || {};
           const headers = Object.assign({}, o.headers || {});
           if(uid) headers["x-user-id"] = uid;
-          if(token) headers["x-session-token"] = token;
 
           const hasBody = o.body !== undefined && o.body !== null;
           if(hasBody) headers["content-type"] = "application/json";
@@ -1105,7 +1101,6 @@ body{
     }
 
     try{
-      if(IS_GUEST) return;
       const ures = await api("/api/me/assets");
       if(ures.userAssets && typeof ures.userAssets === "object"){
         scoreDb.userAssets = ures.userAssets;
@@ -1255,8 +1250,7 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
           favoriteSet = new Set();
           if(!uid) return;
           try{
-            if(IS_GUEST) return;
-          const r = await api("/api/me/favorites", { method:"GET" });
+            const r = await api("/api/me/favorites", { method:"GET" });
             const arr = Array.isArray(r.items) ? r.items : [];
             arr.forEach(x => {
               const sid = String(x.showcaseId || x.showcase_id || x.id || "");
@@ -1269,7 +1263,6 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
           if(!uid) return showError("請先登入");
           if(userVote <= 0) return showError("票數不足");
           try{
-            if(!requireLogin()) return;
             await api("/api/vote", { method:"POST", body:{ showcaseId } });
             showToast("已投票");
             await loadMeLight();
@@ -1282,12 +1275,10 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
           if(!uid) return showError("請先登入");
           try{
             if(favoriteSet.has(showcaseId)){
-              if(!requireLogin()) return;
               await api("/api/favorite", { method:"DELETE", body:{ showcaseId } });
               favoriteSet.delete(showcaseId);
               showToast("已取消收藏");
             }else{
-              if(!requireLogin()) return;
               await api("/api/favorite", { method:"POST", body:{ showcaseId } });
               favoriteSet.add(showcaseId);
               showToast("已收藏");
@@ -1301,8 +1292,7 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
           if(!uid) return showError("請先登入");
           if(userGem < 50) return showError("GEM 不足");
           try{
-            if(!requireLogin()) return;
-              await api("/api/recommend", { method:"POST", body:{ showcaseId } });
+            await api("/api/recommend", { method:"POST", body:{ showcaseId } });
             showToast("已推薦 1 次 (花費 50 GEM)");
             await loadMeLight();
           }catch(e){
@@ -1498,16 +1488,16 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
               const isFollow = tid && followingSet.has(tid);
               if(isFollow) followBtn.classList.add("on");
               if(isSelf){ followBtn.style.display = "none"; }
-              followBtn.dataset.tip = (isFollow ? "已關注" : "關注");
-              followBtn.innerHTML = (isFollow ? ICON_FOLLOW_ON : ICON_FOLLOW) + `<span class="btnLabel">${isFollow ? "已關注" : "關注"}</span>`;
+              followBtn.dataset.tip = (isFollow ? ACF_t("gallery_followed") : ACF_t("gallery_follow"));
+              followBtn.innerHTML = (isFollow ? ICON_FOLLOW_ON : ICON_FOLLOW) + `<span class="btnLabel">${isFollow ? ACF_t("gallery_followed") : ACF_t("gallery_follow")}</span>`;
 
               followBtn.onclick = async (e)=>{
                 e.stopPropagation();
                 if(isSelf) return;
                 await toggleFollow(tid);
                 const on = followingSet.has(tid);
-                followBtn.dataset.tip = on ? "已關注" : "關注";
-                followBtn.innerHTML = (on ? ICON_FOLLOW_ON : ICON_FOLLOW) + `<span class="btnLabel">${on ? "已關注" : "關注"}</span>`;
+                followBtn.dataset.tip = on ? ACF_t("gallery_followed") : ACF_t("gallery_follow");
+                followBtn.innerHTML = (on ? ICON_FOLLOW_ON : ICON_FOLLOW) + `<span class="btnLabel">${on ? ACF_t("gallery_followed") : ACF_t("gallery_follow")}</span>`;
                 followBtn.classList.toggle("on", on);
               };
 
@@ -1733,8 +1723,8 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
             favBtn.type = "button";
             const isFav = favoriteSet.has(sid);
             if(isFav) favBtn.classList.add("on");
-            favBtn.dataset.tip = isFav ? "已收藏" : "收藏";
-            favBtn.innerHTML = ICON_HEART + `<span class="btnLabel">${isFav ? "已收藏" : "收藏"}</span>`;
+            favBtn.dataset.tip = isFav ? ACF_t("gallery_favorited") : ACF_t("gallery_favorite");
+            favBtn.innerHTML = ICON_HEART + `<span class="btnLabel">${isFav ? ACF_t("gallery_favorited") : ACF_t("gallery_favorite")}</span>`;
             favBtn.onclick = async (e)=>{
               e.stopPropagation();
               clearError();
@@ -1897,16 +1887,16 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
               const followBtn = document.createElement("button");
               followBtn.type = "button";
               followBtn.className = "iconBtn";
-              followBtn.dataset.tip = (isFollow ? "已關注" : "關注");
-              followBtn.innerHTML = (isFollow ? ICON_FOLLOW_ON : ICON_FOLLOW) + `<span class="btnLabel">${isFollow ? "已關注" : "關注"}</span>`;
+              followBtn.dataset.tip = (isFollow ? ACF_t("gallery_followed") : ACF_t("gallery_follow"));
+              followBtn.innerHTML = (isFollow ? ICON_FOLLOW_ON : ICON_FOLLOW) + `<span class="btnLabel">${isFollow ? ACF_t("gallery_followed") : ACF_t("gallery_follow")}</span>`;
               if(isSelf){ followBtn.style.display = "none"; }
               followBtn.onclick = async (e)=>{
                 e.stopPropagation();
                 if(isSelf) return;
                 await toggleFollow(tid);
                 const on = followingSet.has(tid);
-                followBtn.dataset.tip = on ? "已關注" : "關注";
-                followBtn.innerHTML = (on ? ICON_FOLLOW_ON : ICON_FOLLOW) + `<span class="btnLabel">${on ? "已關注" : "關注"}</span>`;
+                followBtn.dataset.tip = on ? ACF_t("gallery_followed") : ACF_t("gallery_follow");
+                followBtn.innerHTML = (on ? ICON_FOLLOW_ON : ICON_FOLLOW) + `<span class="btnLabel">${on ? ACF_t("gallery_followed") : ACF_t("gallery_follow")}</span>`;
                 followBtn.classList.toggle("on", on);
               };
 
@@ -1943,8 +1933,8 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
               favBtn.type = "button";
               const isFav = favoriteSet.has(sid);
               if(isFav) favBtn.classList.add("on");
-              favBtn.dataset.tip = isFav ? "已收藏" : "收藏";
-              favBtn.innerHTML = ICON_HEART + `<span class="btnLabel">${isFav ? "已收藏" : "收藏"}</span>`;
+              favBtn.dataset.tip = isFav ? ACF_t("gallery_favorited") : ACF_t("gallery_favorite");
+              favBtn.innerHTML = ICON_HEART + `<span class="btnLabel">${isFav ? ACF_t("gallery_favorited") : ACF_t("gallery_favorite")}</span>`;
               favBtn.onclick = async (e)=>{
                 e.stopPropagation();
                 clearError();
@@ -2015,81 +2005,6 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
             authorRankWrap.style.display = "none";
             return;
           }
-
-        function renderNewcomerRank(items){
-          newRankWrap.style.display = "none";
-          newRankGrid.innerHTML = "";
-          const arr = Array.isArray(items) ? items : [];
-          if(!arr.length) return;
-
-          newRankWrap.style.display = "block";
-
-          arr.forEach((a, idx)=>{
-            const card = document.createElement("div");
-            card.className = "authorCard";
-
-            const left = document.createElement("div");
-            left.className = "authorLeft";
-
-            const av = document.createElement("div");
-            av.className = "authorAv";
-
-            const layers = [
-              { id: a.authorAvatarBgId, z: 10 },
-              { id: a.authorAvatarAddon2Id, z: 20 },
-              { id: a.authorAvatarHeadId, z: 30 },
-              { id: a.authorAvatarBodyId, z: 40 },
-              { id: a.authorAvatarAddon1Id, z: 50 },
-            ];
-            let has = false;
-            layers.forEach(L=>{
-              if(!L.id) return;
-              has = true;
-              const img = document.createElement("img");
-              img.src = "/assets/" + String(L.id) + ".png";
-              img.style.zIndex = String(L.z);
-              img.className = "layerImg";
-              av.appendChild(img);
-            });
-            if(!has){
-              const t = document.createElement("div");
-              t.className = "authorInitial";
-              t.textContent = (String(a.userName||"P").trim().slice(0,1) || "P").toUpperCase();
-              av.appendChild(t);
-            }
-
-            const meta = document.createElement("div");
-            meta.className = "authorMeta";
-
-            const name = document.createElement("div");
-            name.className = "authorName";
-            name.textContent = String(a.userName || "Player");
-
-            const sub = document.createElement("div");
-            sub.className = "authorSub";
-            const score = Number(a.accountScore || 0) || 0;
-            const tier = String(a.rankTier || "").trim() || "D";
-            sub.textContent = "Rank " + tier + " · Score " + String(score);
-
-            meta.appendChild(name);
-            meta.appendChild(sub);
-
-            left.appendChild(av);
-            left.appendChild(meta);
-
-            const right = document.createElement("div");
-            right.className = "pill2";
-            right.textContent = "#" + String(idx + 1);
-
-            card.appendChild(left);
-            card.appendChild(right);
-
-            card.onclick = ()=> gotoUserProfile(a.userId);
-
-            newRankGrid.appendChild(card);
-          });
-        }
-
           authorRankWrap.style.display = "block";
 
           list.forEach((a, idx)=>{
@@ -2150,7 +2065,7 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
             ]);
 
             if(favRes && favRes.ok) renderRankShowcaseGrid(favRankWrap, favRankGrid, favRes.items || [], (s)=>"收藏 " + String(Number(s.favorites||0)));
-            if(newRes && newRes.ok) renderNewcomerRank(newRes.items || []);
+            if(newRes && newRes.ok) renderRankShowcaseGrid(newRankWrap, newRankGrid, newRes.items || [], (s)=>"新人 · 收藏 " + String(Number(s.favorites||0)));
             if(authRes && authRes.ok) renderAuthorRank(authRes.items || []);
           }catch(e){
             clearRankings();
@@ -2159,7 +2074,7 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
 
         async function load(){
           clearError();
-          statusLine.textContent = "讀取中";
+          statusLine.textContent = ACF_t("loading");
           try{
             await loadMeLight();
           await loadFollowing();
@@ -2229,24 +2144,7 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
 })();
 </script>
 
+
+<script>try{ if(window.ACF_applyI18n) window.ACF_applyI18n(document); }catch(e){}<\/script>
 </body>
 </html>
-
-// Auth / guest
-const token = (localStorage.getItem("acf_token") || "").trim();
-const IS_GUEST = !token;
-// legacy compatibility (some code expects userId)
-const userId = uid;
-
-function requireLogin(){
-  if(!IS_GUEST) return true;
-  try{
-    if(typeof window.ACF_showAuthOverlay === "function"){
-      window.ACF_showAuthOverlay("login");
-    }else{
-      alert("Login required");
-    }
-  }catch(_e){}
-  return false;
-}
-

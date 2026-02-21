@@ -402,11 +402,7 @@ body{
 
         try{ sessionStorage.removeItem("acf_just_logged_out"); }catch(_e){}
         setStatus("登入成功，正在進入作品庫…", "ok");
-        if(new URLSearchParams(location.search).get("overlay")==="1"){
-          try{ parent.postMessage({ type: "acf_auth_ok" }, "*"); }catch(_e){}
-        }else{
-          setTimeout(() => (window.location.href = "gallery.html"), 250);
-        }
+        setTimeout(() => (window.location.href = "gallery.html"), 250);
 
 } else {
         $("userEmail").textContent = "未登入";
@@ -535,5 +531,7 @@ body{
 })();
 </script>
 
+
+<script>try{ if(window.ACF_applyI18n) window.ACF_applyI18n(document); }catch(e){}<\/script>
 </body>
 </html>

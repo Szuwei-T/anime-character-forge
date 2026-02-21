@@ -116,15 +116,6 @@
 
   <script>
   (function(){
-  function requireAuth(action){
-      const token = localStorage.getItem("acf_token");
-      if(token) return true;
-      if(window.ACF_requireAuth) return window.ACF_requireAuth(action||"");
-      if(window.ACF_openAuthOverlay) window.ACF_openAuthOverlay(action||"");
-      return false;
-    }
-
-
     const DEFAULT_WORKER = "https://acf-api.dream-league-baseball.workers.dev";
     const WORKER_BASE = window.WORKER_BASE || localStorage.getItem("acf_worker_base") || DEFAULT_WORKER;
 
@@ -246,7 +237,7 @@
     }
 
     async function toggleFollow(){
-      if(!me) return (window.ACF_openAuthOverlay?window.ACF_openAuthOverlay(""):null, showError(window.ACF_t?window.ACF_t("auth_need_login"):"Please login"));
+      if(!me) return showError("請先登入");
       clearError();
       try{
         if(followingSet.has(uid)){
@@ -322,7 +313,7 @@
 
         favBtn.onclick = async (e)=>{
           e.stopPropagation();
-          if(!me) return (window.ACF_openAuthOverlay?window.ACF_openAuthOverlay(""):null, showError(window.ACF_t?window.ACF_t("auth_need_login"):"Please login"));
+          if(!me) return showError("請先登入");
           clearError();
           try{
             await api("/api/favorite", { method:"POST", body:{ showcaseId: s.showcaseId } });
@@ -370,5 +361,7 @@
   </script>
 
   <script src="app.js"></script>
+
+<script>try{ if(window.ACF_applyI18n) window.ACF_applyI18n(document); }catch(e){}<\/script>
 </body>
 </html>

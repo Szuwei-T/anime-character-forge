@@ -444,7 +444,7 @@
       <div class="tabbtn" id="tabRecipes">我的收藏</div>
     </div>
 
-    <div class="statusline" id="statusLine">讀取中</div>
+    <div class="statusline" id="statusLine"><span data-i18n="loading"></span></div>
     <div id="errorBox" class="errorbox" style="display:none;"></div>
 
     <div class="grid" id="gridSaves"></div>
@@ -466,15 +466,6 @@
 
 <script>
 (function(){
-  function requireAuth(action){
-      const token = localStorage.getItem("acf_token");
-      if(token) return true;
-      if(window.ACF_requireAuth) return window.ACF_requireAuth(action||"");
-      if(window.ACF_openAuthOverlay) window.ACF_openAuthOverlay(action||"");
-      return false;
-    }
-
-
   const DEFAULT_WORKER = "https://acf-api.dream-league-baseball.workers.dev";
   const WORKER_BASE = window.WORKER_BASE || localStorage.getItem("acf_worker_base") || DEFAULT_WORKER;
 
@@ -813,7 +804,7 @@ function fmtTime(ts){
       }
 
       const saves = res.saves || [];
-      statusLine.textContent = "共 " + saves.length + " 個成品";
+      statusLine.textContent = ACF_t("recipes_total_builds",{n:saves.length});
 
       if (saves.length === 0){
         gridSaves.innerHTML = '<div class="empty">尚未儲存任何成品</div>';
@@ -875,11 +866,11 @@ const meta = document.createElement("div");
         btnAvatar.className = "showBtn";
         btnAvatar.setAttribute("data-role","avatar");
         btnAvatar.setAttribute("data-savedon", String(Number(s.savedOn||0)||0));
-        btnAvatar.textContent = "設為頭像";
+        btnAvatar.textContent = ACF_t("recipes_set_avatar");
         // If this is already the current avatar, lock the button like "展示中"
         const __savedOnNum = Number(s.savedOn || 0) || 0;
         if(__savedOnNum && currentAvatarSavedOn && __savedOnNum === currentAvatarSavedOn){
-          btnAvatar.textContent = "當前頭像";
+          btnAvatar.textContent = ACF_t("recipes_current_avatar");
           btnAvatar.classList.add("disabled");
         }
 
@@ -1050,7 +1041,7 @@ const meta = document.createElement("div");
       if (!unlocked){
         const mask = document.createElement("div");
         mask.className = "lockmask";
-        mask.innerHTML = '<div class="lock">🔒</div><div class="txt">未解鎖</div>';
+        mask.innerHTML = '<div class="lock">🔒</div><div class="txt">${ACF_t("recipes_locked")}</div>';
         card.appendChild(mask);
       }
 
@@ -1126,5 +1117,7 @@ const meta = document.createElement("div");
 })();
 </script>
 
+
+<script>try{ if(window.ACF_applyI18n) window.ACF_applyI18n(document); }catch(e){}<\/script>
 </body>
 </html>
