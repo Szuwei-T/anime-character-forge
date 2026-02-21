@@ -1,11 +1,12 @@
-<!doctype html>
+<!DOCTYPE html>
+
 <html lang="zh-Hant">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>工作室 - 進階版</title>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="ui_fx.css" />
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title data-i18n="studio_title">工作室 - 進階版</title>
+<link href="style.css" rel="stylesheet"/>
+<link href="ui_fx.css" rel="stylesheet"/>
 <style id="thumbStyle">
   .picker-section{margin-bottom:14px; display: none;}
   .picker-section.active{display: block;}
@@ -496,7 +497,7 @@
     pointer-events: auto;
   }
   .asset-item.disabled::after{
-    content: ""+ACF_t("studio_unselectable")+"";
+    content: "不可選";
     position: absolute;
     inset: 0;
     display: flex;
@@ -517,7 +518,7 @@
     filter: none !important;
   }
   .asset-item.disabled.can-upgrade::after{
-    display: none !important; /* hide "+ACF_t("studio_unselectable")+" overlay when upgrade available */
+    display: none !important; /* hide 不可選 overlay when upgrade available */
   }
 
 
@@ -870,74 +871,68 @@ body{
 </style>
 </head>
 <body>
-  <div class="acf-page ui-panel"><div id="acfMasterMount"></div>
-  <div class="container">
-
-    <div class="card">
-      <div class="cardBody">
-        <div class="grid">
-          <div class="col7">
-            <div class="stage">
-<img class="layer" id="bgLayer" alt="background" />
-<img class="layer" id="addon2Layer" alt="add on 2" />
-<img class="layer" id="headLayer" alt="head" />
-<img class="layer" id="bodyLayer" alt="body" />
-<img class="layer" id="addon1Layer" alt="add on 1" />
-
-
-              <div id="bodyMissingMask" class="body-missing-mask"></div>
-              <div class="stageOverlay">
-                <div class="scoreWrap" id="scoreWrap" title="系統評分">
-                  <div class="scoreFrame">
-                    <img src="/ui/frame/card_scoring.webp" alt="score frame" />
-                    <div class="scoreVal" id="systemScoreVal">0</div>
-                  </div>
-                </div>
-                <div class="stageBtns">
-                  <button class="smallBtn" id="randomBtn">隨機搭配</button>
-                  <button class="smallBtn" id="submitBtn">保存</button>
-                </div>
-              </div>
-            </div>
-            <div style="height:10px"></div>
-            <input class="input" id="titleInput" placeholder="作品標題 例如 Neon Queen" />
-            <div style="height:10px"></div>
-            <div class="help" id="unlockHint"></div>
-          </div>
-
-          <div class="col5">
-            <div class="tabs-container" id="assetTabs">
-              <button class="tab-btn active" data-target="headGrid">頭部</button>
-              <button class="tab-btn" data-target="bodyGrid">身體</button>
-              <button class="tab-btn" data-target="bgGrid">背景</button>
-              <button class="tab-btn" data-target="addon1Grid">Addon 1</button>
-              <button class="tab-btn" data-target="addon2Grid">Addon 2</button>
-            </div>
-            <div class="grid">
-              <div class="col12">
-                <div class="picker-section active" id="headSection"><div id="headGrid" class="asset-grid"><div class="asset-spacer"></div></div></div>
-              </div>
-              <div class="col12">
-                <div class="picker-section" id="bodySection"><div id="bodyGrid" class="asset-grid"><div class="asset-spacer"></div></div></div>
-              </div>
-              <div class="col12">
-                <div class="picker-section" id="bgSection"><div id="bgGrid" class="asset-grid"><div class="asset-spacer"></div></div></div>
-              </div>
-              <div class="col12">
-                <div class="picker-section" id="addon1Section"><div id="addon1Grid" class="asset-grid"><div class="asset-spacer"></div></div></div>
-                <div class="picker-section" id="addon2Section"><div id="addon2Grid" class="asset-grid"><div class="asset-spacer"></div></div></div>
-              </div>
-            </div>
-            <div class="hr"></div>
-            <a class="btn" href="recipes.html">去看成品庫</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script src="app.js"></script>
-
+<div class="acf-page ui-panel"><div id="acfMasterMount"></div>
+<div class="container">
+<div class="card">
+<div class="cardBody">
+<div class="grid">
+<div class="col7">
+<div class="stage">
+<img alt="background" class="layer" id="bgLayer"/>
+<img alt="add on 2" class="layer" id="addon2Layer"/>
+<img alt="head" class="layer" id="headLayer"/>
+<img alt="body" class="layer" id="bodyLayer"/>
+<img alt="add on 1" class="layer" id="addon1Layer"/>
+<div class="body-missing-mask" id="bodyMissingMask"></div>
+<div class="stageOverlay">
+<div class="scoreWrap" id="scoreWrap" title="系統評分">
+<div class="scoreFrame">
+<img alt="score frame" src="/ui/frame/card_scoring.webp"/>
+<div class="scoreVal" id="systemScoreVal">0</div>
+</div>
+</div>
+<div class="stageBtns">
+<button class="smallBtn" data-i18n="studio_random" id="randomBtn">隨機搭配</button>
+<button class="smallBtn" data-i18n="studio_save" id="submitBtn">保存</button>
+</div>
+</div>
+</div>
+<div style="height:10px"></div>
+<input class="input" id="titleInput" placeholder="作品標題 例如 Neon Queen"/>
+<div style="height:10px"></div>
+<div class="help" id="unlockHint"></div>
+</div>
+<div class="col5">
+<div class="tabs-container" id="assetTabs">
+<button class="tab-btn active" data-i18n="studio_head" data-target="headGrid">頭部</button>
+<button class="tab-btn" data-i18n="studio_body" data-target="bodyGrid">身體</button>
+<button class="tab-btn" data-i18n="studio_bg" data-target="bgGrid">背景</button>
+<button class="tab-btn" data-target="addon1Grid">Addon 1</button>
+<button class="tab-btn" data-target="addon2Grid">Addon 2</button>
+</div>
+<div class="grid">
+<div class="col12">
+<div class="picker-section active" id="headSection"><div class="asset-grid" id="headGrid"><div class="asset-spacer"></div></div></div>
+</div>
+<div class="col12">
+<div class="picker-section" id="bodySection"><div class="asset-grid" id="bodyGrid"><div class="asset-spacer"></div></div></div>
+</div>
+<div class="col12">
+<div class="picker-section" id="bgSection"><div class="asset-grid" id="bgGrid"><div class="asset-spacer"></div></div></div>
+</div>
+<div class="col12">
+<div class="picker-section" id="addon1Section"><div class="asset-grid" id="addon1Grid"><div class="asset-spacer"></div></div></div>
+<div class="picker-section" id="addon2Section"><div class="asset-grid" id="addon2Grid"><div class="asset-spacer"></div></div></div>
+</div>
+</div>
+<div class="hr"></div>
+<a class="btn" data-i18n="studio_to_gallery" href="recipes.html">去看成品庫</a>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script src="app.js"></script>
 <script>
   function q(sel){ return document.querySelector(sel); }
 (async function(){
@@ -1779,7 +1774,7 @@ q("#randomBtn").addEventListener("click", ()=>{
   const hAll = ownedOptions("head");
   const bAll = ownedOptions("body");
   const gAll = ownedOptions("background");
-  if(hAll.length === 0 || bAll.length === 0 || gAll.length === 0) return toast(ACF_t("studio_not_enough_assets"));
+  if(hAll.length === 0 || bAll.length === 0 || gAll.length === 0) return toast("素材不足");
 
   // try a few times to find a compatible full set
   let picked = false;
@@ -1843,7 +1838,7 @@ q("#randomBtn").addEventListener("click", ()=>{
 
 q("#submitBtn").addEventListener("click", async ()=>{
   const payload = { headId: SEL.headId, bodyId: SEL.bodyId, bgId: SEL.bgId, addon1Id: SEL.addon1Id || "", addon2Id: SEL.addon2Id || "", systemScore: Number(window.__systemScore || 0) };
-  if(!payload.headId || !payload.bodyId || !payload.bgId) return toast(ACF_t("studio_not_enough_assets"));
+  if(!payload.headId || !payload.bodyId || !payload.bgId) return toast("素材不足");
   if(!isGenderCompatible(payload.headId, payload.bodyId)) return toast("性別不匹配");
   const others = [payload.bodyId, payload.bgId, payload.addon1Id, payload.addon2Id].filter(Boolean);
   if(others.some(id => !isCompatibleWithHead(id))) return toast(ruleHintText() || "素材不匹配");
@@ -1922,40 +1917,30 @@ async function doUpgrade(assetId){
   if(card) card.classList.remove("upgrading");
 }
 </script>
-
 <div id="hoverPreview"><img alt="preview"/></div>
-
 <div id="levelUpFx">
-  <div class="levelUpCardWrap">
-    <div class="levelUpCard">NEW COMBINATION UNLOCKED!</div>
-    <div class="levelUpSub" id="levelUpRange"></div>
-    <button id="levelUpConfirm" class="unlock-confirm" type="button">CONFIRM</button>
-  </div>
+<div class="levelUpCardWrap">
+<div class="levelUpCard">NEW COMBINATION UNLOCKED!</div>
+<div class="levelUpSub" id="levelUpRange"></div>
+<button class="unlock-confirm" id="levelUpConfirm" type="button">CONFIRM</button>
 </div>
-
-
+</div>
 <div id="collectionFx">
-  <div>
-    <div class="levelUpCard">NEW COLLECTION UNLOCKED!</div>
-    <div class="levelUpSub" id="collectionFxSub"></div>
-  </div>
+<div>
+<div class="levelUpCard">NEW COLLECTION UNLOCKED!</div>
+<div class="levelUpSub" id="collectionFxSub"></div>
 </div>
-
-
+</div>
 <!-- Unlock Overlay (Recipes) -->
-<div id="unlock-overlay" class="unlock-hidden" aria-hidden="true">
-  <div class="unlock-flash"></div>
-  <div class="unlock-particles"></div>
-
-  <div class="unlock-title">NEW COLLECTION UNLOCKED!</div>
-
-  <div class="unlock-image-wrap">
-    <img id="unlock-img" class="unlock-image" alt="Unlocked Collection" />
-  </div>
-
-  <button id="unlock-confirm" class="unlock-confirm" type="button">CONFIRM</button>
+<div aria-hidden="true" class="unlock-hidden" id="unlock-overlay">
+<div class="unlock-flash"></div>
+<div class="unlock-particles"></div>
+<div class="unlock-title">NEW COLLECTION UNLOCKED!</div>
+<div class="unlock-image-wrap">
+<img alt="Unlocked Collection" class="unlock-image" id="unlock-img"/>
 </div>
-
+<button class="unlock-confirm" id="unlock-confirm" type="button">CONFIRM</button>
+</div>
 <script>
 // ===== Unlock Overlay wiring =====
 (function(){
@@ -2033,7 +2018,6 @@ async function doUpgrade(assetId){
   });
 })();
 </script>
-
 <script>
 (function(){
   function bind(){
@@ -2051,9 +2035,7 @@ async function doUpgrade(assetId){
   }
 })();
 </script>
-
-  </div>
-
+</div>
 <script>
 (function(){
   function updateMasterHeightStable(){
@@ -2071,8 +2053,5 @@ async function doUpgrade(assetId){
   window.addEventListener("load", updateMasterHeightStable);
 })();
 </script>
-
-
-<script>try{ if(window.ACF_applyI18n) window.ACF_applyI18n(document); }catch(e){}<\/script>
 </body>
 </html>

@@ -1,12 +1,13 @@
-<!doctype html>
+<!DOCTYPE html>
+
 <html lang="zh-Hant">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>DREAM LEAGUE BASEBALL 商城</title>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="ui_fx.css" />
-  <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title data-i18n="shop_page_title">DREAM LEAGUE BASEBALL 商城</title>
+<link href="style.css" rel="stylesheet"/>
+<link href="ui_fx.css" rel="stylesheet"/>
+<style>
     body{
       margin:0;
       min-height:100vh;
@@ -307,66 +308,57 @@ body{
 </style>
 </head>
 <body>
-  <div class="acf-page ui-panel">
-    <div id="acfMasterMount"></div>
-
-    <div class="particles" aria-hidden="true"></div>
-    <div class="vignette" aria-hidden="true"></div>
-
-    <div class="wrap">
-      <div class="heroStage" id="heroStage">
-        <div class="featureStage" id="featureStage">
-          <video id="featuredVideoBg" class="bgVideo" autoplay muted loop playsinline></video>
-          <video id="featuredVideo" class="stageVideo" autoplay muted loop playsinline></video>
-
-          <img id="featuredFallbackBg" class="bgVideo" src="/assets/feature_character.png" style="display:none;" alt="" />
-          <img id="featuredFallback" src="/assets/feature_character.png" style="display:none; position:absolute; inset:0; width:100%; height:100%; object-fit:contain; z-index:1;" alt="" />
-        </div>
-
-        <div class="leftOverlay">
-          <div class="panelCard">
-            <div class="panelTitle">
-              <div class="name">商城</div>
-              <div class="desc"><span data-i18n="shop_checkout"></span></div>
-            </div>
-            <div class="panelText">付款完成後不會立刻入帳。後端收到 Stripe webhook 才入帳，避免前端作弊。</div>
-            <div class="miniLinks">
-              <a href="./shop-success.html">Success</a>
-              <a href="./shop-cancel.html">Cancel</a>
-            </div>
-          </div>
-
-          <div id="okWrap" class="toast" style="display:none">
-            <div id="ok" class="ok"></div>
-            <div class="muted">如果沒有自動跳轉，請確認瀏覽器沒有阻擋重新導向。</div>
-          </div>
-
-          <div id="errWrap" class="toast" style="display:none">
-            <div id="err" class="err"></div>
-            <div class="muted">若你在本機離線模式，請用線上環境或確認 WORKER_BASE 已設定。</div>
-          </div>
-        </div>
-
-        <div class="rightOverlay">
-          <div class="panelCard">
-            <div class="panelTitle">
-              <div class="name">充值方案</div>
-              <div class="desc">Gold / Gem</div>
-            </div>
-            <div class="packs" id="packs"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <script src="app.js"></script>
-    <script>
+<div class="acf-page ui-panel">
+<div id="acfMasterMount"></div>
+<div aria-hidden="true" class="particles"></div>
+<div aria-hidden="true" class="vignette"></div>
+<div class="wrap">
+<div class="heroStage" id="heroStage">
+<div class="featureStage" id="featureStage">
+<video autoplay="" class="bgVideo" id="featuredVideoBg" loop="" muted="" playsinline=""></video>
+<video autoplay="" class="stageVideo" id="featuredVideo" loop="" muted="" playsinline=""></video>
+<img alt="" class="bgVideo" id="featuredFallbackBg" src="/assets/feature_character.png" style="display:none;"/>
+<img alt="" id="featuredFallback" src="/assets/feature_character.png" style="display:none; position:absolute; inset:0; width:100%; height:100%; object-fit:contain; z-index:1;"/>
+</div>
+<div class="leftOverlay">
+<div class="panelCard">
+<div class="panelTitle">
+<div class="name" data-i18n="shop_title">商城</div>
+<div class="desc">Stripe Checkout</div>
+</div>
+<div class="panelText" data-i18n="shop_webhook_hint">付款完成後不會立刻入帳。後端收到 Stripe webhook 才入帳，避免前端作弊。</div>
+<div class="miniLinks">
+<a href="./shop-success.html">Success</a>
+<a href="./shop-cancel.html">Cancel</a>
+</div>
+</div>
+<div class="toast" id="okWrap" style="display:none">
+<div class="ok" id="ok"></div>
+<div class="muted" data-i18n="shop_redirect_hint">如果沒有自動跳轉，請確認瀏覽器沒有阻擋重新導向。</div>
+</div>
+<div class="toast" id="errWrap" style="display:none">
+<div class="err" id="err"></div>
+<div class="muted" data-i18n="shop_offline_hint">若你在本機離線模式，請用線上環境或確認 WORKER_BASE 已設定。</div>
+</div>
+</div>
+<div class="rightOverlay">
+<div class="panelCard">
+<div class="panelTitle">
+<div class="name" data-i18n="shop_plans">充值方案</div>
+<div class="desc">Gold / Gem</div>
+</div>
+<div class="packs" id="packs"></div>
+</div>
+</div>
+</div>
+</div>
+<script src="app.js"></script>
+<script>
       window.WORKER_BASE = window.WORKER_BASE || ((location.hostname === "127.0.0.1" || location.hostname === "localhost")
         ? ""
         : "https://acf-api.dream-league-baseball.workers.dev");
     </script>
-
-    <script>
+<script>
       function updateMasterHeight(){
         const m = document.getElementById("acfMasterMount");
         const h = m ? Math.ceil(m.getBoundingClientRect().height) : 0;
@@ -504,13 +496,13 @@ body{
           <div class="packItem">
             <div class="packTop">
               <div class="packPrice">$${p.priceUsd}</div>
-              <div class="packTag"><span data-i18n="shop_bonus"></span>  ${p.bonusGems} Gem</div>
+              <div class="packTag">加送 ${p.bonusGems} Gem</div>
             </div>
             <div class="packLines">
               <div class="packLine">Gold <b>${p.coins}</b></div>
               <div class="packLine">Gem <b>${p.gems}</b></div>
             </div>
-            <button class="packBtn" data-pack="${p.id}"><span data-i18n="shop_buy_now"></span></button>
+            <button class="packBtn" data-pack="${p.id}">立即購買</button>
           </div>
         `;
       }
@@ -559,7 +551,7 @@ body{
           }
 
           if(!data || !data.url) throw new Error("missing_checkout_url");
-          showOk("已建立 <span data-i18n="shop_checkout"></span>，轉跳中");
+          showOk("已建立 Stripe Checkout，轉跳中");
           location.href = data.url;
         }catch(e){
           showErr(String(e && e.message ? e.message : e));
@@ -586,8 +578,7 @@ body{
 
       boot();
     </script>
-  </div>
-
+</div>
 <script>
 (function(){
   function updateMasterHeightStable(){
@@ -605,8 +596,5 @@ body{
   window.addEventListener("load", updateMasterHeightStable);
 })();
 </script>
-
-
-<script>try{ if(window.ACF_applyI18n) window.ACF_applyI18n(document); }catch(e){}<\/script>
 </body>
 </html>
