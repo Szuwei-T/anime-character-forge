@@ -256,9 +256,10 @@ body{
   // 如果已登入（已有 uid），立刻跳轉到作品庫，避免停留在 index
   (function(){
     try{
-      const uid = localStorage.getItem("acf_uid") || localStorage.getItem("uid") || "";
-      const justLoggedOut = sessionStorage.getItem("acf_just_logged_out")==="1";
-      if(uid && !justLoggedOut){
+      const params = new URLSearchParams(location.search);
+      const isEmbed = params.get("embed")==="1" || (function(){ try{ return window.self !== window.top; }catch(_e){ return true; } })();
+      // If index is opened directly (not embedded), always go to gallery.
+      if(!isEmbed){
         window.location.replace("gallery.html");
       }
     }catch(_e){}
@@ -309,7 +310,6 @@ body{
 <div class="status" id="status"></div>
 </div>
 </div>
-<script>window.ACF_DISABLE_MASTER = true;</script>
 <script src="app.js"></script>
 <!-- Firebase (modular CDN) -->
 <script type="module">
@@ -403,7 +403,6 @@ function __loginDone(user){
 
         // 讓 app.js 的 getOrCreateUid() 用 Firebase uid
         localStorage.setItem("acf_uid", user.uid);
-        localStorage.setItem("acf_authed", "1");
 
         showStep(true);
         setStatus("", "");
@@ -438,8 +437,7 @@ function __loginDone(user){
 } else {
         $("userEmail").textContent = "未登入";
         $("userUid").textContent = "";
-        localStorage.setItem("acf_authed", "0");
-      showStep(false);
+        showStep(false);
       }
     });
 
@@ -518,7 +516,6 @@ function __loginDone(user){
       setBusy(true);
       try {
         await signOut(auth);
-        localStorage.setItem("acf_authed", "0");
         // optional: 保留 acf_uid 也行 但登出時清掉比較直覺
         localStorage.removeItem("acf_uid");
       } finally {
@@ -546,5 +543,21 @@ function __loginDone(user){
 
     </script>
 </div>
+<script>
+(function(){
+  function updateMasterHeightStable(){
+    const m = document.getElementById("acfMasterMount");
+    if(!m) return;
+    const hRaw = m.getBoundingClientRect().height;
+    const h = Math.round(hRaw);
+    const cur = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--masterH")) || 0;
+    if(Math.abs(h-cur) >= 2){
+      document.documentElement.style.setProperty("--masterH", h + "px");
+    }
+  }
+  window.addEventListener("resize", updateMasterHeightStable);
+  window.addEventListener("load", updateMasterHeightStable);
+})();
+</script>
 </body>
 </html>
