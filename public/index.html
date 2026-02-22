@@ -5,6 +5,19 @@
 <meta charset="utf-8"/>
 <title data-i18n="login_title">Anime Character Forge 登入</title>
 <meta content="width=device-width, initial-scale=1" name="viewport"/>
+
+<script>
+  (function(){
+    const p = new URLSearchParams(location.search);
+    const isEmbed = p.get("embed") === "1";
+    if(!isEmbed){
+      // If already logged in (Firebase uid saved for app.js), go straight to gallery
+      const uid = (localStorage.getItem("acf_uid") || "").trim();
+      const to = uid ? "gallery.html" : "gallery.html?openLogin=1";
+      location.replace(to);
+    }
+  })();
+</script>
 <style>
     :root {
       --bg1: rgba(3, 7, 18, 0.88);
@@ -326,35 +339,6 @@ body{
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
-const __params = new URLSearchParams(location.search);
-const __isEmbed = __params.get("embed") === "1";
-const __mode = (__params.get("mode") || "").toLowerCase();
-const __redirectRaw = __params.get("redirect") || "gallery.html";
-
-function __normalizeRedirect(raw){
-  const s = String(raw || "").trim();
-  if(!s) return "gallery.html";
-  if(s.startsWith("http://") || s.startsWith("https://")) return s;
-  if(s.endsWith(".html")) return s;
-  // allow "gallery" style
-  return s + ".html";
-}
-const __redirectTarget = __normalizeRedirect(__redirectRaw);
-
-function __loginDone(user){
-  const uid = user?.uid || "";
-  if(__isEmbed){
-    // tell parent to close overlay + refresh
-    try{
-      window.parent.postMessage({ type: "acf-login-success", uid, redirect: __redirectTarget }, "*");
-    }catch(_e){}
-    return;
-  }
-  window.location.href = __redirectTarget;
-}
-
-
-
     const $ = (id) => document.getElementById(id);
 
     const statusEl = $("status");
@@ -421,7 +405,18 @@ function __loginDone(user){
 
         try{ sessionStorage.removeItem("acf_just_logged_out"); }catch(_e){}
         setStatus("登入成功，正在進入作品庫…", "ok");
-        setTimeout(() => __loginDone(user), 150);
+        setTimeout(() => {
+          const params = new URLSearchParams(location.search);
+          const isEmbed = params.get("embed") === "1";
+          if(isEmbed){
+            try{
+              window.parent.postMessage({ type: "acf-login-success" }, "*");
+            }catch(_e){}
+          }else{
+            window.location.href = "gallery.html";
+          }
+        }, 250);
+
 } else {
         $("userEmail").textContent = "未登入";
         $("userUid").textContent = "";
@@ -521,8 +516,8 @@ function __loginDone(user){
         }
 
         setStatus("完成 已建立玩家資料 正在進入遊戲", "ok");
-        setTimeout(() => __loginDone(auth.currentUser), 150);
-} catch (e) {
+        setTimeout(() => (window.location.href = "hub.html"), 400);
+      } catch (e) {
         setStatus("寫入資料失敗\n" + (e?.message || e), "err");
       } finally {
         setBusy(false);

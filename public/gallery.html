@@ -857,16 +857,20 @@ body{
             ? ""
             : "https://acf-api.dream-league-baseball.workers.dev";
 
-        function getOrCreateUid(){
+        function getOrCreateUid(forceCreate=false){
           const k = "acf_uid";
-          const id = (localStorage.getItem(k) || "").trim();
-          // Guest browse: do not auto-create uid
+          let id = localStorage.getItem(k);
+          if(!id && forceCreate){
+            id = crypto.randomUUID();
+            localStorage.setItem(k, id);
+          }
+}
           return id;
         }
 
         let uid = (localStorage.getItem("acf_uid") || localStorage.getItem("uid") || localStorage.getItem("userId") || localStorage.getItem("userid") || "").trim();
-        if(!uid) uid = getOrCreateUid();
-        try{ const u = new URL(location.href).searchParams.get("uid"); if(u) uid = String(u).trim(); }catch(_){}
+        if(!uid) uid = "";
+try{ const u = new URL(location.href).searchParams.get("uid"); if(u) uid = String(u).trim(); }catch(_){}
 
         let userVote = 0;
         let userGem = 0;
@@ -899,8 +903,8 @@ body{
 
       async function toggleFollow(targetUserId){
         if(!uid){
-          if(window.ACF_openLoginOverlay) window.ACF_openLoginOverlay("login");
-          return;
+          showToast("請先登入");
+          return showError("請先登入");
         }
         const tid = String(targetUserId||"").trim();
         if(!tid) return;
@@ -1499,9 +1503,9 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
                 e.stopPropagation();
                 clearError();
                 if(!uid){
-          if(window.ACF_openLoginOverlay) window.ACF_openLoginOverlay("login");
-          return;
-        }
+                  showToast("請先登入");
+                  return showError("請先登入");
+                }
                 if(userVote <= 0){
                   showToast("票數已投滿");
                   return showError("票數已投滿");
@@ -1682,9 +1686,9 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
               e.stopPropagation();
               clearError();
               if(!uid){
-          if(window.ACF_openLoginOverlay) window.ACF_openLoginOverlay("login");
-          return;
-        }
+                showToast("請先登入");
+                return showError("請先登入");
+              }
               if(userVote <= 0){
                 showToast("票數已投滿");
                 return showError("票數已投滿");
@@ -1726,9 +1730,9 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
               e.stopPropagation();
               clearError();
               if(!uid){
-          if(window.ACF_openLoginOverlay) window.ACF_openLoginOverlay("login");
-          return;
-        }
+                showToast("請先登入");
+                return showError("請先登入");
+              }
               if(userGem < 50){
                 showToast("GEM 不足");
                 return showError("GEM 不足");
@@ -1892,9 +1896,9 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
                 e.stopPropagation();
                 clearError();
                 if(!uid){
-          if(window.ACF_openLoginOverlay) window.ACF_openLoginOverlay("login");
-          return;
-        }
+                  showToast("請先登入");
+                  return showError("請先登入");
+                }
                 if(userVote <= 0){
                   showToast("票數已投滿");
                   return showError("票數已投滿");
@@ -1938,9 +1942,9 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
                 e.stopPropagation();
                 clearError();
                 if(!uid){
-          if(window.ACF_openLoginOverlay) window.ACF_openLoginOverlay("login");
-          return;
-        }
+                  showToast("請先登入");
+                  return showError("請先登入");
+                }
                 if(userGem < 50){
                   showToast("GEM 不足");
                   return showError("GEM 不足");
@@ -2121,6 +2125,64 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
   window.addEventListener("resize", updateMasterHeightStable);
   window.addEventListener("load", updateMasterHeightStable);
 })();
+</script>
+
+  <!-- Guest Login Overlay -->
+  <div id="acfLoginOverlay" style="position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.70);backdrop-filter:blur(10px);">
+    <div style="width:min(980px,96vw);height:min(720px,92vh);border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.14);background:rgba(10,14,22,.92);box-shadow:0 30px 90px rgba(0,0,0,.65);position:relative;">
+      <button id="acfLoginClose" style="position:absolute;top:10px;right:10px;z-index:3;border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.35);color:#fff;border-radius:12px;padding:8px 10px;font-weight:800;cursor:pointer;">關閉</button>
+      <iframe id="acfLoginFrame" title="Login" style="width:100%;height:100%;border:0;display:block;"></iframe>
+    </div>
+  </div>
+<script>
+(function(){
+  function isLoggedIn(){
+    const uid = (localStorage.getItem("acf_uid") || "").trim();
+    return !!uid;
+  }
+  function openLoginOverlay(){
+    const ov = document.getElementById("acfLoginOverlay");
+    const fr = document.getElementById("acfLoginFrame");
+    if(!ov || !fr) return;
+    fr.src = "index.html?embed=1&mode=login&redirect=gallery";
+    ov.style.display = "flex";
+  }
+  function closeLoginOverlay(){
+    const ov = document.getElementById("acfLoginOverlay");
+    const fr = document.getElementById("acfLoginFrame");
+    if(fr) fr.src = "about:blank";
+    if(ov) ov.style.display = "none";
+  }
+  window.__acfOpenLogin = openLoginOverlay;
+  window.__acfCloseLogin = closeLoginOverlay;
+
+  const btn = document.getElementById("acfLoginClose");
+  if(btn) btn.addEventListener("click", closeLoginOverlay);
+
+  window.addEventListener("message", (e) => {
+    if(e && e.data && e.data.type === "acf-login-success"){
+      closeLoginOverlay();
+      location.reload();
+    }
+  });
+
+  // Auto open when coming from index
+  try{
+    const p = new URLSearchParams(location.search);
+    if(p.get("openLogin") === "1" && !isLoggedIn()){
+      // open after render
+      setTimeout(openLoginOverlay, 60);
+    }
+  }catch(_e){}
+})();
+</script>
+<script>
+window.requireLogin = function(){
+  const uid = (localStorage.getItem("acf_uid") || "").trim();
+  if(uid) return true;
+  try{ window.__acfOpenLogin && window.__acfOpenLogin(); }catch(_e){}
+  return false;
+};
 </script>
 </body>
 </html>
