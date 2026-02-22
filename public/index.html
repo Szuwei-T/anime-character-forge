@@ -242,17 +242,6 @@ body{
 </head>
 <body>
 <script>
-// Redirect only on top-level (not iframe) and not embed mode
-try{
-  const params = new URLSearchParams(location.search);
-  const isEmbed = params.get('embed') === '1';
-  const isFramed = window.self !== window.top;
-  if(!isEmbed && !isFramed){
-    const hasUid = !!(localStorage.getItem('acf_uid')||'').trim();
-    location.replace(hasUid ? 'gallery.html' : 'gallery.html?openLogin=1');
-  }
-}catch(_){ }
-
   // 如果已登入（已有 uid），立刻跳轉到作品庫，避免停留在 index
   (function(){
     try{
@@ -337,6 +326,35 @@ try{
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
+const __params = new URLSearchParams(location.search);
+const __isEmbed = __params.get("embed") === "1";
+const __mode = (__params.get("mode") || "").toLowerCase();
+const __redirectRaw = __params.get("redirect") || "gallery.html";
+
+function __normalizeRedirect(raw){
+  const s = String(raw || "").trim();
+  if(!s) return "gallery.html";
+  if(s.startsWith("http://") || s.startsWith("https://")) return s;
+  if(s.endsWith(".html")) return s;
+  // allow "gallery" style
+  return s + ".html";
+}
+const __redirectTarget = __normalizeRedirect(__redirectRaw);
+
+function __loginDone(user){
+  const uid = user?.uid || "";
+  if(__isEmbed){
+    // tell parent to close overlay + refresh
+    try{
+      window.parent.postMessage({ type: "acf-login-success", uid, redirect: __redirectTarget }, "*");
+    }catch(_e){}
+    return;
+  }
+  window.location.href = __redirectTarget;
+}
+
+
+
     const $ = (id) => document.getElementById(id);
 
     const statusEl = $("status");
@@ -372,14 +390,7 @@ try{
         $("userUid").textContent = user.uid;
 
         // 讓 app.js 的 getOrCreateUid() 用 Firebase uid
-        localStorage.setItem("acf_uid", user.uid)
-            try{
-              const p = new URLSearchParams(location.search);
-              const isEmbed = p.get("embed") === "1" || (window.self !== window.top);
-              if(isEmbed){
-                window.parent.postMessage({ type:"acf-login-success" }, "*");
-              }
-            }catch(_){ };
+        localStorage.setItem("acf_uid", user.uid);
 
         showStep(true);
         setStatus("", "");
@@ -410,8 +421,7 @@ try{
 
         try{ sessionStorage.removeItem("acf_just_logged_out"); }catch(_e){}
         setStatus("登入成功，正在進入作品庫…", "ok");
-        setTimeout(() => (window.location.href = "gallery.html"), 250);
-
+        setTimeout(() => __loginDone(user), 150);
 } else {
         $("userEmail").textContent = "未登入";
         $("userUid").textContent = "";
@@ -511,8 +521,8 @@ try{
         }
 
         setStatus("完成 已建立玩家資料 正在進入遊戲", "ok");
-        setTimeout(() => (window.location.href = "hub.html"), 400);
-      } catch (e) {
+        setTimeout(() => __loginDone(auth.currentUser), 150);
+} catch (e) {
         setStatus("寫入資料失敗\n" + (e?.message || e), "err");
       } finally {
         setBusy(false);

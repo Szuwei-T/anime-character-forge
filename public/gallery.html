@@ -859,16 +859,12 @@ body{
 
         function getOrCreateUid(){
           const k = "acf_uid";
-          let id = localStorage.getItem(k);
-          if(!id){
-            id = crypto.randomUUID();
-            localStorage.setItem(k, id);
-          }
+          const id = (localStorage.getItem(k) || "").trim();
+          // Guest browse: do not auto-create uid
           return id;
         }
 
         let uid = (localStorage.getItem("acf_uid") || localStorage.getItem("uid") || localStorage.getItem("userId") || localStorage.getItem("userid") || "").trim();
-      if(typeof window.ACF_isAuthed === "function" && !window.ACF_isAuthed()) uid = "";
         if(!uid) uid = getOrCreateUid();
         try{ const u = new URL(location.href).searchParams.get("uid"); if(u) uid = String(u).trim(); }catch(_){}
 
@@ -903,8 +899,7 @@ body{
 
       async function toggleFollow(targetUserId){
         if(!uid){
-          if(typeof window.ACF_openAuthOverlay === "function") window.ACF_openAuthOverlay("login");
-          showToast("請先登入");
+          if(window.ACF_openLoginOverlay) window.ACF_openLoginOverlay("login");
           return;
         }
         const tid = String(targetUserId||"").trim();
@@ -1504,9 +1499,9 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
                 e.stopPropagation();
                 clearError();
                 if(!uid){
-                  showToast("請先登入");
-                  return showError("請先登入");
-                }
+          if(window.ACF_openLoginOverlay) window.ACF_openLoginOverlay("login");
+          return;
+        }
                 if(userVote <= 0){
                   showToast("票數已投滿");
                   return showError("票數已投滿");
@@ -1687,9 +1682,9 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
               e.stopPropagation();
               clearError();
               if(!uid){
-                showToast("請先登入");
-                return showError("請先登入");
-              }
+          if(window.ACF_openLoginOverlay) window.ACF_openLoginOverlay("login");
+          return;
+        }
               if(userVote <= 0){
                 showToast("票數已投滿");
                 return showError("票數已投滿");
@@ -1731,9 +1726,9 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
               e.stopPropagation();
               clearError();
               if(!uid){
-                showToast("請先登入");
-                return showError("請先登入");
-              }
+          if(window.ACF_openLoginOverlay) window.ACF_openLoginOverlay("login");
+          return;
+        }
               if(userGem < 50){
                 showToast("GEM 不足");
                 return showError("GEM 不足");
@@ -1897,9 +1892,9 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
                 e.stopPropagation();
                 clearError();
                 if(!uid){
-                  showToast("請先登入");
-                  return showError("請先登入");
-                }
+          if(window.ACF_openLoginOverlay) window.ACF_openLoginOverlay("login");
+          return;
+        }
                 if(userVote <= 0){
                   showToast("票數已投滿");
                   return showError("票數已投滿");
@@ -1943,9 +1938,9 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
                 e.stopPropagation();
                 clearError();
                 if(!uid){
-                  showToast("請先登入");
-                  return showError("請先登入");
-                }
+          if(window.ACF_openLoginOverlay) window.ACF_openLoginOverlay("login");
+          return;
+        }
                 if(userGem < 50){
                   showToast("GEM 不足");
                   return showError("GEM 不足");
@@ -2126,20 +2121,6 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
   window.addEventListener("resize", updateMasterHeightStable);
   window.addEventListener("load", updateMasterHeightStable);
 })();
-
-// Auto open login overlay if requested and still guest
-try{
-  const p = new URLSearchParams(location.search);
-  const openLogin = p.get("openLogin") === "1";
-  if(openLogin){
-    const uidNow = (localStorage.getItem("acf_uid")||"").trim();
-    const authed = (typeof window.ACF_isAuthed === "function") ? window.ACF_isAuthed() : !!uidNow;
-    if(!authed && typeof window.ACF_openAuthOverlay === "function"){
-      window.ACF_openAuthOverlay("login");
-    }
-  }
-}catch(_){}
-
 </script>
 </body>
 </html>
