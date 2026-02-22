@@ -242,6 +242,17 @@ body{
 </head>
 <body>
 <script>
+(function(){
+  const p = new URLSearchParams(location.search);
+  const isEmbed = p.get("embed") === "1";
+  if(!isEmbed){
+    // index is only used as embedded login overlay
+    location.replace("gallery.html");
+  }
+})();
+</script>
+
+<script>
   // 如果已登入（已有 uid），立刻跳轉到作品庫，避免停留在 index
   (function(){
     try{

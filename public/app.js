@@ -606,7 +606,15 @@ function syncUidAliases(uid){
   }catch(_){}
 }
 
-function getOrCreateUid(){
+function getUid(){
+  try{
+    return String(localStorage.getItem("acf_uid") || "").trim();
+  }catch(_e){
+    return "";
+  }
+}
+
+function getOrCreateUid(force=false){
   const primary = "acf_uid";
   let uid = localStorage.getItem(primary);
 
@@ -619,8 +627,8 @@ function getOrCreateUid(){
     uid = String(uid || "").trim();
     if(uid) localStorage.setItem(primary, uid);
   }
-
   if(!uid){
+    if(!force) return "";
     uid = crypto.randomUUID();
     localStorage.setItem(primary, uid);
   }
@@ -723,7 +731,7 @@ function saveOfflineDb(db){
 async function apiFetch(path, options={}){
   const url = (WORKER_BASE || "") + path;
 
-  const uid = getOrCreateUid();
+  const uid = getUid();
 
   const headers = Object.assign({}, (options && options.headers) ? options.headers : {});
   if(uid) headers["x-user-id"] = headers["x-user-id"] || headers["X-User-Id"] || headers["X-USER-ID"] || uid;
@@ -756,7 +764,7 @@ async function apiFetch(path, options={}){
 }
 
 async function initSession(){
-  APP.uid = getOrCreateUid();
+  APP.uid = getUid() || getOrCreateUid(true);
   syncUidAliases(APP.uid);
   APP.name = getName();
 

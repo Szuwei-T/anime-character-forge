@@ -865,8 +865,8 @@ body{
         }
 
         let uid = (localStorage.getItem("acf_uid") || localStorage.getItem("uid") || localStorage.getItem("userId") || localStorage.getItem("userid") || "").trim();
-        if(!uid) uid = getOrCreateUid();
-        try{ const u = new URL(location.href).searchParams.get("uid"); if(u) uid = String(u).trim(); }catch(_){}
+        // guest mode: do not auto-create uid
+try{ const u = new URL(location.href).searchParams.get("uid"); if(u) uid = String(u).trim(); }catch(_){}
 
         let userVote = 0;
         let userGem = 0;
