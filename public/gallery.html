@@ -868,6 +868,7 @@ body{
         }
 
         let uid = (localStorage.getItem("acf_uid") || localStorage.getItem("uid") || localStorage.getItem("userId") || localStorage.getItem("userid") || "").trim();
+      if(typeof window.ACF_isAuthed === "function" && !window.ACF_isAuthed()) uid = "";
         if(!uid) uid = getOrCreateUid();
         try{ const u = new URL(location.href).searchParams.get("uid"); if(u) uid = String(u).trim(); }catch(_){}
 
@@ -902,8 +903,9 @@ body{
 
       async function toggleFollow(targetUserId){
         if(!uid){
+          if(typeof window.ACF_openAuthOverlay === "function") window.ACF_openAuthOverlay("login");
           showToast("請先登入");
-          return showError("請先登入");
+          return;
         }
         const tid = String(targetUserId||"").trim();
         if(!tid) return;
@@ -2124,33 +2126,20 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
   window.addEventListener("resize", updateMasterHeightStable);
   window.addEventListener("load", updateMasterHeightStable);
 })();
-</script>
-<script>
-(function(){
-  function hasUid(){
-    try{ return !!(localStorage.getItem("acf_uid") || localStorage.getItem("uid")); }catch(_e){ return false; }
-  }
-  function shouldOpen(){
-    try{
-      const p = new URLSearchParams(location.search);
-      return p.get("openLogin") === "1";
-    }catch(_e){ return false; }
-  }
 
-  function openLoginIfNeeded(){
-    if(hasUid()) return;
-    if(!shouldOpen()) return;
-    if(typeof window.ACF_openLoginOverlay === "function"){
-      window.ACF_openLoginOverlay("login");
+// Auto open login overlay if requested and still guest
+try{
+  const p = new URLSearchParams(location.search);
+  const openLogin = p.get("openLogin") === "1";
+  if(openLogin){
+    const uidNow = (localStorage.getItem("acf_uid")||"").trim();
+    const authed = (typeof window.ACF_isAuthed === "function") ? window.ACF_isAuthed() : !!uidNow;
+    if(!authed && typeof window.ACF_openAuthOverlay === "function"){
+      window.ACF_openAuthOverlay("login");
     }
   }
+}catch(_){}
 
-  if(document.readyState === "loading"){
-    document.addEventListener("DOMContentLoaded", openLoginIfNeeded);
-  }else{
-    openLoginIfNeeded();
-  }
-})();
 </script>
 </body>
 </html>
