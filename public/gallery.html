@@ -859,11 +859,8 @@ body{
 
         function getOrCreateUid(){
           const k = "acf_uid";
-          let id = localStorage.getItem(k);
-          if(!id){
-            id = crypto.randomUUID();
-            localStorage.setItem(k, id);
-          }
+          const id = (localStorage.getItem(k) || "").trim();
+          // Guest browse: do not auto-create uid
           return id;
         }
 
@@ -902,8 +899,8 @@ body{
 
       async function toggleFollow(targetUserId){
         if(!uid){
-          showToast("請先登入");
-          return showError("請先登入");
+          if(window.ACF_openLoginOverlay) window.ACF_openLoginOverlay("login");
+          return;
         }
         const tid = String(targetUserId||"").trim();
         if(!tid) return;
@@ -1502,9 +1499,9 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
                 e.stopPropagation();
                 clearError();
                 if(!uid){
-                  showToast("請先登入");
-                  return showError("請先登入");
-                }
+          if(window.ACF_openLoginOverlay) window.ACF_openLoginOverlay("login");
+          return;
+        }
                 if(userVote <= 0){
                   showToast("票數已投滿");
                   return showError("票數已投滿");
@@ -1685,9 +1682,9 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
               e.stopPropagation();
               clearError();
               if(!uid){
-                showToast("請先登入");
-                return showError("請先登入");
-              }
+          if(window.ACF_openLoginOverlay) window.ACF_openLoginOverlay("login");
+          return;
+        }
               if(userVote <= 0){
                 showToast("票數已投滿");
                 return showError("票數已投滿");
@@ -1729,9 +1726,9 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
               e.stopPropagation();
               clearError();
               if(!uid){
-                showToast("請先登入");
-                return showError("請先登入");
-              }
+          if(window.ACF_openLoginOverlay) window.ACF_openLoginOverlay("login");
+          return;
+        }
               if(userGem < 50){
                 showToast("GEM 不足");
                 return showError("GEM 不足");
@@ -1895,9 +1892,9 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
                 e.stopPropagation();
                 clearError();
                 if(!uid){
-                  showToast("請先登入");
-                  return showError("請先登入");
-                }
+          if(window.ACF_openLoginOverlay) window.ACF_openLoginOverlay("login");
+          return;
+        }
                 if(userVote <= 0){
                   showToast("票數已投滿");
                   return showError("票數已投滿");
@@ -1941,9 +1938,9 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
                 e.stopPropagation();
                 clearError();
                 if(!uid){
-                  showToast("請先登入");
-                  return showError("請先登入");
-                }
+          if(window.ACF_openLoginOverlay) window.ACF_openLoginOverlay("login");
+          return;
+        }
                 if(userGem < 50){
                   showToast("GEM 不足");
                   return showError("GEM 不足");

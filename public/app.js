@@ -1098,6 +1098,24 @@ white-space: nowrap;
         .acf-masterDivider{
          display: none !important; height: 16px; }
       }
+
+.acf-masterAuthBtn{
+  appearance:none;
+  border:1px solid rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.10);
+  color: rgba(255,255,255,0.95);
+  border-radius: 999px;
+  padding: 9px 12px;
+  font-weight: 950;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  margin-left: 8px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+}
+.acf-masterAuthBtn.secondary{
+  background: rgba(0,0,0,0.18);
+}
+.acf-masterAuthBtn:hover{ filter: brightness(1.05); }
 `;
     document.head.appendChild(s);
   }
@@ -1138,8 +1156,11 @@ white-space: nowrap;
     const t = await res.text();
     let data = {};
     try{ data = JSON.parse(t||"{}"); }catch(_){ data = { ok:false, error:t }; }
-    if(!res.ok || data.ok===false) throw data;
-    return data;
+    if(res.status === 401){
+  return { ok:true, guest:true };
+}
+if(!res.ok || data.ok===false) throw data;
+return data;
   }
 
   function buildHeaderDom(){
@@ -1287,10 +1308,31 @@ white-space: nowrap;
     const statsEl = document.getElementById("acfMasterStats");
 
     if(!me || !me.account){
-      box.style.display = "none";
-      setBodyOffset();
-      return;
-    }
+  // Guest browse mode
+  box.style.display = "block";
+  nameEl.textContent = ACF_t("label_player","Player") + " · " + "遊客 (新註冊)";
+  subEl.textContent = "Browse mode";
+  avEl.innerHTML = "";
+  const d = el("div","acf-initials");
+  d.textContent = "G";
+  avEl.appendChild(d);
+
+  statsEl.innerHTML = `
+    <button class="acf-masterAuthBtn" id="acfBtnLogin">${ACF_t("status_not_logged_in","Not signed in") ? "登入" : "登入"}</button>
+    <button class="acf-masterAuthBtn secondary" id="acfBtnSignup">註冊</button>
+  `;
+
+  // wire buttons
+  setTimeout(()=>{
+    const bl = document.getElementById("acfBtnLogin");
+    const bs = document.getElementById("acfBtnSignup");
+    if(bl) bl.onclick = ()=>window.ACF_openLoginOverlay && window.ACF_openLoginOverlay("login");
+    if(bs) bs.onclick = ()=>window.ACF_openLoginOverlay && window.ACF_openLoginOverlay("signup");
+  }, 0);
+
+  setBodyOffset();
+  return;
+}
 
     const acc = me.account || {};
 
@@ -1362,7 +1404,128 @@ white-space: nowrap;
     window.addEventListener("resize", ()=>setBodyOffset(), { passive:true });
   }
 
-  window.ACF_initMasterHeader = initMasterHeader;
+  
+function acfIsLoggedIn(){
+  const uid = (localStorage.getItem("acf_uid") || "").trim();
+  return !!uid;
+}
+
+function closeLoginOverlay(){
+  const o = document.getElementById("acfLoginOverlay");
+  if(o) o.remove();
+}
+
+function openLoginOverlay(mode){
+  closeLoginOverlay();
+
+  const params = new URLSearchParams();
+  params.set("embed","1");
+  if(mode) params.set("mode", String(mode));
+  // redirect back to current path
+  const cur = (location.pathname.split("/").pop() || "gallery.html");
+  params.set("redirect", cur);
+
+  const overlay = el("div","acf-loginOverlay");
+  overlay.id = "acfLoginOverlay";
+  overlay.innerHTML = `
+    <div class="acf-loginBack"></div>
+    <div class="acf-loginCard">
+      <button class="acf-loginClose" aria-label="Close">關閉</button>
+      <iframe class="acf-loginFrame" src="index.html?${params.toString()}" title="Login"></iframe>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  const back = overlay.querySelector(".acf-loginBack");
+  const btn = overlay.querySelector(".acf-loginClose");
+  if(back) back.onclick = closeLoginOverlay;
+  if(btn) btn.onclick = closeLoginOverlay;
+}
+
+function ensureLoginOverlayStyles(){
+  if(document.getElementById("acfLoginOverlayStyle")) return;
+  const s = document.createElement("style");
+  s.id = "acfLoginOverlayStyle";
+  s.textContent = `
+    .acf-loginOverlay{
+      position: fixed;
+      inset: 0;
+      z-index: 100000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+    }
+    .acf-loginBack{
+      position:absolute;
+      inset:0;
+      background: rgba(0,0,0,0.68);
+      backdrop-filter: blur(10px);
+    }
+    .acf-loginCard{
+      position: relative;
+      width: min(1100px, 96vw);
+      height: min(720px, 92vh);
+      border-radius: 20px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.14);
+      box-shadow: 0 28px 90px rgba(0,0,0,0.60);
+      background: rgba(10,14,22,0.55);
+    }
+    .acf-loginClose{
+      position:absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 3;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(0,0,0,0.35);
+      color: rgba(255,255,255,0.92);
+      border-radius: 12px;
+      padding: 8px 12px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+    .acf-loginFrame{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      border:0;
+    }
+  `;
+  document.head.appendChild(s);
+}
+
+// expose helpers
+window.ACF_isLoggedIn = acfIsLoggedIn;
+window.ACF_openLoginOverlay = function(mode){
+  ensureLoginOverlayStyles();
+  openLoginOverlay(mode);
+};
+window.ACF_closeLoginOverlay = closeLoginOverlay;
+
+// listen to embedded login success from index.html
+if(!window.__acfLoginMsgBound){
+  window.__acfLoginMsgBound = true;
+  window.addEventListener("message", (e)=>{
+    const d = e && e.data;
+    if(!d || d.type !== "acf-login-success") return;
+    closeLoginOverlay();
+    // refresh master + page
+    try{ localStorage.setItem("acf_uid", String(d.uid || localStorage.getItem("acf_uid") || "")); }catch(_){}
+    if(d.redirect){
+      const r = String(d.redirect);
+      if(r && (location.pathname.endsWith(r) || location.pathname.endsWith("/"+r))){
+        location.reload();
+      }else{
+        location.href = r;
+      }
+    }else{
+      location.reload();
+    }
+  });
+}
+window.ACF_initMasterHeader = initMasterHeader;
 
   if(document.readyState === "loading"){
     document.addEventListener("DOMContentLoaded", ()=>ACF_applyI18n(document));
