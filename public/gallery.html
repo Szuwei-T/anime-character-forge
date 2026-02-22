@@ -857,22 +857,103 @@ body{
             ? ""
             : "https://acf-api.dream-league-baseball.workers.dev";
 
-        function getOrCreateUid(forceCreate=false){
+        function getUidMaybe(){
           const k = "acf_uid";
           let id = localStorage.getItem(k);
-          if(!id && forceCreate){
-            id = crypto.randomUUID();
-            localStorage.setItem(k, id);
+          if(!id){
+            id = (
+              localStorage.getItem("uid") ||
+              localStorage.getItem("userId") ||
+              localStorage.getItem("userid") ||
+              ""
+            );
           }
-}
+          id = String(id || "").trim();
           return id;
         }
 
-        let uid = (localStorage.getItem("acf_uid") || localStorage.getItem("uid") || localStorage.getItem("userId") || localStorage.getItem("userid") || "").trim();
-        if(!uid) uid = "";
-try{ const u = new URL(location.href).searchParams.get("uid"); if(u) uid = String(u).trim(); }catch(_){}
+        let uid = getUidMaybe();
+        try{ const u = new URL(location.href).searchParams.get("uid"); if(u) uid = String(u).trim(); }catch(_){}
 
-        let userVote = 0;
+        
+// ===== Guest browse + login overlay =====
+const LOGIN_MODE = {
+  login: "index.html?embed=1&mode=login&redirect=gallery",
+  signup: "index.html?embed=1&mode=signup&redirect=gallery",
+};
+
+let __loginOverlay = null;
+let __loginFrame = null;
+
+function isLoggedIn(){
+  return !!(uid && String(uid).trim());
+}
+
+function closeLoginOverlay(){
+  try{ if(__loginFrame){ __loginFrame.remove(); } }catch(_){}
+  try{ if(__loginOverlay){ __loginOverlay.remove(); } }catch(_){}
+  __loginOverlay = null;
+  __loginFrame = null;
+}
+
+function openLoginOverlay(mode){
+  const m = (mode === "signup") ? "signup" : "login";
+  if(__loginOverlay || __loginFrame) return;
+
+  __loginOverlay = document.createElement("div");
+  __loginOverlay.id = "acfLoginOverlay";
+  __loginOverlay.style.position = "fixed";
+  __loginOverlay.style.inset = "0";
+  __loginOverlay.style.background = "rgba(0,0,0,0.62)";
+  __loginOverlay.style.backdropFilter = "blur(10px)";
+  __loginOverlay.style.zIndex = "99998";
+
+  __loginOverlay.addEventListener("click", ()=>{
+    closeLoginOverlay();
+  });
+
+  __loginFrame = document.createElement("iframe");
+  __loginFrame.name = "acfLoginFrame";
+  __loginFrame.src = LOGIN_MODE[m];
+  __loginFrame.style.position = "fixed";
+  __loginFrame.style.left = "50%";
+  __loginFrame.style.top = "50%";
+  __loginFrame.style.transform = "translate(-50%,-50%)";
+  __loginFrame.style.width = "min(520px, 94vw)";
+  __loginFrame.style.height = "min(760px, 92vh)";
+  __loginFrame.style.border = "0";
+  __loginFrame.style.borderRadius = "18px";
+  __loginFrame.style.zIndex = "99999";
+  __loginFrame.style.boxShadow = "0 30px 90px rgba(0,0,0,0.60)";
+  __loginFrame.style.background = "transparent";
+
+  document.body.appendChild(__loginOverlay);
+  document.body.appendChild(__loginFrame);
+}
+
+window.addEventListener("message", (e)=>{
+  const t = e && e.data && e.data.type;
+  if(t === "acf-login-success"){
+    closeLoginOverlay();
+    location.replace("gallery.html");
+    return;
+  }
+  if(t === "acf-login-close"){
+    closeLoginOverlay();
+  }
+});
+
+(function autoOpenLoginIfNeeded(){
+  try{
+    const p = new URL(location.href).searchParams;
+    const want = p.get("openLogin") === "1";
+    if(want && !isLoggedIn()){
+      openLoginOverlay("login");
+    }
+  }catch(_){}
+})();
+
+let userVote = 0;
         let userGem = 0;
         let favoriteSet = new Set();
         let seasonOptionsLoaded = false;
@@ -1477,6 +1558,8 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
               followBtn.innerHTML = (isFollow ? ICON_FOLLOW_ON : ICON_FOLLOW) + `<span class="btnLabel">${isFollow ? "已關注" : "關注"}</span>`;
 
               followBtn.onclick = async (e)=>{
+                if(!isLoggedIn()){ e.preventDefault(); e.stopPropagation(); openLoginOverlay("login"); return; }
+
                 e.stopPropagation();
                 if(isSelf) return;
                 await toggleFollow(tid);
@@ -1500,6 +1583,8 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
               if(isSelf){ voteBtn.style.display = "none"; }
               if((!uid) || userVote <= 0) voteBtn.style.opacity = ".6";
               voteBtn.onclick = async (e)=>{
+                if(!isLoggedIn()){ e.preventDefault(); e.stopPropagation(); openLoginOverlay("login"); return; }
+
                 e.stopPropagation();
                 clearError();
                 if(!uid){
@@ -1530,6 +1615,8 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
               favBtn.innerHTML = ICON_HEART + `<span class="btnLabel">${isFav2 ? "已收藏" : "收藏"}</span>`;
               if(isSelf){ favBtn.style.display = "none"; }
               favBtn.onclick = async (e)=>{
+                if(!isLoggedIn()){ e.preventDefault(); e.stopPropagation(); openLoginOverlay("login"); return; }
+
                 e.stopPropagation();
                 clearError();
                 const done = setBtnBusy(favBtn, isFav2 ? "取消中" : "收藏中");
@@ -1548,6 +1635,8 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
               recBtn.innerHTML = ICON_RECOMMEND + `<span class="btnLabel">推薦</span>`;
               if((!uid) || userGem < 50) recBtn.style.opacity = ".6";
               recBtn.onclick = async (e)=>{
+                if(!isLoggedIn()){ e.preventDefault(); e.stopPropagation(); openLoginOverlay("login"); return; }
+
                 e.stopPropagation();
                 clearError();
                 const done = setBtnBusy(recBtn, "推薦中");
@@ -1683,6 +1772,8 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
               voteBtn.innerHTML = ICON_VOTE + `<span class="btnLabel">投票</span>`;
             if((!uid) || userVote <= 0) voteBtn.style.opacity = ".6";
             voteBtn.onclick = async (e)=>{
+                if(!isLoggedIn()){ e.preventDefault(); e.stopPropagation(); openLoginOverlay("login"); return; }
+
               e.stopPropagation();
               clearError();
               if(!uid){
@@ -1711,6 +1802,8 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
             favBtn.dataset.tip = isFav ? "已收藏" : "收藏";
             favBtn.innerHTML = ICON_HEART + `<span class="btnLabel">${isFav ? "已收藏" : "收藏"}</span>`;
             favBtn.onclick = async (e)=>{
+                if(!isLoggedIn()){ e.preventDefault(); e.stopPropagation(); openLoginOverlay("login"); return; }
+
               e.stopPropagation();
               clearError();
               const done = setBtnBusy(favBtn, isFav ? "取消中" : "收藏中");
@@ -1727,6 +1820,8 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
             recBtn.type = "button";
             recBtn.innerHTML = ICON_FIRE + "<span>推薦 (" + String(recs) + ")</span>";
             recBtn.onclick = async (e)=>{
+                if(!isLoggedIn()){ e.preventDefault(); e.stopPropagation(); openLoginOverlay("login"); return; }
+
               e.stopPropagation();
               clearError();
               if(!uid){
@@ -1876,6 +1971,8 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
               followBtn.innerHTML = (isFollow ? ICON_FOLLOW_ON : ICON_FOLLOW) + `<span class="btnLabel">${isFollow ? "已關注" : "關注"}</span>`;
               if(isSelf){ followBtn.style.display = "none"; }
               followBtn.onclick = async (e)=>{
+                if(!isLoggedIn()){ e.preventDefault(); e.stopPropagation(); openLoginOverlay("login"); return; }
+
                 e.stopPropagation();
                 if(isSelf) return;
                 await toggleFollow(tid);
@@ -1893,6 +1990,8 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
               if(isSelf){ voteBtn.style.display = "none"; }
               if((!uid) || userVote <= 0) voteBtn.style.opacity = ".6";
               voteBtn.onclick = async (e)=>{
+                if(!isLoggedIn()){ e.preventDefault(); e.stopPropagation(); openLoginOverlay("login"); return; }
+
                 e.stopPropagation();
                 clearError();
                 if(!uid){
@@ -1921,6 +2020,8 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
               favBtn.dataset.tip = isFav ? "已收藏" : "收藏";
               favBtn.innerHTML = ICON_HEART + `<span class="btnLabel">${isFav ? "已收藏" : "收藏"}</span>`;
               favBtn.onclick = async (e)=>{
+                if(!isLoggedIn()){ e.preventDefault(); e.stopPropagation(); openLoginOverlay("login"); return; }
+
                 e.stopPropagation();
                 clearError();
                 const done = setBtnBusy(favBtn, isFav ? "取消中" : "收藏中");
@@ -1939,6 +2040,8 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
               recBtn.innerHTML = ICON_FIRE + `<span class="btnLabel">推薦</span>`;
               if(isSelf){ recBtn.style.display = "none"; }
               recBtn.onclick = async (e)=>{
+                if(!isLoggedIn()){ e.preventDefault(); e.stopPropagation(); openLoginOverlay("login"); return; }
+
                 e.stopPropagation();
                 clearError();
                 if(!uid){
@@ -2125,64 +2228,6 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
   window.addEventListener("resize", updateMasterHeightStable);
   window.addEventListener("load", updateMasterHeightStable);
 })();
-</script>
-
-  <!-- Guest Login Overlay -->
-  <div id="acfLoginOverlay" style="position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.70);backdrop-filter:blur(10px);">
-    <div style="width:min(980px,96vw);height:min(720px,92vh);border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.14);background:rgba(10,14,22,.92);box-shadow:0 30px 90px rgba(0,0,0,.65);position:relative;">
-      <button id="acfLoginClose" style="position:absolute;top:10px;right:10px;z-index:3;border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.35);color:#fff;border-radius:12px;padding:8px 10px;font-weight:800;cursor:pointer;">關閉</button>
-      <iframe id="acfLoginFrame" title="Login" style="width:100%;height:100%;border:0;display:block;"></iframe>
-    </div>
-  </div>
-<script>
-(function(){
-  function isLoggedIn(){
-    const uid = (localStorage.getItem("acf_uid") || "").trim();
-    return !!uid;
-  }
-  function openLoginOverlay(){
-    const ov = document.getElementById("acfLoginOverlay");
-    const fr = document.getElementById("acfLoginFrame");
-    if(!ov || !fr) return;
-    fr.src = "index.html?embed=1&mode=login&redirect=gallery";
-    ov.style.display = "flex";
-  }
-  function closeLoginOverlay(){
-    const ov = document.getElementById("acfLoginOverlay");
-    const fr = document.getElementById("acfLoginFrame");
-    if(fr) fr.src = "about:blank";
-    if(ov) ov.style.display = "none";
-  }
-  window.__acfOpenLogin = openLoginOverlay;
-  window.__acfCloseLogin = closeLoginOverlay;
-
-  const btn = document.getElementById("acfLoginClose");
-  if(btn) btn.addEventListener("click", closeLoginOverlay);
-
-  window.addEventListener("message", (e) => {
-    if(e && e.data && e.data.type === "acf-login-success"){
-      closeLoginOverlay();
-      location.reload();
-    }
-  });
-
-  // Auto open when coming from index
-  try{
-    const p = new URLSearchParams(location.search);
-    if(p.get("openLogin") === "1" && !isLoggedIn()){
-      // open after render
-      setTimeout(openLoginOverlay, 60);
-    }
-  }catch(_e){}
-})();
-</script>
-<script>
-window.requireLogin = function(){
-  const uid = (localStorage.getItem("acf_uid") || "").trim();
-  if(uid) return true;
-  try{ window.__acfOpenLogin && window.__acfOpenLogin(); }catch(_e){}
-  return false;
-};
 </script>
 </body>
 </html>
