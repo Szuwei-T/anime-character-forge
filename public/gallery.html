@@ -857,18 +857,19 @@ body{
             ? ""
             : "https://acf-api.dream-league-baseball.workers.dev";
 
-        let uid = (localStorage.getItem("acf_uid") || localStorage.getItem("uid") || localStorage.getItem("userId") || localStorage.getItem("userid") || "").trim();
-        try{ const u = new URL(location.href).searchParams.get("uid"); if(u) uid = String(u).trim(); }catch(_){}
-
-        function requireLogin(){
-          if(uid) return true;
-          if(window.ACF_showAuthOverlay){
-            window.ACF_showAuthOverlay("login");
-          }else{
-            location.href = "index.html";
+        function getOrCreateUid(){
+          const k = "acf_uid";
+          let id = localStorage.getItem(k);
+          if(!id){
+            id = crypto.randomUUID();
+            localStorage.setItem(k, id);
           }
-          return false;
+          return id;
         }
+
+        let uid = (localStorage.getItem("acf_uid") || localStorage.getItem("uid") || localStorage.getItem("userId") || localStorage.getItem("userid") || "").trim();
+        if(!uid) uid = getOrCreateUid();
+        try{ const u = new URL(location.href).searchParams.get("uid"); if(u) uid = String(u).trim(); }catch(_){}
 
         let userVote = 0;
         let userGem = 0;
@@ -900,7 +901,10 @@ body{
       }
 
       async function toggleFollow(targetUserId){
-        if(!requireLogin()) return;
+        if(!uid){
+          showToast("請先登入");
+          return showError("請先登入");
+        }
         const tid = String(targetUserId||"").trim();
         if(!tid) return;
         if(tid === String(uid)) return;
@@ -1240,7 +1244,7 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
         }
 
         async function vote(showcaseId){
-          if(!requireLogin()) return;
+          if(!uid) return showError("請先登入");
           if(userVote <= 0) return showError("票數不足");
           try{
             await api("/api/vote", { method:"POST", body:{ showcaseId } });
@@ -1252,7 +1256,7 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
         }
 
         async function toggleFav(showcaseId){
-          if(!requireLogin()) return;
+          if(!uid) return showError("請先登入");
           try{
             if(favoriteSet.has(showcaseId)){
               await api("/api/favorite", { method:"DELETE", body:{ showcaseId } });
@@ -1269,7 +1273,7 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
         }
 
         async function recommend(showcaseId){
-          if(!requireLogin()) return;
+          if(!uid) return showError("請先登入");
           if(userGem < 50) return showError("GEM 不足");
           try{
             await api("/api/recommend", { method:"POST", body:{ showcaseId } });
@@ -1279,7 +1283,7 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
             const code = String(e.error || e.code || "");
             if(code === "max_per_showcase_reached" || code === "recommend_limit") return showError("同一作品同一賽季最多推薦 5 次");
             if(code === "insufficient_gem" || code === "no_gem") return showError("GEM 不足");
-            if(code === "unauthorized") return void requireLogin();
+            if(code === "unauthorized") return showError("請先登入");
             showError(String(e.error || e.message || "推薦失敗"));
           }
         }
@@ -1497,7 +1501,10 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
               voteBtn.onclick = async (e)=>{
                 e.stopPropagation();
                 clearError();
-                if(!requireLogin()) return;
+                if(!uid){
+                  showToast("請先登入");
+                  return showError("請先登入");
+                }
                 if(userVote <= 0){
                   showToast("票數已投滿");
                   return showError("票數已投滿");
@@ -1677,7 +1684,10 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
             voteBtn.onclick = async (e)=>{
               e.stopPropagation();
               clearError();
-              if(!requireLogin()) return;
+              if(!uid){
+                showToast("請先登入");
+                return showError("請先登入");
+              }
               if(userVote <= 0){
                 showToast("票數已投滿");
                 return showError("票數已投滿");
@@ -1718,7 +1728,10 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
             recBtn.onclick = async (e)=>{
               e.stopPropagation();
               clearError();
-              if(!requireLogin()) return;
+              if(!uid){
+                showToast("請先登入");
+                return showError("請先登入");
+              }
               if(userGem < 50){
                 showToast("GEM 不足");
                 return showError("GEM 不足");
@@ -1881,7 +1894,10 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
               voteBtn.onclick = async (e)=>{
                 e.stopPropagation();
                 clearError();
-                if(!requireLogin()) return;
+                if(!uid){
+                  showToast("請先登入");
+                  return showError("請先登入");
+                }
                 if(userVote <= 0){
                   showToast("票數已投滿");
                   return showError("票數已投滿");
@@ -1924,7 +1940,10 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
               recBtn.onclick = async (e)=>{
                 e.stopPropagation();
                 clearError();
-                if(!requireLogin()) return;
+                if(!uid){
+                  showToast("請先登入");
+                  return showError("請先登入");
+                }
                 if(userGem < 50){
                   showToast("GEM 不足");
                   return showError("GEM 不足");

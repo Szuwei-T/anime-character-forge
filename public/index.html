@@ -245,15 +245,10 @@ body{
   // 如果已登入（已有 uid），立刻跳轉到作品庫，避免停留在 index
   (function(){
     try{
-      const EMBED = new URL(location.href).searchParams.get("embed") === "1";
       const uid = localStorage.getItem("acf_uid") || localStorage.getItem("uid") || "";
       const justLoggedOut = sessionStorage.getItem("acf_just_logged_out")==="1";
       if(uid && !justLoggedOut){
-        if(EMBED){
-          try{ parent.postMessage({ type:"acf_logged_in" }, "*"); }catch(_e){}
-        }else{
-          window.location.replace("gallery.html");
-        }
+        window.location.replace("gallery.html");
       }
     }catch(_e){}
   })();
@@ -303,13 +298,6 @@ body{
 <div class="status" id="status"></div>
 </div>
 </div>
-<script>
-  try{
-    if(new URL(location.href).searchParams.get("embed") === "1"){
-      window.ACF_DISABLE_MASTER = true;
-    }
-  }catch(_e){}
-</script>
 <script src="app.js"></script>
 <!-- Firebase (modular CDN) -->
 <script type="module">
@@ -404,17 +392,7 @@ body{
 
         try{ sessionStorage.removeItem("acf_just_logged_out"); }catch(_e){}
         setStatus("登入成功，正在進入作品庫…", "ok");
-        try{
-          const EMBED = new URL(location.href).searchParams.get("embed") === "1";
-          const ret = new URL(location.href).searchParams.get("ret") || "gallery.html";
-          if(EMBED){
-            try{ parent.postMessage({ type:"acf_logged_in" }, "*"); }catch(_e){}
-          }else{
-            setTimeout(() => (window.location.href = ret), 250);
-          }
-        }catch(_e){
-          setTimeout(() => (window.location.href = "gallery.html"), 250);
-        }
+        setTimeout(() => (window.location.href = "gallery.html"), 250);
 
 } else {
         $("userEmail").textContent = "未登入";
