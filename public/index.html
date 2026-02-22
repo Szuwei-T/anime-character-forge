@@ -2,6 +2,12 @@
 
 <html lang="zh-Hant">
 <head>
+  <script>
+    // index.html is used as an embedded login overlay. If opened directly, go to gallery and open the overlay there.
+    if(window === window.top){
+      location.replace("gallery.html?openLogin=1");
+    }
+  </script>
 <meta charset="utf-8"/>
 <title data-i18n="login_title">Anime Character Forge 登入</title>
 <meta content="width=device-width, initial-scale=1" name="viewport"/>
@@ -240,18 +246,7 @@ body{
 <link href="style.css" rel="stylesheet"/>
 <link href="ui_fx.css" rel="stylesheet"/>
 </head>
-<body>
-<script>
-(function(){
-  const p = new URLSearchParams(location.search);
-  const isEmbed = p.get("embed") === "1";
-  if(!isEmbed){
-    // index is only used as embedded login overlay
-    location.replace("gallery.html");
-  }
-})();
-</script>
-
+<body data-no-masterpage="1">
 <script>
   // 如果已登入（已有 uid），立刻跳轉到作品庫，避免停留在 index
   (function(){
@@ -264,7 +259,6 @@ body{
     }catch(_e){}
   })();
 </script>
-<div class="acf-page ui-panel"><div id="acfMasterMount"></div>
 <div class="card">
 <div class="head">
 <div class="logo"></div>
@@ -522,41 +516,8 @@ function __loginDone(user){
       }
     };
 
-    const data = await api("/api/me/account", {
-          method: "POST",
-          body: JSON.stringify(payload)
-        });
-
-        if (data?.ok === false) {
-          throw new Error(data?.error || "api_error");
-        }
-
-        setStatus("完成 已建立玩家資料 正在進入遊戲", "ok");
-        setTimeout(() => __loginDone(auth.currentUser), 150);
-} catch (e) {
-        setStatus("寫入資料失敗\n" + (e?.message || e), "err");
-      } finally {
-        setBusy(false);
-      }
-    };
 
     </script>
 </div>
-<script>
-(function(){
-  function updateMasterHeightStable(){
-    const m = document.getElementById("acfMasterMount");
-    if(!m) return;
-    const hRaw = m.getBoundingClientRect().height;
-    const h = Math.round(hRaw);
-    const cur = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--masterH")) || 0;
-    if(Math.abs(h-cur) >= 2){
-      document.documentElement.style.setProperty("--masterH", h + "px");
-    }
-  }
-  window.addEventListener("resize", updateMasterHeightStable);
-  window.addEventListener("load", updateMasterHeightStable);
-})();
-</script>
 </body>
 </html>

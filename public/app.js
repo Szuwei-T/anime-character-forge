@@ -606,15 +606,7 @@ function syncUidAliases(uid){
   }catch(_){}
 }
 
-function getUid(){
-  try{
-    return String(localStorage.getItem("acf_uid") || "").trim();
-  }catch(_e){
-    return "";
-  }
-}
-
-function getOrCreateUid(force=false){
+function getOrCreateUid(){
   const primary = "acf_uid";
   let uid = localStorage.getItem(primary);
 
@@ -627,8 +619,8 @@ function getOrCreateUid(force=false){
     uid = String(uid || "").trim();
     if(uid) localStorage.setItem(primary, uid);
   }
+
   if(!uid){
-    if(!force) return "";
     uid = crypto.randomUUID();
     localStorage.setItem(primary, uid);
   }
@@ -731,7 +723,7 @@ function saveOfflineDb(db){
 async function apiFetch(path, options={}){
   const url = (WORKER_BASE || "") + path;
 
-  const uid = getUid();
+  const uid = getOrCreateUid();
 
   const headers = Object.assign({}, (options && options.headers) ? options.headers : {});
   if(uid) headers["x-user-id"] = headers["x-user-id"] || headers["X-User-Id"] || headers["X-USER-ID"] || uid;
@@ -754,17 +746,24 @@ async function apiFetch(path, options={}){
     const text = await res.text();
     let data = null;
     try{ data = text ? JSON.parse(text) : null; }catch(_){ data = { ok:false, error:text || `HTTP ${res.status}` }; }
-    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    if(data && typeof data === "object"){
+      if(!("ok" in data)) data.ok = res.ok;
+      if(!("status" in data)) data.status = res.status;
+    }else{
+      data = { ok: res.ok, status: res.status, data };
+    }
+    // HTTP errors (401/403/4xx) are still "online". Only network errors set offline.
     APP.offline = false;
     return data;
   }catch(e){
     APP.offline = true;
-    return null;
+    return { ok:false, status:0, error: String(e && e.message ? e.message : e) };
   }
 }
 
+
 async function initSession(){
-  APP.uid = getUid() || getOrCreateUid(true);
+  APP.uid = getOrCreateUid();
   syncUidAliases(APP.uid);
   APP.name = getName();
 
@@ -1374,6 +1373,8 @@ return data;
 
   async function initMasterHeader(){
     if(window.ACF_DISABLE_MASTER) return;
+    if(document.body && document.body.dataset && document.body.dataset.noMasterpage==="1") return;
+    if(/\/index(\.html)?$/i.test(location.pathname)) return;
     if(document.getElementById("acfMasterHeader")) return;
 
     const legacy = document.getElementById("masterBox");

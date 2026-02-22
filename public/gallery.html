@@ -865,8 +865,8 @@ body{
         }
 
         let uid = (localStorage.getItem("acf_uid") || localStorage.getItem("uid") || localStorage.getItem("userId") || localStorage.getItem("userid") || "").trim();
-        // guest mode: do not auto-create uid
-try{ const u = new URL(location.href).searchParams.get("uid"); if(u) uid = String(u).trim(); }catch(_){}
+        if(!uid) uid = getOrCreateUid();
+        try{ const u = new URL(location.href).searchParams.get("uid"); if(u) uid = String(u).trim(); }catch(_){}
 
         let userVote = 0;
         let userGem = 0;
@@ -1241,7 +1241,7 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
         }
 
         async function vote(showcaseId){
-          if(!uid) return showError("請先登入");
+    if(!uid){ ACF_openLoginOverlay("login"); return; }
           if(userVote <= 0) return showError("票數不足");
           try{
             await api("/api/vote", { method:"POST", body:{ showcaseId } });
@@ -1253,7 +1253,7 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
         }
 
         async function toggleFav(showcaseId){
-          if(!uid) return showError("請先登入");
+    if(!uid){ ACF_openLoginOverlay("login"); return; }
           try{
             if(favoriteSet.has(showcaseId)){
               await api("/api/favorite", { method:"DELETE", body:{ showcaseId } });
@@ -1270,7 +1270,7 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
         }
 
         async function recommend(showcaseId){
-          if(!uid) return showError("請先登入");
+    if(!uid){ ACF_openLoginOverlay("login"); return; }
           if(userGem < 50) return showError("GEM 不足");
           try{
             await api("/api/recommend", { method:"POST", body:{ showcaseId } });
@@ -1280,7 +1280,7 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
             const code = String(e.error || e.code || "");
             if(code === "max_per_showcase_reached" || code === "recommend_limit") return showError("同一作品同一賽季最多推薦 5 次");
             if(code === "insufficient_gem" || code === "no_gem") return showError("GEM 不足");
-            if(code === "unauthorized") return showError("請先登入");
+    if(code === "unauthorized"){ ACF_openLoginOverlay("login"); return; }
             showError(String(e.error || e.message || "推薦失敗"));
           }
         }
@@ -2104,6 +2104,16 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
       })();
     </script>
 <script src="app.js"></script>
+<script>
+  (function(){
+    try{
+      const q = new URLSearchParams(location.search);
+      if(q.get("openLogin")==="1"){
+        setTimeout(()=>{ if(window.ACF_openLoginOverlay) window.ACF_openLoginOverlay("login"); }, 50);
+      }
+    }catch(_){ }
+  })();
+</script>
 </div>
 <script>
 (function(){
