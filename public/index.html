@@ -5,19 +5,6 @@
 <meta charset="utf-8"/>
 <title data-i18n="login_title">Anime Character Forge 登入</title>
 <meta content="width=device-width, initial-scale=1" name="viewport"/>
-
-<script>
-  (function(){
-    const p = new URLSearchParams(location.search);
-    const isEmbed = p.get("embed") === "1";
-    if(!isEmbed){
-      // If already logged in (Firebase uid saved for app.js), go straight to gallery
-      const uid = (localStorage.getItem("acf_uid") || "").trim();
-      const to = uid ? "gallery.html" : "gallery.html?openLogin=1";
-      location.replace(to);
-    }
-  })();
-</script>
 <style>
     :root {
       --bg1: rgba(3, 7, 18, 0.88);
@@ -255,16 +242,28 @@ body{
 </head>
 <body>
 <script>
-  // 如果已登入（已有 uid），立刻跳轉到作品庫，避免停留在 index
-  (function(){
-    try{
-      const uid = localStorage.getItem("acf_uid") || localStorage.getItem("uid") || "";
-      const justLoggedOut = sessionStorage.getItem("acf_just_logged_out")==="1";
-      if(uid && !justLoggedOut){
-        window.location.replace("gallery.html");
-      }
-    }catch(_e){}
-  })();
+// index 只負責導流到 gallery：
+// - 直接開 index（非 iframe / 非 embed）一律跳到 gallery
+// - 若沒有登入 uid，改用 gallery?openLogin=1 自動彈出登入視窗
+(function(){
+  try{
+    const params = new URLSearchParams(location.search);
+    const isEmbedParam = params.get("embed") === "1";
+    const inIframe = (function(){ try{ return window.top !== window.self; }catch(_e){ return true; } })();
+    const isEmbed = isEmbedParam || inIframe;
+
+    if(isEmbed) return;
+
+    const uid = localStorage.getItem("acf_uid") || localStorage.getItem("uid") || "";
+    const justLoggedOut = sessionStorage.getItem("acf_just_logged_out")==="1";
+
+    if(uid && !justLoggedOut){
+      window.location.replace("gallery.html");
+    }else{
+      window.location.replace("gallery.html?openLogin=1");
+    }
+  }catch(_e){}
+})();
 </script>
 <div class="acf-page ui-panel"><div id="acfMasterMount"></div>
 <div class="card">
@@ -405,17 +404,7 @@ body{
 
         try{ sessionStorage.removeItem("acf_just_logged_out"); }catch(_e){}
         setStatus("登入成功，正在進入作品庫…", "ok");
-        setTimeout(() => {
-          const params = new URLSearchParams(location.search);
-          const isEmbed = params.get("embed") === "1";
-          if(isEmbed){
-            try{
-              window.parent.postMessage({ type: "acf-login-success" }, "*");
-            }catch(_e){}
-          }else{
-            window.location.href = "gallery.html";
-          }
-        }, 250);
+        setTimeout(() => (window.location.href = "gallery.html"), 250);
 
 } else {
         $("userEmail").textContent = "未登入";
