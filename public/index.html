@@ -2,12 +2,6 @@
 
 <html lang="zh-Hant">
 <head>
-  <script>
-    // index.html is used as an embedded login overlay. If opened directly, go to gallery and open the overlay there.
-    if(window === window.top){
-      location.replace("gallery.html?openLogin=1");
-    }
-  </script>
 <meta charset="utf-8"/>
 <title data-i18n="login_title">Anime Character Forge 登入</title>
 <meta content="width=device-width, initial-scale=1" name="viewport"/>
@@ -246,7 +240,18 @@ body{
 <link href="style.css" rel="stylesheet"/>
 <link href="ui_fx.css" rel="stylesheet"/>
 </head>
-<body data-no-masterpage="1">
+<body>
+<script>
+(function(){
+  const p = new URLSearchParams(location.search);
+  const isEmbed = p.get("embed") === "1";
+  if(!isEmbed){
+    // index is only used as embedded login overlay
+    location.replace("gallery.html");
+  }
+})();
+</script>
+
 <script>
   // 如果已登入（已有 uid），立刻跳轉到作品庫，避免停留在 index
   (function(){
@@ -259,6 +264,7 @@ body{
     }catch(_e){}
   })();
 </script>
+<div class="acf-page ui-panel"><div id="acfMasterMount"></div>
 <div class="card">
 <div class="head">
 <div class="logo"></div>
@@ -303,6 +309,7 @@ body{
 <div class="status" id="status"></div>
 </div>
 </div>
+<script>window.ACF_DISABLE_MASTER = true;</script>
 <script src="app.js"></script>
 <!-- Firebase (modular CDN) -->
 <script type="module">
@@ -396,6 +403,7 @@ function __loginDone(user){
 
         // 讓 app.js 的 getOrCreateUid() 用 Firebase uid
         localStorage.setItem("acf_uid", user.uid);
+        localStorage.setItem("acf_authed", "1");
 
         showStep(true);
         setStatus("", "");
@@ -430,7 +438,8 @@ function __loginDone(user){
 } else {
         $("userEmail").textContent = "未登入";
         $("userUid").textContent = "";
-        showStep(false);
+        localStorage.setItem("acf_authed", "0");
+      showStep(false);
       }
     });
 
@@ -509,6 +518,7 @@ function __loginDone(user){
       setBusy(true);
       try {
         await signOut(auth);
+        localStorage.setItem("acf_authed", "0");
         // optional: 保留 acf_uid 也行 但登出時清掉比較直覺
         localStorage.removeItem("acf_uid");
       } finally {
@@ -516,6 +526,23 @@ function __loginDone(user){
       }
     };
 
+    const data = await api("/api/me/account", {
+          method: "POST",
+          body: JSON.stringify(payload)
+        });
+
+        if (data?.ok === false) {
+          throw new Error(data?.error || "api_error");
+        }
+
+        setStatus("完成 已建立玩家資料 正在進入遊戲", "ok");
+        setTimeout(() => __loginDone(auth.currentUser), 150);
+} catch (e) {
+        setStatus("寫入資料失敗\n" + (e?.message || e), "err");
+      } finally {
+        setBusy(false);
+      }
+    };
 
     </script>
 </div>

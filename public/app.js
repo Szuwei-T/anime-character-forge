@@ -5,6 +5,15 @@ const APP = {
   name: null,
 };
 
+// ===== Auth state helpers =====
+// We treat Firebase login as "authed". A guest may still have a local uid, but cannot do actions.
+function ACF_isAuthed(){
+  return String(localStorage.getItem("acf_authed") || "0") === "1";
+}
+function ACF_setAuthed(v){
+  try{ localStorage.setItem("acf_authed", v ? "1" : "0"); }catch(_){}
+}
+
 const WORKER_BASE =
   (location.hostname === "127.0.0.1" || location.hostname === "localhost")
     ? ""
@@ -606,7 +615,15 @@ function syncUidAliases(uid){
   }catch(_){}
 }
 
-function getOrCreateUid(){
+function getUid(){
+  try{
+    return String(localStorage.getItem("acf_uid") || "").trim();
+  }catch(_e){
+    return "";
+  }
+}
+
+function getOrCreateUid(force=false){
   const primary = "acf_uid";
   let uid = localStorage.getItem(primary);
 
@@ -619,8 +636,8 @@ function getOrCreateUid(){
     uid = String(uid || "").trim();
     if(uid) localStorage.setItem(primary, uid);
   }
-
   if(!uid){
+    if(!force) return "";
     uid = crypto.randomUUID();
     localStorage.setItem(primary, uid);
   }
@@ -723,7 +740,7 @@ function saveOfflineDb(db){
 async function apiFetch(path, options={}){
   const url = (WORKER_BASE || "") + path;
 
-  const uid = getOrCreateUid();
+  const uid = getUid() || getOrCreateUid(true);
 
   const headers = Object.assign({}, (options && options.headers) ? options.headers : {});
   if(uid) headers["x-user-id"] = headers["x-user-id"] || headers["X-User-Id"] || headers["X-USER-ID"] || uid;
@@ -746,24 +763,26 @@ async function apiFetch(path, options={}){
     const text = await res.text();
     let data = null;
     try{ data = text ? JSON.parse(text) : null; }catch(_){ data = { ok:false, error:text || `HTTP ${res.status}` }; }
-    if(data && typeof data === "object"){
-      if(!("ok" in data)) data.ok = res.ok;
-      if(!("status" in data)) data.status = res.status;
-    }else{
-      data = { ok: res.ok, status: res.status, data };
+
+    // Treat 401/403 as "online but not authorized", not offline.
+    if(!res.ok){
+      if(res.status === 401 || res.status === 403){
+        APP.offline = false;
+        return data;
+      }
+      throw new Error(`HTTP ${res.status}`);
     }
-    // HTTP errors (401/403/4xx) are still "online". Only network errors set offline.
+
     APP.offline = false;
     return data;
   }catch(e){
     APP.offline = true;
-    return { ok:false, status:0, error: String(e && e.message ? e.message : e) };
+    return null;
   }
 }
 
-
 async function initSession(){
-  APP.uid = getOrCreateUid();
+  APP.uid = getUid() || getOrCreateUid(true);
   syncUidAliases(APP.uid);
   APP.name = getName();
 
@@ -1289,7 +1308,8 @@ return data;
 
   function refreshNetBadge(){
     if(!window.APP) { setNetBadge("connecting"); return; }
-    const desired = window.APP.offline ? "offline" : "online";
+    let desired = window.APP.offline ? "offline" : "online";
+    if(!ACF_isAuthed() && desired === "offline") desired = "online";
     const desiredLabel = desired === "offline" ? ACF_t("net_offline","Offline") : ACF_t("net_online","Online");
     if(_lastNetState !== desiredLabel){
       setNetBadge(desired);
@@ -1314,7 +1334,7 @@ return data;
     const avEl = document.getElementById("acfMasterAvatar");
     const statsEl = document.getElementById("acfMasterStats");
 
-    if(!me || !me.account){
+    if(!ACF_isAuthed()){
   // Guest browse mode
   box.style.display = "block";
   nameEl.textContent = ACF_t("label_player","Player") + " · " + "遊客 (新註冊)";
@@ -1341,7 +1361,7 @@ return data;
   return;
 }
 
-    const acc = me.account || {};
+    const acc = (me && me.account) ? me.account : {};
 
     box.style.display = "block";
     nameEl.textContent = String(acc.userName || ACF_t("label_player","Player"));
@@ -1373,8 +1393,6 @@ return data;
 
   async function initMasterHeader(){
     if(window.ACF_DISABLE_MASTER) return;
-    if(document.body && document.body.dataset && document.body.dataset.noMasterpage==="1") return;
-    if(/\/index(\.html)?$/i.test(location.pathname)) return;
     if(document.getElementById("acfMasterHeader")) return;
 
     const legacy = document.getElementById("masterBox");
@@ -1397,17 +1415,26 @@ return data;
     window.addEventListener("online", refreshNetBadge, { passive:true });
     window.addEventListener("offline", refreshNetBadge, { passive:true });
 
-    try{
-      const me = await fetchMeAccount();
-      window.__acfMe = me;
-      renderMaster(me);
-      refreshNetBadge();
-      ACF_applyI18n(document);
-    }catch(_e){
+    if(!ACF_isAuthed()){
       window.__acfMe = null;
       renderMaster(null);
+      // Guest: show Online badge always (no Offline text)
+      APP.offline = false;
       refreshNetBadge();
       ACF_applyI18n(document);
+    }else{
+      try{
+        const me = await fetchMeAccount();
+        window.__acfMe = me;
+        renderMaster(me);
+        refreshNetBadge();
+        ACF_applyI18n(document);
+      }catch(_e){
+        window.__acfMe = null;
+        renderMaster(null);
+        refreshNetBadge();
+        ACF_applyI18n(document);
+      }
     }
 
     window.addEventListener("resize", ()=>setBodyOffset(), { passive:true });
@@ -1415,8 +1442,7 @@ return data;
 
   
 function acfIsLoggedIn(){
-  const uid = (localStorage.getItem("acf_uid") || "").trim();
-  return !!uid;
+  return ACF_isAuthed();
 }
 
 function closeLoginOverlay(){
@@ -1522,6 +1548,7 @@ if(!window.__acfLoginMsgBound){
     closeLoginOverlay();
     // refresh master + page
     try{ localStorage.setItem("acf_uid", String(d.uid || localStorage.getItem("acf_uid") || "")); }catch(_){}
+    ACF_setAuthed(true);
     if(d.redirect){
       const r = String(d.redirect);
       if(r && (location.pathname.endsWith(r) || location.pathname.endsWith("/"+r))){
