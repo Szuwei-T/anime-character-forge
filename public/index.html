@@ -256,10 +256,12 @@ body{
   // 如果已登入（已有 uid），立刻跳轉到作品庫，避免停留在 index
   (function(){
     try{
-      const params = new URLSearchParams(location.search);
-      const isEmbed = params.get("embed")==="1" || (function(){ try{ return window.self !== window.top; }catch(_e){ return true; } })();
-      // If index is opened directly (not embedded), always go to gallery.
-      if(!isEmbed){
+      const p = new URLSearchParams(location.search);
+      const isEmbed = p.get("embed") === "1";
+      if(isEmbed) return;
+      const uid = localStorage.getItem("acf_uid") || localStorage.getItem("uid") || "";
+      const justLoggedOut = sessionStorage.getItem("acf_just_logged_out")==="1";
+      if(uid && !justLoggedOut){
         window.location.replace("gallery.html");
       }
     }catch(_e){}
@@ -310,6 +312,7 @@ body{
 <div class="status" id="status"></div>
 </div>
 </div>
+<script>window.ACF_DISABLE_MASTER = true;</script>
 <script src="app.js"></script>
 <!-- Firebase (modular CDN) -->
 <script type="module">
@@ -523,41 +526,8 @@ function __loginDone(user){
       }
     };
 
-    const data = await api("/api/me/account", {
-          method: "POST",
-          body: JSON.stringify(payload)
-        });
-
-        if (data?.ok === false) {
-          throw new Error(data?.error || "api_error");
-        }
-
-        setStatus("完成 已建立玩家資料 正在進入遊戲", "ok");
-        setTimeout(() => __loginDone(auth.currentUser), 150);
-} catch (e) {
-        setStatus("寫入資料失敗\n" + (e?.message || e), "err");
-      } finally {
-        setBusy(false);
-      }
-    };
 
     </script>
 </div>
-<script>
-(function(){
-  function updateMasterHeightStable(){
-    const m = document.getElementById("acfMasterMount");
-    if(!m) return;
-    const hRaw = m.getBoundingClientRect().height;
-    const h = Math.round(hRaw);
-    const cur = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--masterH")) || 0;
-    if(Math.abs(h-cur) >= 2){
-      document.documentElement.style.setProperty("--masterH", h + "px");
-    }
-  }
-  window.addEventListener("resize", updateMasterHeightStable);
-  window.addEventListener("load", updateMasterHeightStable);
-})();
-</script>
 </body>
 </html>
