@@ -1910,6 +1910,31 @@ body, .wrap, .page, .acf-page, .container{
   filter: drop-shadow(0 2px 6px rgba(0,0,0,0.7));
 }
 
+
+/* Skip gacha animation toggle */
+.skipAnimRow{
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.18);
+}
+.skipAnimLabel{
+  display:flex;
+  align-items:center;
+  gap: 10px;
+  font-weight: 900;
+  font-size: 13px;
+  opacity: 0.95;
+  user-select:none;
+}
+.skipAnimLabel input{
+  width: 18px;
+  height: 18px;
+  accent-color: #2aa7ff;
+}
+
 </style>
 </head>
 <body>
@@ -2015,6 +2040,8 @@ body, .wrap, .page, .acf-page, .container{
 </div>
 </div></div>
 </div>
+
+<div class="skipAnimRow"><label class="skipAnimLabel"><input type="checkbox" id="skipAnimChk"> <span data-i18n="gacha_skip_anim">Skip animation</span></label></div>
 </img></div>
 </div>
 <div class="overlay" id="overlay">
@@ -2179,6 +2206,17 @@ async function loadFeaturedVideo(){
     const btnNormal10 = document.getElementById("btnNormal10");
     const btnPremium1 = document.getElementById("btnPremium1");
     const btnPremium10 = document.getElementById("btnPremium10");
+
+    const skipAnimChk = document.getElementById("skipAnimChk");
+    try{
+      const saved = localStorage.getItem("acf_skip_gacha_anim");
+      if(skipAnimChk && (saved === "1" || saved === "true")) skipAnimChk.checked = true;
+      if(skipAnimChk){
+        skipAnimChk.addEventListener("change", ()=>{
+          localStorage.setItem("acf_skip_gacha_anim", skipAnimChk.checked ? "1" : "0");
+        });
+      }
+    }catch(_e){}
 
     const btnHead1 = document.getElementById("btnHead1");
     const btnHead10 = document.getElementById("btnHead10");
@@ -3160,7 +3198,54 @@ function renderGridDecoys(list){
       frame.classList.remove("fade");
     }
 
-    async function buildGridWithPulled(pulled, opts={}){
+    
+    function instantRevealToSlots(winnerSlots, winners, isTen){
+      let rects = getGridCellRects();
+      framesLayer.innerHTML = "";
+      hideCinematic();
+
+      const cells = Array.from(grid32El.querySelectorAll(".cell"));
+      cells.forEach(c=>c.classList.remove("win","win2","red","focus"));
+      cells.forEach(c=>c.classList.add("dim"));
+
+      const finalSlotsAll = Array.isArray(winnerSlots) ? winnerSlots.slice() : [];
+      const framesCount = isTen ? 10 : 1;
+      const finalSlots = finalSlotsAll.slice(0, framesCount);
+      while(finalSlots.length < framesCount) finalSlots.push(0);
+
+      // show a single frame on the last winner slot (simple, non-animated)
+      const frame = document.createElement("div");
+      frame.className = "jump-frame gold";
+      framesLayer.appendChild(frame);
+
+      const lastSlot = finalSlots[finalSlots.length - 1] ?? 0;
+      rects = getGridCellRects();
+      placeFrame(frame, rects[lastSlot] || rects[0]);
+
+      // light up winners immediately
+      finalSlots.forEach((slot, idx)=>{
+        const cell = cells[slot];
+        if(!cell) return;
+        cell.classList.remove("dim");
+        cell.classList.add("win");
+        if(idx === framesCount-1) cell.classList.add("red");
+        setTimeout(()=>cell.classList.add("win2"), 0);
+
+        const w = Array.isArray(winners) ? winners[idx] : null;
+        const rr = Math.max(1, Math.min(5, Number(w?.rarity || 1)));
+        ["r1","r2","r3","r4","r5"].forEach(x=>cell.classList.remove(x));
+        cell.classList.add(`r${rr}`);
+      });
+
+      // keep non-winners dark
+      const winSet = new Set(finalSlots);
+      cells.forEach((c, idx)=>{
+        if(winSet.has(idx)) c.classList.remove("dim");
+        else c.classList.add("dim");
+      });
+    }
+
+async function buildGridWithPulled(pulled, opts={}){
       const assets = await ensureAssetsLoaded();
       const wantType = opts && opts.type ? normalizeType(opts.type) : null;
 
@@ -3264,15 +3349,23 @@ function renderGridDecoys(list){
         if(rollSub) rollSub.style.display = "none";
         if(rollSub) rollSub.textContent = "";
         
-        await animateJumpGridToSlots(pack.winnerSlots, pack.winners, isTen);
+        {
+        const skip = !!(document.getElementById("skipAnimChk") && document.getElementById("skipAnimChk").checked);
+        if(skip){
+          try{ hideLoad(); }catch(_){}
+          instantRevealToSlots(pack.winnerSlots, pack.winners, isTen);
+        }else{
+          await animateJumpGridToSlots(pack.winnerSlots, pack.winners, isTen);
 
-        // V2: cinematic reveal (single = big card, ten = 10 thumbnails)
-        try{
-          const winners = Array.isArray(pack.winners) ? pack.winners : [];
-          await playCinematicForPack(winners, isTen);
-        }catch(_){ /* ignore cinematic errors */ }
+          // V2: cinematic reveal (single = big card, ten = 10 thumbnails)
+          try{
+            const winners = Array.isArray(pack.winners) ? pack.winners : [];
+            await playCinematicForPack(winners, isTen);
+          }catch(_){ /* ignore cinematic errors */ }
+        }
+      }
 
-        if(rollingText) rollingText.style.display = "none";
+if(rollingText) rollingText.style.display = "none";
         if(rollSub){ rollSub.style.display = ""; rollSub.textContent = isTen ? "" : ""; }
         if(actionBar){ actionBar.classList.add("mode-done"); actionBar.classList.remove("mode-loading"); }
         confirmBtn.style.opacity = "1";

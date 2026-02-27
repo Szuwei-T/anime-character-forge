@@ -196,6 +196,31 @@
     .big{padding:0 14px 16px}
     .bigThumb{width:100%;max-height:70vh;aspect-ratio:3/4;background:rgba(0,0,0,.16);border-radius:18px;overflow:hidden;position:relative;margin-top:8px}
 
+    /* Comments in modal */
+    .commentsWrap{margin-top:12px;padding:10px 2px 0}
+    .commentsHead{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin-bottom:8px}
+    .commentsTitle{font-size:13px;font-weight:800;letter-spacing:.2px}
+    .commentsCount{font-size:12px;opacity:.7;margin-left:6px}
+    .commentsHint{font-size:11px;opacity:.6;text-align:right;max-width:60%}
+    .commentsList{max-height:220px;overflow:auto;border:1px solid rgba(255,255,255,.10);border-radius:14px;background:rgba(255,255,255,.04);padding:8px}
+    .commentItem{display:flex;gap:10px;padding:8px 6px;border-bottom:1px solid rgba(255,255,255,.08)}
+    .commentItem:last-child{border-bottom:none}
+    .commentMeta{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .commentName{font-weight:700;font-size:12px}
+    .commentTime{font-size:11px;opacity:.6}
+    .commentText{font-size:12px;opacity:.9;line-height:1.35;white-space:pre-wrap;word-break:break-word;margin-top:3px}
+    .commentRight{flex:1;min-width:0}
+    .commentDel{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);color:rgba(255,255,255,.85);border-radius:999px;padding:6px 10px;font-size:11px;cursor:pointer}
+    .commentDel:hover{background:rgba(255,255,255,.10)}
+    .commentComposer{margin-top:10px}
+    .commentInput{width:100%;resize:vertical;min-height:64px;max-height:160px;border-radius:14px;padding:10px 12px;background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.14);color:rgba(255,255,255,.92);outline:none}
+    .commentActions{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px}
+    .commentLimit{font-size:11px;opacity:.6}
+    .commentSend{border-radius:999px;padding:10px 14px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);color:rgba(255,255,255,.92);cursor:pointer}
+    .commentSend:hover{background:rgba(255,255,255,.12)}
+    .commentSend:disabled{opacity:.55;cursor:not-allowed}
+
+
     .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:rgba(15,18,26,.92);border:1px solid rgba(255,255,255,.14);padding:10px 12px;border-radius:999px;font-size:12px;opacity:0;pointer-events:none;transition:.2s;z-index:99999}
     .toast.show{opacity:1}
 
@@ -825,6 +850,21 @@ body{
 </div>
 <div class="big">
 <div class="bigThumb" id="mThumb"></div>
+<div class="commentsWrap" id="commentsWrap" style="display:none">
+  <div class="commentsHead">
+    <div class="commentsTitle">Comments <span class="commentsCount" id="commentsCount">0</span></div>
+    <div class="commentsHint" id="commentsHint"></div>
+  </div>
+  <div class="commentsList" id="commentsList"></div>
+  <div class="commentComposer" id="commentComposer">
+    <textarea class="commentInput" id="commentInput" rows="3" placeholder="Write a comment"></textarea>
+    <div class="commentActions">
+      <div class="commentLimit" id="commentLimit"></div>
+      <button class="commentSend" id="commentSend">Send</button>
+    </div>
+  </div>
+</div>
+
 </div>
 </div>
 </div>
@@ -851,6 +891,18 @@ body{
         const mTitle = document.getElementById("mTitle");
         const mSub = document.getElementById("mSub");
         const mThumb = document.getElementById("mThumb");
+        const commentsWrap = document.getElementById("commentsWrap");
+        const commentsList = document.getElementById("commentsList");
+        const commentsCount = document.getElementById("commentsCount");
+        const commentsHint = document.getElementById("commentsHint");
+        const commentComposer = document.getElementById("commentComposer");
+        const commentInput = document.getElementById("commentInput");
+        const commentLimit = document.getElementById("commentLimit");
+        const commentSend = document.getElementById("commentSend");
+
+        let currentShowcaseId = "";
+        let currentShowcaseOwnerId = "";
+
 
         const WORKER_BASE =
           (location.hostname === "127.0.0.1" || location.hostname === "localhost")
@@ -1032,7 +1084,18 @@ try{ const u = new URL(location.href).searchParams.get("uid"); if(u) uid = Strin
           }
         }
 
-        async function api(url, opts){
+        
+        function escHtml(s){
+          return String(s || "").replace(/[&<>"]/g, (c)=>{
+            const map = { "&":"&amp;", "<":"&lt;", ">":"&gt;", "\"":"&quot;" };
+            return map[c] || c;
+          });
+        }
+
+        function getAdminKey(){
+          try{ return String(localStorage.getItem("acf_admin_key") || "").trim(); }catch(_e){ return ""; }
+        }
+async function api(url, opts){
           const o = opts || {};
           const headers = Object.assign({}, o.headers || {});
           if(uid) headers["x-user-id"] = uid;
@@ -1189,12 +1252,30 @@ function ensureOverlayRoot(){
   }
 }
 
-function openModal(title, sub, layers){
+function openModal(title, sub, layers, showcase){
   ensureOverlayRoot();
   mTitle.textContent = title;
   mSub.textContent = sub || "";
   mThumb.innerHTML = "";
   makeStackThumb(mThumb, layers);
+
+  currentShowcaseId = "";
+  currentShowcaseOwnerId = "";
+  try{
+    const s = showcase || {};
+    currentShowcaseId = String(s.showcaseId || s.showcase_id || s.id || "");
+    currentShowcaseOwnerId = String(s.userId || s.ownerId || s.authorId || s.user_id || "");
+  }catch(_e){}
+
+  // comments panel
+  if(commentsWrap){
+    if(currentShowcaseId){
+      commentsWrap.style.display = "block";
+      loadComments(currentShowcaseId);
+    }else{
+      commentsWrap.style.display = "none";
+    }
+  }
 
   // lock scroll so the overlay doesn't "snap" to the bottom on some browsers/layouts
   __modalScrollY = window.scrollY || 0;
@@ -1294,6 +1375,211 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
             if(code === "unauthorized") return showError("請先登入");
             showError(String(e.error || e.message || "推薦失敗"));
           }
+        }
+
+
+        async function fetchJson(url, opts){
+          const o = opts || {};
+          const headers = Object.assign({}, o.headers || {});
+          if(uid) headers["x-user-id"] = uid;
+          const adminKey = getAdminKey();
+          if(adminKey) headers["x-admin-key"] = adminKey;
+
+          const hasBody = o.body !== undefined && o.body !== null;
+          if(hasBody) headers["content-type"] = "application/json";
+
+          const fullUrl = (WORKER_BASE || "") + url;
+
+          const res = await fetch(fullUrl, Object.assign({}, o, {
+            headers,
+            cache: "no-store",
+            body: hasBody ? JSON.stringify(o.body) : undefined
+          }));
+
+          let data = null;
+          try{
+            const t = await res.text();
+            data = t ? JSON.parse(t) : {};
+          }catch(_e){
+            data = { ok:false, error:"bad_json" };
+          }
+          if(!data || typeof data !== "object") data = { ok:false, error:"bad_json" };
+          if(data.ok === undefined) data.ok = res.ok;
+          data._httpStatus = res.status;
+          return data;
+        }
+
+        function canDeleteComment(c){
+          const adminKey = getAdminKey();
+          if(adminKey) return true;
+          const cid = String(c && (c.userId || c.user_id) || "");
+          if(uid && cid && uid === cid) return true;
+          if(uid && currentShowcaseOwnerId && uid === currentShowcaseOwnerId) return true;
+          if(c && (c.canDelete === true || c.can_delete === true)) return true;
+          return false;
+        }
+
+        function setCommentUiState(state){
+          if(!commentsWrap) return;
+          if(state === "hidden"){
+            commentsWrap.style.display = "none";
+            return;
+          }
+          commentsWrap.style.display = "block";
+        }
+
+        function setComposerEnabled(enabled, hintText){
+          if(!commentComposer) return;
+          if(!commentInput || !commentSend) return;
+
+          if(!enabled){
+            commentInput.value = "";
+            commentInput.disabled = true;
+            commentSend.disabled = true;
+            if(commentLimit) commentLimit.textContent = "";
+            if(commentsHint) commentsHint.textContent = hintText || "Sign in to comment";
+            return;
+          }
+
+          commentInput.disabled = false;
+          commentSend.disabled = false;
+          if(commentsHint) commentsHint.textContent = hintText || "";
+        }
+
+        function renderComments(list){
+          if(!commentsList) return;
+          commentsList.innerHTML = "";
+
+          const arr = Array.isArray(list) ? list : [];
+          if(commentsCount) commentsCount.textContent = String(arr.length);
+
+          if(arr.length === 0){
+            const empty = document.createElement("div");
+            empty.style.opacity = ".65";
+            empty.style.fontSize = "12px";
+            empty.style.padding = "6px";
+            empty.textContent = "No comments yet";
+            commentsList.appendChild(empty);
+            return;
+          }
+
+          arr.forEach((c)=>{
+            const item = document.createElement("div");
+            item.className = "commentItem";
+
+            const right = document.createElement("div");
+            right.className = "commentRight";
+
+            const meta = document.createElement("div");
+            meta.className = "commentMeta";
+
+            const name = document.createElement("div");
+            name.className = "commentName";
+            name.textContent = String(c.userName || c.user_name || c.userId || c.user_id || "Player");
+
+            const time = document.createElement("div");
+            time.className = "commentTime";
+            time.textContent = fmtTime(c.createdAt || c.created_at || Date.now());
+
+            meta.appendChild(name);
+            meta.appendChild(time);
+
+            const text = document.createElement("div");
+            text.className = "commentText";
+            text.innerHTML = escHtml(String(c.content || ""));
+
+            right.appendChild(meta);
+            right.appendChild(text);
+
+            item.appendChild(right);
+
+            if(canDeleteComment(c)){
+              const del = document.createElement("button");
+              del.className = "commentDel";
+              del.textContent = "Delete";
+              del.onclick = async (ev)=>{
+                ev.stopPropagation();
+                const id = String(c.id || c.commentId || c.comment_id || "");
+                if(!id) return showError("Missing comment id");
+                await deleteComment(id);
+              };
+              item.appendChild(del);
+            }
+
+            commentsList.appendChild(item);
+          });
+        }
+
+        async function loadComments(showcaseId){
+          if(!commentsWrap) return;
+          const sid = String(showcaseId || "");
+          if(!sid) return;
+
+          commentsList.innerHTML = "<div style=\"opacity:.65;font-size:12px;padding:6px\">Loading...</div>";
+          if(commentsCount) commentsCount.textContent = "0";
+
+          // composer state
+          if(!isAuthed()){
+            setComposerEnabled(false, "Sign in to comment");
+          }else{
+            setComposerEnabled(true, "");
+            if(commentLimit) commentLimit.textContent = "Daily limits: 20 total, 5 per work";
+          }
+
+          const data = await fetchJson("/api/comments?showcaseId=" + encodeURIComponent(sid) + "&limit=50", { method:"GET" });
+          if(!data.ok){
+            // backend not deployed yet or endpoint missing
+            const msg = String(data.error || ("HTTP " + String(data._httpStatus || "")) || "Failed");
+            commentsList.innerHTML = "<div style=\"opacity:.65;font-size:12px;padding:6px\">Comments unavailable (" + escHtml(msg) + ")</div>";
+            return;
+          }
+
+          const list = data.comments || data.items || data.data || [];
+          renderComments(list);
+        }
+
+        async function postComment(){
+          if(!currentShowcaseId) return;
+          if(!isAuthed()){
+            if(window.ACF_openLoginOverlay) window.ACF_openLoginOverlay("login");
+            return;
+          }
+          const content = String(commentInput.value || "").trim();
+          if(content.length < 2) return showError("Too short");
+          if(content.length > 200) return showError("Too long");
+          const low = content.toLowerCase();
+          if(low.includes("http://") || low.includes("https://") || low.includes("www.")) return showError("Links are not allowed");
+
+          commentSend.disabled = true;
+          try{
+            const data = await fetchJson("/api/comments", { method:"POST", body:{ showcaseId: currentShowcaseId, content } });
+            if(!data.ok) throw data;
+            commentInput.value = "";
+            await loadComments(currentShowcaseId);
+            showToast("Comment posted");
+          }catch(e){
+            showError(String(e.error || e.message || "Failed"));
+          }finally{
+            commentSend.disabled = false;
+          }
+        }
+
+        async function deleteComment(commentId){
+          if(!commentId) return;
+          const data = await fetchJson("/api/comments", { method:"DELETE", body:{ commentId } });
+          if(!data.ok){
+            showError(String(data.error || data.message || "Delete failed"));
+            return;
+          }
+          showToast("Deleted");
+          await loadComments(currentShowcaseId);
+        }
+
+        if(commentSend){
+          commentSend.onclick = (e)=>{
+            e.stopPropagation();
+            postComment();
+          };
         }
 
         function renderPodium(items){
@@ -1407,7 +1693,7 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
                 { url: s.headUrl, z:30 },
                 { url: s.bodyUrl, z:40 },
                 { url: s.addon1Url, z:50 },
-              ]);
+              ], s);
             };
 
             podiumGrid.appendChild(outer);
@@ -1586,7 +1872,7 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
                     { url: s.headUrl, z:30 },
                     { url: s.bodyUrl, z:40 },
                     { url: s.addon1Url, z:50 },
-                  ]
+                  ], s
                 );
               };
 
@@ -1779,7 +2065,7 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
                 { url: s.headUrl, z:30 },
                 { url: s.bodyUrl, z:40 },
                 { url: s.addon1Url, z:50 },
-              ]);
+              ], s);
             };
 
             grid.appendChild(entry);
@@ -1984,7 +2270,7 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
                 { url: s.headUrl, z:30 },
                 { url: s.bodyUrl, z:40 },
                 { url: s.addon1Url, z:50 },
-              ]);
+              ], s);
             };
 
             gridEl.appendChild(card);
