@@ -756,6 +756,102 @@ body{
     inset 0 0 18px rgba(120,180,255,0.10);
 }
 
+
+/* ===== Modal comments ===== */
+.mComments{
+  padding: 14px 14px 16px 14px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.mCommentsHead{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:10px;
+}
+.mCommentsTitle{
+  font-weight:800;
+  letter-spacing:0.2px;
+}
+.mCommentsSub{
+  opacity:0.75;
+  font-size:13px;
+}
+.mCommentForm .ta{
+  width:100%;
+  min-height:74px;
+  resize:vertical;
+  border-radius:14px;
+  padding:10px 12px;
+  border:1px solid rgba(255,255,255,0.14);
+  background:rgba(0,0,0,0.25);
+  color:#fff;
+  outline:none;
+}
+.mCommentForm .row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-top:10px;
+}
+.mCommentForm .hint{
+  font-size:13px;
+  opacity:0.75;
+}
+.mCommentList{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  margin-top:12px;
+}
+.mCommentItem{
+  border:1px solid rgba(255,255,255,0.10);
+  border-radius:14px;
+  padding:10px 12px;
+  background:rgba(0,0,0,0.20);
+}
+.mCommentTop{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:6px;
+}
+.mCommentName{
+  font-weight:700;
+  opacity:0.95;
+}
+.mCommentTime{
+  font-size:12px;
+  opacity:0.65;
+}
+.mCommentText{
+  white-space:pre-wrap;
+  line-height:1.35;
+  opacity:0.95;
+  font-size:14px;
+}
+
+.recStats{
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 800;
+  opacity: 0.88;
+  letter-spacing: 0.2px;
+}
+
+.mCommentActs{display:flex;gap:8px;align-items:center}
+.mCommentDel{
+  border:1px solid rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.06);
+  color:#fff;
+  border-radius:10px;
+  padding:6px 10px;
+  cursor:pointer;
+  font-weight:900;
+  font-size:12px;
+}
+.mCommentDel:hover{ background: rgba(255,255,255,0.10); }
 </style>
 <link href="style.css" rel="stylesheet"/>
 <link href="ui_fx.css" rel="stylesheet"/>
@@ -826,9 +922,27 @@ body{
 <div class="big">
 <div class="bigThumb" id="mThumb"></div>
 </div>
+
+<div class="mComments" id="mComments">
+  <div class="mCommentsHead">
+    <div class="mCommentsTitle">💬 評論</div>
+    <div class="mCommentsSub" id="mCommentsSub"></div>
+  </div>
+
+  <div class="mCommentForm" id="mCommentForm">
+    <textarea class="ta" id="mCommentInput" placeholder="寫下你的評論..."></textarea>
+    <div class="row">
+      <button class="btn primary" id="mCommentSend"><span>送出</span></button>
+      <div class="hint" id="mCommentHint"></div>
+    </div>
+  </div>
+
+  <div class="mCommentList" id="mCommentList"></div>
+</div>
+
 </div>
 </div>
-<script>
+<script
       (function(){
         const grid = document.getElementById("grid");
         const recWrap = document.getElementById("recWrap");
@@ -851,6 +965,17 @@ body{
         const mTitle = document.getElementById("mTitle");
         const mSub = document.getElementById("mSub");
         const mThumb = document.getElementById("mThumb");
+
+        const mComments = document.getElementById("mComments");
+        const mCommentsSub = document.getElementById("mCommentsSub");
+        const mCommentForm = document.getElementById("mCommentForm");
+        const mCommentInput = document.getElementById("mCommentInput");
+        const mCommentSend = document.getElementById("mCommentSend");
+        const mCommentHint = document.getElementById("mCommentHint");
+        const mCommentList = document.getElementById("mCommentList");
+
+        let _modalShowcaseId = "";
+        let _modalAuthorId = "";
 
         const WORKER_BASE =
           (location.hostname === "127.0.0.1" || location.hostname === "localhost")
@@ -970,6 +1095,134 @@ try{ const u = new URL(location.href).searchParams.get("uid"); if(u) uid = Strin
           return y + "-" + m + "-" + da;
         }
 
+        function fmtTimeFull(ms){
+          if(!ms) return "";
+          const d = new Date(Number(ms));
+          const y = d.getFullYear();
+          const m = String(d.getMonth()+1).padStart(2,"0");
+          const da = String(d.getDate()).padStart(2,"0");
+          const hh = String(d.getHours()).padStart(2,"0");
+          const mm = String(d.getMinutes()).padStart(2,"0");
+          return y + "-" + m + "-" + da + " " + hh + ":" + mm;
+        }
+
+        function escHtml(s){
+          return String(s || "").replace(/[&<>"]/g, (c)=>({ "&":"&amp;", "<":"&lt;", ">":"&gt;", """:"&quot;" }[c] || c));
+        }
+
+        function renderComments(items){
+          mCommentList.innerHTML = "";
+          const arr = Array.isArray(items) ? items : [];
+          if(arr.length === 0){
+            const empty = document.createElement("div");
+            empty.style.opacity = "0.75";
+            empty.style.fontSize = "14px";
+            empty.textContent = "還沒有評論";
+            mCommentList.appendChild(empty);
+            return;
+          }
+          arr.forEach((c)=>{
+            const it = document.createElement("div");
+            it.className = "mCommentItem";
+
+            const top = document.createElement("div");
+            top.className = "mCommentTop";
+
+            const name = document.createElement("div");
+            name.className = "mCommentName";
+            name.textContent = String(c.userName || c.userId || "Player");
+
+            const tm = document.createElement("div");
+            tm.className = "mCommentTime";
+            tm.textContent = fmtTimeFull(c.createdAt);
+
+            top.appendChild(name);
+
+            const acts = document.createElement("div");
+            acts.className = "mCommentActs";
+
+            const canDel = isAuthed() && uid && (String(uid) === String(c.userId) || String(uid) === String(_modalAuthorId||""));
+            const hasAdmin = (()=>{ try{ return !!(localStorage.getItem("acf_admin_key")||"").trim(); }catch(_){ return false; } })();
+            if(canDel || hasAdmin){
+              const del = document.createElement("button");
+              del.type = "button";
+              del.className = "mCommentDel";
+              del.textContent = "刪除";
+              del.onclick = async (e)=>{
+                e.stopPropagation();
+                if(!confirm("刪除這則評論？")) return;
+                try{
+                  await api("/api/comments?commentId=" + encodeURIComponent(String(c.commentId||"")), { method:"DELETE", body:{ commentId: String(c.commentId||"") } });
+                  await loadComments(_modalShowcaseId);
+                  showToast("已刪除");
+                }catch(err){
+                  showError(String(err?.error || err?.message || "刪除失敗"));
+                }
+              };
+              acts.appendChild(del);
+            }
+
+            top.appendChild(acts);
+            top.appendChild(tm);
+
+            const txt = document.createElement("div");
+            txt.className = "mCommentText";
+            txt.textContent = String(c.content || "");
+
+            it.appendChild(top);
+            it.appendChild(txt);
+            mCommentList.appendChild(it);
+          });
+        }
+
+        async function loadComments(showcaseId){
+          const sid = String(showcaseId || "").trim();
+          if(!sid) return;
+          try{
+            const r = await api("/api/comments?showcaseId=" + encodeURIComponent(sid) + "&limit=50", { method:"GET" });
+            const total = Number(r.total || 0);
+            if(mCommentsSub) mCommentsSub.textContent = "共 " + String(total) + " 則";
+            renderComments(r.items || []);
+          }catch(e){
+            if(mCommentsSub) mCommentsSub.textContent = "";
+            mCommentList.innerHTML = "";
+            const err = document.createElement("div");
+            err.style.opacity = "0.75";
+            err.style.fontSize = "14px";
+            err.textContent = "評論讀取失敗";
+            mCommentList.appendChild(err);
+          }
+        }
+
+        async function postComment(){
+          const sid = String(_modalShowcaseId || "").trim();
+          if(!sid) return;
+
+          if(!isAuthed()){
+            if(window.ACF_openLoginOverlay) window.ACF_openLoginOverlay("login");
+            return;
+          }
+
+          const content = String(mCommentInput.value || "").trim();
+          if(!content) return;
+
+          const done = setBtnBusy(mCommentSend, "送出中");
+          try{
+            await api("/api/comments", { method:"POST", body:{ showcaseId: sid, content } });
+            mCommentInput.value = "";
+            mCommentHint.textContent = "已送出";
+            setTimeout(()=>{ mCommentHint.textContent = ""; }, 1200);
+            await loadComments(sid);
+          }catch(e){
+            const code = String(e.error || "");
+            if(code === "rate_limited") mCommentHint.textContent = "今天留言太多了，晚點再試";
+            else mCommentHint.textContent = String(e.error || e.message || "送出失敗");
+          }finally{
+            done();
+          }
+        }
+
+
         function initials(name){
           const s = String(name||"").trim();
           if(!s) return "?";
@@ -1036,6 +1289,7 @@ try{ const u = new URL(location.href).searchParams.get("uid"); if(u) uid = Strin
           const o = opts || {};
           const headers = Object.assign({}, o.headers || {});
           if(uid) headers["x-user-id"] = uid;
+          try{ const ak = (localStorage.getItem("acf_admin_key")||"").trim(); if(ak) headers["x-admin-key"] = ak; }catch(_){ }
 
           const hasBody = o.body !== undefined && o.body !== null;
           if(hasBody) headers["content-type"] = "application/json";
@@ -1189,12 +1443,34 @@ function ensureOverlayRoot(){
   }
 }
 
-function openModal(title, sub, layers){
+function openModal(title, sub, layers, meta){
   ensureOverlayRoot();
   mTitle.textContent = title;
   mSub.textContent = sub || "";
   mThumb.innerHTML = "";
   makeStackThumb(mThumb, layers);
+
+  const sid = String(meta && meta.showcaseId ? meta.showcaseId : "").trim();
+  _modalShowcaseId = sid;
+  _modalAuthorId = String(meta && (meta.userId || meta.authorId) ? (meta.userId || meta.authorId) : (_modalAuthorId || ""));
+
+  if(mComments){
+    mComments.style.display = sid ? "block" : "none";
+  }
+  if(mCommentForm){
+    const authed = isAuthed();
+    mCommentForm.style.display = sid ? "block" : "none";
+    if(!authed){
+      mCommentHint.textContent = "登入後才能評論";
+    }else{
+      mCommentHint.textContent = "";
+    }
+  }
+  if(mCommentInput) mCommentInput.value = "";
+  if(mCommentList) mCommentList.innerHTML = "";
+  if(mCommentsSub) mCommentsSub.textContent = "";
+
+  if(sid) loadComments(sid);
 
   // lock scroll so the overlay doesn't "snap" to the bottom on some browsers/layouts
   __modalScrollY = window.scrollY || 0;
@@ -1215,6 +1491,11 @@ function closeModal(){
 
 mClose.onclick = closeModal;
 modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
+
+
+        if(mCommentSend){
+          mCommentSend.onclick = (e)=>{ e.preventDefault(); postComment(); };
+        }
 
 
         async function loadMeLight(){
@@ -1282,14 +1563,19 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
             if(window.ACF_openLoginOverlay) window.ACF_openLoginOverlay("login");
             return;
           }
-          if(userGem < 50) return showError("GEM 不足");
           try{
-            await api("/api/recommend", { method:"POST", body:{ showcaseId } });
-            showToast("已推薦 1 次 (花費 50 GEM)");
+            const r = await api("/api/recommend", { method:"POST", body:{ showcaseId } });
+            const cost = Number(r.costGem || 0);
+            const used = Number(r.used || 0);
+            const max = Number(r.maxPerShowcasePerDay || 5);
+            const used2 = Number(r.used || 0);
+            const left = Math.max(0, max - used2);
+            if(cost > 0) showToast("已推薦 (花費 " + String(cost) + " GEM) · 今日此作品剩 " + String(left) + "/" + String(max));
+            else showToast("已推薦 (今日第 1 次免費) · 今日此作品剩 " + String(left) + "/" + String(max));
             await loadMeLight();
           }catch(e){
             const code = String(e.error || e.code || "");
-            if(code === "max_per_showcase_reached" || code === "recommend_limit") return showError("同一作品同一賽季最多推薦 5 次");
+            if(code === "max_per_showcase_reached" || code === "recommend_limit") return showError("同一作品每天最多推薦 5 次");
             if(code === "insufficient_gem" || code === "no_gem") return showError("GEM 不足");
             if(code === "unauthorized") return showError("請先登入");
             showError(String(e.error || e.message || "推薦失敗"));
@@ -1407,7 +1693,7 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
                 { url: s.headUrl, z:30 },
                 { url: s.bodyUrl, z:40 },
                 { url: s.addon1Url, z:50 },
-              ]);
+              ], { showcaseId: s.showcaseId, userId: s.userId });
             };
 
             podiumGrid.appendChild(outer);
@@ -1553,7 +1839,7 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
               recBtn.type = "button";
               recBtn.dataset.tip = "推薦";
               recBtn.innerHTML = ICON_RECOMMEND + `<span class="btnLabel">推薦</span>`;
-              if((!uid) || userGem < 50) recBtn.style.opacity = ".6";
+              if(!isAuthed()) recBtn.style.opacity = ".6";
               recBtn.onclick = async (e)=>{
                 e.stopPropagation();
                 clearError();
@@ -1571,22 +1857,30 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
               actions.appendChild(recBtn);
 
               meta.appendChild(authorRow);
+
+              const stats = document.createElement("div");
+              stats.className = "recStats";
+              stats.textContent = "推薦 " + String(Number(s.recommends||0)) + " · 票數 " + String(Number(s.votes||0)) + " · 收藏 " + String(Number(s.favorites||0)) + " · 評論 " + String(Number(s.comments||0));
+              meta.appendChild(stats);
+
               meta.appendChild(actions);
 
               card.appendChild(th);
               card.appendChild(meta);
 
               card.onclick = ()=>{
+                _modalShowcaseId = String(s.showcaseId||"");
+                _modalAuthorId = String(s.userId||"");
                 openModal(
                   (s.title && String(s.title).trim()) ? String(s.title).trim() : "未命名作品",
-                  "推薦 " + String(Number(s.recommends||0)) + " · 票數 " + String(Number(s.votes||0)) + " · " + fmtTime(s.createdAt),
+                  "推薦 " + String(Number(s.recommends||0)) + " · 票數 " + String(Number(s.votes||0)) + " · 收藏 " + String(Number(s.favorites||0)) + " · 評論 " + String(Number(s.comments||0)) + " · " + fmtTime(s.createdAt),
                   [
                     { url: s.bgUrl, z:10 },
                     { url: s.addon2Url, z:20 },
                     { url: s.headUrl, z:30 },
                     { url: s.bodyUrl, z:40 },
                     { url: s.addon1Url, z:50 },
-                  ]
+                  ], { showcaseId: s.showcaseId, userId: s.userId }
                 );
               };
 
@@ -1773,13 +2067,13 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
             entry.appendChild(body);
 
             entry.onclick = ()=>{
-              openModal(title, "票數 " + String(votes) + " · 收藏 " + String(favs) + (recs ? (" · 推薦 " + String(recs)) : "") + " · " + fmtTime(s.createdAt), [
+              openModal(title, "票數 " + String(votes) + " · 收藏 " + String(favs) + " · 評論 " + String(Number(s.comments||0)) + (recs ? (" · 推薦 " + String(recs)) : "") + " · " + fmtTime(s.createdAt), [
                 { url: s.bgUrl, z:10 },
                 { url: s.addon2Url, z:20 },
                 { url: s.headUrl, z:30 },
                 { url: s.bodyUrl, z:40 },
                 { url: s.addon1Url, z:50 },
-              ]);
+              ], { showcaseId: s.showcaseId, userId: s.userId });
             };
 
             grid.appendChild(entry);
