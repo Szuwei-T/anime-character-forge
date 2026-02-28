@@ -3339,18 +3339,25 @@ async function animateJumpGridToSlots(winnerSlots, winners, isTen){
         // still showing rollingText below cards while preparing
 
         const isTen = Number(opts.count||1) === 10;
-        const pack = await buildGridWithPulled(pulled, opts);
-
-        // 3) Run animation but DO NOT change grid content; only land frames onto the pre-decided winners
-        if(rollingText) rollingText.style.display = "";
-        if(rollSub) rollSub.style.display = "none";
-        if(rollSub) rollSub.textContent = "";
-        
         const skipAnim = (chkSkipAnim && chkSkipAnim.checked);
 
         if(skipAnim){
-          instantRevealToSlots(pack.winnerSlots, pack.winners, isTen);
+          // Skip ALL pack-grid visuals and jump straight to the cinematic result page
+          hideLoad();
+          if(rollingText) rollingText.style.display = "none";
+          if(rollSub){ rollSub.style.display = ""; rollSub.textContent = ""; }
+
+          try{
+            await playCinematicForPack(pulled, isTen);
+          }catch(_){ /* ignore cinematic errors */ }
         }else{
+          const pack = await buildGridWithPulled(pulled, opts);
+
+          // 3) Run animation but DO NOT change grid content; only land frames onto the pre-decided winners
+          if(rollingText) rollingText.style.display = "";
+          if(rollSub) rollSub.style.display = "none";
+          if(rollSub) rollSub.textContent = "";
+
           await animateJumpGridToSlots(pack.winnerSlots, pack.winners, isTen);
 
           try{
