@@ -529,5 +529,25 @@ function __loginDone(user){
 
     </script>
 </div>
+
+<script>
+(async function(){
+  try{
+    const r = await fetch("/api/tutorial/status", { credentials:"include" });
+    const j = await r.json();
+    if(j && j.ok && !j.done){
+      if((j.step|0) <= 2){
+        location.href = "/gacha?tutorial=1";
+        return;
+      }
+      if((j.step|0) === 3){
+        location.href = "/studio?tutorial=1";
+        return;
+      }
+    }
+  }catch(e){}
+})();
+</script>
+
 </body>
 </html>
