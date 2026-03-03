@@ -3536,9 +3536,18 @@ function renderGridDecoys(list){
   }
 
   async function status(){
-    const r = await fetch("/api/tutorial/status", { credentials:"include" });
-    const j = await r.json();
-    return j;
+    try{
+      if(typeof apiFetch === "function"){
+        const j = await apiFetch("/api/tutorial/status", { method:"GET" });
+        return j;
+      }
+      const r = await fetch("/api/tutorial/status", { credentials:"include" });
+      const j = await r.json();
+      return j;
+    }catch(e){
+      console.warn("tutorial status failed", e);
+      return { ok:false, error:"tutorial_status_failed" };
+    }
   }
 
   window.ACF_TUTOR = { show, hide, pulse, unpulse, unpulseAll, status };

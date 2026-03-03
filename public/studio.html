@@ -2201,9 +2201,18 @@ async function doUpgrade(assetId){
   }
 
   async function status(){
-    const r = await fetch("/api/tutorial/status", { credentials:"include" });
-    const j = await r.json();
-    return j;
+    try{
+      if(typeof apiFetch === "function"){
+        const j = await apiFetch("/api/tutorial/status", { method:"GET" });
+        return j;
+      }
+      const r = await fetch("/api/tutorial/status", { credentials:"include" });
+      const j = rj;
+      return j;
+    }catch(e){
+      console.warn("tutorial status failed", e);
+      return { ok:false, error:"tutorial_status_failed" };
+    }
   }
 
   window.ACF_TUTOR = { show, hide, pulse, unpulse, unpulseAll, status };
@@ -2271,13 +2280,10 @@ let st;
     window.ACF_TUTOR.pulse(q("#btnSave") || q("#saveBtn") || q("button[data-action='save']") || q("button"));
     document.getElementById("acfAriaNext").onclick = async ()=>{
       try{
-        const r = await fetch("/api/tutorial/complete", {
-          method:"POST",
-          headers:{ "Content-Type":"application/json" },
-          credentials:"include",
-          body: JSON.stringify({ head:"head_1_1f", body:"body_1_1f" })
-        });
-        const j = await r.json();
+        const rj = (typeof apiFetch==="function")
+          ? await apiFetch("/api/tutorial/complete", { method:"POST", body: JSON.stringify({ head:"head_1_1f", body:"body_1_1f" }) })
+          : await (async ()=>{ const rr = await fetch("/api/tutorial/complete", { method:"POST", headers:{ "Content-Type":"application/json" }, credentials:"include", body: JSON.stringify({ head:"head_1_1f", body:"body_1_1f" }) }); return await rr.json(); })();
+        const j = rj;
         if(j && j.ok){
           window.ACF_TUTOR.hide();
           alert("獲得 1000 Gold");
