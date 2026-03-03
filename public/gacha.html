@@ -3582,7 +3582,15 @@ async function animateJumpGridToSlots(winnerSlots, winners, isTen){
     }
   }
 
-  let st = await getStatus();
+  
+const urlParams = new URLSearchParams(location.search);
+const forceTutorial = urlParams.get("tutorial") === "1" || urlParams.get("forceTutorial") === "1";
+
+if(forceTutorial){
+  try{ await apiFetch("/api/tutorial/reset", { method:"POST" }); }catch(_){}
+}
+
+let st = await getStatus();
   if(!st || !st.ok || st.done) return;
 
   lockOther();
