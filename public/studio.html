@@ -2214,10 +2214,8 @@ async function doUpgrade(assetId){
 <script>
 (async function(){
   const url = new URL(location.href);
-  const isTutor = url.searchParams.get("tutorial") === "1";
-  if(!isTutor) return;
-
-  let st;
+  // Tutorial shows whenever account has not finished it
+let st;
   try{ st = await window.ACF_TUTOR.status(); }catch(e){ return; }
   if(!st || !st.ok) return;
   if(st.done) return;

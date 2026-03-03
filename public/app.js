@@ -737,6 +737,20 @@ function saveOfflineDb(db){
   localStorage.setItem("acf_offline_db_v1", JSON.stringify(db));
 }
 
+
+async function checkTutorialRedirect(){
+  try{
+    const r = await fetch("/api/tutorial/status", { credentials:"include" });
+    const j = await r.json();
+    if(j && j.ok && !j.done){
+      location.href = "/gacha";
+      return true;
+    }
+  }catch(e){}
+  return false;
+}
+
+
 async function apiFetch(path, options={}){
   const url = (WORKER_BASE || "") + path;
 
