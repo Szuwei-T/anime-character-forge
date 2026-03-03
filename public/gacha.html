@@ -3575,8 +3575,8 @@ async function animateJumpGridToSlots(winnerSlots, winners, isTen){
 
   async function getStatus(){
     try{
-      const r = await apiFetch(`/api/tutorial/status`, { method:"GET" });
-      return await r.json();
+      const j = await apiFetch(`/api/tutorial/status`, { method:"GET" });
+      return j;
     }catch(e){
       return null;
     }

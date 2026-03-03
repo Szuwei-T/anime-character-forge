@@ -533,8 +533,7 @@ function __loginDone(user){
 <script>
 (async function(){
   try{
-    const r = await apiFetch("/api/tutorial/status", { method:"GET" });
-    const j = await r.json();
+    const j = await apiFetch("/api/tutorial/status", { method:"GET" });
     if(j && j.ok && !j.done && (j.step|0) <= 2){
       location.href = "/gacha";
       return;

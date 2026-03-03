@@ -2133,8 +2133,8 @@ async function doUpgrade(assetId){
 
   async function getStatus(){
     try{
-      const r = await apiFetch(`/api/tutorial/status`, { method:"GET" });
-      return await r.json();
+      const j = await apiFetch(`/api/tutorial/status`, { method:"GET" });
+      return j;
     }catch(e){
       return null;
     }
@@ -2162,8 +2162,7 @@ async function doUpgrade(assetId){
       show("aria_ch1_done","success");
       btnNext.onclick = async ()=>{
         try{
-          const r = await apiFetch(`/api/tutorial/complete`, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({}) });
-          const j = await r.json();
+          const j = await apiFetch(`/api/tutorial/complete`, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({}) });
           if(j && j.ok){
             hide();
             alert("+" + (j.rewardGold||1000) + " Gold");
