@@ -415,23 +415,28 @@ function __loginDone(user){
           if(window.initSession) await window.initSession();
         }catch(_e){}
 
-        // 判斷是否第一次登入（沒有 userName 就視為新手）
-        let isFirst = false;
+        // 判斷是否需要啟動新手教學（以 tutorial 狀態為準）
+        let shouldStartTutorial = false;
         try{
           const api = (typeof window.apiFetch === "function") ? window.apiFetch : null;
           if(api){
-            const me = await api("/api/me/account", { method:"GET" });
-            const nm = me && (me.account?.userName || me.userName || "");
-            if(!nm) isFirst = true;
+            const st = await api("/api/tutorial/status", { method:"GET" });
+            if(st && st.ok && !st.done) shouldStartTutorial = true;
           }else{
-            isFirst = true;
+            // 沒有 apiFetch 就保守啟動一次
+            shouldStartTutorial = true;
           }
         }catch(_e){
-          isFirst = true;
+          // 打不到 status 就保守啟動一次
+          shouldStartTutorial = true;
         }
 
-        if(isFirst){
+        if(shouldStartTutorial){
           try{ localStorage.setItem("acf_force_story","1"); }catch(_e){}
+          try{ window.__acf_redirect_override = "/gacha?tutorial=1"; }catch(_e){}
+        }
+
+catch(_e){}
           try{ window.__acf_redirect_override = "/gacha?tutorial=1"; }catch(_e){}
         }
 
