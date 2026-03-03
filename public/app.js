@@ -31,6 +31,16 @@ const ACF_I18N = (() => {
 
   const STR = {
     "en": {
+      aria_ch1_welcome: "Welcome, Star Creator. I am ARIA. I will guide you through your first creation.",
+      aria_ch1_step1: "Let us begin with a basic summon. Tap Standard 1x.",
+      aria_ch1_step2: "Great. Now you need a body. Tap Standard 1x again.",
+      aria_ch1_toStudio: "Perfect. Time to assemble in Studio. Tap OK to go to Studio.",
+      aria_ch1_pickHead: "Now, select a head part.",
+      aria_ch1_pickBody: "Next, select a body part.",
+      aria_ch1_done: "Creation complete. Tap OK to claim 1000 Gold.",
+      aria_ch1_warn_follow: "Follow the tutorial first. Please tap Standard 1x.",
+      aria_ch1_warn_head: "For this tutorial, please choose the required head part.",
+      aria_ch1_warn_body: "For this tutorial, please choose the required body part.",
       login_title: "Anime Character Forge Sign In",
       login_email_signin: "Email Sign In",
       login_email_signup: "Email Sign Up",
@@ -577,7 +587,24 @@ const ACF_I18N = (() => {
     }
   }
 
-  return { getLang, setLang, t, applyI18n, normalizeLang };
+  
+  async function loadRemoteI18n(lang){
+    const l = normalizeLang(lang || getLang());
+    try{
+      const r = await apiFetch(`/api/i18n?lang=${encodeURIComponent(l)}`, { method:"GET" });
+      const j = await r.json();
+      if(j && j.ok && j.dict && typeof j.dict === "object"){
+        STR[l] = Object.assign({}, (STR[l]||{}), j.dict);
+        applyI18n(document);
+      }
+    }catch(_){}
+  }
+
+  // Load remote strings once on boot and whenever language changes
+  setTimeout(()=>{ loadRemoteI18n(getLang()); }, 0);
+  window.addEventListener("acf:lang", (e)=>{ loadRemoteI18n((e && e.detail && e.detail.lang) ? e.detail.lang : getLang()); });
+
+return { getLang, setLang, t, applyI18n, normalizeLang };
 })();
 
 window.ACF_t = ACF_I18N.t;
@@ -736,20 +763,6 @@ function offlineDb(){
 function saveOfflineDb(db){
   localStorage.setItem("acf_offline_db_v1", JSON.stringify(db));
 }
-
-
-async function checkTutorialRedirect(){
-  try{
-    const r = await fetch("/api/tutorial/status", { credentials:"include" });
-    const j = await r.json();
-    if(j && j.ok && !j.done){
-      location.href = "/gacha";
-      return true;
-    }
-  }catch(e){}
-  return false;
-}
-
 
 async function apiFetch(path, options={}){
   const url = (WORKER_BASE || "") + path;

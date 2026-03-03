@@ -871,85 +871,18 @@ body{
 </style>
 
 <style id="acfAriaStyle">
-#acfAriaBox{
-  position: fixed;
-  right: 18px;
-  bottom: 18px;
-  width: 420px;
-  max-width: calc(100vw - 28px);
-  z-index: 99999;
-  display: none;
-  pointer-events: auto;
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-}
-#acfAriaBox .aria-card{
-  display:flex;
-  gap:12px;
-  padding:12px 12px;
-  border-radius: 14px;
-  background: rgba(10,10,12,0.78);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.45);
-  border: 1px solid rgba(255,215,120,0.22);
-  backdrop-filter: blur(6px);
-}
-#acfAriaBox .aria-img{
-  width: 88px;
-  height: 120px;
-  border-radius: 12px;
-  overflow: hidden;
-  flex: 0 0 auto;
-  border: 1px solid rgba(255,215,120,0.25);
-  background: rgba(255,255,255,0.06);
-}
-#acfAriaBox .aria-img img{
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display:block;
-}
-#acfAriaBox .aria-main{ flex:1 1 auto; min-width: 0; }
-#acfAriaBox .aria-name{
-  font-weight: 800;
-  color: rgba(255,235,200,0.95);
-  letter-spacing: 0.2px;
-  margin-bottom: 6px;
-}
-#acfAriaBox .aria-text{
-  color: rgba(255,255,255,0.92);
-  font-size: 14px;
-  line-height: 1.35;
-  min-height: 54px;
-  white-space: pre-wrap;
-}
-#acfAriaBox .aria-actions{
-  display:flex;
-  justify-content: flex-end;
-  gap:10px;
-  margin-top: 10px;
-}
-#acfAriaBox .aria-btn{
-  border: 1px solid rgba(255,215,120,0.28);
-  background: rgba(255,215,120,0.12);
-  color: rgba(255,245,230,0.95);
-  padding: 6px 10px;
-  border-radius: 10px;
-  cursor:pointer;
-  font-weight: 700;
-  font-size: 12px;
-}
-#acfAriaBox .aria-btn:hover{ background: rgba(255,215,120,0.18); }
-.acfTutorMask{
-  position: fixed;
-  inset: 0;
-  z-index: 99990;
-  display: none;
-  background: rgba(0,0,0,0.35);
-}
-.acfTutorPulse{
-  outline: 2px solid rgba(255,215,120,0.85) !important;
-  box-shadow: 0 0 0 6px rgba(255,215,120,0.18), 0 0 25px rgba(255,215,120,0.35) !important;
-  border-radius: 14px !important;
-}
+#acfAriaBox{position:fixed;right:18px;bottom:18px;width:420px;max-width:calc(100vw - 28px);z-index:99999;display:none;pointer-events:auto;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+#acfAriaBox .aria-card{display:flex;gap:12px;padding:12px;border-radius:14px;background:rgba(10,10,12,0.78);box-shadow:0 10px 30px rgba(0,0,0,0.45);border:1px solid rgba(255,215,120,0.22);backdrop-filter:blur(6px)}
+#acfAriaBox .aria-img{width:88px;height:120px;border-radius:12px;overflow:hidden;flex:0 0 auto;border:1px solid rgba(255,215,120,0.25);background:rgba(255,255,255,0.06)}
+#acfAriaBox .aria-img img{width:100%;height:100%;object-fit:cover;display:block}
+#acfAriaBox .aria-main{flex:1 1 auto;min-width:0}
+#acfAriaBox .aria-name{font-weight:800;color:rgba(255,235,200,0.95);letter-spacing:0.2px;margin-bottom:6px}
+#acfAriaBox .aria-text{color:rgba(255,255,255,0.92);font-size:14px;line-height:1.35;min-height:54px;white-space:pre-wrap}
+#acfAriaBox .aria-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:10px}
+#acfAriaBox .aria-btn{border:1px solid rgba(255,215,120,0.28);background:rgba(255,215,120,0.12);color:rgba(255,245,230,0.95);padding:6px 10px;border-radius:10px;cursor:pointer;font-weight:700;font-size:12px}
+#acfAriaBox .aria-btn:hover{background:rgba(255,215,120,0.18)}
+.acfTutorMask{position:fixed;inset:0;z-index:99990;display:none;background:rgba(0,0,0,0.35)}
+.acfTutorPulse{outline:2px solid rgba(255,215,120,0.85)!important;box-shadow:0 0 0 6px rgba(255,215,120,0.18),0 0 25px rgba(255,215,120,0.35)!important;border-radius:14px!important}
 </style>
 
 </head>
@@ -1844,8 +1777,8 @@ const addon2PoolAll = addon2Pool.slice();
 
 const noneItem = { assetId:"", imageUrl:"", rarity:1 };
 
-grids.head = makeVirtualGrid(q("#headGrid"), headItemsAll, ()=>SEL.headId, (id)=>{ SEL.headId=id; enforceRarityAfterHeadChange(); refreshPreview(); if(window.ACF_TUTOR && window.ACF_TUTOR._onHeadSelect) window.ACF_TUTOR._onHeadSelect(id); Object.values(grids).forEach(g=>g && g.rerender && g.rerender()); });
-grids.body = makeVirtualGrid(q("#bodyGrid"), bodyItems, ()=>SEL.bodyId, (id)=>{ if(!canSelectSameRarity(id)) return; SEL.bodyId=id; refreshPreview(); if(window.ACF_TUTOR && window.ACF_TUTOR._onBodySelect) window.ACF_TUTOR._onBodySelect(id); });
+grids.head = makeVirtualGrid(q("#headGrid"), headItemsAll, ()=>SEL.headId, (id)=>{ SEL.headId=id; enforceRarityAfterHeadChange(); refreshPreview(); Object.values(grids).forEach(g=>g && g.rerender && g.rerender()); });
+grids.body = makeVirtualGrid(q("#bodyGrid"), bodyItems, ()=>SEL.bodyId, (id)=>{ if(!canSelectSameRarity(id)) return; SEL.bodyId=id; refreshPreview(); });
 grids.bg = makeVirtualGrid(q("#bgGrid"), bgItems, ()=>SEL.bgId, (id)=>{ if(!canSelectSameRarity(id)) return; SEL.bgId=id; refreshPreview(); });
 grids.addon1 = makeVirtualGrid(q("#addon1Grid"), [noneItem, ...addon1Pool], ()=>SEL.addon1Id, (id)=>{ if(id && !canSelectSameRarity(id)) return; SEL.addon1Id=id; refreshPreview(); });
 grids.addon2 = makeVirtualGrid(q("#addon2Grid"), [noneItem, ...addon2Pool], ()=>SEL.addon2Id, (id)=>{ if(id && !canSelectSameRarity(id)) return; SEL.addon2Id=id; refreshPreview(); });
@@ -2151,16 +2084,10 @@ async function doUpgrade(assetId){
   </div>
 </div>
 
+
 <script>
-(function(){
-  const IMAGES = {
-    default: "/ui/npc/aria_default.webp",
-    guide: "/ui/npc/aria_guide.webp",
-    discover: "/ui/npc/aria_discover.webp",
-    success: "/ui/npc/aria_success.webp",
-    warning: "/ui/npc/aria_warning.webp",
-    full: "/ui/npc/aria_full.webp"
-  };
+(async function(){
+  const T = window.ACF_t || ((k)=>k);
 
   const box = document.getElementById("acfAriaBox");
   const imgEl = document.getElementById("acfAriaImg");
@@ -2169,159 +2096,128 @@ async function doUpgrade(assetId){
   const mask = document.getElementById("acfTutorMask");
 
   function setImg(key){
-    const src = IMAGES[key] || IMAGES.default;
-    imgEl.src = src;
-    imgEl.onerror = ()=>{ imgEl.onerror=null; imgEl.src = IMAGES.default; };
+    const map = {
+      "default": "/ui/npc/aria_default.webp",
+      "guide": "/ui/npc/aria_guide.webp",
+      "discover": "/ui/npc/aria_discover.webp",
+      "success": "/ui/npc/aria_success.webp",
+      "warning": "/ui/npc/aria_warning.webp",
+      "full": "/ui/npc/aria_full.webp"
+    };
+    imgEl.src = map[key] || map["default"];
+    imgEl.onerror = ()=>{ imgEl.onerror=null; imgEl.src = map["default"]; };
   }
 
-  function show(msg, imgKey){
+  function show(msgKey, imgKey){
     setImg(imgKey || "default");
-    textEl.textContent = msg || "";
+    textEl.textContent = T(msgKey, msgKey);
     box.style.display = "block";
     mask.style.display = "block";
   }
-
   function hide(){
     box.style.display = "none";
     mask.style.display = "none";
     unpulseAll();
   }
-
   function pulse(el){
     if(!el) return;
     el.classList.add("acfTutorPulse");
     el.scrollIntoView({ block:"center", inline:"center", behavior:"smooth" });
   }
-  function unpulse(el){
-    if(!el) return;
-    el.classList.remove("acfTutorPulse");
-  }
   function unpulseAll(){
     document.querySelectorAll(".acfTutorPulse").forEach(n=>n.classList.remove("acfTutorPulse"));
   }
 
-  async function status(){
+  const headGrid = document.getElementById("headGrid");
+  const bodyGrid = document.getElementById("bodyGrid");
+
+  async function getStatus(){
     try{
-      if(typeof apiFetch === "function"){
-        const j = await apiFetch("/api/tutorial/status", { method:"GET" });
-        return j;
-      }
-      const r = await fetch("/api/tutorial/status", { credentials:"include" });
-      const j = rj;
-      return j;
+      const r = await apiFetch(`/api/tutorial/status`, { method:"GET" });
+      return await r.json();
     }catch(e){
-      console.warn("tutorial status failed", e);
-      return { ok:false, error:"tutorial_status_failed" };
+      return null;
     }
   }
 
-  window.ACF_TUTOR = { show, hide, pulse, unpulse, unpulseAll, status };
-})();
-</script>
+  let st = await getStatus();
+  if(!st || !st.ok || st.done) return;
 
-
-<script>
-(async function(){
-  const url = new URL(location.href);
-  // Tutorial shows whenever account has not finished it
-let st;
-  try{ st = await window.ACF_TUTOR.status(); }catch(e){ return; }
-  if(!st || !st.ok) return;
-  if(st.done) return;
+  // Ensure we are at studio stage
   if((st.step|0) < 3){
-    location.href = "/gacha?tutorial=1";
+    location.href = "/gacha";
     return;
   }
 
-  function q(sel){ return document.querySelector(sel); }
+  btnNext.onclick = ()=>hide();
 
-  const headPanel = q("#headGrid") || q("[data-panel='head']");
-  const bodyPanel = q("#bodyGrid") || q("[data-panel='body']");
-
+  // Internal required ids; never shown to player
+  const REQ_HEAD = "head_1_1f";
+  const REQ_BODY = "body_1_1f";
   let gotHead = false;
   let gotBody = false;
 
-  function setNextDefault(){
-    document.getElementById("acfAriaNext").onclick = ()=> window.ACF_TUTOR.hide();
-  }
-  setNextDefault();
-
-  function showHeadStep(){
-    window.ACF_TUTOR.show(
-      `現在開始組合你的第一個角色。
-
-先選擇剛剛抽到的頭部 head_1_1f`,
-      "discover"
-    );
-    window.ACF_TUTOR.unpulseAll();
-    window.ACF_TUTOR.pulse(headPanel);
-  }
-
-  function showBodyStep(){
-    window.ACF_TUTOR.show(
-      `很好。
-
-接著選擇身體 body_1_1f`,
-      "guide"
-    );
-    window.ACF_TUTOR.unpulseAll();
-    window.ACF_TUTOR.pulse(bodyPanel);
-  }
-
-  function showCompleteStep(){
-    window.ACF_TUTOR.show(
-      `創星成功。
-你已完成第一個作品。
-
-按 OK 領取 1000 Gold`,
-      "success"
-    );
-    window.ACF_TUTOR.unpulseAll();
-    window.ACF_TUTOR.pulse(q("#btnSave") || q("#saveBtn") || q("button[data-action='save']") || q("button"));
-    document.getElementById("acfAriaNext").onclick = async ()=>{
-      try{
-        const rj = (typeof apiFetch==="function")
-          ? await apiFetch("/api/tutorial/complete", { method:"POST", body: JSON.stringify({ head:"head_1_1f", body:"body_1_1f" }) })
-          : await (async ()=>{ const rr = await fetch("/api/tutorial/complete", { method:"POST", headers:{ "Content-Type":"application/json" }, credentials:"include", body: JSON.stringify({ head:"head_1_1f", body:"body_1_1f" }) }); return await rr.json(); })();
-        const j = rj;
-        if(j && j.ok){
-          window.ACF_TUTOR.hide();
-          alert("獲得 1000 Gold");
-          location.href = "/gallery";
-        }else{
-          alert((j && j.error) ? j.error : "完成任務失敗");
+  function render(){
+    if(gotHead && gotBody){
+      show("aria_ch1_done","success");
+      btnNext.onclick = async ()=>{
+        try{
+          const r = await apiFetch(`/api/tutorial/complete`, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({}) });
+          const j = await r.json();
+          if(j && j.ok){
+            hide();
+            alert("+" + (j.rewardGold||1000) + " Gold");
+            location.href = "/gallery";
+          }else{
+            alert((j && j.error) ? j.error : "complete_failed");
+          }
+        }catch(e){
+          alert("complete_failed");
         }
-      }catch(e){
-        alert("完成任務失敗");
-      }finally{
-        setNextDefault();
-      }
-    };
+      };
+      return;
+    }
+    if(!gotHead){
+      show("aria_ch1_pickHead","discover");
+      unpulseAll(); pulse(headGrid);
+    }else{
+      show("aria_ch1_pickBody","guide");
+      unpulseAll(); pulse(bodyGrid);
+    }
   }
 
-  window.ACF_TUTOR._onHeadSelect = (id)=>{
-    if(id === "head_1_1f"){
-      gotHead = true;
-      if(!gotBody) showBodyStep();
-      else showCompleteStep();
-    }else{
-      window.ACF_TUTOR.show("這次教學請先選擇 head_1_1f", "warning");
-      window.ACF_TUTOR.pulse(headPanel);
-    }
-  };
-  window.ACF_TUTOR._onBodySelect = (id)=>{
-    if(id === "body_1_1f"){
-      gotBody = true;
-      if(!gotHead) showHeadStep();
-      else showCompleteStep();
-    }else{
-      window.ACF_TUTOR.show("這次教學請選擇 body_1_1f", "warning");
-      window.ACF_TUTOR.pulse(bodyPanel);
-    }
-  };
+  render();
 
-  // start with head step
-  showHeadStep();
+  function onPick(e){
+    const item = e.target && e.target.closest ? e.target.closest("[data-asset-id]") : null;
+    if(!item) return;
+    const aid = item.getAttribute("data-asset-id") || "";
+    const inHead = headGrid && headGrid.contains(item);
+    const inBody = bodyGrid && bodyGrid.contains(item);
+
+    if(inHead){
+      if(aid === REQ_HEAD){
+        gotHead = true;
+        render();
+      }else{
+        show("aria_ch1_warn_head","warning");
+        unpulseAll(); pulse(headGrid);
+      }
+    }else if(inBody){
+      if(aid === REQ_BODY){
+        gotBody = true;
+        render();
+      }else{
+        show("aria_ch1_warn_body","warning");
+        unpulseAll(); pulse(bodyGrid);
+      }
+    }
+  }
+
+  headGrid && headGrid.addEventListener("click", onPick, true);
+  bodyGrid && bodyGrid.addEventListener("click", onPick, true);
+
+  window.addEventListener("acf:lang", ()=>{ if(box.style.display==="block"){ render(); }});
 })();
 </script>
 

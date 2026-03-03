@@ -533,20 +533,14 @@ function __loginDone(user){
 <script>
 (async function(){
   try{
-    const j = (typeof apiFetch==="function") ? await apiFetch("/api/tutorial/status", { method:"GET" }) : await (async ()=>{ const r = await fetch("/api/tutorial/status", { credentials:"include" }); return await r.json(); })();
-    if(j && j.ok && !j.done){
-      if((j.step|0) <= 2){
-        location.href = "/gacha?tutorial=1";
-        return;
-      }
-      if((j.step|0) === 3){
-        location.href = "/studio?tutorial=1";
-        return;
-      }
+    const r = await apiFetch("/api/tutorial/status", { method:"GET" });
+    const j = await r.json();
+    if(j && j.ok && !j.done && (j.step|0) <= 2){
+      location.href = "/gacha";
+      return;
     }
   }catch(e){}
 })();
 </script>
-
 </body>
 </html>
