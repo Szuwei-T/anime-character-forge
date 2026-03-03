@@ -1910,43 +1910,88 @@ body, .wrap, .page, .acf-page, .container{
   filter: drop-shadow(0 2px 6px rgba(0,0,0,0.7));
 }
 
-/* Skip animation toggle (placed under Premium card, outside the card) */
-.skipAnimRow{
-  margin-top: 10px;
-  padding: 8px 10px;
-  border-radius: 12px;
-  background: rgba(0,0,0,0.22);
-  border: 1px solid rgba(255,215,120,0.22);
-}
-.skipAnimLabel{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  font-weight:900;
-  letter-spacing:0.3px;
-  color: rgba(255,255,255,0.9);
-  user-select:none;
-}
-#chkSkipAnim{
-  width:18px;
-  height:18px;
-  accent-color: #d8b26a;
-}
 </style>
 
 <style id="acfAriaStyle">
-#acfAriaBox{position:fixed;right:18px;bottom:18px;width:420px;max-width:calc(100vw - 28px);z-index:99999;display:none;pointer-events:auto;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
-#acfAriaBox .aria-card{display:flex;gap:12px;padding:12px;border-radius:14px;background:rgba(10,10,12,0.78);box-shadow:0 10px 30px rgba(0,0,0,0.45);border:1px solid rgba(255,215,120,0.22);backdrop-filter:blur(6px)}
-#acfAriaBox .aria-img{width:88px;height:120px;border-radius:12px;overflow:hidden;flex:0 0 auto;border:1px solid rgba(255,215,120,0.25);background:rgba(255,255,255,0.06)}
-#acfAriaBox .aria-img img{width:100%;height:100%;object-fit:cover;display:block}
-#acfAriaBox .aria-main{flex:1 1 auto;min-width:0}
-#acfAriaBox .aria-name{font-weight:800;color:rgba(255,235,200,0.95);letter-spacing:0.2px;margin-bottom:6px}
-#acfAriaBox .aria-text{color:rgba(255,255,255,0.92);font-size:14px;line-height:1.35;min-height:54px;white-space:pre-wrap}
-#acfAriaBox .aria-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:10px}
-#acfAriaBox .aria-btn{border:1px solid rgba(255,215,120,0.28);background:rgba(255,215,120,0.12);color:rgba(255,245,230,0.95);padding:6px 10px;border-radius:10px;cursor:pointer;font-weight:700;font-size:12px}
-#acfAriaBox .aria-btn:hover{background:rgba(255,215,120,0.18)}
-.acfTutorMask{position:fixed;inset:0;z-index:99990;display:none;background:rgba(0,0,0,0.35)}
-.acfTutorPulse{outline:2px solid rgba(255,215,120,0.85)!important;box-shadow:0 0 0 6px rgba(255,215,120,0.18),0 0 25px rgba(255,215,120,0.35)!important;border-radius:14px!important}
+#acfAriaBox{
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  width: 420px;
+  max-width: calc(100vw - 28px);
+  z-index: 99999;
+  display: none;
+  pointer-events: auto;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+}
+#acfAriaBox .aria-card{
+  display:flex;
+  gap:12px;
+  padding:12px 12px;
+  border-radius: 14px;
+  background: rgba(10,10,12,0.78);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+  border: 1px solid rgba(255,215,120,0.22);
+  backdrop-filter: blur(6px);
+}
+#acfAriaBox .aria-img{
+  width: 88px;
+  height: 120px;
+  border-radius: 12px;
+  overflow: hidden;
+  flex: 0 0 auto;
+  border: 1px solid rgba(255,215,120,0.25);
+  background: rgba(255,255,255,0.06);
+}
+#acfAriaBox .aria-img img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display:block;
+}
+#acfAriaBox .aria-main{ flex:1 1 auto; min-width: 0; }
+#acfAriaBox .aria-name{
+  font-weight: 800;
+  color: rgba(255,235,200,0.95);
+  letter-spacing: 0.2px;
+  margin-bottom: 6px;
+}
+#acfAriaBox .aria-text{
+  color: rgba(255,255,255,0.92);
+  font-size: 14px;
+  line-height: 1.35;
+  min-height: 54px;
+  white-space: pre-wrap;
+}
+#acfAriaBox .aria-actions{
+  display:flex;
+  justify-content: flex-end;
+  gap:10px;
+  margin-top: 10px;
+}
+#acfAriaBox .aria-btn{
+  border: 1px solid rgba(255,215,120,0.28);
+  background: rgba(255,215,120,0.12);
+  color: rgba(255,245,230,0.95);
+  padding: 6px 10px;
+  border-radius: 10px;
+  cursor:pointer;
+  font-weight: 700;
+  font-size: 12px;
+}
+#acfAriaBox .aria-btn:hover{ background: rgba(255,215,120,0.18); }
+.acfTutorMask{
+  position: fixed;
+  inset: 0;
+  z-index: 99990;
+  display: none;
+  background: rgba(0,0,0,0.35);
+}
+.acfTutorPulse{
+  outline: 2px solid rgba(255,215,120,0.85) !important;
+  box-shadow: 0 0 0 6px rgba(255,215,120,0.18), 0 0 25px rgba(255,215,120,0.35) !important;
+  border-radius: 14px !important;
+}
 </style>
 
 </head>
@@ -2050,14 +2095,7 @@ body, .wrap, .page, .acf-page, .container{
 </div>
 </div>
 <div class="pity" id="pityPremium">再抽200次</div> 必出<img alt="UR" class="rarityBadge" src="/ui/icon/Rarity_UR.webp"/>
-</div
-<div class="skipAnimRow">
-  <label class="skipAnimLabel">
-    <input type="checkbox" id="chkSkipAnim"/>
-    <span data-i18n="skip_animation">Skip animation</span>
-  </label>
 </div>
->
 </div></div>
 </div>
 </img></div>
@@ -2225,17 +2263,7 @@ async function loadFeaturedVideo(){
     const btnPremium1 = document.getElementById("btnPremium1");
     const btnPremium10 = document.getElementById("btnPremium10");
 
-    
-
-    const chkSkipAnim = document.getElementById("chkSkipAnim");
-    try{
-      const v = localStorage.getItem("acf_skip_gacha_anim");
-      if(chkSkipAnim) chkSkipAnim.checked = (v === "1");
-      if(chkSkipAnim) chkSkipAnim.addEventListener("change", ()=> {
-        localStorage.setItem("acf_skip_gacha_anim", chkSkipAnim.checked ? "1" : "0");
-      });
-    }catch(_e){}
-const btnHead1 = document.getElementById("btnHead1");
+    const btnHead1 = document.getElementById("btnHead1");
     const btnHead10 = document.getElementById("btnHead10");
     const btnBody1 = document.getElementById("btnBody1");
     const btnBody10 = document.getElementById("btnBody10");
@@ -3108,50 +3136,7 @@ function renderGridDecoys(list){
     }
 
     
-    function instantRevealToSlots(winnerSlots, winners, isTen){
-      let rects = getGridCellRects();
-      framesLayer.innerHTML = "";
-      hideCinematic();
-
-      const cells = Array.from(grid32El.querySelectorAll(".cell"));
-      cells.forEach(c=>c.classList.remove("win","win2","red","focus"));
-      cells.forEach(c=>c.classList.add("dim"));
-
-      const finalSlotsAll = Array.isArray(winnerSlots) ? winnerSlots.slice() : [];
-      const framesCount = isTen ? 10 : 1;
-      const finalSlots = finalSlotsAll.slice(0, framesCount);
-      while(finalSlots.length < framesCount) finalSlots.push(0);
-
-      const frame = document.createElement("div");
-      frame.className = "jump-frame gold";
-      framesLayer.appendChild(frame);
-
-      const lastSlot = finalSlots[framesCount-1] || 0;
-      placeFrame(frame, rects[lastSlot]);
-
-      const winSet = new Set(finalSlots);
-      for(let i=0;i<framesCount;i++){
-        const slot = finalSlots[i];
-        const cell = cells[slot];
-        if(!cell) continue;
-
-        cell.classList.remove("dim");
-        cell.classList.add("win","win2");
-        if(isTen && i === framesCount-1) cell.classList.add("red");
-
-        const w = Array.isArray(winners) ? winners[i] : null;
-        const rr = Math.max(1, Math.min(5, Number(w?.rarity || 1)));
-        ["r1","r2","r3","r4","r5"].forEach(x=>cell.classList.remove(x));
-        cell.classList.add(`r${rr}`);
-      }
-
-      cells.forEach((c, idx)=>{
-        if(winSet.has(idx)) c.classList.remove("dim");
-        else c.classList.add("dim");
-      });
-    }
-
-async function animateJumpGridToSlots(winnerSlots, winners, isTen){
+    async function animateJumpGridToSlots(winnerSlots, winners, isTen){
       let rects = getGridCellRects();
 
       framesLayer.innerHTML = "";
@@ -3355,32 +3340,20 @@ async function animateJumpGridToSlots(winnerSlots, winners, isTen){
         // still showing rollingText below cards while preparing
 
         const isTen = Number(opts.count||1) === 10;
-        const skipAnim = (chkSkipAnim && chkSkipAnim.checked);
+        const pack = await buildGridWithPulled(pulled, opts);
 
-        if(skipAnim){
-          // Skip ALL pack-grid visuals and jump straight to the cinematic result page
-          hideLoad();
-          if(rollingText) rollingText.style.display = "none";
-          if(rollSub){ rollSub.style.display = ""; rollSub.textContent = ""; }
+        // 3) Run animation but DO NOT change grid content; only land frames onto the pre-decided winners
+        if(rollingText) rollingText.style.display = "";
+        if(rollSub) rollSub.style.display = "none";
+        if(rollSub) rollSub.textContent = "";
+        
+        await animateJumpGridToSlots(pack.winnerSlots, pack.winners, isTen);
 
-          try{
-            await playCinematicForPack(pulled, isTen);
-          }catch(_){ /* ignore cinematic errors */ }
-        }else{
-          const pack = await buildGridWithPulled(pulled, opts);
-
-          // 3) Run animation but DO NOT change grid content; only land frames onto the pre-decided winners
-          if(rollingText) rollingText.style.display = "";
-          if(rollSub) rollSub.style.display = "none";
-          if(rollSub) rollSub.textContent = "";
-
-          await animateJumpGridToSlots(pack.winnerSlots, pack.winners, isTen);
-
-          try{
-            const winners = Array.isArray(pack.winners) ? pack.winners : [];
-            await playCinematicForPack(winners, isTen);
-          }catch(_){ /* ignore cinematic errors */ }
-        }
+        // V2: cinematic reveal (single = big card, ten = 10 thumbnails)
+        try{
+          const winners = Array.isArray(pack.winners) ? pack.winners : [];
+          await playCinematicForPack(winners, isTen);
+        }catch(_){ /* ignore cinematic errors */ }
 
         if(rollingText) rollingText.style.display = "none";
         if(rollSub){ rollSub.style.display = ""; rollSub.textContent = isTen ? "" : ""; }
@@ -3513,11 +3486,16 @@ async function animateJumpGridToSlots(winnerSlots, winners, isTen){
   </div>
 </div>
 
-
 <script>
-(async function(){
-  const T = window.ACF_t || ((k)=>k);
-  const lang = (window.ACF_getLang ? window.ACF_getLang() : (localStorage.getItem("acf_lang")||"en"));
+(function(){
+  const IMAGES = {
+    default: "/ui/npc/aria_default.webp",
+    guide: "/ui/npc/aria_guide.webp",
+    discover: "/ui/npc/aria_discover.webp",
+    success: "/ui/npc/aria_success.webp",
+    warning: "/ui/npc/aria_warning.webp",
+    full: "/ui/npc/aria_full.webp"
+  };
 
   const box = document.getElementById("acfAriaBox");
   const imgEl = document.getElementById("acfAriaImg");
@@ -3526,110 +3504,196 @@ async function animateJumpGridToSlots(winnerSlots, winners, isTen){
   const mask = document.getElementById("acfTutorMask");
 
   function setImg(key){
-    const map = {
-      "default": "/ui/npc/aria_default.webp",
-      "guide": "/ui/npc/aria_guide.webp",
-      "discover": "/ui/npc/aria_discover.webp",
-      "success": "/ui/npc/aria_success.webp",
-      "warning": "/ui/npc/aria_warning.webp",
-      "full": "/ui/npc/aria_full.webp"
-    };
-    imgEl.src = map[key] || map["default"];
-    imgEl.onerror = ()=>{ imgEl.onerror=null; imgEl.src = map["default"]; };
+    const src = IMAGES[key] || IMAGES.default;
+    imgEl.src = src;
+    imgEl.onerror = ()=>{ imgEl.onerror=null; imgEl.src = IMAGES.default; };
   }
 
-  function show(msgKey, imgKey){
+  function show(msg, imgKey){
     setImg(imgKey || "default");
-    textEl.textContent = T(msgKey, msgKey);
+    textEl.textContent = msg || "";
     box.style.display = "block";
     mask.style.display = "block";
   }
+
   function hide(){
     box.style.display = "none";
     mask.style.display = "none";
     unpulseAll();
   }
+
   function pulse(el){
     if(!el) return;
     el.classList.add("acfTutorPulse");
     el.scrollIntoView({ block:"center", inline:"center", behavior:"smooth" });
   }
+  function unpulse(el){
+    if(!el) return;
+    el.classList.remove("acfTutorPulse");
+  }
   function unpulseAll(){
     document.querySelectorAll(".acfTutorPulse").forEach(n=>n.classList.remove("acfTutorPulse"));
   }
 
-  const btnNormal1 = document.getElementById("btnNormal1");
-  const btnNormal10 = document.getElementById("btnNormal10");
-  const btnPremium1 = document.getElementById("btnPremium1");
-  const btnPremium10 = document.getElementById("btnPremium10");
-  const confirmBtn = document.getElementById("confirmBtn");
-
-  function lockOther(){
-    [btnNormal10, btnPremium1, btnPremium10].forEach(b=>{ if(b){ b.style.pointerEvents="none"; b.style.opacity="0.35"; }});
-  }
-  function warnFollow(){
-    show("aria_ch1_warn_follow","warning");
-    unpulseAll();
-    pulse(btnNormal1);
-  }
-
-  async function getStatus(){
+  async function status(){
     try{
-      const r = await apiFetch(`/api/tutorial/status`, { method:"GET" });
-      return await r.json();
+      if(typeof apiFetch === "function"){
+        const j = await apiFetch("/api/tutorial/status", { method:"GET" });
+        return j;
+      }
+      const r = await fetch("/api/tutorial/status", { credentials:"include" });
+      const j = await r.json();
+      return j;
     }catch(e){
-      return null;
+      console.warn("tutorial status failed", e);
+      return { ok:false, error:"tutorial_status_failed" };
     }
   }
 
-  let st = await getStatus();
-  if(!st || !st.ok || st.done) return;
+  window.ACF_TUTOR = { show, hide, pulse, unpulse, unpulseAll, status };
+})();
+</script>
 
-  lockOther();
 
-  btnNext.onclick = ()=>hide();
+<script>
+(async function(){
+  const url = new URL(location.href);
+  // Tutorial shows whenever account has not finished it
+let st;
+  try{ st = await window.ACF_TUTOR.status(); }catch(e){ return; }
+  if(!st || !st.ok) return;
+  if(st.done) return;
 
-  async function render(){
-    st = await getStatus();
-    if(!st || !st.ok) return;
+  function q(sel){ return document.querySelector(sel); }
 
-    if(st.done){
-      hide();
-      [btnNormal10, btnPremium1, btnPremium10].forEach(b=>{ if(b){ b.style.pointerEvents=""; b.style.opacity=""; }});
-      return;
-    }
+  const btnNormal1 = q("#btnNormal1") || q("[data-action='normal1']") || q("button[data-roll='normal1']");
+  const btnNormal10 = q("#btnNormal10") || q("[data-action='normal10']");
+  const btnPrem1 = q("#btnPremium1") || q("[data-action='premium1']");
+  const btnPrem10 = q("#btnPremium10") || q("[data-action='premium10']");
+  const confirmBtn = q("#btnConfirm") || q("#confirmBtn") || q("button.confirm");
 
-    const step = st.step|0;
-    if(step <= 1){
-      show("aria_ch1_step1","default");
-      unpulseAll(); pulse(btnNormal1);
-    }else if(step === 2){
-      show("aria_ch1_step2","guide");
-      unpulseAll(); pulse(btnNormal1);
-    }else if(step >= 3){
-      show("aria_ch1_toStudio","success");
-      unpulseAll();
-      btnNext.onclick = ()=>{
-        hide();
-        location.href = "/studio";
-      };
-    }
+  function lockAll(){
+    [btnNormal10, btnPrem1, btnPrem10].forEach(b=>{ if(b){ b.style.pointerEvents="none"; b.style.opacity="0.35"; } });
+  }
+  function unlockAll(){
+    [btnNormal10, btnPrem1, btnPrem10].forEach(b=>{ if(b){ b.style.pointerEvents=""; b.style.opacity=""; } });
   }
 
-  // first message includes welcome then instruction
-  show("aria_ch1_welcome","full");
-  setTimeout(()=>{ render(); }, 700);
+  lockAll();
 
-  // prevent other draw buttons
-  [btnNormal10, btnPremium1, btnPremium10].forEach(b=> b && b.addEventListener("click", (e)=>{ e.preventDefault(); e.stopPropagation(); warnFollow(); }, true));
-
-  // after confirm, refresh step
-  if(confirmBtn){
-    confirmBtn.addEventListener("click", ()=>{ setTimeout(render, 200); }, true);
+  async function refresh(){
+    st = await window.ACF_TUTOR.status();
+    return st;
   }
 
-  // language switch refresh
-  window.addEventListener("acf:lang", ()=>{ if(box.style.display==="block"){ render(); }});
+  async function step1(){
+    window.ACF_TUTOR.show(
+      `歡迎來到創星神殿，創星者。
+我是 ARIA，將引導你完成第一個作品。
+
+先從最基礎的召喚開始。
+請點擊 普通抽卡 x1`,
+      "default"
+    );
+    window.ACF_TUTOR.unpulseAll();
+    window.ACF_TUTOR.pulse(btnNormal1);
+    btnNormal1 && (btnNormal1.style.pointerEvents="auto", btnNormal1.style.opacity="1");
+  }
+
+  async function step2(){
+    window.ACF_TUTOR.show(
+      `很好，你已獲得第一個頭部素材。
+現在還缺少身體。
+
+請再次點擊 普通抽卡 x1`,
+      "guide"
+    );
+    window.ACF_TUTOR.unpulseAll();
+    window.ACF_TUTOR.pulse(btnNormal1);
+    btnNormal1 && (btnNormal1.style.pointerEvents="auto", btnNormal1.style.opacity="1");
+  }
+
+  async function step3(){
+    window.ACF_TUTOR.show(
+      `完美，你已集齊頭部和身體。
+接下來到工作室進行組合。
+
+按 OK 前往 Studio`,
+      "success"
+    );
+    window.ACF_TUTOR.unpulseAll();
+    document.getElementById("acfAriaNext").onclick = ()=>{
+      window.ACF_TUTOR.hide();
+      location.href = "/studio?tutorial=1";
+    };
+  }
+
+  document.getElementById("acfAriaNext").onclick = ()=> window.ACF_TUTOR.hide();
+
+  if((st.step|0) <= 1){
+    await step1();
+  }else if((st.step|0) === 2){
+    await step2();
+  }else if((st.step|0) === 3){
+    await step3();
+    return;
+  }
+
+  // If user clicks other draw buttons, warn
+  function warn(){
+    window.ACF_TUTOR.show("先跟著 ARIA 完成教學。\n現在請點擊 普通抽卡 x1", "warning");
+    window.ACF_TUTOR.unpulseAll();
+    window.ACF_TUTOR.pulse(btnNormal1);
+  }
+  [btnNormal10, btnPrem1, btnPrem10].forEach(b=> b && b.addEventListener("click", (e)=>{ e.preventDefault(); e.stopPropagation(); warn(); }));
+
+  // After a draw is confirmed, advance to next step or jump to studio
+async function waitForTutorialProgress(prevStep){
+  const started = Date.now();
+  while(Date.now() - started < 4000){
+    const s = await refresh();
+    if(s && s.ok){
+      if(s.done) return s;
+      const cur = (s.step|0);
+      // if backend already advanced (or at least not behind), return
+      if(cur !== (prevStep|0)) return s;
+    }
+    await new Promise(r=>setTimeout(r, 250));
+  }
+  // fallback to one last refresh
+  return await refresh();
+}
+
+if(confirmBtn){
+  confirmBtn.addEventListener("click", async ()=>{
+    try{
+      const prev = (st && st.ok) ? (st.step|0) : 0;
+      const s2 = await waitForTutorialProgress(prev);
+      if(!s2 || !s2.ok) return;
+      st = s2;
+
+      if(s2.done) { unlockAll(); return; }
+
+      if((s2.step|0) === 2){
+        await step2();
+      }else if((s2.step|0) === 3){
+        await step3();
+      }else if((s2.step|0) <= 1){
+        // still step1: keep spotlight active
+        await step1();
+      }
+    }catch(e){}
+  }, true);
+}
+
+        if((s2.step|0) === 2){
+          await step2();
+        }else if((s2.step|0) === 3){
+          await step3();
+        }
+      }catch(e){}
+    }, true);
+  }
 })();
 </script>
 
