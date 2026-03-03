@@ -361,11 +361,11 @@ function __loginDone(user){
   if(__isEmbed){
     // tell parent to close overlay + refresh
     try{
-      window.parent.postMessage({ type: "acf-login-success", uid, redirect: __redirectTarget }, "*");
+      window.parent.postMessage({ type: "acf-login-success", uid, redirect: (window.__acf_redirect_override || __redirectTarget) }, "*");
     }catch(_e){}
     return;
   }
-  window.location.href = __redirectTarget;
+  window.location.href = (window.__acf_redirect_override || __redirectTarget);
 }
 
 
@@ -432,6 +432,7 @@ function __loginDone(user){
 
         if(isFirst){
           try{ localStorage.setItem("acf_force_story","1"); }catch(_e){}
+          try{ window.__acf_redirect_override = "/gacha?tutorial=1"; }catch(_e){}
         }
 
         try{ sessionStorage.removeItem("acf_just_logged_out"); }catch(_e){}
@@ -533,7 +534,8 @@ function __loginDone(user){
 <script>
 (async function(){
   try{
-    const j = await apiFetch("/api/tutorial/status", { method:"GET" });
+    const r = await apiFetch("/api/tutorial/status", { method:"GET" });
+    const j = await r.json();
     if(j && j.ok && !j.done && (j.step|0) <= 2){
       location.href = "/gacha";
       return;
