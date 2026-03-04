@@ -3653,7 +3653,23 @@ let st = await getStatus();
   show("aria_ch1_welcome","full");
   setTimeout(()=>{ render(); }, 700);
 
-  // prevent clicks on locked buttons (capture, so it works even if the gacha script overwrites handlers)
+  // keep ARIA in sync even if the gacha confirm handler is replaced by other scripts
+  let __acf_lastStep = (st && st.step) ? (st.step|0) : 0;
+  const __acf_poll = setInterval(async ()=>{
+    try{
+      const ns = await getStatus();
+      if(!ns || !ns.ok) return;
+      if(ns.done){ clearInterval(__acf_poll); hide(); return; }
+      const s = ns.step|0;
+      if(s !== __acf_lastStep){
+        __acf_lastStep = s;
+        st = ns;
+        render();
+      }
+    }catch(_){}
+  }, 400);
+
+// prevent clicks on locked buttons (capture, so it works even if the gacha script overwrites handlers)
 document.addEventListener("click", (e)=>{
   const b = e.target && e.target.closest ? e.target.closest("button") : null;
   if(!b) return;
@@ -3674,7 +3690,7 @@ document.addEventListener("click", (e)=>{
   if(!hit) return;
 
   (async ()=>{
-    try{ await apiFetch("/api/tutorial/advance", { method:"POST" }); }catch(_){}
+    try{ const adv = await apiFetch("/api/tutorial/advance", { method:"POST" }); if(adv && adv.ok){ st = adv; } }catch(_){}
     // allow the gacha UI to finish closing overlays, then re-render ARIA immediately
     setTimeout(()=>{ render(); }, 50);
     setTimeout(()=>{ render(); }, 300);
