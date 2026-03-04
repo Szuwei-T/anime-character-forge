@@ -2302,7 +2302,6 @@ async function onlineGacha(opts = {}) {
   // - If app.js provides window.api(), it likely routes to the Worker origin.
   // - Otherwise fall back to same-origin fetch.
   const apiFetch = (url, fetchOpts) => {
-    if (typeof window.apiFetch === "function") return window.apiFetch(url, fetchOpts);
     if (typeof window.api === "function") return window.api(url, fetchOpts);
     return fetch(url, fetchOpts);
   };
@@ -2339,8 +2338,15 @@ async function onlineGacha(opts = {}) {
   const base = (typeof WORKER_BASE === "string") ? WORKER_BASE : (
     (location.hostname === "127.0.0.1" || location.hostname === "localhost") ? "" : "https://acf-api.dream-league-baseball.workers.dev"
   );
-  const data = await (window.apiFetch ? window.apiFetch("/api/gacha",{method:"POST",body:payload}) : fetch(base + "/api/gacha",{method:"POST",headers,body:JSON.stringify(payload)}).then(r=>r.json()).catch(_=>null));
-// Normalize error for UI
+  const res = await fetch(base + "/api/gacha", {
+    method: "POST",
+    headers,
+    body: JSON.stringify(payload),
+  });
+  let data = null;
+  try{ data = await res.json(); }catch(_){ data = null; }
+
+  // Normalize error for UI
   if (!data || data.ok !== true || !Array.isArray(data.pulled)) {
     const code = data && data.error ? String(data.error) : `gacha_http_${res.status || 0}`;
     const need = data && (data.need ?? data.costGold ?? data.costGem);
@@ -2374,7 +2380,6 @@ function updatePityUI(data){
 
 async function loadPityStatus(){
   const apiFetch = (url, fetchOpts) => {
-    if (typeof window.apiFetch === "function") return window.apiFetch(url, fetchOpts);
     if (typeof window.api === "function") return window.api(url, fetchOpts);
     return fetch(url, fetchOpts);
   };
@@ -2556,10 +2561,9 @@ function assetFullUrl(a){
       async function getMyAccount(){
         try{
           const apiFetch = (url, fetchOpts) => {
-    if (typeof window.apiFetch === "function") return window.apiFetch(url, fetchOpts);
-    if (typeof window.api === "function") return window.api(url, fetchOpts);
-    return fetch(url, fetchOpts);
-  };
+            if (typeof window.api === "function") return window.api(url, fetchOpts);
+            return fetch(url, fetchOpts);
+          };
           const res = await apiFetch("/api/me/account", { method:"GET", headers: buildUidHeaders() });
           if(res && typeof res.json === "function"){
             if(!res.ok) return null;
@@ -2932,10 +2936,9 @@ function assetFullUrl(a){
         try{
           if(!_shareState.ready) return setShareHint("分享圖還沒準備好");
           const apiFetch = (url, fetchOpts) => {
-    if (typeof window.apiFetch === "function") return window.apiFetch(url, fetchOpts);
-    if (typeof window.api === "function") return window.api(url, fetchOpts);
-    return fetch(url, fetchOpts);
-  };
+            if (typeof window.api === "function") return window.api(url, fetchOpts);
+            return fetch(url, fetchOpts);
+          };
           const res = await apiFetch("/api/share/reward", {
             method:"POST",
             headers: buildUidHeaders(),
