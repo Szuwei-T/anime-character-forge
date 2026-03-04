@@ -3575,8 +3575,8 @@ async function animateJumpGridToSlots(winnerSlots, winners, isTen){
 
   async function getStatus(){
     try{
-      const j = await apiFetch(`/api/tutorial/status`, { method:"GET" });
-      return j;
+      const data = await apiFetch(`/api/tutorial/status`, { method:"GET" });
+      return data;
     }catch(e){
       return null;
     }
@@ -3631,31 +3631,23 @@ let st = await getStatus();
   // prevent other draw buttons
   [btnNormal10, btnPremium1, btnPremium10].forEach(b=> b && b.addEventListener("click", (e)=>{ e.preventDefault(); e.stopPropagation(); warnFollow(); }, true));
 
-  // after confirm, refresh step (poll until DB step updates)
+  // after confirm: advance tutorial to next step and re-render
   if(confirmBtn){
     confirmBtn.addEventListener("click", ()=>{
-      const prevStep = (st && typeof st.step === "number") ? st.step : null;
       (async ()=>{
-        const start = Date.now();
-        const timeoutMs = 4000;
-        while(Date.now() - start < timeoutMs){
-          try{
-            const ns = await getStatus();
-            if(ns && ns.ok){
-              // step changed
-              if(prevStep === null || ns.step !== prevStep){
-                st = ns;
-                break;
-              }
-            }
-          }catch(e){}
-          await new Promise(r=>setTimeout(r, 250));
-        }
+        try{ await apiFetch("/api/tutorial/advance", { method:"POST", body:{ step:3 } }); }catch(_){ }
         await render();
       })();
     }, true);
   }
 
+  // language switch refresh
+  window.addEventListener("acf:lang", ()=>{ if(box.style.display==="block"){ render(); }});
+})();
+</script>
+
+</body>
+</html>
   // language switch refresh
   window.addEventListener("acf:lang", ()=>{ if(box.style.display==="block"){ render(); }});
 })();
