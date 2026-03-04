@@ -2315,42 +2315,35 @@ async function onlineGacha(opts = {}) {
 
   const headers = { "content-type": "application/json" };
 
-  
-// Attach a canonical uid.
-// IMPORTANT: the rest of the app uses `acf_uid` as the primary key.
-// If older keys (uid/userId/USER_ID) exist, we sync them to avoid mismatched inventories.
-let uid = String(localStorage.getItem("acf_uid") || "").trim();
-
-if(!uid){
-  const legacy = [
-    window.USER_ID,
-    window.userId,
-    window.uid,
+  // Use acf_uid as the single source of truth across all pages.
+  // If missing, create one and sync legacy keys so older code paths stay consistent.
+  let uid = "";
+  const uidCandidates = [
+    localStorage.getItem("acf_uid"),
     localStorage.getItem("uid"),
     localStorage.getItem("userId"),
     localStorage.getItem("USER_ID"),
+    window.USER_ID,
+    window.userId,
+    window.uid,
+    (typeof window.getUserId === "function" ? window.getUserId() : ""),
+    (typeof window.getUid === "function" ? window.getUid() : ""),
   ];
-  for(const v of legacy){
+  for (const v of uidCandidates) {
     const s = String(v || "").trim();
-    if(s && s !== "null" && s !== "undefined"){ uid = s; break; }
+    if (s && s !== "null" && s !== "undefined") { uid = s; break; }
   }
-}
-
-if(!uid){
-  uid = (crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now() + "_" + Math.random().toString(16).slice(2));
-}
-
-// Persist & sync aliases so every page uses the same uid
-try{
-  localStorage.setItem("acf_uid", uid);
-  localStorage.setItem("uid", uid);
-  localStorage.setItem("userId", uid);
-  localStorage.setItem("USER_ID", uid);
-}catch(_){}
-
-headers["x-user-id"] = uid;
-
+  if (!uid) {
+    uid = (crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now() + "_" + Math.random().toString(16).slice(2));
   }
+  try {
+    localStorage.setItem("acf_uid", uid);
+    localStorage.setItem("uid", uid);
+    localStorage.setItem("userId", uid);
+    localStorage.setItem("USER_ID", uid);
+  } catch (_) {}
+  headers["x-user-id"] = uid;
+
 
   // IMPORTANT: do NOT use apiFetch for gacha, because apiFetch returns null on HTTP 4xx/5xx.
   // We must parse JSON even when status is 400 so we can show the real reason (insufficient gold/gem etc.).
@@ -2404,21 +2397,26 @@ async function loadPityStatus(){
   };
 
   const headers = {};
+
+  let uid = "";
   const uidCandidates = [
+    localStorage.getItem("acf_uid"),
+    localStorage.getItem("uid"),
+    localStorage.getItem("userId"),
+    localStorage.getItem("USER_ID"),
     window.USER_ID,
     window.userId,
     window.uid,
     (typeof window.getUserId === "function" ? window.getUserId() : ""),
     (typeof window.getUid === "function" ? window.getUid() : ""),
-    localStorage.getItem("uid"),
-    localStorage.getItem("userId"),
-    localStorage.getItem("USER_ID"),
-          localStorage.getItem("acf_uid"),
   ];
   for (const v of uidCandidates) {
     const s = String(v || "").trim();
-    if (s && s !== "null" && s !== "undefined") { headers["x-user-id"] = s; break; }
+    if (s && s !== "null" && s !== "undefined") { uid = s; break; }
   }
+  if (uid) headers["x-user-id"] = uid;
+
+}
 
   try{
     const resp = await apiFetch("/api/gacha/pity", { method:"GET", headers });
@@ -3709,7 +3707,7 @@ document.addEventListener("click", (e)=>{
   if(!hit) return;
 
   (async ()=>{
-    try{ const adv = await apiFetch("/api/tutorial/advance", { method:"POST", headers:{ "content-type":"application/json" }, body: {} }); if(adv && adv.ok){ st = adv; } }catch(_){ }
+    try{ const adv = await apiFetch("/api/tutorial/advance", { method:"POST" }); if(adv && adv.ok){ st = adv; } }catch(_){}
     // allow the gacha UI to finish closing overlays, then re-render ARIA immediately
     setTimeout(()=>{ render(); }, 50);
     setTimeout(()=>{ render(); }, 300);
