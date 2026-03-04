@@ -3592,7 +3592,6 @@ function warnFollow(step){
   unpulseAll();
   pulse(step === 2 ? btnBody1 : btnNormal1);
 }
-}
 
   async function getStatus(){
     try{
@@ -3683,13 +3682,6 @@ document.addEventListener("click", (e)=>{
 }, true);
 
 
-  // language switch refresh
-  window.addEventListener("acf:lang", ()=>{ if(box.style.display==="block"){ render(); }});
-})();
-</script>
-
-</body>
-</html>
   // language switch refresh
   window.addEventListener("acf:lang", ()=>{ if(box.style.display==="block"){ render(); }});
 })();
