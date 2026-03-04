@@ -8,7 +8,18 @@ const APP = {
 // ===== Auth state helpers =====
 // We treat Firebase login as "authed". A guest may still have a local uid, but cannot do actions.
 function ACF_isAuthed(){
-  return String(localStorage.getItem("acf_authed") || "0") === "1";
+  try{
+    const v = String(localStorage.getItem("acf_authed") || "0");
+    if(v !== "1") return false;
+    const uid = String(localStorage.getItem("acf_uid") || localStorage.getItem("uid") || "").trim();
+    if(!uid){
+      try{ localStorage.removeItem("acf_authed"); }catch(_e){}
+      return false;
+    }
+    return true;
+  }catch(_e){
+    return false;
+  }
 }
 function ACF_setAuthed(v){
   try{ localStorage.setItem("acf_authed", v ? "1" : "0"); }catch(_){}
@@ -1222,6 +1233,7 @@ white-space: nowrap;
     let data = {};
     try{ data = JSON.parse(t||"{}"); }catch(_){ data = { ok:false, error:t }; }
     if(res.status === 401){
+  try{ ACF_setAuthed(false); }catch(_e){}
   return { ok:true, guest:true };
 }
 if(!res.ok || data.ok===false) throw data;
@@ -1464,8 +1476,14 @@ return data;
     }else{
       try{
         const me = await fetchMeAccount();
-        window.__acfMe = me;
-        renderMaster(me);
+        if(me && me.guest){
+          try{ ACF_setAuthed(false); }catch(_e){}
+          window.__acfMe = null;
+          renderMaster(null);
+        }else{
+          window.__acfMe = me;
+          renderMaster(me);
+        }
         refreshNetBadge();
         ACF_applyI18n(document);
       }catch(_e){

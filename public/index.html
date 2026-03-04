@@ -406,6 +406,7 @@ function __loginDone(user){
 
         // 讓 app.js 的 getOrCreateUid() 用 Firebase uid
         localStorage.setItem("acf_uid", user.uid);
+        try{ localStorage.setItem("acf_authed","1"); }catch(_e){}
 
         showStep(true);
         setStatus("", "");
@@ -436,14 +437,11 @@ function __loginDone(user){
           try{ window.__acf_redirect_override = "/gacha?tutorial=1"; }catch(_e){}
         }
 
-catch(_e){}
-          try{ window.__acf_redirect_override = "/gacha?tutorial=1"; }catch(_e){}
-        }
-
         try{ sessionStorage.removeItem("acf_just_logged_out"); }catch(_e){}
         setStatus("登入成功，正在進入作品庫…", "ok");
         setTimeout(() => __loginDone(user), 150);
 } else {
+        try{ localStorage.removeItem("acf_authed"); }catch(_e){}
         $("userEmail").textContent = "未登入";
         $("userUid").textContent = "";
         showStep(false);
@@ -526,7 +524,9 @@ catch(_e){}
       try {
         await signOut(auth);
         // optional: 保留 acf_uid 也行 但登出時清掉比較直覺
+        try{ sessionStorage.setItem("acf_just_logged_out","1"); }catch(_e){}
         localStorage.removeItem("acf_uid");
+        try{ localStorage.removeItem("acf_authed"); }catch(_e){}
       } finally {
         setBusy(false);
       }
