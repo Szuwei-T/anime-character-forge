@@ -3562,16 +3562,37 @@ async function animateJumpGridToSlots(winnerSlots, winners, isTen){
   const btnNormal10 = document.getElementById("btnNormal10");
   const btnPremium1 = document.getElementById("btnPremium1");
   const btnPremium10 = document.getElementById("btnPremium10");
+const btnHead1 = document.getElementById("btnHead1");
+const btnHead10 = document.getElementById("btnHead10");
+const btnBody1 = document.getElementById("btnBody1");
+const btnBody10 = document.getElementById("btnBody10");
+const btnBg1 = document.getElementById("btnBg1");
+const btnBg10 = document.getElementById("btnBg10");
+const btnAddon11 = document.getElementById("btnAddon11");
+const btnAddon110 = document.getElementById("btnAddon110");
+const btnAddon21 = document.getElementById("btnAddon21");
+const btnAddon210 = document.getElementById("btnAddon210");
   const confirmBtn = document.getElementById("confirmBtn");
 
-  function lockOther(){
-    [btnNormal10, btnPremium1, btnPremium10].forEach(b=>{ if(b){ b.style.pointerEvents="none"; b.style.opacity="0.35"; }});
+  function setLock(allowed){
+  const all = [btnHead1, btnHead10, btnBody1, btnBody10, btnBg1, btnBg10, btnAddon11, btnAddon110, btnAddon21, btnAddon210, btnNormal1, btnNormal10, btnPremium1, btnPremium10].filter(Boolean);
+
+  // allowed === null => unlock everything
+  if(allowed === null){
+    all.forEach(b=>{ b.style.pointerEvents=""; b.style.opacity=""; });
+    return;
   }
-  function warnFollow(){
-    show("aria_ch1_warn_follow","warning");
-    unpulseAll();
-    pulse(btnNormal1);
-  }
+
+  all.forEach(b=>{ b.style.pointerEvents="none"; b.style.opacity="0.35"; });
+  (allowed||[]).filter(Boolean).forEach(b=>{ b.style.pointerEvents=""; b.style.opacity=""; });
+}
+
+function warnFollow(step){
+  show("aria_ch1_warn_follow","warning");
+  unpulseAll();
+  pulse(step === 2 ? btnBody1 : btnNormal1);
+}
+}
 
   async function getStatus(){
     try{
@@ -3593,7 +3614,7 @@ if(forceTutorial){
 let st = await getStatus();
   if(!st || !st.ok || st.done) return;
 
-  lockOther();
+  setLock([btnNormal1]);
 
   btnNext.onclick = ()=>hide();
 
@@ -3609,12 +3630,17 @@ let st = await getStatus();
 
     const step = st.step|0;
     if(step <= 1){
-      show("aria_ch1_step1","default");
-      unpulseAll(); pulse(btnNormal1);
-    }else if(step === 2){
-      show("aria_ch1_step2","guide");
-      unpulseAll(); pulse(btnNormal1);
-    }else if(step >= 3){
+  show("aria_ch1_step1","default");
+  setLock([btnNormal1, confirmBtn]);
+  unpulseAll(); pulse(btnNormal1);
+  btnNext.onclick = ()=>hide();
+}else if(step === 2){
+  show("aria_ch1_step2","guide");
+  setLock([btnBody1, confirmBtn]);
+  unpulseAll(); pulse(btnBody1);
+  btnNext.onclick = ()=>hide();
+}else if(step >= 3){
+
       show("aria_ch1_toStudio","success");
       unpulseAll();
       btnNext.onclick = ()=>{
@@ -3628,18 +3654,34 @@ let st = await getStatus();
   show("aria_ch1_welcome","full");
   setTimeout(()=>{ render(); }, 700);
 
-  // prevent other draw buttons
-  [btnNormal10, btnPremium1, btnPremium10].forEach(b=> b && b.addEventListener("click", (e)=>{ e.preventDefault(); e.stopPropagation(); warnFollow(); }, true));
+  // prevent clicks on locked buttons (capture, so it works even if the gacha script overwrites handlers)
+document.addEventListener("click", (e)=>{
+  const b = e.target && e.target.closest ? e.target.closest("button") : null;
+  if(!b) return;
+  if(!b.id || !b.id.startsWith("btn")) return;
+
+  // locked by tutorial
+  if(b.style && b.style.pointerEvents === "none"){
+    e.preventDefault();
+    e.stopPropagation();
+    warnFollow(st.step|0);
+  }
+}, true);
+
 
   // after confirm: advance tutorial to next step and re-render
-  if(confirmBtn){
-    confirmBtn.addEventListener("click", ()=>{
-      (async ()=>{
-        try{ await apiFetch("/api/tutorial/advance", { method:"POST", body:{ step:3 } }); }catch(_){ }
-        await render();
-      })();
-    }, true);
-  }
+document.addEventListener("click", (e)=>{
+  const hit = e.target && e.target.closest ? e.target.closest("#confirmBtn") : null;
+  if(!hit) return;
+
+  (async ()=>{
+    try{ await apiFetch("/api/tutorial/advance", { method:"POST" }); }catch(_){}
+    // allow the gacha UI to finish closing overlays, then re-render ARIA immediately
+    setTimeout(()=>{ render(); }, 50);
+    setTimeout(()=>{ render(); }, 300);
+  })();
+}, true);
+
 
   // language switch refresh
   window.addEventListener("acf:lang", ()=>{ if(box.style.display==="block"){ render(); }});

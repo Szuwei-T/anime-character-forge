@@ -33,7 +33,7 @@ const ACF_I18N = (() => {
     "en": {
       aria_ch1_welcome: "Welcome, Star Creator. I am ARIA. I will guide you through your first creation.",
       aria_ch1_step1: "Let us begin with a basic summon. Tap Standard 1x.",
-      aria_ch1_step2: "Great. Now you need a body. Tap Standard 1x again.",
+      aria_ch1_step2: "Great. Now draw an Outfit (Body) once. Tap Body 1x.",
       aria_ch1_toStudio: "Perfect. Time to assemble in Studio. Tap OK to go to Studio.",
       aria_ch1_pickHead: "Now, select a head part.",
       aria_ch1_pickBody: "Next, select a body part.",
@@ -136,6 +136,12 @@ const ACF_I18N = (() => {
       lang_ko: "한국어",
     },
     "zh-Hant": {
+      aria_ch1_welcome: "歡迎，創星者。我是 ARIA，我會帶你完成第一次創作。",
+      aria_ch1_step1: "先從基本召喚開始。點擊 Standard 1x。",
+      aria_ch1_step2: "很好。接著抽 1 次 Outfit（Body）。點擊 Body 1x。",
+      aria_ch1_toStudio: "完成。現在去 Studio 組裝角色。點 OK 前往 Studio。",
+      aria_ch1_warn_follow: "先照著我一步一步來喔。",
+
       login_title: "Anime Character Forge 登入",
       login_email_signin: "Email 登入",
       login_email_signup: "Email 註冊",
@@ -231,6 +237,12 @@ const ACF_I18N = (() => {
       lang_ko: "한국어",
     },
     "zh-Hans": {
+      aria_ch1_welcome: "欢迎，创星者。我是 ARIA，我会带你完成第一次创作。",
+      aria_ch1_step1: "先从基础召唤开始。点击 Standard 1x。",
+      aria_ch1_step2: "很好。接着抽 1 次 Outfit（Body）。点击 Body 1x。",
+      aria_ch1_toStudio: "完成。现在去 Studio 组装角色。点 OK 前往 Studio。",
+      aria_ch1_warn_follow: "先按我一步一步来哦。",
+
       login_title: "Anime Character Forge 登录",
       login_email_signin: "Email 登录",
       login_email_signup: "Email 注册",
