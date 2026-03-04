@@ -2079,6 +2079,29 @@ body, .wrap, .page, .acf-page, .container{
 </div>
 <script src="app.js"></script>
 <script>
+  // ===== UID unifier: keep all pages reading/writing the same user id =====
+  function acf_getUid(){
+    const keys = ["acf_uid","uid","userId","USER_ID"];
+    let v = "";
+    for(const k of keys){
+      const s = String(localStorage.getItem(k)||"").trim();
+      if(s && s!=="null" && s!=="undefined"){ v=s; break; }
+    }
+    if(!v){
+      const w = String(window.ACF_UID||window.USER_ID||window.userId||window.uid||"").trim();
+      if(w && w!=="null" && w!=="undefined") v=w;
+    }
+    if(v){
+      for(const k of keys){ try{ localStorage.setItem(k,v); }catch(e){} }
+      window.ACF_UID = v;
+      window.USER_ID = v;
+      window.userId = v;
+      window.uid = v;
+    }
+    return v;
+  }
+
+
 
     // Keep featured video exactly from masterpage bottom to viewport bottom
     function updateMasterHeight(){
@@ -2298,96 +2321,42 @@ function normalizeType(t){
       throw new Error("assets_load_failed");
     }
 async function onlineGacha(opts = {}) {
-  // Use the same routing as the rest of the project:
-  // - If app.js provides window.api(), it likely routes to the Worker origin.
-  // - Otherwise fall back to same-origin fetch.
+  // Production-safe API wrapper: works with either window.api() (returns JSON) or fetch() (returns Response)
   const apiFetch = (url, fetchOpts) => {
     if (typeof window.api === "function") return window.api(url, fetchOpts);
     return fetch(url, fetchOpts);
   };
 
   const payload = {
-    count: Number(opts.count || 1),
+    count: Math.max(1, Number(opts.count || 1)),
     premium: !!opts.premium,
     type: opts.type ? requestType(opts.type) : undefined,
     seasonId: String(opts.seasonId || "S1"),
   };
 
   const headers = { "content-type": "application/json" };
+  const uid = acf_getUid();
+  if (uid) headers["x-user-id"] = uid;
 
-  // Use acf_uid as the single source of truth across all pages.
-  // If missing, create one and sync legacy keys so older code paths stay consistent.
-  let uid = "";
-  const uidCandidates = [
-    localStorage.getItem("acf_uid"),
-    localStorage.getItem("uid"),
-    localStorage.getItem("userId"),
-    localStorage.getItem("USER_ID"),
-    window.USER_ID,
-    window.userId,
-    window.uid,
-    (typeof window.getUserId === "function" ? window.getUserId() : ""),
-    (typeof window.getUid === "function" ? window.getUid() : ""),
-  ];
-  for (const v of uidCandidates) {
-    const s = String(v || "").trim();
-    if (s && s !== "null" && s !== "undefined") { uid = s; break; }
-  }
-  if (!uid) {
-    uid = (crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now() + "_" + Math.random().toString(16).slice(2));
-  }
-  try {
-    localStorage.setItem("acf_uid", uid);
-    localStorage.setItem("uid", uid);
-    localStorage.setItem("userId", uid);
-    localStorage.setItem("USER_ID", uid);
-  } catch (_) {}
-  headers["x-user-id"] = uid;
-
-
-  // IMPORTANT: do NOT use apiFetch for gacha, because apiFetch returns null on HTTP 4xx/5xx.
-  // We must parse JSON even when status is 400 so we can show the real reason (insufficient gold/gem etc.).
-  const base = (typeof WORKER_BASE === "string") ? WORKER_BASE : (
-    (location.hostname === "127.0.0.1" || location.hostname === "localhost") ? "" : "https://acf-api.dream-league-baseball.workers.dev"
-  );
-  const res = await fetch(base + "/api/gacha", {
+  const resp = await apiFetch("/api/gacha", {
     method: "POST",
     headers,
     body: JSON.stringify(payload),
   });
-  let data = null;
-  try{ data = await res.json(); }catch(_){ data = null; }
 
-  // Normalize error for UI
-  if (!data || data.ok !== true || !Array.isArray(data.pulled)) {
-    const code = data && data.error ? String(data.error) : `gacha_http_${res.status || 0}`;
-    const need = data && (data.need ?? data.costGold ?? data.costGem);
-    const have = data && (data.have ?? data.userGold ?? data.userGem);
-    const msg = (need != null && have != null) ? `${code} (need ${need}, have ${have})` : code;
+  // window.api may return JSON directly; fetch returns a Response
+  const isResponseLike = resp && typeof resp === "object" && ("ok" in resp) && typeof resp.json === "function";
+  const data = isResponseLike ? await resp.json() : resp;
+
+  if (!data || data.ok !== true) {
+    const msg = (data && (data.error || data.message)) ? String(data.error || data.message) : "gacha_failed";
     throw new Error(msg);
   }
 
-  if (opts.type) {
-    const want = String(requestType(opts.type)).toLowerCase();
-    data.pulled = data.pulled.filter((a) => String(a?.type || "").toLowerCase() === want);
-  }
+  // If pity counters are included, update them
+  try { if (typeof updatePityUI === "function") updatePityUI(data); } catch(e) {}
+
   return data;
-
-
-}
-
-function setPityText(el, remaining, label){
-  if(!el) return;
-  const x = Math.max(1, Number(remaining || 0));
-  el.textContent = `再抽${x}次`;
-}
-
-function updatePityUI(data){
-  if(!data) return;
-  const n = data.pityNormalRemaining;
-  const p = data.pityPremiumRemaining;
-  setPityText(document.getElementById("pityNormal"), n, "SSR");
-  setPityText(document.getElementById("pityPremium"), p, "UR");
 }
 
 async function loadPityStatus(){
@@ -2395,36 +2364,19 @@ async function loadPityStatus(){
     if (typeof window.api === "function") return window.api(url, fetchOpts);
     return fetch(url, fetchOpts);
   };
-
   const headers = {};
-
-  let uid = "";
-  const uidCandidates = [
-    localStorage.getItem("acf_uid"),
-    localStorage.getItem("uid"),
-    localStorage.getItem("userId"),
-    localStorage.getItem("USER_ID"),
-    window.USER_ID,
-    window.userId,
-    window.uid,
-    (typeof window.getUserId === "function" ? window.getUserId() : ""),
-    (typeof window.getUid === "function" ? window.getUid() : ""),
-  ];
-  for (const v of uidCandidates) {
-    const s = String(v || "").trim();
-    if (s && s !== "null" && s !== "undefined") { uid = s; break; }
-  }
+  const uid = acf_getUid();
   if (uid) headers["x-user-id"] = uid;
-
-}
 
   try{
     const resp = await apiFetch("/api/gacha/pity", { method:"GET", headers });
     const isResponseLike = resp && typeof resp === "object" && ("ok" in resp) && typeof resp.json === "function";
     const data = isResponseLike ? await resp.json() : resp;
-    if(data && data.ok) updatePityUI(data);
+    if(data && data.ok && typeof updatePityUI === "function") updatePityUI(data);
   }catch(_){}
 }
+
+window.onlineGacha = onlineGacha;
 window.loadPityStatus = loadPityStatus;
 
     function assetThumb(a){
