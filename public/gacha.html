@@ -3690,7 +3690,7 @@ document.addEventListener("click", (e)=>{
   if(!hit) return;
 
   (async ()=>{
-    try{ const adv = await apiFetch("/api/tutorial/advance", { method:"POST" }); if(adv && adv.ok){ st = adv; } }catch(_){}
+    try{ const adv = await apiFetch("/api/tutorial/advance", { method:"POST", headers:{ "content-type":"application/json" }, body: {} }); if(adv && adv.ok){ st = adv; } }catch(_){ }
     // allow the gacha UI to finish closing overlays, then re-render ARIA immediately
     setTimeout(()=>{ render(); }, 50);
     setTimeout(()=>{ render(); }, 300);
