@@ -1184,72 +1184,12 @@ async function api(url, opts){
   }
 
   function tagBonusPct(n){
-    if(n >= 5) return 0.80;
-    if(n === 4) return 0.40;
-    if(n === 3) return 0.20;
-    if(n === 2) return 0.10;
-    return 0.0;
-  }
-
-  function calcAssetScoreById(assetId){
-    const id = String(assetId || "");
-    if(!id) return { score:0, tags:[] };
-
-    const a = (scoreDb.assets || []).find(x => String(x.assetId) === id) || null;
-    const rarity = Number(a?.rarity || 1);
-    const base = Number(BASE_SCORE[rarity] || 0);
-
-    const ua = (scoreDb.userAssets || {})[id] || {};
-    let stars = Number(ua.stars || 1);
-    if(!Number.isFinite(stars) || stars < 1) stars = 1;
-    if(stars > 99) stars = 99;
-
-    const tags = normTags(a?.tags);
-    const theme = String(scoreDb.seasonThemeTag || "").trim().toLowerCase();
-
-    const starBonus = (stars > 1) ? (0.2 * (stars - 1)) : 0;
-    const themeBonus = (theme && tags.includes(theme)) ? 0.3 : 0;
-
-    const score = base * (1 + starBonus + themeBonus);
-    return { score, tags };
-  }
-
-  function computeSystemScoreFromUrls(parts){
-    const ids = [parts.headUrl, parts.bodyUrl, parts.bgUrl, parts.addon1Url, parts.addon2Url]
-      .map(assetIdFromUrl)
-      .filter(Boolean);
-
-    const per = ids.map(calcAssetScoreById).map(x => ({ ...x, score: Math.round(Number(x.score)||0) }));
-    const sumBase = per.reduce((acc, x) => acc + (Number(x.score)||0), 0);
-
-    const counts = {};
-    per.forEach(x => (x.tags || []).forEach(t => { counts[t] = (counts[t]||0)+1; }));
-    let bonus = 0;
-    Object.keys(counts).forEach(t => { bonus += tagBonusPct(counts[t]); });
-
-    return Math.round(sumBase * (1 + bonus));
-  }
-
-  function makeScoreThumb(score){
-    const wrap = document.createElement("div");
-    wrap.className = "scoreFrameThumb";
-    const val = document.createElement("div");
-    val.className = "val";
-    val.textContent = String(Math.max(0, Math.floor(Number(score || 0))));
-    wrap.appendChild(val);
-    return wrap;
-  }
-
-        let __modalScrollY = 0;
-function ensureOverlayRoot(){
-  // If the main page container uses transforms/filters, a fixed modal inside it can behave like it's at the page bottom.
-  // Keep the modal and toast as direct children of <body> to guarantee true viewport overlay.
-  if(modal && modal.parentElement !== document.body){
-    document.body.appendChild(modal);
-  }
-  if(toast && toast.parentElement !== document.body){
-    document.body.appendChild(toast);
-  }
+  const c = Number(n||0);
+  if(c >= 5) return 0.15;
+  if(c === 4) return 0.10;
+  if(c === 3) return 0.07;
+  if(c === 2) return 0.05;
+  return 0.0;
 }
 
 function openModal(title, sub, layers, showcase){
