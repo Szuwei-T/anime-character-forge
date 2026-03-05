@@ -605,6 +605,492 @@
   if(c === 3) return 0.07;
   if(c === 2) return 0.05;
   return 0.0;
+}
+
+  function calcAssetScore(assetId){
+    const id = String(assetId || "");
+    if(!id) return { score:0, tags:[] };
+
+    const a = (scoreDb.assets || []).find(x => String(x.assetId) === id) || null;
+    const rarity = Number(a?.rarity || 1);
+    const base = Number(BASE_SCORE[rarity] || 0);
+
+    const ua = (scoreDb.userAssets || {})[id] || {};
+    let stars = Number(ua.stars || 1);
+    if(!Number.isFinite(stars) || stars < 1) stars = 1;
+    if(stars > 5) stars = 5;
+
+    const tags = normTags(a?.tags);
+    const theme = String(scoreDb.seasonThemeTag || "").trim().toLowerCase();
+
+    const starBonus = (stars > 1) ? (0.2 * (stars - 1)) : 0;
+    const themeBonus = (theme && tags.includes(theme)) ? 0.3 : 0;
+
+    const score = base * (1 + starBonus + themeBonus);
+    return { score, tags };
+  }
+
+  function computeSystemScore(payload){
+    const ids = [payload.headId, payload.bodyId, payload.bgId, payload.addon1Id, payload.addon2Id]
+      .map(normId).filter(Boolean);
+
+    const per = ids.map(calcAssetScore).map(x => ({ ...x, score: Math.round(Number(x.score)||0) }));
+    const sumBase = per.reduce((acc, x) => acc + (Number(x.score)||0), 0);
+
+    // Tag synergy bonus across all assets
+    const counts = {};
+    per.forEach(x => (x.tags || []).forEach(t => { counts[t] = (counts[t]||0)+1; }));
+    let bonus = 0;
+    Object.keys(counts).forEach(t => { bonus += tagBonusPct(counts[t]); });
+
+    const total = Math.round(sumBase * (1 + bonus));
+    return { total, sumBase: Math.round(sumBase), bonusPct: bonus };
+  }
+async function fetchCurrentAvatar(){
+    // Prefer local cache so refresh still shows correct state even if /api/me/avatar is missing.
+    const cached = Number(localStorage.getItem("acf_avatar_savedOn") || 0) || 0;
+    currentAvatarSavedOn = cached;
+
+    // Try a dedicated endpoint if exists
+    try{
+      const j = await api("/api/me/avatar");
+      const so = Number(j.savedOn || j.avatarSavedOn || j.currentAvatarSavedOn || 0) || 0;
+      if(so){
+        currentAvatarSavedOn = so;
+        localStorage.setItem("acf_avatar_savedOn", String(so));
+        return;
+      }
+    }catch(e){}
+
+    // Fallback to /api/me
+    try{
+      const j = await api("/api/me");
+      const so = Number(j.avatarSavedOn || j.savedOn || j.avatar?.savedOn || 0) || 0;
+      if(so){
+        currentAvatarSavedOn = so;
+        localStorage.setItem("acf_avatar_savedOn", String(so));
+      }
+    }catch(e){}
+  }
+
+
+function fmtTime(ts){
+    if (!ts) return "";
+    try{
+      const d = new Date(ts);
+      if (!isFinite(d.getTime())) return String(ts);
+      return d.toLocaleString();
+    } catch { return String(ts); }
+  }
+
+  function openModalLayers(title, metaText, layers){
+    modalTitle.textContent = title || "預覽";
+    modalMeta.textContent = metaText || "";
+    bigwrap.innerHTML = "";
+
+    // layers: [{url, z}]
+    layers.forEach((l) => {
+      if (!l.url) return;
+      const div = document.createElement("div");
+      div.className = "layer";
+      div.style.zIndex = String(l.z || 0);
+      const img = document.createElement("img");
+      img.loading = "lazy";
+      img.src = l.url;
+      div.appendChild(img);
+      bigwrap.appendChild(div);
+    });
+
+    modal.classList.add("show");
+  }
+
+  function openModalSingle(title, metaText, imageUrl){
+    modalTitle.textContent = title || "預覽";
+    modalMeta.textContent = metaText || "";
+    bigwrap.innerHTML = "";
+    const img = document.createElement("img");
+    img.className = "single";
+    img.loading = "lazy";
+    img.src = imageUrl;
+    bigwrap.appendChild(img);
+    modal.classList.add("show");
+  }
+
+  modalClose.onclick = () => modal.classList.remove("show");
+  modal.onclick = (e) => { if (e.target === modal) modal.classList.remove("show"); };
+  window.addEventListener("keydown", (e) => { if (e.key === "Escape") modal.classList.remove("show"); });
+
+  function markCardIn(card){
+    const delay = Math.min(240, (markCardIn._i = (markCardIn._i || 0) + 1) * 18);
+    card.style.transitionDelay = delay + "ms";
+    requestAnimationFrame(() => card.classList.add("in"));
+  }
+
+  function makeStackThumb(container, layers){
+    container.innerHTML = "";
+    layers.forEach((l) => {
+      if (!l.url) return;
+      const div = document.createElement("div");
+      div.className = "layer";
+      div.style.zIndex = String(l.z || 0);
+      const img = document.createElement("img");
+      img.loading = "lazy";
+      img.src = l.url;
+      div.appendChild(img);
+      container.appendChild(div);
+    });
+  }
+
+  function makeScoreThumb(score){
+    const wrap = document.createElement("div");
+    wrap.className = "scoreFrameThumb";
+    const val = document.createElement("div");
+    val.className = "val";
+    const n = Math.max(0, Math.floor(Number(score || 0)));
+    val.textContent = String(n);
+    wrap.appendChild(val);
+    return wrap;
+  }
+
+  function setTab(which){
+    if (which === "recipes"){
+      tabRecipes.classList.add("active");
+      tabSaves.classList.remove("active");
+      gridRecipes.style.display = "grid";
+      gridSaves.style.display = "none";
+      statusLine.textContent = "讀取中";
+      clearError();
+      loadRecipes();
+    } else {
+      tabSaves.classList.add("active");
+      tabRecipes.classList.remove("active");
+      gridSaves.style.display = "grid";
+      gridRecipes.style.display = "none";
+      statusLine.textContent = "讀取中";
+      clearError();
+      loadSaves();
+    }
+  }
+
+  tabSaves.onclick = () => setTab("saves");
+  tabRecipes.onclick = () => setTab("recipes");
+
+  async function loadSaves(){
+    gridSaves.innerHTML = "";
+    try{
+      const res = await api("/api/me/saves");
+      await fetchCurrentAvatar();
+      await ensureScoreDb();
+      setNet(true);
+
+      const comboKey = (headId, bodyId, bgId, addon1Id, addon2Id) => {
+        const a = [String(addon1Id || ""), String(addon2Id || "")].sort();
+        return [String(headId || ""), String(bodyId || ""), String(bgId || ""), a[0], a[1]].join("|");
+      };
+
+      let showcaseComboSet = new Set();
+      try{
+        const all = await api("/api/me/showcases?seasonId=S1");
+        const list = all.showcases || [];
+        list.forEach((x) => {
+          showcaseComboSet.add(comboKey(x.headId, x.bodyId, x.bgId, x.addon1Id, x.addon2Id));
+        });
+      }catch(e){
+        console.warn("load showcases failed", e);
+        showError("讀取展示資料失敗，請確認已更新 Worker 並且 WORKER_BASE 指向同一個資料庫");
+      }
+
+      const saves = res.saves || [];
+      statusLine.textContent = "共 " + saves.length + " 個成品";
+
+      if (saves.length === 0){
+        gridSaves.innerHTML = '<div class="empty">尚未儲存任何成品</div>';
+        return;
+      }
+
+      saves.forEach((s) => {
+        const card = document.createElement("div");
+        card.className = "card";
+
+        if (s && s.rarity){
+          const rr = String(s.rarity).toLowerCase();
+          if (rr === "ssr") card.classList.add("rarity-ssr");
+          if (rr === "ur") card.classList.add("rarity-ur");
+        }
+
+        const th = document.createElement("div");
+        th.className = "thumb";
+
+        // Layer order (top->bottom):
+        // addon1 top, body 2, head 3, addon2 4, bg bottom
+        const layersThumb = [
+          { url: s.bgUrl, z: 10, preferThumb:false },
+          { url: s.addon2Url, z: 20, preferThumb:false },
+          { url: s.headUrl, z: 30, preferThumb:false },
+          { url: s.bodyUrl, z: 40, preferThumb:false },
+          { url: s.addon1Url, z: 50, preferThumb:false },
+        ];
+        makeStackThumb(th, layersThumb);
+
+        // System score frame pinned to thumbnail bottom (above buttons)
+                // Prefer backend systemScore, fallback to client-side computed score
+        const __payloadForScore = { headId:s.headId, bodyId:s.bodyId, bgId:s.bgId, addon1Id:s.addon1Id, addon2Id:s.addon2Id };
+        const __computed = computeSystemScore(__payloadForScore);
+        const __sys = Number(s.systemScore ?? s.score ?? s.system_score ?? 0) || 0;
+        const __finalScore = __sys > 0 ? __sys : (__computed.total || 0);
+        th.appendChild(makeScoreThumb(__finalScore));
+const meta = document.createElement("div");
+        meta.className = "meta";
+
+        const row = document.createElement("div");
+        row.className = "row";
+
+        const time = document.createElement("div");
+        time.className = "time";
+        // Replace time with work name (hide if unnamed)
+        const workName = String(s.workName || s.workTitle || s.title || s.name || s.displayName || "").trim();
+        if (workName){
+          time.textContent = workName;
+        } else {
+          time.textContent = "";
+          time.style.display = "none";
+        }
+
+        const btnWrap = document.createElement("div");
+        btnWrap.className = "btnRow";
+
+        const btnAvatar = document.createElement("div");
+        btnAvatar.className = "showBtn";
+        btnAvatar.setAttribute("data-role","avatar");
+        btnAvatar.setAttribute("data-savedon", String(Number(s.savedOn||0)||0));
+        btnAvatar.textContent = "設為頭像";
+        // If this is already the current avatar, lock the button like "展示中"
+        const __savedOnNum = Number(s.savedOn || 0) || 0;
+        if(__savedOnNum && currentAvatarSavedOn && __savedOnNum === currentAvatarSavedOn){
+          btnAvatar.textContent = "當前頭像";
+          btnAvatar.classList.add("disabled");
+        }
+
+        btnAvatar.onclick = async (ev) => {
+          if (btnAvatar.classList.contains("disabled")) return;
+          ev.stopPropagation();
+          clearError();
+          if (!uid){
+            showError("請先登入後再設定頭像");
+            return;
+          }
+          const savedOn = Number(s.savedOn || 0);
+          if (!savedOn){
+            showError("找不到 savedOn，無法設定頭像");
+            return;
+          }
+          try{
+            await apiReq("POST", "/api/me/avatar", { savedOn });
+            showError("已設為頭像");
+            localStorage.setItem("acf_avatar_savedOn", String(savedOn));
+            currentAvatarSavedOn = Number(savedOn) || 0;
+            // Update all avatar buttons immediately
+            document.querySelectorAll('.showBtn[data-role="avatar"]').forEach((b)=>{
+              const so = Number(b.getAttribute("data-savedon")||0)||0;
+              if(so && currentAvatarSavedOn && so === currentAvatarSavedOn){
+                b.textContent = "當前頭像";
+                b.classList.add("disabled");
+              }else{
+                b.textContent = "設為頭像";
+                b.classList.remove("disabled");
+              }
+            });
+          }catch(e){
+            showError("設定頭像失敗：" + (e && e.message ? e.message : String(e)));
+            console.error(e);
+          }
+        };
+
+        const btnShow = document.createElement("div");
+        btnShow.className = "showBtn";
+        btnShow.setAttribute("data-role","showcase");
+
+        const __ck = comboKey(s.headId, s.bodyId, s.bgId, s.addon1Id, s.addon2Id);
+        btnShow.setAttribute("data-combokey", __ck);
+        let isShowing = showcaseComboSet.has(__ck);
+        btnShow.textContent = isShowing ? "展示中" : "展示";
+        if (isShowing){
+          btnShow.classList.add("disabled");
+        }
+
+        btnShow.onclick = async (ev) => {
+          if (btnShow.classList.contains("disabled")) return;
+          ev.stopPropagation();
+          clearError();
+
+          if (!uid){
+            showError("請先登入後再使用展示功能");
+            return;
+          }
+
+          const payload = {
+            saveId: s.saveId || s.id || null,
+            headId: s.headId || null,
+            bodyId: s.bodyId || null,
+            bgId: s.bgId || null,
+            addon1Id: s.addon1Id || null,
+            addon2Id: s.addon2Id || null,
+            headUrl: s.headUrl || null,
+            bodyUrl: s.bodyUrl || null,
+            bgUrl: s.bgUrl || null,
+            addon1Url: s.addon1Url || null,
+            addon2Url: s.addon2Url || null,
+            savedOn: s.savedOn || null
+          };
+
+          try{
+            const cur = await api("/api/me/showcase?seasonId=S1");
+            const curItem = cur.showcase || cur.item || cur.current || null;
+            if (curItem){
+              const ok = window.confirm("本期已經有作品正在展示中。上傳新作品後，原有的票數將歸零並重新計票。是否確認？");
+              if (!ok) return;
+            }
+
+            await apiReq("POST", "/api/me/showcase", { ...payload, seasonId:"S1", overwrite: !!curItem });
+
+            // Immediately reflect UI state
+            const newKey = comboKey(payload.headId, payload.bodyId, payload.bgId, payload.addon1Id, payload.addon2Id);
+            // Only one showcase per season: reset set and update all buttons instantly
+            showcaseComboSet = new Set([newKey]);
+            document.querySelectorAll('.showBtn[data-role="showcase"]').forEach((b)=>{
+              const k = b.getAttribute("data-combokey") || "";
+              if(k && k === newKey){
+                b.textContent = "展示中";
+                b.classList.add("disabled");
+              }else{
+                b.textContent = "展示";
+                b.classList.remove("disabled");
+              }
+            });
+            showError("已提交展示");
+          } catch(e){
+            showError("展示失敗：" + (e && e.message ? e.message : String(e)));
+            console.error(e);
+          }
+        };
+
+        btnWrap.appendChild(btnAvatar);
+        btnWrap.appendChild(btnShow);
+
+        row.appendChild(time);
+        row.appendChild(btnWrap);
+        meta.appendChild(row);
+
+        card.appendChild(th);
+        card.appendChild(meta);
+
+        card.onclick = () => {
+          const layersBig = [
+            { url: s.bgUrl, z: 10 },
+            { url: s.addon2Url, z: 20 },
+            { url: s.headUrl, z: 30 },
+            { url: s.bodyUrl, z: 40 },
+            { url: s.addon1Url, z: 50 },
+          ];
+          openModalLayers("我的成品", fmtTime(s.savedOn), layersBig);
+        };
+
+        gridSaves.appendChild(card);
+        markCardIn(card);
+      });
+
+    } catch(e){
+      setNet(false);
+      statusLine.textContent = "讀取失敗";
+      showError("讀取失敗，請確認後端已更新，並且有資料庫表 user_saves");
+      console.error(e);
+    }
+  }
+
+  function renderRecipes(recipes, unlockSet){
+    gridRecipes.innerHTML = "";
+    statusLine.textContent = "共 " + recipes.length + " 張 Recipes";
+
+    if (recipes.length === 0){
+      gridRecipes.innerHTML = '<div class="empty">recipes table 目前沒有資料</div>';
+      return;
+    }
+
+    recipes.forEach((r) => {
+      const unlocked = unlockSet.has(String(r.recipeId));
+
+      const card = document.createElement("div");
+      card.className = "card" + (unlocked ? "" : " locked");
+
+      if (r && r.rarity){
+        const rr = String(r.rarity).toLowerCase();
+        if (rr === "ssr") card.classList.add("rarity-ssr");
+        if (rr === "ur") card.classList.add("rarity-ur");
+      }
+
+      const th = document.createElement("div");
+      th.className = "thumb";
+      const img = document.createElement("img");
+      img.loading = "lazy";
+      img.src = r.imageUrl;
+      th.appendChild(img);
+
+      if (!unlocked){
+        const mask = document.createElement("div");
+        mask.className = "lockmask";
+        mask.innerHTML = '<div class="lock">🔒</div><div class="txt">未解鎖</div>';
+        card.appendChild(mask);
+      }
+
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      const time = document.createElement("div");
+      time.className = "time";
+      time.textContent = "Recipe #" + r.recipeId;
+      meta.appendChild(time);
+
+      card.appendChild(th);
+      card.appendChild(meta);
+
+      card.onclick = () => {
+        if (!unlocked){
+          showError("此成品尚未解鎖");
+          return;
+        }
+        clearError();
+        openModalSingle("Recipe #" + r.recipeId, "已解鎖", r.imageUrl);
+      };
+
+      gridRecipes.appendChild(card);
+      markCardIn(card);
+    });
+  }
+
+  async function loadRecipes(){
+    gridRecipes.innerHTML = "";
+    try{
+      const [r1, r2] = await Promise.all([
+        api("/api/recipes"),
+        api("/api/me/unlocks"),
+      ]);
+      setNet(true);
+
+      const recipes = r1.recipes || [];
+      const unlocks = r2.unlocks || [];
+      const unlockSet = new Set(unlocks.map((x) => String(x)));
+
+      renderRecipes(recipes, unlockSet);
+
+    } catch(e){
+      setNet(false);
+      statusLine.textContent = "讀取失敗";
+      showError("讀取失敗，請確認後端已有 /api/recipes 與 /api/me/unlocks，並且資料庫存在 recipes / user_unlocks");
+      console.error(e);
+    }
+  }
+
+  // initial
+  setTab("saves");
 })();
 </script>
 <script src="app.js"></script>

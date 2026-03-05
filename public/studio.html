@@ -1203,10 +1203,17 @@ function calcAssetScore(assetId){
   const rarity = Number(a?.rarity || 1);
   const base = Number(BASE_SCORE[rarity] || 0);
 
-  const ua = (db.userAssets || db.playerAssets || db.assetsOwned || {})[id] || {};
-  let stars = Number(ua.stars || 1);
+  
+
+  // Stars: studio inventory stores stars in db.userStars with key `${APP.uid}:${assetId}`
+  const starsKey = (typeof APP !== 'undefined' && APP.uid) ? `${APP.uid}:${id}` : id;
+  const starsRaw = (db.userStars && (db.userStars[starsKey] ?? db.userStars[id]))
+    ?? (db.userAssets && (db.userAssets[starsKey]?.stars ?? db.userAssets[id]?.stars))
+    ?? 1;
+  let stars = Number(starsRaw || 1);
   if(!Number.isFinite(stars) || stars < 1) stars = 1;
   if(stars > 5) stars = 5;
+
 
     const tags = normTags(a?.tags);
   const theme = String(db.seasonThemeTag || "").trim().toLowerCase();
