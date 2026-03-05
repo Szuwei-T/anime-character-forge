@@ -145,15 +145,7 @@ const ACF_I18N = (() => {
       lang_zh_hans: "简体中文",
       lang_ja: "日本語",
       lang_ko: "한국어",
-          daily_draw_3_title: "Daily Summon",
-      daily_draw_3_desc: "Summon 3 times",
-      daily_save_1_title: "Daily Creation",
-      daily_save_1_desc: "Save 1 build in Studio",
-      daily_social_1_title: "Daily Social",
-      daily_social_1_desc: "Do 1 social action: vote, follow, favorite, or comment",
-      aria_daily_intro: "New daily quests are ready. Complete them to earn rewards.",
-      aria_daily_claim: "Quest complete. Tap Claim to collect your reward.",
-},
+    },
     "zh-Hant": {
       aria_ch1_welcome: "歡迎，創星者。我是 ARIA，我會帶你完成第一次創作。",
       aria_ch1_step1: "先從基本召喚開始。點擊 Standard 1x。",
@@ -254,15 +246,7 @@ const ACF_I18N = (() => {
       lang_zh_hans: "简体中文",
       lang_ja: "日本語",
       lang_ko: "한국어",
-          daily_draw_3_title: "每日召喚",
-      daily_draw_3_desc: "在扭蛋抽卡 3 次",
-      daily_save_1_title: "每日創作",
-      daily_save_1_desc: "在 Studio 儲存 1 次作品",
-      daily_social_1_title: "每日互動",
-      daily_social_1_desc: "完成 1 次互動: 投票 關注 收藏 或留言",
-      aria_daily_intro: "今天的 Daily Quest 已更新，完成任務就能領獎勵。",
-      aria_daily_claim: "任務完成了，點一下 Claim 就能領獎勵。",
-},
+    },
     "zh-Hans": {
       aria_ch1_welcome: "欢迎，创星者。我是 ARIA，我会带你完成第一次创作。",
       aria_ch1_step1: "先从基础召唤开始。点击 Standard 1x。",
@@ -363,15 +347,7 @@ const ACF_I18N = (() => {
       lang_zh_hans: "简体中文",
       lang_ja: "日本語",
       lang_ko: "한국어",
-          daily_draw_3_title: "每日召唤",
-      daily_draw_3_desc: "在扭蛋抽卡 3 次",
-      daily_save_1_title: "每日创作",
-      daily_save_1_desc: "在 Studio 保存 1 次作品",
-      daily_social_1_title: "每日互动",
-      daily_social_1_desc: "完成 1 次互动: 投票 关注 收藏 或留言",
-      aria_daily_intro: "今天的 Daily Quest 已更新，完成任务就能领奖励。",
-      aria_daily_claim: "任务完成了，点一下 Claim 就能领奖励。",
-},
+    },
     "ja": {
       login_title: "Anime Character Forge ログイン",
       login_email_signin: "メールでログイン",
@@ -1655,176 +1631,4 @@ window.ACF_initMasterHeader = initMasterHeader;
   }else{
     initMasterHeader();
   }
-})();
-
-
-;(() => {
-  function getLang(){
-    try{
-      if(window.ACF && typeof window.ACF.getLang === "function") return window.ACF.getLang();
-    }catch(_){ }
-    try{
-      return (localStorage.getItem("acf_lang") || navigator.language || "en");
-    }catch(_){
-      return "en";
-    }
-  }
-
-  function t(key){
-    try{
-      if(window.ACF && typeof window.ACF.t === "function") return window.ACF.t(key) || key;
-    }catch(_){ }
-    return key;
-  }
-
-  function ensureAria(){
-    let box = document.getElementById("acfAriaBox");
-    let textEl = document.getElementById("acfAriaText");
-    let btn = document.getElementById("acfAriaNext");
-    let imgEl = document.getElementById("acfAriaImg");
-
-    if(box && textEl && btn && imgEl) return { box, textEl, btn, imgEl };
-
-    const styleId = "acfAriaStyleShared";
-    if(!document.getElementById(styleId)){
-      const st = document.createElement("style");
-      st.id = styleId;
-      st.textContent = `
-#acfAriaBox{position:fixed;right:18px;bottom:18px;width:420px;max-width:calc(100vw - 28px);z-index:99999;display:none;pointer-events:auto;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
-#acfAriaBox .aria-card{display:flex;gap:12px;padding:12px;border-radius:14px;background:rgba(10,10,12,0.78);box-shadow:0 10px 30px rgba(0,0,0,0.45);border:1px solid rgba(255,215,120,0.22);backdrop-filter:blur(6px)}
-#acfAriaBox .aria-img{width:88px;height:120px;border-radius:12px;overflow:hidden;flex:0 0 auto;border:1px solid rgba(255,215,120,0.25);background:rgba(255,255,255,0.06)}
-#acfAriaBox .aria-img img{width:100%;height:100%;object-fit:cover;display:block}
-#acfAriaBox .aria-main{flex:1 1 auto;min-width:0}
-#acfAriaBox .aria-name{font-weight:800;color:rgba(255,235,200,0.95);letter-spacing:0.2px;margin-bottom:6px}
-#acfAriaBox .aria-text{color:rgba(255,255,255,0.92);font-size:14px;line-height:1.35;min-height:54px;white-space:pre-wrap}
-#acfAriaBox .aria-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:10px}
-#acfAriaBox .aria-btn{border:1px solid rgba(255,215,120,0.28);background:rgba(255,215,120,0.12);color:rgba(255,245,230,0.95);padding:6px 10px;border-radius:10px;cursor:pointer;font-weight:700;font-size:12px}
-#acfAriaBox .aria-btn:hover{background:rgba(255,215,120,0.18)}
-`;
-      document.head.appendChild(st);
-    }
-
-    box = document.createElement("div");
-    box.id = "acfAriaBox";
-    box.setAttribute("aria-live","polite");
-    box.innerHTML = `
-  <div class="aria-card">
-    <div class="aria-img"><img id="acfAriaImg" alt="ARIA"/></div>
-    <div class="aria-main">
-      <div class="aria-name">ARIA</div>
-      <div class="aria-text" id="acfAriaText"></div>
-      <div class="aria-actions">
-        <button class="aria-btn" id="acfAriaNext">OK</button>
-      </div>
-    </div>
-  </div>
-`;
-    document.body.appendChild(box);
-
-    textEl = document.getElementById("acfAriaText");
-    btn = document.getElementById("acfAriaNext");
-    imgEl = document.getElementById("acfAriaImg");
-
-    return { box, textEl, btn, imgEl };
-  }
-
-  const ariaQueue = [];
-  let ariaBusy = false;
-
-  function ariaShow(msg, opts){
-    const ui = ensureAria();
-    const text = String(msg || "").trim();
-    if(!text) return;
-
-    ariaQueue.push({ text, opts: opts || {} });
-    if(ariaBusy) return;
-
-    const runNext = () => {
-      const it = ariaQueue.shift();
-      if(!it){ ariaBusy = false; ui.box.style.display = "none"; return; }
-      ariaBusy = true;
-
-      const img = it.opts.img || "/ui/npc/aria_default.webp";
-      ui.imgEl.src = img;
-      ui.textEl.textContent = it.text;
-      ui.box.style.display = "block";
-
-      ui.btn.textContent = String(it.opts.buttonText || "OK");
-      ui.btn.onclick = () => {
-        try{ if(typeof it.opts.onNext === "function") it.opts.onNext(); }catch(_){ }
-        runNext();
-      };
-    };
-
-    runNext();
-  }
-
-  function ariaHide(){
-    try{
-      const ui = ensureAria();
-      ui.box.style.display = "none";
-    }catch(_){ }
-    ariaQueue.length = 0;
-    ariaBusy = false;
-  }
-
-  window.ACF_ARIA = { say: ariaShow, hide: ariaHide };
-
-  async function apiGetDaily(){
-    const lang = getLang();
-    const headers = {};
-    try{
-      const ah = window.ACF && window.ACF.authHeaders ? window.ACF.authHeaders() : {};
-      for(const k in ah) headers[k] = ah[k];
-    }catch(_){ }
-    const r = await fetch(`/api/daily?lang=${encodeURIComponent(lang)}`, { headers });
-    return await r.json();
-  }
-
-  async function apiClaimDaily(questKey){
-    const lang = getLang();
-    const headers = { "content-type":"application/json" };
-    try{
-      const ah = window.ACF && window.ACF.authHeaders ? window.ACF.authHeaders() : {};
-      for(const k in ah) headers[k] = ah[k];
-    }catch(_){ }
-    const r = await fetch(`/api/daily/claim?lang=${encodeURIComponent(lang)}`, { method:"POST", headers, body: JSON.stringify({ questKey }) });
-    return await r.json();
-  }
-
-  function rewardText(q){
-    const g = Number(q.rewardGold || 0);
-    const m = Number(q.rewardGem || 0);
-    const tix = Number(q.rewardTicket || 0);
-    const parts = [];
-    if(g) parts.push(`${g} Gold`);
-    if(m) parts.push(`${m} Gem`);
-    if(tix) parts.push(`${tix} Ticket`);
-    return parts.join(" + ");
-  }
-
-  window.ACF_DAILY = { get: apiGetDaily, claim: apiClaimDaily, rewardText };
-
-  window.ACF_DAILY.maybeIntro = async (mountEl) => {
-    try{
-      const data = await apiGetDaily();
-      if(!data || !data.ok) return;
-      const dayKey = String(data.dayKey || "");
-      const lsKey = `acf_daily_intro_${dayKey}`;
-      const seen = localStorage.getItem(lsKey);
-      if(seen) return;
-      localStorage.setItem(lsKey, "1");
-
-      const anyUnclaimed = (data.quests || []).some(q => Number(q.done||0)===1 && Number(q.claimed||0)===0);
-      const intro = anyUnclaimed ? t("aria_daily_claim") : t("aria_daily_intro");
-
-      ariaShow(intro, {
-        img: "/ui/npc/aria_guide.webp",
-        buttonText: "OK",
-        onNext: () => {
-          try{ if(mountEl && mountEl.scrollIntoView) mountEl.scrollIntoView({ behavior:"smooth", block:"start" }); }catch(_){ }
-        }
-      });
-    }catch(_){ }
-  };
 })();
