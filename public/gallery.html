@@ -1184,12 +1184,12 @@ async function api(url, opts){
   }
 
   function tagBonusPct(n){
-  const c = Number(n||0);
-  if(c >= 5) return 0.15;
-  if(c === 4) return 0.10;
-  if(c === 3) return 0.07;
-  if(c === 2) return 0.05;
-  return 0.0;
+  const v = Math.min(5, Number(n||0));
+  if(v >= 5) return 0.15;
+  if(v === 4) return 0.10;
+  if(v === 3) return 0.07;
+  if(v === 2) return 0.05;
+  return 0;
 }
 
   function calcAssetScoreById(assetId){
@@ -1200,10 +1200,10 @@ async function api(url, opts){
     const rarity = Number(a?.rarity || 1);
     const base = Number(BASE_SCORE[rarity] || 0);
 
-    const ua = (scoreDb.userAssets || {})[id] || {};
-    let stars = Number(ua.stars || 1);
+    const ua = (scoreDb.userAssets || {})[id];
+    let stars = Number((ua && typeof ua === "object") ? (ua.stars ?? ua.star ?? ua.level ?? 1) : (ua ?? 1));
     if(!Number.isFinite(stars) || stars < 1) stars = 1;
-    if(stars > 99) stars = 99;
+    if(stars > 5) stars = 5;
 
     const tags = normTags(a?.tags);
     const theme = String(scoreDb.seasonThemeTag || "").trim().toLowerCase();
@@ -1231,7 +1231,16 @@ async function api(url, opts){
     return Math.round(sumBase * (1 + bonus));
   }
 
-  function makeScoreThumb(score){
+  
+function getShowcaseSystemScore(showcase, parts){
+  const s = showcase || {};
+  const v = Number(s.systemScore ?? s.system_score ?? s.score ?? 0);
+  if(Number.isFinite(v) && v > 0) return Math.floor(v);
+  // fallback: derive from asset urls (may be less accurate if viewer doesn't own the assets)
+  try{ return computeSystemScoreFromUrls(parts || {}); }catch(_e){ return 0; }
+}
+
+function makeScoreThumb(score){
     const wrap = document.createElement("div");
     wrap.className = "scoreFrameThumb";
     const val = document.createElement("div");
@@ -1682,7 +1691,7 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
               { url: s.addon1Url, z:50 },
             ]);
 
-            try{ const sc = computeSystemScoreFromUrls({ headUrl:s.headUrl, bodyUrl:s.bodyUrl, bgUrl:s.bgUrl, addon1Url:s.addon1Url, addon2Url:s.addon2Url }); th.appendChild(makeScoreThumb(sc)); }catch(_){ th.appendChild(makeScoreThumb(0)); }
+            try{ const sc = getShowcaseSystemScore(s, { headUrl:s.headUrl, bodyUrl:s.bodyUrl, bgUrl:s.bgUrl, addon1Url:s.addon1Url, addon2Url:s.addon2Url }); th.appendChild(makeScoreThumb(sc)); }catch(_){ th.appendChild(makeScoreThumb(0)); }
             card.appendChild(th);
             outer.appendChild(metaTop);
             outer.appendChild(card);
@@ -1727,7 +1736,7 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
                 { url: s.addon1Url, z:50 },
               ]);
               try{
-                const sc2 = computeSystemScoreFromUrls({ headUrl:s.headUrl, bodyUrl:s.bodyUrl, bgUrl:s.bgUrl, addon1Url:s.addon1Url, addon2Url:s.addon2Url });
+                const sc2 = getShowcaseSystemScore(s, { headUrl:s.headUrl, bodyUrl:s.bodyUrl, bgUrl:s.bgUrl, addon1Url:s.addon1Url, addon2Url:s.addon2Url });
                 th.appendChild(makeScoreThumb(sc2));
               }catch(_){
                 th.appendChild(makeScoreThumb(0));
@@ -1896,7 +1905,7 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
               { url: s.addon1Url, z:50 },
             ]);
 
-            try{ const sc = computeSystemScoreFromUrls({ headUrl:s.headUrl, bodyUrl:s.bodyUrl, bgUrl:s.bgUrl, addon1Url:s.addon1Url, addon2Url:s.addon2Url }); th.appendChild(makeScoreThumb(sc)); }catch(_){ th.appendChild(makeScoreThumb(0)); }
+            try{ const sc = getShowcaseSystemScore(s, { headUrl:s.headUrl, bodyUrl:s.bodyUrl, bgUrl:s.bgUrl, addon1Url:s.addon1Url, addon2Url:s.addon2Url }); th.appendChild(makeScoreThumb(sc)); }catch(_){ th.appendChild(makeScoreThumb(0)); }
             const body = document.createElement("div");
             body.className = "entryBody";
 
@@ -2112,7 +2121,7 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
             ]);
 
             try{
-              const sc2 = computeSystemScoreFromUrls({ headUrl:s.headUrl, bodyUrl:s.bodyUrl, bgUrl:s.bgUrl, addon1Url:s.addon1Url, addon2Url:s.addon2Url });
+              const sc2 = getShowcaseSystemScore(s, { headUrl:s.headUrl, bodyUrl:s.bodyUrl, bgUrl:s.bgUrl, addon1Url:s.addon1Url, addon2Url:s.addon2Url });
               th.appendChild(makeScoreThumb(sc2));
             }catch(_){
               th.appendChild(makeScoreThumb(0));
