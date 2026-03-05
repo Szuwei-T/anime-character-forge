@@ -33,6 +33,20 @@
     .status{font-size:12px;color:var(--mut)}
     .error{margin:10px 0;padding:12px 14px;border-radius:14px;background:rgba(255,0,70,.10);border:1px solid rgba(255,0,70,.25);color:rgba(255,210,220,.95);display:none}
 
+    .dailyPanel{margin:12px 0 14px;padding:14px 14px;border-radius:18px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12)}
+    .dailyHead{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+    .dailyTitle{font-size:14px;font-weight:900;letter-spacing:.3px;opacity:.95}
+    .dailySub{font-size:12px;opacity:.70}
+    .dailyList{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+    .dailyItem{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:12px 12px;border-radius:14px;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.10)}
+    .dailyLeft{min-width:0}
+    .dailyNm{font-size:13px;font-weight:900;opacity:.95;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .dailyDs{font-size:12px;opacity:.70;margin-top:3px;line-height:1.25}
+    .dailyProg{font-size:12px;opacity:.78;margin-top:6px}
+    .dailyBtn{padding:8px 12px;border-radius:999px;border:1px solid rgba(255,215,120,.28);background:rgba(255,215,120,.12);color:rgba(255,245,230,.95);font-weight:900;cursor:pointer}
+    .dailyBtn[disabled]{opacity:.45;cursor:default}
+    .dailyTag{font-size:12px;opacity:.75;white-space:nowrap}
+
     .sectionTitle{margin:10px 0 10px;font-size:13px;opacity:.9;font-weight:700;letter-spacing:.3px}
 
     /* Podium v2 */
@@ -802,6 +816,17 @@ body{
 <div class="status" data-i18n="common_loading" id="statusLine">讀取中</div>
 </div>
 <div class="error" id="errorBox"></div>
+
+<div class="dailyPanel" id="dailyPanel">
+  <div class="dailyHead">
+    <div>
+      <div class="dailyTitle">Daily Quest</div>
+      <div class="dailySub" id="dailySub">每天更新 · 完成任務領獎勵</div>
+    </div>
+    <div class="dailyTag" id="dailyTag"></div>
+  </div>
+  <div class="dailyList" id="dailyList"></div>
+</div>
 <div class="sectionTitle" data-i18n="gallery_podium" id="podiumTitle">🏆 本期頒獎台</div>
 <div class="podiumWrap" id="podiumWrap">
 <div class="podiumGrid" id="podiumGrid"></div>
@@ -2401,6 +2426,117 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
       })();
     </script>
 <script src="app.js"></script>
+
+<script>
+(function(){
+  const panel = document.getElementById("dailyPanel");
+  const list = document.getElementById("dailyList");
+  const tag = document.getElementById("dailyTag");
+  const sub = document.getElementById("dailySub");
+
+  function esc(s){ return String(s||"").replace(/[&<>"']/g, (c)=>({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;" }[c])); }
+
+  function rewardText(q){
+    if(window.ACF_DAILY && window.ACF_DAILY.rewardText) return window.ACF_DAILY.rewardText(q);
+    const g = Number(q.rewardGold||0);
+    const m = Number(q.rewardGem||0);
+    const tix = Number(q.rewardTicket||0);
+    const parts = [];
+    if(g) parts.push(g + " Gold");
+    if(m) parts.push(m + " Gem");
+    if(tix) parts.push(tix + " Ticket");
+    return parts.join(" + ");
+  }
+
+  async function loadDaily(){
+    if(!window.ACF_DAILY || !window.ACF_DAILY.get) return;
+    const data = await window.ACF_DAILY.get();
+    if(!data || !data.ok) return;
+
+    tag.textContent = String(data.dayKey || "");
+    list.innerHTML = "";
+
+    const quests = data.quests || [];
+    quests.forEach(q => {
+      const item = document.createElement("div");
+      item.className = "dailyItem";
+
+      const left = document.createElement("div");
+      left.className = "dailyLeft";
+
+      const nm = document.createElement("div");
+      nm.className = "dailyNm";
+      nm.textContent = String(q.title || q.questKey || "Quest");
+
+      const ds = document.createElement("div");
+      ds.className = "dailyDs";
+      ds.textContent = String(q.description || "");
+
+      const prog = document.createElement("div");
+      prog.className = "dailyProg";
+      prog.textContent = String(Number(q.progress||0)) + " / " + String(Number(q.target||1)) + "  ·  " + rewardText(q);
+
+      left.appendChild(nm);
+      left.appendChild(ds);
+      left.appendChild(prog);
+
+      const right = document.createElement("div");
+
+      const btn = document.createElement("button");
+      btn.className = "dailyBtn";
+      btn.textContent = (Number(q.claimed||0)===1) ? "Claimed" : (Number(q.done||0)===1 ? "Claim" : "Go");
+      btn.disabled = (Number(q.claimed||0)===1);
+
+      btn.onclick = async () => {
+        if(Number(q.claimed||0)===1) return;
+        if(Number(q.done||0)===1){
+          btn.disabled = true;
+          const res = await window.ACF_DAILY.claim(q.questKey);
+          if(res && res.ok){
+            await loadDaily();
+          }else{
+            btn.disabled = false;
+          }
+        }else{
+          // soft navigation hints
+          const act = String(q.actionKey||"");
+          if(act === "gacha_draw") location.href = "gacha.html";
+          else if(act === "save_build") location.href = "studio.html";
+          else location.href = "gallery.html";
+        }
+      };
+
+      right.appendChild(btn);
+
+      item.appendChild(left);
+      item.appendChild(right);
+
+      list.appendChild(item);
+    });
+
+    try{
+      if(window.ACF_DAILY && window.ACF_DAILY.maybeIntro) window.ACF_DAILY.maybeIntro(panel);
+    }catch(_){}
+  }
+
+  // Wait until app.js loads
+  const tick = () => {
+    if(window.ACF_DAILY && window.ACF_DAILY.get){
+      loadDaily();
+    }else{
+      setTimeout(tick, 50);
+    }
+  };
+  tick();
+
+  // Auto refresh when returning to tab
+  document.addEventListener("visibilitychange", () => {
+    if(document.visibilityState === "visible"){
+      try{ loadDaily(); }catch(_){}
+    }
+  });
+})();
+</script>
 </div>
 <script>
 (function(){
