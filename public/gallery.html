@@ -187,7 +187,7 @@
     .metaLine{font-size:12px;opacity:.65;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
     /* Modal and toast */
-    .modal{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;padding:18px;z-index:30000}
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;padding:18px;z-index:9999}
     .panel{max-width:720px;width:100%;border-radius:18px;background:rgba(10,14,24,.92);border:1px solid rgba(255,255,255,.14);overflow:hidden}
     .panelHead{padding:12px 14px;display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
     .panelHead .t{font-size:14px;font-weight:700}
@@ -1202,7 +1202,7 @@ async function api(url, opts){
     const ua = (scoreDb.userAssets || {})[id] || {};
     let stars = Number(ua.stars || 1);
     if(!Number.isFinite(stars) || stars < 1) stars = 1;
-    if(stars > 5) stars = 5;
+    if(stars > 99) stars = 99;
 
     const tags = normTags(a?.tags);
     const theme = String(scoreDb.seasonThemeTag || "").trim().toLowerCase();

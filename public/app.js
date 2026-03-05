@@ -138,21 +138,6 @@ const ACF_I18N = (() => {
       net_offline: "Offline",
       label_lv: "Lv",
       label_score: "Score",
-      daily_title: "Daily Quests",
-      daily_hint: "Daily quests updated",
-      claim: "Claim",
-      claimed: "Claimed",
-      close: "Close",
-      dq_login_t: "Login",
-      dq_login_d: "Sign in today",
-      dq_gacha_t: "Do 1 Gacha",
-      dq_gacha_d: "Draw once in Gacha",
-      dq_save_t: "Save 1 Work",
-      dq_save_d: "Save a creation in Studio",
-      dq_vote_t: "Vote 1 Time",
-      dq_vote_d: "Vote for a work in Gallery",
-      dq_share_t: "Share 1 SSR/UR",
-      dq_share_d: "Share an SSR/UR pull and claim reward",
       label_player: "Player",
       label_lang: "Language",
       lang_en: "English",
@@ -949,7 +934,7 @@ window.getName = getName;
         top: 0;
         left: 0;
         width: 100%;
-        z-index: 20000;
+        z-index: 9999;
         pointer-events: none;
       }
 
@@ -1207,93 +1192,6 @@ white-space: nowrap;
   background: rgba(0,0,0,0.18);
 }
 .acf-masterAuthBtn:hover{ filter: brightness(1.05); }
-
-.acf-dailyPill{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  border-radius:999px;
-  padding:9px 12px;
-  font-weight:950;
-  letter-spacing:0.3px;
-  cursor:pointer;
-  user-select:none;
-  background: rgba(0,0,0,0.22);
-  border: 1px solid rgba(148,163,184,0.22);
-  box-shadow: 0 10px 24px rgba(0,0,0,0.20);
-}
-.acf-dailyDot{
-  width:10px;height:10px;border-radius:999px;
-  background: rgba(34,197,94,0.95);
-  box-shadow: 0 0 12px rgba(34,197,94,0.25);
-}
-.acf-dailyDot.incomplete{
-  background: rgba(251,191,36,0.95);
-  box-shadow: 0 0 12px rgba(251,191,36,0.20);
-}
-.acf-dailyModal{
-  position:fixed; inset:0;
-  z-index: 99998;
-  background: rgba(0,0,0,0.62);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding: 18px;
-}
-.acf-dailyCard{
-  width:min(720px, 100%);
-  background: rgba(2,6,23,0.94);
-  border: 1px solid rgba(148,163,184,0.18);
-  border-radius: 18px;
-  box-shadow: 0 30px 90px rgba(0,0,0,0.55);
-  overflow:hidden;
-}
-.acf-dailyHead{
-  padding: 14px 16px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  border-bottom: 1px solid rgba(148,163,184,0.14);
-}
-.acf-dailyTitle{ font-weight: 1000; font-size: 16px; letter-spacing:0.2px; }
-.acf-dailyClose{
-  border:0;
-  background: rgba(148,163,184,0.10);
-  color: rgba(226,232,240,0.95);
-  border-radius: 12px;
-  padding: 8px 10px;
-  cursor:pointer;
-  font-weight: 900;
-}
-.acf-dailyBody{ padding: 12px 16px 16px; }
-.acf-dailyRow{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap: 10px;
-  padding: 10px 0;
-  border-bottom: 1px dashed rgba(148,163,184,0.16);
-}
-.acf-dailyRow:last-child{ border-bottom: 0; }
-.acf-dailyTxt{ display:flex; flex-direction:column; gap: 2px; }
-.acf-dailyRowTitle{ font-weight: 950; }
-.acf-dailyRowDesc{ font-size: 12px; opacity: 0.92; color: rgba(148,163,184,0.95); }
-.acf-dailyRight{ display:flex; align-items:center; gap: 10px; }
-.acf-dailyProg{ font-size: 12px; opacity: 0.92; }
-.acf-dailyClaim{
-  border:0;
-  border-radius: 12px;
-  padding: 8px 10px;
-  cursor:pointer;
-  font-weight: 950;
-  background: rgba(34,197,94,0.92);
-  color: rgba(0,0,0,0.9);
-}
-.acf-dailyClaim[disabled]{
-  cursor:not-allowed;
-  filter: grayscale(1);
-  opacity: 0.5;
-}
 `;
     document.head.appendChild(s);
   }
@@ -1539,189 +1437,11 @@ return data;
     html.push(statCap("gold", acc.userGold));
     html.push(statCap("gem", acc.userGem));
     html.push(statCap("ticket", acc.userVote));
-    html.push(`<div class="acf-dailyPill" id="acfDailyPill"><span class="acf-dailyDot incomplete" id="acfDailyDot"></span><span id="acfDailyText">${ACF_t("daily_title","Daily")} 0/0</span></div>`);
     statsEl.innerHTML = html.join("");
-
-    setTimeout(()=>{ try{ initDailyQuestsUI(); }catch(_e){} }, 0);
 
     setBodyOffset();
   }
 
-
-
-  // --- Daily Quests UI (integrated into Master Header) ---
-  let __acfDailyCache = null;
-  let __acfDailyBusy = false;
-
-  async function fetchDailyStatus(){
-    if(!ACF_isAuthed()) return null;
-    try{
-      const res = await api("/api/daily/status");
-      if(res && res.ok) return res;
-    }catch(_e){}
-    return null;
-  }
-
-  function setDailyBadge(status){
-    const dot = document.getElementById("acfDailyDot");
-    const txt = document.getElementById("acfDailyText");
-    if(!dot || !txt) return;
-    const done = Number(status?.claimed || 0);
-    const total = Number(status?.total || 0);
-    const completed = Number(status?.completed || 0);
-
-    txt.textContent = `${ACF_t("daily_title","Daily")} ${done}/${total}`;
-    if(total > 0 && done >= total){
-      dot.classList.remove("incomplete");
-    }else{
-      dot.classList.add("incomplete");
-    }
-
-    // subtle hint once per day
-    const dk = String(status?.dayKey || "");
-    const key = "acf_daily_hint_" + dk;
-    if(dk && !localStorage.getItem(key)){
-      localStorage.setItem(key, "1");
-      // ARIA style quick message if available
-      if(typeof window.ACF_showToast === "function"){
-        window.ACF_showToast(ACF_t("daily_hint","Daily quests updated"));
-      }
-    }
-  }
-
-  function renderReward(r){
-    const parts = [];
-    const g = Number(r.rewardGold||0);
-    const j = Number(r.rewardGem||0);
-    const t = Number(r.rewardTicket||0);
-    if(g) parts.push(`${g}G`);
-    if(j) parts.push(`${j}💎`);
-    if(t) parts.push(`${t}🎟️`);
-    return parts.join(" ");
-  }
-
-  function openDailyModal(status){
-    if(!status || !status.items) return;
-
-    const existing = document.getElementById("acfDailyModal");
-    if(existing) existing.remove();
-
-    const o = el("div","acf-dailyModal");
-    o.id = "acfDailyModal";
-
-    const card = el("div","acf-dailyCard");
-    const head = el("div","acf-dailyHead");
-    const title = el("div","acf-dailyTitle");
-    title.textContent = ACF_t("daily_title","Daily Quests");
-
-    const close = document.createElement("button");
-    close.className = "acf-dailyClose";
-    close.textContent = ACF_t("close","Close");
-    close.onclick = ()=>o.remove();
-
-    head.appendChild(title);
-    head.appendChild(close);
-
-    const body = el("div","acf-dailyBody");
-
-    (status.items || []).forEach(q=>{
-      const row = el("div","acf-dailyRow");
-
-      const left = el("div","acf-dailyTxt");
-      const t = el("div","acf-dailyRowTitle");
-      t.textContent = ACF_t(q.titleKey, q.titleKey);
-      const d = el("div","acf-dailyRowDesc");
-      d.textContent = ACF_t(q.descKey, q.descKey) + (renderReward(q) ? (" · " + renderReward(q)) : "");
-      left.appendChild(t);
-      left.appendChild(d);
-
-      const right = el("div","acf-dailyRight");
-      const prog = el("div","acf-dailyProg");
-      prog.textContent = `${Number(q.progress||0)}/${Number(q.targetCount||1)}`;
-
-      const btn = document.createElement("button");
-      btn.className = "acf-dailyClaim";
-      const can = (Number(q.progress||0) >= Number(q.targetCount||1));
-      const claimed = !!q.claimed;
-      btn.textContent = claimed ? ACF_t("claimed","Claimed") : ACF_t("claim","Claim");
-      btn.disabled = claimed || !can || __acfDailyBusy;
-      btn.onclick = async ()=>{
-        if(__acfDailyBusy) return;
-        __acfDailyBusy = true;
-        try{
-          const res = await api("/api/daily/claim", { method:"POST", body: JSON.stringify({ questId: q.questId }) });
-          if(res && res.ok){
-            // refresh currencies + badge
-            try{
-              const me = await fetchMeAccount();
-              window.__acfMe = me;
-              renderMaster(me);
-            }catch(_e){}
-            const st = await fetchDailyStatus();
-            if(st){
-              __acfDailyCache = st;
-              setDailyBadge(st);
-              openDailyModal(st); // re-render
-            }
-          }
-        }catch(_e){}
-        __acfDailyBusy = false;
-      };
-
-      right.appendChild(prog);
-      right.appendChild(btn);
-
-      row.appendChild(left);
-      row.appendChild(right);
-      body.appendChild(row);
-    });
-
-    card.appendChild(head);
-    card.appendChild(body);
-    o.appendChild(card);
-
-    o.addEventListener("click", (e)=>{ if(e.target === o) o.remove(); });
-    document.body.appendChild(o);
-  }
-
-  async function initDailyQuestsUI(){
-    const pill = document.getElementById("acfDailyPill");
-    if(!pill) return;
-
-    if(pill.__wired) return;
-    pill.__wired = true;
-
-    pill.addEventListener("click", async ()=>{
-      if(__acfDailyBusy) return;
-      __acfDailyBusy = true;
-      const st = await fetchDailyStatus();
-      __acfDailyBusy = false;
-      if(st){
-        __acfDailyCache = st;
-        setDailyBadge(st);
-        openDailyModal(st);
-      }
-    });
-
-    const st = await fetchDailyStatus();
-    if(st){
-      __acfDailyCache = st;
-      setDailyBadge(st);
-    }
-  }
-
-  // helper for pages to report quest events (optional)
-  window.ACF_dailyEvent = async function(eventType, delta=1){
-    if(!ACF_isAuthed()) return;
-    try{
-      await api("/api/daily/event", { method:"POST", body: JSON.stringify({ eventType, delta }) });
-      const st = await fetchDailyStatus();
-      if(st){
-        __acfDailyCache = st;
-        setDailyBadge(st);
-      }
-    }catch(_e){}
-  };
   async function initMasterHeader(){
     if(window.ACF_DISABLE_MASTER) return;
     if(document.getElementById("acfMasterHeader")) return;

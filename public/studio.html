@@ -1202,7 +1202,8 @@ function calcAssetScore(assetId){
   const rarity = Number(a?.rarity || 1);
   const base = Number(BASE_SCORE[rarity] || 0);
 
-  let stars = Number(invStars(assetId) || 1);
+  const ua = (db.userAssets || db.playerAssets || db.assetsOwned || {})[id] || {};
+  let stars = Number(ua.stars || 1);
   if(!Number.isFinite(stars) || stars < 1) stars = 1;
   if(stars > 5) stars = 5;
 
