@@ -1664,7 +1664,7 @@ body{
 
 
 /* ===== Results overlay must be above masterpage ===== */
-#acfMasterMount{ z-index: 5000 !important; }
+#acfMasterMount{ z-index: 1000000 !important; }
 .overlay{ position: fixed !important; inset: 0; z-index: 120000 !important; }
 .cinematic{ position: fixed !important; inset: 0; z-index: 130000 !important; isolation: isolate; }
 
@@ -1675,7 +1675,7 @@ body, .wrap, .page, .acf-page, .container{
 
 
 /* ===== Hard-fix: cinematic overlay ALWAYS above masterpage (avoid stacking contexts) ===== */
-#acfMasterMount{ z-index: 5000 !important; }
+#acfMasterMount{ z-index: 1000000 !important; }
 .cinematic, .overlay{
   position: fixed !important;
   inset: 0 !important;

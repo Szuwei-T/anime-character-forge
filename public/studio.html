@@ -681,12 +681,8 @@ body{
   /* Row 1 height locks to stage bottom alignment */
   .studio-layout{ grid-template-rows: var(--stageH, 620px) auto !important; }
 
-  /* masterpage always on top */
-  #acfMasterMount{
-    position: sticky;
-    top: 0;
-    z-index: 99999;
-  }
+  /* masterpage mount: the header itself is fixed with very high z-index */
+  #acfMasterMount{ position: relative; z-index: 1000000; }
 
   /* Right side column aligns to stage bottom, no outer scrollbar */
   .studio-right{

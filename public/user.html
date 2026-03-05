@@ -40,7 +40,8 @@
     .actions{display:flex;gap:8px;margin-top:10px}
     .error{display:none;margin-top:10px;padding:10px 12px;border:1px solid rgba(255,80,80,.35);background:rgba(255,80,80,.10);border-radius:12px}
 
-    .modal{position:fixed;inset:0;z-index:9999;display:none}
+    /* original image preview layer (must be above master page) */
+    .modal{position:fixed;inset:0;z-index:1000001;display:none}
     .modalBack{position:absolute;inset:0;background:rgba(0,0,0,.68);backdrop-filter:blur(10px)}
     .modalCard{position:relative;max-width:980px;margin:24px auto;padding:14px;border-radius:18px;border:1px solid rgba(255,255,255,.14);background:rgba(15,20,30,.92);box-sizing:border-box}
     .modalTop{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
