@@ -128,21 +128,6 @@ const ACF_I18N = (() => {
 
       shop_title: "Shop",
       shop_plans: "Top up plans",
-
-      dq_title: "Daily Quest",
-      dq_reset_in: "Reset in",
-      dq_claim: "Claim",
-      dq_claimed: "Claimed",
-      dq_incomplete: "In progress",
-      dq_empty: "No quests yet",
-      dq_empty_hint: "Come back later",
-
-      dq_q_gacha_1_title: "Draw 1 time",
-      dq_q_gacha_1_desc: "Do 1 gacha draw (any type)",
-      dq_q_save_1_title: "Save 1 creation",
-      dq_q_save_1_desc: "Save 1 new work in Studio",
-      dq_q_vote_3_title: "Recommend 3 works",
-      dq_q_vote_3_desc: "Recommend 3 different works in Gallery",
       shop_page_title: "DREAM LEAGUE BASEBALL Shop",
       shop_redirect_hint: "If it does not redirect automatically, check whether your browser blocked the redirect.",
       shop_offline_hint: "If you are in offline mode, use the online site or make sure WORKER_BASE is set.",
@@ -153,6 +138,21 @@ const ACF_I18N = (() => {
       net_offline: "Offline",
       label_lv: "Lv",
       label_score: "Score",
+      daily_title: "Daily Quests",
+      daily_hint: "Daily quests updated",
+      claim: "Claim",
+      claimed: "Claimed",
+      close: "Close",
+      dq_login_t: "Login",
+      dq_login_d: "Sign in today",
+      dq_gacha_t: "Do 1 Gacha",
+      dq_gacha_d: "Draw once in Gacha",
+      dq_save_t: "Save 1 Work",
+      dq_save_d: "Save a creation in Studio",
+      dq_vote_t: "Vote 1 Time",
+      dq_vote_d: "Vote for a work in Gallery",
+      dq_share_t: "Share 1 SSR/UR",
+      dq_share_d: "Share an SSR/UR pull and claim reward",
       label_player: "Player",
       label_lang: "Language",
       lang_en: "English",
@@ -244,36 +244,6 @@ const ACF_I18N = (() => {
 
       shop_title: "商城",
       shop_plans: "充值方案",
-
-      dq_title: "每日任务",
-      dq_reset_in: "重置倒计时",
-      dq_claim: "领取",
-      dq_claimed: "已领取",
-      dq_incomplete: "进行中",
-      dq_empty: "目前没有任务",
-      dq_empty_hint: "稍后再回来看看",
-
-      dq_q_gacha_1_title: "抽卡 1 次",
-      dq_q_gacha_1_desc: "完成任意类型抽卡 1 次",
-      dq_q_save_1_title: "保存 1 个作品",
-      dq_q_save_1_desc: "在 Studio 保存 1 个新作品",
-      dq_q_vote_3_title: "推荐 3 个作品",
-      dq_q_vote_3_desc: "在 Gallery 推荐 3 个不同作品",
-
-      dq_title: "每日任務",
-      dq_reset_in: "重置倒數",
-      dq_claim: "領取",
-      dq_claimed: "已領取",
-      dq_incomplete: "進行中",
-      dq_empty: "目前沒有任務",
-      dq_empty_hint: "稍後再回來看看",
-
-      dq_q_gacha_1_title: "抽卡 1 次",
-      dq_q_gacha_1_desc: "完成任意類型抽卡 1 次",
-      dq_q_save_1_title: "保存 1 個作品",
-      dq_q_save_1_desc: "在 Studio 保存 1 個新作品",
-      dq_q_vote_3_title: "推薦 3 個作品",
-      dq_q_vote_3_desc: "在 Gallery 推薦 3 個不同作品",
       shop_page_title: "DREAM LEAGUE BASEBALL 商城",
       shop_redirect_hint: "如果沒有自動跳轉，請確認瀏覽器沒有阻擋重新導向。",
       shop_offline_hint: "若你在本機離線模式，請用線上環境或確認 WORKER_BASE 已設定。",
@@ -979,8 +949,7 @@ window.getName = getName;
         top: 0;
         left: 0;
         width: 100%;
-        /* Always on top of the game UI. Only the original image preview layer may sit above it. */
-        z-index: 1000000;
+        z-index: 20000;
         pointer-events: none;
       }
 
@@ -1023,92 +992,6 @@ window.getName = getName;
         gap: 12px;
         min-width: 0;
       }
-
-      /* ===== Daily Quest (Master page) ===== */
-      .acf-dqHost{ position: relative; pointer-events: auto; }
-      .acf-dqBtn{
-        appearance:none;
-        border: 1px solid rgba(255,255,255,0.18);
-        background: rgba(0,0,0,0.28);
-        color: rgba(255,255,255,0.95);
-        border-radius: 999px;
-        height: 42px;
-        padding: 0 14px;
-        font-weight: 950;
-        letter-spacing: 0.2px;
-        cursor: pointer;
-        box-shadow: 0 10px 24px rgba(0,0,0,0.25);
-        display:inline-flex;
-        align-items:center;
-        gap: 8px;
-        user-select:none;
-        white-space: nowrap;
-      }
-      .acf-dqBtn:hover{ filter: brightness(1.05); }
-      .acf-dqBtn:active{ transform: translateY(1px); }
-      .acf-dqDot{
-        width: 8px;
-        height: 8px;
-        border-radius: 999px;
-        background: rgba(34,197,94,0.95);
-        box-shadow: 0 0 0 3px rgba(34,197,94,0.16);
-      }
-      .acf-dqBadge{
-        min-width: 18px;
-        height: 18px;
-        padding: 0 6px;
-        border-radius: 999px;
-        font-size: 11px;
-        font-weight: 950;
-        display:inline-flex;
-        align-items:center;
-        justify-content:center;
-        background: rgba(239,68,68,0.95);
-        color: #111827;
-        box-shadow: 0 10px 22px rgba(0,0,0,0.25);
-      }
-      .acf-dqPanel{
-        position: absolute;
-        right: 0;
-        top: calc(100% + 10px);
-        width: min(420px, calc(100vw - 28px));
-        background: rgba(18,20,28,0.96);
-        border: 1px solid rgba(255,255,255,0.14);
-        border-radius: 16px;
-        box-shadow: 0 18px 50px rgba(0,0,0,0.55);
-        overflow: hidden;
-        display:none;
-      }
-      .acf-dqPanel.show{ display:block; }
-      .acf-dqHead{ display:flex; align-items:center; justify-content:space-between; padding: 12px 12px; border-bottom: 1px solid rgba(255,255,255,0.10); }
-      .acf-dqTitle{ font-weight: 950; font-size: 13px; color: rgba(255,255,255,0.95); }
-      .acf-dqMeta{ font-size: 11px; color: rgba(148,163,184,0.9); }
-      .acf-dqClose{ cursor:pointer; padding: 8px 10px; border-radius: 999px; background: rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.10); font-size: 12px; color: rgba(255,255,255,0.9); }
-      .acf-dqList{ padding: 12px; display:flex; flex-direction:column; gap: 10px; max-height: min(520px, calc(100vh - 180px)); overflow:auto; }
-      .acf-dqItem{ padding: 12px; border-radius: 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.10); }
-      .acf-dqRow{ display:flex; align-items:flex-start; justify-content:space-between; gap: 10px; }
-      .acf-dqName{ font-weight: 900; font-size: 13px; color: rgba(255,255,255,0.96); }
-      .acf-dqDesc{ margin-top: 4px; font-size: 12px; color: rgba(226,232,240,0.82); }
-      .acf-dqProg{ margin-top: 10px; display:flex; align-items:center; gap: 10px; }
-      .acf-dqBar{ flex:1; height: 9px; border-radius: 999px; background: rgba(0,0,0,0.32); border:1px solid rgba(255,255,255,0.10); overflow:hidden; }
-      .acf-dqBar > i{ display:block; height:100%; width:0%; background: rgba(34,197,94,0.92); }
-      .acf-dqPct{ font-size: 11px; color: rgba(148,163,184,0.95); min-width: 44px; text-align:right; }
-      .acf-dqReward{ margin-top: 10px; display:flex; align-items:center; justify-content:space-between; gap: 10px; }
-      .acf-dqRewardTxt{ font-size: 11px; color: rgba(203,213,225,0.92); }
-      .acf-dqClaim{
-        appearance:none;
-        border: 1px solid rgba(255,255,255,0.18);
-        background: rgba(250,204,21,0.92);
-        color: #111827;
-        border-radius: 999px;
-        padding: 8px 12px;
-        font-weight: 950;
-        cursor:pointer;
-      }
-      .acf-dqClaim[disabled]{ opacity: 0.55; cursor:not-allowed; filter: grayscale(0.2); }
-
-      /* Original image preview layer should be above the master page */
-      .acf-previewLayer{ z-index: 1000001 !important; }
 
       .acf-langWrap{
         display:flex;
@@ -1324,6 +1207,93 @@ white-space: nowrap;
   background: rgba(0,0,0,0.18);
 }
 .acf-masterAuthBtn:hover{ filter: brightness(1.05); }
+
+.acf-dailyPill{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  border-radius:999px;
+  padding:9px 12px;
+  font-weight:950;
+  letter-spacing:0.3px;
+  cursor:pointer;
+  user-select:none;
+  background: rgba(0,0,0,0.22);
+  border: 1px solid rgba(148,163,184,0.22);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.20);
+}
+.acf-dailyDot{
+  width:10px;height:10px;border-radius:999px;
+  background: rgba(34,197,94,0.95);
+  box-shadow: 0 0 12px rgba(34,197,94,0.25);
+}
+.acf-dailyDot.incomplete{
+  background: rgba(251,191,36,0.95);
+  box-shadow: 0 0 12px rgba(251,191,36,0.20);
+}
+.acf-dailyModal{
+  position:fixed; inset:0;
+  z-index: 99998;
+  background: rgba(0,0,0,0.62);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding: 18px;
+}
+.acf-dailyCard{
+  width:min(720px, 100%);
+  background: rgba(2,6,23,0.94);
+  border: 1px solid rgba(148,163,184,0.18);
+  border-radius: 18px;
+  box-shadow: 0 30px 90px rgba(0,0,0,0.55);
+  overflow:hidden;
+}
+.acf-dailyHead{
+  padding: 14px 16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border-bottom: 1px solid rgba(148,163,184,0.14);
+}
+.acf-dailyTitle{ font-weight: 1000; font-size: 16px; letter-spacing:0.2px; }
+.acf-dailyClose{
+  border:0;
+  background: rgba(148,163,184,0.10);
+  color: rgba(226,232,240,0.95);
+  border-radius: 12px;
+  padding: 8px 10px;
+  cursor:pointer;
+  font-weight: 900;
+}
+.acf-dailyBody{ padding: 12px 16px 16px; }
+.acf-dailyRow{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px dashed rgba(148,163,184,0.16);
+}
+.acf-dailyRow:last-child{ border-bottom: 0; }
+.acf-dailyTxt{ display:flex; flex-direction:column; gap: 2px; }
+.acf-dailyRowTitle{ font-weight: 950; }
+.acf-dailyRowDesc{ font-size: 12px; opacity: 0.92; color: rgba(148,163,184,0.95); }
+.acf-dailyRight{ display:flex; align-items:center; gap: 10px; }
+.acf-dailyProg{ font-size: 12px; opacity: 0.92; }
+.acf-dailyClaim{
+  border:0;
+  border-radius: 12px;
+  padding: 8px 10px;
+  cursor:pointer;
+  font-weight: 950;
+  background: rgba(34,197,94,0.92);
+  color: rgba(0,0,0,0.9);
+}
+.acf-dailyClaim[disabled]{
+  cursor:not-allowed;
+  filter: grayscale(1);
+  opacity: 0.5;
+}
 `;
     document.head.appendChild(s);
   }
@@ -1372,16 +1342,6 @@ if(!res.ok || data.ok===false) throw data;
 return data;
   }
 
-  function escapeHtml(s){
-    return String(s ?? "").replace(/[&<>"']/g, (m)=>({
-      "&":"&amp;",
-      "<":"&lt;",
-      ">":"&gt;",
-      '"':"&quot;",
-      "'":"&#39;",
-    }[m]));
-  }
-
   function buildHeaderDom(){
     ensureMasterStyles();
 
@@ -1418,27 +1378,6 @@ return data;
     const stats = el("div","acf-masterStats");
     stats.id = "acfMasterStats";
 
-    // Daily Quest host (button + dropdown panel)
-    const dqHost = el("div","acf-dqHost");
-    dqHost.id = "acfDailyQuestHost";
-    dqHost.innerHTML = `
-      <button class="acf-dqBtn" id="acfDailyQuestBtn" type="button">
-        <span class="acf-dqDot" aria-hidden="true"></span>
-        <span data-i18n="dq_title">Daily Quest</span>
-        <span class="acf-dqBadge" id="acfDailyQuestBadge" style="display:none">0</span>
-      </button>
-      <div class="acf-dqPanel" id="acfDailyQuestPanel" role="dialog" aria-label="Daily Quest">
-        <div class="acf-dqHead">
-          <div>
-            <div class="acf-dqTitle" data-i18n="dq_title">Daily Quest</div>
-            <div class="acf-dqMeta" id="acfDailyQuestMeta"> </div>
-          </div>
-          <div class="acf-dqClose" id="acfDailyQuestClose">✕</div>
-        </div>
-        <div class="acf-dqList" id="acfDailyQuestList"></div>
-      </div>
-    `;
-
     const langWrap = el("div","acf-langWrap");
     const langSel = el("select","acf-langSel");
     langSel.id = "acfLangSel";
@@ -1457,7 +1396,6 @@ return data;
     langWrap.appendChild(langSel);
 
     right.appendChild(stats);
-    right.appendChild(dqHost);
     right.appendChild(langWrap);
 
     bar.appendChild(left);
@@ -1540,198 +1478,9 @@ return data;
     return `<div class="acf-cap acf-capGeneric">${icon}<span>${v}</span></div>`;
   }
 
-  /* ===== Daily Quest (shared across all pages via master header) ===== */
-
-  let __dqCache = null;
-  let __dqCacheAt = 0;
-  let __dqLoading = false;
-
-  function dqEls(){
-    return {
-      host: document.getElementById("acfDailyQuestHost"),
-      btn: document.getElementById("acfDailyQuestBtn"),
-      badge: document.getElementById("acfDailyQuestBadge"),
-      panel: document.getElementById("acfDailyQuestPanel"),
-      list: document.getElementById("acfDailyQuestList"),
-      meta: document.getElementById("acfDailyQuestMeta"),
-      close: document.getElementById("acfDailyQuestClose"),
-    };
-  }
-
-  function dqSetOpen(open){
-    const { panel } = dqEls();
-    if(!panel) return;
-    panel.classList.toggle("show", !!open);
-  }
-
-  function dqRender(data){
-    const { badge, list, meta } = dqEls();
-    if(!list) return;
-    const d = data || { quests: [] };
-    const quests = Array.isArray(d.quests) ? d.quests : [];
-
-    // badge: number of claimable quests
-    const claimable = quests.filter(q=> q && q.completed && !q.claimed).length;
-    if(badge){
-      if(claimable > 0){
-        badge.style.display = "inline-flex";
-        badge.textContent = String(claimable);
-      }else{
-        badge.style.display = "none";
-        badge.textContent = "0";
-      }
-    }
-
-    if(meta){
-      const resetTxt = d.resetInSec ? (Math.max(0, Number(d.resetInSec)||0)) : null;
-      if(resetTxt !== null){
-        const h = Math.floor(resetTxt/3600);
-        const m = Math.floor((resetTxt%3600)/60);
-        meta.textContent = ACF_t("dq_reset_in","Reset in") + " " + String(h) + "h " + String(m) + "m";
-      }else{
-        meta.textContent = "";
-      }
-    }
-
-    if(!quests.length){
-      list.innerHTML = `<div class="acf-dqItem"><div class="acf-dqName">${ACF_t("dq_empty","No quests yet")}</div><div class="acf-dqDesc">${ACF_t("dq_empty_hint","Come back later")}</div></div>`;
-      return;
-    }
-
-    list.innerHTML = quests.map(q=>{
-      const title = ACF_t(q.titleKey || "dq_title_generic", q.title || "Quest");
-      const desc = ACF_t(q.descKey || "dq_desc_generic", q.desc || "");
-      const target = Number(q.target || 0);
-      const prog = Math.max(0, Number(q.progress || 0));
-      const pct = target > 0 ? Math.min(100, Math.round((prog/target)*100)) : (q.completed ? 100 : 0);
-      const rewards = [];
-      const rg = Number(q.rewardGold||0);
-      const rm = Number(q.rewardGem||0);
-      const rt = Number(q.rewardTicket||0);
-      if(rg) rewards.push("+" + rg + " Gold");
-      if(rm) rewards.push("+" + rm + " Gem");
-      if(rt) rewards.push("+" + rt + " Ticket");
-      const rewardTxt = rewards.length ? rewards.join(" · ") : "";
-
-      const disabled = (!q.completed) || !!q.claimed;
-      const btnTxt = q.claimed ? ACF_t("dq_claimed","Claimed") : (q.completed ? ACF_t("dq_claim","Claim") : ACF_t("dq_incomplete","In progress"));
-
-      return `
-        <div class="acf-dqItem" data-qid="${String(q.questId||"")}">
-          <div class="acf-dqRow">
-            <div>
-              <div class="acf-dqName">${escapeHtml(title)}</div>
-              <div class="acf-dqDesc">${escapeHtml(desc)}</div>
-            </div>
-          </div>
-          <div class="acf-dqProg">
-            <div class="acf-dqBar"><i style="width:${pct}%"></i></div>
-            <div class="acf-dqPct">${prog}/${target}</div>
-          </div>
-          <div class="acf-dqReward">
-            <div class="acf-dqRewardTxt">${escapeHtml(rewardTxt)}</div>
-            <button class="acf-dqClaim" data-claim="1" ${disabled ? "disabled" : ""}>${escapeHtml(btnTxt)}</button>
-          </div>
-        </div>
-      `;
-    }).join("");
-  }
-
-  async function dqLoad(force){
-    if(!ACF_isAuthed()) return null;
-    const now = Date.now();
-    const ttl = 20 * 1000;
-    if(!force && __dqCache && (now - __dqCacheAt) < ttl) return __dqCache;
-    if(__dqLoading) return __dqCache;
-    __dqLoading = true;
-    try{
-      const j = await apiFetch("/api/daily-quests", { method:"GET" });
-      __dqCache = j;
-      __dqCacheAt = Date.now();
-      return j;
-    }catch(_e){
-      return __dqCache;
-    }finally{
-      __dqLoading = false;
-    }
-  }
-
-  async function dqRefresh(force){
-    const d = await dqLoad(!!force);
-    if(d) dqRender(d);
-    return d;
-  }
-
-  async function dqClaim(questId){
-    if(!questId) return;
-    try{
-      const j = await apiFetch("/api/daily-quests/claim", {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ questId })
-      });
-      if(j && j.ok){
-        // refresh account stats and quest panel
-        try{
-          const me = await fetchMeAccount();
-          window.__acfMe = me;
-          renderMaster(me);
-        }catch(_e){}
-        await dqRefresh(true);
-        if(j.reward){
-          const parts = [];
-          if(j.reward.gold) parts.push("+" + j.reward.gold + " Gold");
-          if(j.reward.gem) parts.push("+" + j.reward.gem + " Gem");
-          if(j.reward.ticket) parts.push("+" + j.reward.ticket + " Ticket");
-          if(parts.length) toast(parts.join(" · "));
-        }
-      }else{
-        toast((j && j.error) ? String(j.error) : "claim_failed");
-      }
-    }catch(_e){
-      toast("claim_failed");
-    }
-  }
-
-  function wireDailyQuestUi(){
-    const { host, btn, panel, close, list } = dqEls();
-    if(!host || !btn || !panel) return;
-
-    // close on outside click
-    document.addEventListener("pointerdown", (e)=>{
-      if(!panel.classList.contains("show")) return;
-      const t = e.target;
-      if(panel.contains(t) || btn.contains(t)) return;
-      dqSetOpen(false);
-    }, { passive:true });
-
-    btn.addEventListener("click", async ()=>{
-      if(panel.classList.contains("show")){
-        dqSetOpen(false);
-        return;
-      }
-      dqSetOpen(true);
-      await dqRefresh(false);
-    });
-
-    if(close) close.addEventListener("click", ()=>dqSetOpen(false));
-
-    if(list){
-      list.addEventListener("click", (e)=>{
-        const b = e.target && e.target.closest ? e.target.closest("button[data-claim]") : null;
-        if(!b) return;
-        const item = b.closest("[data-qid]");
-        const qid = item ? item.getAttribute("data-qid") : "";
-        dqClaim(qid);
-      });
-    }
-  }
-
   function renderMaster(me){
     const box = document.getElementById("acfMasterHeader");
     if(!box) return;
-
-    const dqHost = document.getElementById("acfDailyQuestHost");
 
     const nameEl = document.getElementById("acfMasterName");
     const subEl = document.getElementById("acfMasterSub");
@@ -1741,7 +1490,6 @@ return data;
     if(!ACF_isAuthed()){
   // Guest browse mode
   box.style.display = "block";
-  if(dqHost) dqHost.style.display = "none";
   nameEl.textContent = ACF_t("label_player","Player") + " · " + "遊客 (新註冊)";
   subEl.textContent = "Browse mode";
   avEl.innerHTML = "";
@@ -1768,8 +1516,6 @@ return data;
 
     const acc = (me && me.account) ? me.account : {};
 
-    if(dqHost) dqHost.style.display = "block";
-
     box.style.display = "block";
     nameEl.textContent = String(acc.userName || ACF_t("label_player","Player"));
     subEl.textContent = ACF_t("label_lv","Lv") + " " + String(Number(acc.level || 1)) + (acc.userRegion ? (" · " + String(acc.userRegion)) : "") + " · " + ACF_t("label_score","Score") + " " + String(Number(acc.accountScore||0));
@@ -1793,11 +1539,189 @@ return data;
     html.push(statCap("gold", acc.userGold));
     html.push(statCap("gem", acc.userGem));
     html.push(statCap("ticket", acc.userVote));
+    html.push(`<div class="acf-dailyPill" id="acfDailyPill"><span class="acf-dailyDot incomplete" id="acfDailyDot"></span><span id="acfDailyText">${ACF_t("daily_title","Daily")} 0/0</span></div>`);
     statsEl.innerHTML = html.join("");
+
+    setTimeout(()=>{ try{ initDailyQuestsUI(); }catch(_e){} }, 0);
 
     setBodyOffset();
   }
 
+
+
+  // --- Daily Quests UI (integrated into Master Header) ---
+  let __acfDailyCache = null;
+  let __acfDailyBusy = false;
+
+  async function fetchDailyStatus(){
+    if(!ACF_isAuthed()) return null;
+    try{
+      const res = await api("/api/daily/status");
+      if(res && res.ok) return res;
+    }catch(_e){}
+    return null;
+  }
+
+  function setDailyBadge(status){
+    const dot = document.getElementById("acfDailyDot");
+    const txt = document.getElementById("acfDailyText");
+    if(!dot || !txt) return;
+    const done = Number(status?.claimed || 0);
+    const total = Number(status?.total || 0);
+    const completed = Number(status?.completed || 0);
+
+    txt.textContent = `${ACF_t("daily_title","Daily")} ${done}/${total}`;
+    if(total > 0 && done >= total){
+      dot.classList.remove("incomplete");
+    }else{
+      dot.classList.add("incomplete");
+    }
+
+    // subtle hint once per day
+    const dk = String(status?.dayKey || "");
+    const key = "acf_daily_hint_" + dk;
+    if(dk && !localStorage.getItem(key)){
+      localStorage.setItem(key, "1");
+      // ARIA style quick message if available
+      if(typeof window.ACF_showToast === "function"){
+        window.ACF_showToast(ACF_t("daily_hint","Daily quests updated"));
+      }
+    }
+  }
+
+  function renderReward(r){
+    const parts = [];
+    const g = Number(r.rewardGold||0);
+    const j = Number(r.rewardGem||0);
+    const t = Number(r.rewardTicket||0);
+    if(g) parts.push(`${g}G`);
+    if(j) parts.push(`${j}💎`);
+    if(t) parts.push(`${t}🎟️`);
+    return parts.join(" ");
+  }
+
+  function openDailyModal(status){
+    if(!status || !status.items) return;
+
+    const existing = document.getElementById("acfDailyModal");
+    if(existing) existing.remove();
+
+    const o = el("div","acf-dailyModal");
+    o.id = "acfDailyModal";
+
+    const card = el("div","acf-dailyCard");
+    const head = el("div","acf-dailyHead");
+    const title = el("div","acf-dailyTitle");
+    title.textContent = ACF_t("daily_title","Daily Quests");
+
+    const close = document.createElement("button");
+    close.className = "acf-dailyClose";
+    close.textContent = ACF_t("close","Close");
+    close.onclick = ()=>o.remove();
+
+    head.appendChild(title);
+    head.appendChild(close);
+
+    const body = el("div","acf-dailyBody");
+
+    (status.items || []).forEach(q=>{
+      const row = el("div","acf-dailyRow");
+
+      const left = el("div","acf-dailyTxt");
+      const t = el("div","acf-dailyRowTitle");
+      t.textContent = ACF_t(q.titleKey, q.titleKey);
+      const d = el("div","acf-dailyRowDesc");
+      d.textContent = ACF_t(q.descKey, q.descKey) + (renderReward(q) ? (" · " + renderReward(q)) : "");
+      left.appendChild(t);
+      left.appendChild(d);
+
+      const right = el("div","acf-dailyRight");
+      const prog = el("div","acf-dailyProg");
+      prog.textContent = `${Number(q.progress||0)}/${Number(q.targetCount||1)}`;
+
+      const btn = document.createElement("button");
+      btn.className = "acf-dailyClaim";
+      const can = (Number(q.progress||0) >= Number(q.targetCount||1));
+      const claimed = !!q.claimed;
+      btn.textContent = claimed ? ACF_t("claimed","Claimed") : ACF_t("claim","Claim");
+      btn.disabled = claimed || !can || __acfDailyBusy;
+      btn.onclick = async ()=>{
+        if(__acfDailyBusy) return;
+        __acfDailyBusy = true;
+        try{
+          const res = await api("/api/daily/claim", { method:"POST", body: JSON.stringify({ questId: q.questId }) });
+          if(res && res.ok){
+            // refresh currencies + badge
+            try{
+              const me = await fetchMeAccount();
+              window.__acfMe = me;
+              renderMaster(me);
+            }catch(_e){}
+            const st = await fetchDailyStatus();
+            if(st){
+              __acfDailyCache = st;
+              setDailyBadge(st);
+              openDailyModal(st); // re-render
+            }
+          }
+        }catch(_e){}
+        __acfDailyBusy = false;
+      };
+
+      right.appendChild(prog);
+      right.appendChild(btn);
+
+      row.appendChild(left);
+      row.appendChild(right);
+      body.appendChild(row);
+    });
+
+    card.appendChild(head);
+    card.appendChild(body);
+    o.appendChild(card);
+
+    o.addEventListener("click", (e)=>{ if(e.target === o) o.remove(); });
+    document.body.appendChild(o);
+  }
+
+  async function initDailyQuestsUI(){
+    const pill = document.getElementById("acfDailyPill");
+    if(!pill) return;
+
+    if(pill.__wired) return;
+    pill.__wired = true;
+
+    pill.addEventListener("click", async ()=>{
+      if(__acfDailyBusy) return;
+      __acfDailyBusy = true;
+      const st = await fetchDailyStatus();
+      __acfDailyBusy = false;
+      if(st){
+        __acfDailyCache = st;
+        setDailyBadge(st);
+        openDailyModal(st);
+      }
+    });
+
+    const st = await fetchDailyStatus();
+    if(st){
+      __acfDailyCache = st;
+      setDailyBadge(st);
+    }
+  }
+
+  // helper for pages to report quest events (optional)
+  window.ACF_dailyEvent = async function(eventType, delta=1){
+    if(!ACF_isAuthed()) return;
+    try{
+      await api("/api/daily/event", { method:"POST", body: JSON.stringify({ eventType, delta }) });
+      const st = await fetchDailyStatus();
+      if(st){
+        __acfDailyCache = st;
+        setDailyBadge(st);
+      }
+    }catch(_e){}
+  };
   async function initMasterHeader(){
     if(window.ACF_DISABLE_MASTER) return;
     if(document.getElementById("acfMasterHeader")) return;
@@ -1816,9 +1740,6 @@ return data;
     mount.appendChild(dom);
     setBodyOffset();
 
-    // wire once
-    wireDailyQuestUi();
-
     setNetBadge("connecting");
     clearInterval(window.__acfNetPoll);
     window.__acfNetPoll = setInterval(refreshNetBadge, 800);
@@ -1828,8 +1749,6 @@ return data;
     if(!ACF_isAuthed()){
       window.__acfMe = null;
       renderMaster(null);
-      // hide quest UI for guests
-      try{ const h = document.getElementById("acfDailyQuestHost"); if(h) h.style.display = "none"; }catch(_e){}
       // Guest: show Online badge always (no Offline text)
       APP.offline = false;
       refreshNetBadge();
@@ -1844,16 +1763,12 @@ return data;
         }else{
           window.__acfMe = me;
           renderMaster(me);
-          try{ const h = document.getElementById("acfDailyQuestHost"); if(h) h.style.display = "block"; }catch(_e){}
-          // warm cache to show badge even before opening
-          dqRefresh(false);
         }
         refreshNetBadge();
         ACF_applyI18n(document);
       }catch(_e){
         window.__acfMe = null;
         renderMaster(null);
-        try{ const h = document.getElementById("acfDailyQuestHost"); if(h) h.style.display = "none"; }catch(_e){}
         refreshNetBadge();
         ACF_applyI18n(document);
       }

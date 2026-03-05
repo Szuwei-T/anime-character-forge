@@ -681,8 +681,12 @@ body{
   /* Row 1 height locks to stage bottom alignment */
   .studio-layout{ grid-template-rows: var(--stageH, 620px) auto !important; }
 
-  /* masterpage mount: the header itself is fixed with very high z-index */
-  #acfMasterMount{ position: relative; z-index: 1000000; }
+  /* masterpage always on top */
+  #acfMasterMount{
+    position: sticky;
+    top: 0;
+    z-index: 99999;
+  }
 
   /* Right side column aligns to stage bottom, no outer scrollbar */
   .studio-right{
@@ -1198,8 +1202,7 @@ function calcAssetScore(assetId){
   const rarity = Number(a?.rarity || 1);
   const base = Number(BASE_SCORE[rarity] || 0);
 
-  const ua = (db.userAssets || db.playerAssets || db.assetsOwned || {})[id] || {};
-  let stars = Number(ua.stars || 1);
+  let stars = Number(invStars(assetId) || 1);
   if(!Number.isFinite(stars) || stars < 1) stars = 1;
   if(stars > 5) stars = 5;
 
