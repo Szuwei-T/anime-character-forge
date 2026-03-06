@@ -934,7 +934,7 @@ window.getName = getName;
         top: 0;
         left: 0;
         width: 100%;
-        z-index: 9999;
+        z-index: 60000;
         pointer-events: none;
       }
 
@@ -1192,6 +1192,103 @@ white-space: nowrap;
   background: rgba(0,0,0,0.18);
 }
 .acf-masterAuthBtn:hover{ filter: brightness(1.05); }
+
+.acf-preview-overlay{ z-index: 70000 !important; }
+#acfAriaBox{ z-index: 55000 !important; }
+.acfTutorMask{ z-index: 54990 !important; }
+#overlay, #cinematic, #levelUpFx, #unlock-overlay, #hoverPreview{ z-index: 55000 !important; }
+.acf-dailyBtn{
+  appearance:none;
+  border:1px solid rgba(255,215,120,0.24);
+  background: rgba(0,0,0,0.28);
+  color: rgba(255,244,220,0.96);
+  border-radius: 999px;
+  padding: 9px 14px;
+  font-weight: 950;
+  letter-spacing: 0.2px;
+  cursor: pointer;
+  box-shadow: 0 10px 22px rgba(0,0,0,0.22);
+  white-space: nowrap;
+}
+.acf-dailyBtn:hover{ filter: brightness(1.05); }
+.acf-dailyBtn.done{
+  border-color: rgba(74,222,128,0.34);
+  box-shadow: 0 10px 22px rgba(0,0,0,0.22), 0 0 0 1px rgba(74,222,128,0.18) inset;
+}
+.acf-dailyPanel{
+  margin: 6px 18px 0 auto;
+  width: min(520px, calc(100vw - 24px));
+  display: none;
+  pointer-events: auto;
+}
+.acf-dailyPanel.open{ display:block; }
+.acf-dailyCard{
+  display:flex;
+  gap:12px;
+  padding:12px;
+  border-radius:18px;
+  background: rgba(8,10,18,0.82);
+  border:1px solid rgba(255,215,120,0.18);
+  box-shadow: 0 24px 70px rgba(0,0,0,0.42);
+  backdrop-filter: blur(10px);
+}
+.acf-dailyAria{
+  width:88px;
+  min-width:88px;
+  height:120px;
+  border-radius:14px;
+  overflow:hidden;
+  border:1px solid rgba(255,215,120,0.22);
+  background: rgba(255,255,255,0.05);
+}
+.acf-dailyAria img{ width:100%; height:100%; object-fit:cover; display:block; }
+.acf-dailyMain{ min-width:0; flex:1; }
+.acf-dailyHead{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px; }
+.acf-dailyTitle{ font-weight:950; color:rgba(255,244,220,0.96); }
+.acf-dailySub{ font-size:12px; color:rgba(255,255,255,0.72); margin-top:2px; }
+.acf-dailyClose{
+  appearance:none;
+  border:1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.07);
+  color:#fff;
+  border-radius:10px;
+  padding:6px 10px;
+  cursor: pointer;
+  font-weight:900;
+}
+.acf-dailyList{ display:flex; flex-direction:column; gap:8px; }
+.acf-dailyItem{
+  border:1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.04);
+  border-radius:14px;
+  padding:10px;
+}
+.acf-dailyItem.done{ border-color: rgba(74,222,128,0.22); }
+.acf-dailyRow{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+.acf-dailyQuestTitle{ font-size:13px; font-weight:900; color:rgba(255,255,255,0.95); }
+.acf-dailyQuestDesc{ font-size:12px; color:rgba(255,255,255,0.70); margin-top:3px; line-height:1.35; }
+.acf-dailyReward{ font-size:11px; color:rgba(255,215,120,0.92); white-space:nowrap; font-weight:900; }
+.acf-dailyBar{ margin-top:8px; height:8px; border-radius:999px; background:rgba(255,255,255,0.10); overflow:hidden; }
+.acf-dailyBarFill{ height:100%; border-radius:999px; background:linear-gradient(90deg, rgba(255,215,120,0.92), rgba(74,222,128,0.92)); }
+.acf-dailyFoot{ margin-top:8px; display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.acf-dailyProgressTxt{ font-size:11px; color:rgba(255,255,255,0.70); }
+.acf-dailyClaim{
+  appearance:none;
+  border:1px solid rgba(255,215,120,0.24);
+  background: rgba(255,215,120,0.16);
+  color: rgba(255,245,230,0.96);
+  border-radius:999px;
+  padding:7px 12px;
+  font-size:12px;
+  font-weight:900;
+  cursor:pointer;
+}
+.acf-dailyClaim[disabled]{ opacity:0.5; cursor:not-allowed; }
+@media (max-width: 760px){
+  .acf-dailyPanel{ margin: 6px 8px 0 8px; width: auto; }
+  .acf-dailyCard{ padding:10px; }
+  .acf-dailyAria{ width:72px; min-width:72px; height:98px; }
+}
 `;
     document.head.appendChild(s);
   }
@@ -1293,7 +1390,12 @@ return data;
     });
     langWrap.appendChild(langSel);
 
+    const dailyBtn = el("button","acf-dailyBtn");
+    dailyBtn.id = "acfDailyBtn";
+    dailyBtn.type = "button";
+    dailyBtn.textContent = "Daily Quest";
     right.appendChild(stats);
+    right.appendChild(dailyBtn);
     right.appendChild(langWrap);
 
     bar.appendChild(left);
@@ -1376,6 +1478,167 @@ return data;
     return `<div class="acf-cap acf-capGeneric">${icon}<span>${v}</span></div>`;
   }
 
+
+  function markPreviewOverlays(){
+    try{
+      const selectors = [".modal", "#modal", "#previewModal", "#workModal"];
+      selectors.forEach((sel)=>{
+        document.querySelectorAll(sel).forEach((node)=>{
+          if(!node) return;
+          const hasPreview = !!(node.querySelector(".bigThumb,.bigwrap,.preview,#preview"));
+          if(hasPreview) node.classList.add("acf-preview-overlay");
+        });
+      });
+    }catch(_){}
+  }
+
+  function dailyRewardText(q){
+    const parts = [];
+    const gold = Number(q && q.rewardGold || 0);
+    const gem = Number(q && q.rewardGem || 0);
+    const ticket = Number(q && q.rewardTicket || 0);
+    if(gold > 0) parts.push(`${gold} Gold`);
+    if(gem > 0) parts.push(`${gem} Gem`);
+    if(ticket > 0) parts.push(`${ticket} Ticket`);
+    return parts.join(" · ") || "-";
+  }
+
+  function dailyQuestCountText(data){
+    const done = Number(data && data.done || 0);
+    const total = Number(data && data.total || 0);
+    return `${done}/${total}`;
+  }
+
+  async function fetchDailyStatus(force){
+    if(!ACF_isAuthed()) return null;
+    const now = Date.now();
+    if(!force && window.__acfDailyData && (now - Number(window.__acfDailyTs || 0) < 15000)) return window.__acfDailyData;
+    const lang = encodeURIComponent(ACF_getLang ? ACF_getLang() : "en");
+    const data = await apiFetch(`/api/daily/status?lang=${lang}`, { method:"GET" });
+    if(data && data.ok){
+      window.__acfDailyData = data;
+      window.__acfDailyTs = now;
+      return data;
+    }
+    return null;
+  }
+
+  async function claimDailyQuest(questId){
+    if(!questId) return false;
+    const data = await apiFetch("/api/daily/claim", { method:"POST", body: JSON.stringify({ questId }) });
+    if(!(data && data.ok)) return false;
+    window.__acfDailyTs = 0;
+    try{
+      if(window.__acfMe && window.__acfMe.account && data.balances){
+        window.__acfMe.account.userGold = Number(data.balances.userGold || 0);
+        window.__acfMe.account.userGem = Number(data.balances.userGem || 0);
+        window.__acfMe.account.userVote = Number(data.balances.userVote || 0);
+        renderMaster(window.__acfMe);
+      }
+    }catch(_){}
+    await refreshDailyQuestUi(true);
+    return true;
+  }
+
+  function ensureDailyQuestDom(){
+    let panel = document.getElementById("acfDailyPanel");
+    if(panel) return panel;
+    const header = document.getElementById("acfMasterHeader");
+    if(!header) return null;
+    panel = el("div","acf-dailyPanel");
+    panel.id = "acfDailyPanel";
+    panel.innerHTML = `
+      <div class="acf-dailyCard">
+        <div class="acf-dailyAria"><img src="/ui/aria/aria.webp" alt="ARIA" onerror="this.src='/assets/feature_character.png'"></div>
+        <div class="acf-dailyMain">
+          <div class="acf-dailyHead">
+            <div>
+              <div class="acf-dailyTitle">ARIA Daily Quest</div>
+              <div class="acf-dailySub" id="acfDailySummary">Loading...</div>
+            </div>
+            <button class="acf-dailyClose" id="acfDailyClose" type="button">Close</button>
+          </div>
+          <div class="acf-dailyList" id="acfDailyList"></div>
+        </div>
+      </div>
+    `;
+    header.appendChild(panel);
+    const closeBtn = panel.querySelector("#acfDailyClose");
+    if(closeBtn) closeBtn.addEventListener("click", ()=>{
+      panel.classList.remove("open");
+      try{ localStorage.setItem("acf_daily_open", "0"); }catch(_){}
+      setBodyOffset();
+    });
+    return panel;
+  }
+
+  function renderDailyQuestUi(data){
+    const btn = document.getElementById("acfDailyBtn");
+    const panel = ensureDailyQuestDom();
+    const list = document.getElementById("acfDailyList");
+    const summary = document.getElementById("acfDailySummary");
+    if(!btn || !panel || !list || !summary) return;
+    if(!ACF_isAuthed() || !data || !Array.isArray(data.quests)){
+      btn.style.display = "none";
+      panel.classList.remove("open");
+      setBodyOffset();
+      return;
+    }
+
+    btn.style.display = "";
+    btn.textContent = `Daily ${dailyQuestCountText(data)}`;
+    btn.classList.toggle("done", Number(data.done||0) >= Number(data.total||0) && Number(data.total||0) > 0);
+    summary.textContent = `ARIA：今天完成 ${dailyQuestCountText(data)} 個任務`;
+
+    list.innerHTML = (data.quests || []).map((q)=>{
+      const target = Math.max(0, Number(q.target || 0));
+      const progress = Math.max(0, Number(q.progress || 0));
+      const ratio = target > 0 ? Math.max(0, Math.min(100, (progress / target) * 100)) : 0;
+      const ready = !Number(q.claimed||0) && progress >= target;
+      const claimed = Number(q.claimed||0) === 1;
+      return `
+        <div class="acf-dailyItem ${claimed ? "done" : ""}" data-quest-id="${String(q.questId || "")}">
+          <div class="acf-dailyRow">
+            <div style="min-width:0">
+              <div class="acf-dailyQuestTitle">${String(q.title || q.titleKey || q.questId || "")}</div>
+              <div class="acf-dailyQuestDesc">${String(q.description || q.descKey || "")}</div>
+            </div>
+            <div class="acf-dailyReward">${dailyRewardText(q)}</div>
+          </div>
+          <div class="acf-dailyBar"><div class="acf-dailyBarFill" style="width:${ratio}%"></div></div>
+          <div class="acf-dailyFoot">
+            <div class="acf-dailyProgressTxt">${progress} / ${target}</div>
+            <button class="acf-dailyClaim" type="button" ${ready ? "" : "disabled"}>${claimed ? "Claimed" : (ready ? "Claim" : "Locked")}</button>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    list.querySelectorAll(".acf-dailyClaim").forEach((btnEl)=>{
+      btnEl.addEventListener("click", async ()=>{
+        const wrap = btnEl.closest("[data-quest-id]");
+        const questId = wrap && wrap.getAttribute("data-quest-id");
+        if(!questId || btnEl.disabled) return;
+        btnEl.disabled = true;
+        btnEl.textContent = "Claiming...";
+        const ok = await claimDailyQuest(questId);
+        if(!ok){
+          btnEl.disabled = false;
+          btnEl.textContent = "Claim";
+        }
+      });
+    });
+
+    const shouldOpen = String(localStorage.getItem("acf_daily_open") || "0") === "1";
+    panel.classList.toggle("open", shouldOpen);
+    setBodyOffset();
+  }
+
+  async function refreshDailyQuestUi(force){
+    const data = await fetchDailyStatus(!!force);
+    renderDailyQuestUi(data);
+  }
+
   function renderMaster(me){
     const box = document.getElementById("acfMasterHeader");
     if(!box) return;
@@ -1396,9 +1659,11 @@ return data;
   avEl.appendChild(d);
 
   statsEl.innerHTML = `
-    <button class="acf-masterAuthBtn" id="acfBtnLogin">${ACF_t("status_not_logged_in","Not signed in") ? "登入" : "登入"}</button>
+    <button class="acf-masterAuthBtn" id="acfBtnLogin">登入</button>
     <button class="acf-masterAuthBtn secondary" id="acfBtnSignup">註冊</button>
   `;
+  const dailyBtn = document.getElementById("acfDailyBtn");
+  if(dailyBtn) dailyBtn.style.display = "none";
 
   // wire buttons
   setTimeout(()=>{
@@ -1408,6 +1673,7 @@ return data;
     if(bs) bs.onclick = ()=>window.ACF_openLoginOverlay && window.ACF_openLoginOverlay("signup");
   }, 0);
 
+  renderDailyQuestUi(null);
   setBodyOffset();
   return;
 }
@@ -1438,7 +1704,9 @@ return data;
     html.push(statCap("gem", acc.userGem));
     html.push(statCap("ticket", acc.userVote));
     statsEl.innerHTML = html.join("");
-
+    const dailyBtn = document.getElementById("acfDailyBtn");
+    if(dailyBtn) dailyBtn.style.display = "";
+    setTimeout(()=>refreshDailyQuestUi(false), 0);
     setBodyOffset();
   }
 
@@ -1459,6 +1727,19 @@ return data;
     const dom = buildHeaderDom();
     mount.appendChild(dom);
     setBodyOffset();
+    markPreviewOverlays();
+    const dailyBtn = document.getElementById("acfDailyBtn");
+    if(dailyBtn){
+      dailyBtn.addEventListener("click", async ()=>{
+        const panel = ensureDailyQuestDom();
+        if(!panel) return;
+        const next = !panel.classList.contains("open");
+        panel.classList.toggle("open", next);
+        try{ localStorage.setItem("acf_daily_open", next ? "1" : "0"); }catch(_){}
+        if(next) await refreshDailyQuestUi(true);
+        setBodyOffset();
+      });
+    }
 
     setNetBadge("connecting");
     clearInterval(window.__acfNetPoll);
@@ -1495,6 +1776,12 @@ return data;
     }
 
     window.addEventListener("resize", ()=>setBodyOffset(), { passive:true });
+    document.addEventListener("click", ()=>{
+      if(ACF_isAuthed()) setTimeout(()=>refreshDailyQuestUi(false), 600);
+    }, { passive:true });
+    document.addEventListener("visibilitychange", ()=>{
+      if(!document.hidden && ACF_isAuthed()) refreshDailyQuestUi(true);
+    });
   }
 
   
