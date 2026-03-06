@@ -1773,7 +1773,8 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
 
             const right = document.createElement("div");
             right.className = "podVotesTop";
-            right.innerHTML = `<div>票數 ${String(Number(s.votes || 0))}</div><div class="podScore">評分 ${String(Number(s.systemScore || 0))}</div>`;
+            const podiumScore = getShowcaseSystemScore(s, { headUrl:s.headUrl, bodyUrl:s.bodyUrl, bgUrl:s.bgUrl, addon1Url:s.addon1Url, addon2Url:s.addon2Url });
+            right.innerHTML = `<div>票數 ${String(Number(s.votes || 0))}</div><div class="podScore">評分 ${String(Number(podiumScore || 0))}</div>`;
 
             metaTop.appendChild(left);
             metaTop.appendChild(right);
