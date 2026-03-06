@@ -1236,8 +1236,15 @@ function getShowcaseSystemScore(showcase, parts){
   const s = showcase || {};
   const v = Number(s.systemScore ?? s.system_score ?? s.score ?? 0);
   if(Number.isFinite(v) && v > 0) return Math.floor(v);
-  // fallback: derive from asset urls (may be less accurate if viewer doesn't own the assets)
-  try{ return computeSystemScoreFromUrls(parts || {}); }catch(_e){ return 0; }
+
+  // Only allow client-side fallback for the current signed-in user.
+  // For other authors, stars are unknown on the client and would produce incorrect results.
+  const ownerId = String(s.userId || s.ownerId || s.authorId || s.user_id || "").trim();
+  const me = String(uid || "").trim();
+  if(me && ownerId && me === ownerId){
+    try{ return computeSystemScoreFromUrls(parts || {}); }catch(_e){ return 0; }
+  }
+  return 0;
 }
 
 function makeScoreThumb(score){
@@ -1343,6 +1350,7 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
             await api("/api/vote", { method:"POST", body:{ showcaseId } });
             showToast("已投票");
             await loadMeLight();
+            await ensureScoreDb();
           }catch(e){
             showError(String(e.error || e.message || "投票失敗"));
           }
