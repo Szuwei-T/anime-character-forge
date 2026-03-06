@@ -1192,6 +1192,47 @@ async function api(url, opts){
   return 0;
 }
 
+  function normIdLocal(v){
+    return String(v || "").trim();
+  }
+
+  function computeSystemScoreFromIds(ids){
+    const clean = (ids || []).map(normIdLocal).filter(Boolean);
+    if(!clean.length) return 0;
+
+    const per = clean
+      .map(calcAssetScoreById)
+      .map(x => ({ ...x, score: Math.round(Number(x.score)||0) }));
+
+    const sumBase = per.reduce((acc, x) => acc + (Number(x.score)||0), 0);
+
+    const counts = {};
+    per.forEach(x => (x.tags || []).forEach(t => { counts[t] = (counts[t]||0) + 1; }));
+
+    let bonus = 0;
+    Object.keys(counts).forEach(t => { bonus += tagBonusPct(counts[t]); });
+
+    return Math.round(sumBase * (1 + bonus));
+  }
+
+  function computeSystemScoreFromShowcase(showcase){
+    const s = showcase || {};
+    const ids = [s.headId, s.bodyId, s.bgId, s.addon1Id, s.addon2Id];
+    const v = computeSystemScoreFromIds(ids);
+    if(v > 0) return v;
+
+    // fallback: derive from asset urls (older payloads)
+    const parts = {
+      headUrl: s.headUrl,
+      bodyUrl: s.bodyUrl,
+      bgUrl: s.bgUrl,
+      addon1Url: s.addon1Url,
+      addon2Url: s.addon2Url,
+    };
+    try{ return computeSystemScoreFromUrls(parts); }catch(_e){ return 0; }
+  }
+
+
   function calcAssetScoreById(assetId){
     const id = String(assetId || "");
     if(!id) return { score:0, tags:[] };
@@ -1232,7 +1273,7 @@ async function api(url, opts){
   }
 
   
-function getShowcaseSystemScore(showcase, parts){
+function getShowcaseSystemScore(showcase){
   const s = showcase || {};
   const v = Number(s.systemScore ?? s.system_score ?? s.score ?? 0);
   if(Number.isFinite(v) && v > 0) return Math.floor(v);
@@ -1240,12 +1281,15 @@ function getShowcaseSystemScore(showcase, parts){
   // Only allow client-side fallback for the current signed-in user.
   // For other authors, stars are unknown on the client and would produce incorrect results.
   const ownerId = String(s.userId || s.ownerId || s.authorId || s.user_id || "").trim();
-  const me = String(uid || "").trim();
+  const me =
+    String((window.APP && APP.uid) || localStorage.getItem("acf_uid") || localStorage.getItem("uid") || "").trim();
+
   if(me && ownerId && me === ownerId){
-    try{ return computeSystemScoreFromUrls(parts || {}); }catch(_e){ return 0; }
+    try{ return computeSystemScoreFromShowcase(s); }catch(_e){ return 0; }
   }
   return 0;
 }
+
 
 function makeScoreThumb(score){
     const wrap = document.createElement("div");
