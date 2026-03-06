@@ -1233,16 +1233,59 @@ async function api(url, opts){
   }
 
 
+  function normalizeAssetIdLoose(v){
+    return String(v || "")
+      .trim()
+      .toLowerCase()
+      .replace(/\.(png|webp|jpg|jpeg)$/i, "");
+  }
+
+  function findAssetByIdLoose(assetId){
+    const want = normalizeAssetIdLoose(assetId);
+    if(!want) return null;
+    const list = scoreDb.assets || [];
+    for(const x of list){
+      const xid = normalizeAssetIdLoose(x && x.assetId);
+      if(xid && xid === want) return x;
+    }
+    return null;
+  }
+
+  function getUserAssetStarsLoose(assetId){
+    const id = String(assetId || "").trim();
+    const want = normalizeAssetIdLoose(id);
+    const map = scoreDb.userAssets || {};
+    const me = String((window.APP && APP.uid) || localStorage.getItem("acf_uid") || localStorage.getItem("uid") || "").trim();
+
+    const direct = map[id] ?? map[want] ?? (me ? (map[`${me}:${id}`] ?? map[`${me}:${want}`]) : undefined);
+    if(direct != null){
+      let stars = Number((direct && typeof direct === "object") ? (direct.stars ?? direct.star ?? direct.level ?? 1) : direct);
+      if(!Number.isFinite(stars) || stars < 1) stars = 1;
+      if(stars > 5) stars = 5;
+      return stars;
+    }
+
+    for(const [k,v] of Object.entries(map)){
+      const tail = String(k || "").split(":").pop();
+      if(normalizeAssetIdLoose(tail) !== want) continue;
+      let stars = Number((v && typeof v === "object") ? (v.stars ?? v.star ?? v.level ?? 1) : v);
+      if(!Number.isFinite(stars) || stars < 1) stars = 1;
+      if(stars > 5) stars = 5;
+      return stars;
+    }
+    return 1;
+  }
+
   function calcAssetScoreById(assetId){
     const id = String(assetId || "");
     if(!id) return { score:0, tags:[] };
 
-    const a = (scoreDb.assets || []).find(x => String(x.assetId) === id) || null;
+    const a = findAssetByIdLoose(id);
+    if(!a) return { score:0, tags:[] };
     const rarity = Number(a?.rarity || 1);
     const base = Number(BASE_SCORE[rarity] || 0);
 
-    const ua = (scoreDb.userAssets || {})[id];
-    let stars = Number((ua && typeof ua === "object") ? (ua.stars ?? ua.star ?? ua.level ?? 1) : (ua ?? 1));
+    let stars = getUserAssetStarsLoose(id);
     if(!Number.isFinite(stars) || stars < 1) stars = 1;
     if(stars > 5) stars = 5;
 
@@ -1273,19 +1316,25 @@ async function api(url, opts){
   }
 
   
-function getShowcaseSystemScore(showcase){
-  const s = showcase || {};
+function getShowcaseSystemScore(showcase, parts){
+  const s = Object.assign({}, showcase || {}, parts || {});
   const v = Number(s.systemScore ?? s.system_score ?? s.score ?? 0);
   if(Number.isFinite(v) && v > 0) return Math.floor(v);
 
   // Only allow client-side fallback for the current signed-in user.
   // For other authors, stars are unknown on the client and would produce incorrect results.
   const ownerId = String(s.userId || s.ownerId || s.authorId || s.user_id || "").trim();
-  const me =
-    String((window.APP && APP.uid) || localStorage.getItem("acf_uid") || localStorage.getItem("uid") || "").trim();
+  const me = String((window.APP && APP.uid) || localStorage.getItem("acf_uid") || localStorage.getItem("uid") || "").trim();
 
   if(me && ownerId && me === ownerId){
-    try{ return computeSystemScoreFromShowcase(s); }catch(_e){ return 0; }
+    try{
+      const fromIds = computeSystemScoreFromShowcase(s);
+      if(fromIds > 0) return fromIds;
+    }catch(_e){}
+    try{
+      const fromUrls = computeSystemScoreFromUrls(s || {});
+      if(fromUrls > 0) return fromUrls;
+    }catch(_e){}
   }
   return 0;
 }
