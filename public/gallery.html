@@ -904,58 +904,45 @@ body{
 </div>
 <div class="recGrid" id="recGrid"></div>
 </div>
-<div class="rankHub" id="rankHub">
-<div class="rankHubHead">
-  <div>
-    <div class="rankHubTitle">📊 排行榜總覽</div>
-    <div class="rankHubSub">把次要榜單收進同一區，只顯示 1 個榜，畫面更乾淨</div>
-  </div>
-  <div class="rankHubGroups">
-    <button class="rankHubGroupBtn active" data-rank-group="works">作品榜</button>
-    <button class="rankHubGroupBtn" data-rank-group="authors">作者榜</button>
-  </div>
+<div class="rankRow" id="rankRow1">
+<div class="recWrap rankPanel fire" data-rank-wrap="1" id="trendRankWrap">
+<div class="recTitle"><div class="h">🔥 Trending</div><div class="sub">近期熱度綜合分數</div></div>
+<div class="recGrid" id="trendRankGrid"></div>
 </div>
-<div class="rankHubTabs" id="rankHubTabs"></div>
-<div class="rankHubPanels">
-  <div class="recWrap rankPanel fire active" data-rank-wrap="1" data-rank-group="works" data-rank-key="favorites" data-rank-label="💖 收藏榜" id="favRankWrap">
-  <div class="recTitle"><div class="h" data-i18n="gallery_favorites">💖 收藏榜</div><div class="sub" data-i18n="gallery_favorites_desc">不限賽季 · 依被收藏數排序</div></div>
-  <div class="recGrid" id="favRankGrid"></div>
-  </div>
+<div class="recWrap rankPanel" data-rank-wrap="1" id="scoreRankWrap">
+<div class="recTitle"><div class="h">🏅 Score 排行</div><div class="sub">依作品系統分排序</div></div>
+<div class="recGrid" id="scoreRankGrid"></div>
+</div>
 
-  <div class="recWrap rankPanel" data-rank-wrap="1" data-rank-group="works" data-rank-key="trending" data-rank-label="🔥 Trending" id="trendRankWrap">
-  <div class="recTitle"><div class="h">🔥 Trending</div><div class="sub">近期熱度綜合分數</div></div>
-  <div class="recGrid" id="trendRankGrid"></div>
-  </div>
-
-  <div class="recWrap rankPanel" data-rank-wrap="1" data-rank-group="works" data-rank-key="score" data-rank-label="🏅 Score 排行" id="scoreRankWrap">
-  <div class="recTitle"><div class="h">🏅 Score 排行</div><div class="sub">依作品系統分排序</div></div>
-  <div class="recGrid" id="scoreRankGrid"></div>
-  </div>
-
-  <div class="recWrap rankPanel" data-rank-wrap="1" data-rank-group="works" data-rank-key="comments" data-rank-label="💬 評論榜" id="commentRankWrap">
-  <div class="recTitle"><div class="h">💬 評論榜</div><div class="sub">依評論數排序</div></div>
-  <div class="recGrid" id="commentRankGrid"></div>
-  </div>
-
-  <div class="recWrap rankPanel royal" data-rank-wrap="1" data-rank-group="authors" data-rank-key="gold" data-rank-label="💰 Gold 排行" id="goldRankWrap">
-  <div class="recTitle"><div class="h">💰 Gold 排行</div><div class="sub">依帳號 Gold 排序</div></div>
-  <div class="authorGrid" id="goldRankGrid"></div>
-  </div>
-
-  <div class="recWrap rankPanel" data-rank-wrap="1" data-rank-group="authors" data-rank-key="newcomers" data-rank-label="🆕 新人榜" id="newRankWrap">
-  <div class="recTitle"><div class="h" data-i18n="gallery_newcomers">🆕 新人榜</div><div class="sub" data-i18n="gallery_newcomers_desc">註冊 1 個月內 · 依帳號最高分排序</div></div>
-  <div class="authorGrid" id="newRankGrid"></div>
-  </div>
-
-  <div class="recWrap rankPanel cool" data-rank-wrap="1" data-rank-group="authors" data-rank-key="authors" data-rank-label="👑 熱門作者榜" id="authorRankWrap">
-  <div class="recTitle"><div class="h" data-i18n="gallery_authors">👑 熱門作者榜</div><div class="sub" data-i18n="gallery_authors_desc">不限賽季 · 依粉絲數排序</div></div>
-  <div class="authorGrid" id="authorRankGrid"></div>
-  </div>
-
-  <div class="recWrap rankPanel fire" data-rank-wrap="1" data-rank-group="authors" data-rank-key="creator" data-rank-label="⚔️ Creator 戰力榜" id="creatorRankWrap">
-  <div class="recTitle"><div class="h">⚔️ Creator 戰力榜</div><div class="sub">綜合粉絲、作品表現與最高分</div></div>
-  <div class="authorGrid" id="creatorRankGrid"></div>
-  </div>
+</div>
+<div class="rankRow" id="rankRow2">
+<div class="recWrap rankPanel" data-rank-wrap="1" id="commentRankWrap">
+<div class="recTitle"><div class="h">💬 評論榜</div><div class="sub">依評論數排序</div></div>
+<div class="recGrid" id="commentRankGrid"></div>
+</div>
+<div class="recWrap rankPanel" data-rank-wrap="1" id="favRankWrap">
+<div class="recTitle"><div class="h" data-i18n="gallery_favorites">💖 收藏榜</div><div class="sub" data-i18n="gallery_favorites_desc">不限賽季 · 依被收藏數排序</div></div>
+<div class="recGrid" id="favRankGrid"></div>
+</div>
+</div>
+<div class="rankRow" id="rankRow3">
+<div class="recWrap rankPanel royal" data-rank-wrap="1" id="goldRankWrap">
+<div class="recTitle"><div class="h">💰 Gold 排行</div><div class="sub">依帳號 Gold 排序</div></div>
+<div class="authorGrid" id="goldRankGrid"></div>
+</div>
+<div class="recWrap rankPanel" data-rank-wrap="1" id="newRankWrap">
+<div class="recTitle"><div class="h" data-i18n="gallery_newcomers">🆕 新人榜</div><div class="sub" data-i18n="gallery_newcomers_desc">註冊 1 個月內 · 依帳號最高分排序</div></div>
+<div class="authorGrid" id="newRankGrid"></div>
+</div>
+<div class="recWrap rankPanel cool" data-rank-wrap="1" id="authorRankWrap">
+<div class="recTitle"><div class="h" data-i18n="gallery_authors">👑 熱門作者榜</div><div class="sub" data-i18n="gallery_authors_desc">不限賽季 · 依粉絲數排序</div></div>
+<div class="authorGrid" id="authorRankGrid"></div>
+</div>
+</div>
+<div class="rankRow" id="rankRow4">
+<div class="recWrap rankPanel fire" data-rank-wrap="1" id="creatorRankWrap">
+<div class="recTitle"><div class="h">⚔️ Creator 戰力榜</div><div class="sub">綜合粉絲、作品表現與最高分</div></div>
+<div class="authorGrid" id="creatorRankGrid"></div>
 </div>
 </div>
 <div class="entries" id="grid"></div>
@@ -2681,54 +2668,6 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
           }
         }
 
-        function initRankHub(){
-          const hub = document.getElementById("rankHub");
-          if(!hub) return;
-          const tabsMount = document.getElementById("rankHubTabs");
-          const groupBtns = Array.from(hub.querySelectorAll(".rankHubGroupBtn"));
-          const panels = Array.from(hub.querySelectorAll(".rankHubPanels > .recWrap"));
-          let activeGroup = "works";
-          let activeKeyByGroup = { works:"favorites", authors:"authors" };
-
-          function buildTabs(){
-            if(!tabsMount) return;
-            tabsMount.innerHTML = "";
-            const relevant = panels.filter(p => p.dataset.rankGroup === activeGroup);
-            relevant.forEach(p => {
-              const btn = document.createElement("button");
-              btn.className = "rankHubTab" + ((activeKeyByGroup[activeGroup] === p.dataset.rankKey) ? " active" : "");
-              btn.type = "button";
-              btn.textContent = p.dataset.rankLabel || p.id;
-              btn.addEventListener("click", ()=>{
-                activeKeyByGroup[activeGroup] = p.dataset.rankKey || "";
-                sync();
-              });
-              tabsMount.appendChild(btn);
-            });
-          }
-
-          function sync(){
-            groupBtns.forEach(btn => btn.classList.toggle("active", btn.dataset.rankGroup === activeGroup));
-            buildTabs();
-            panels.forEach(p => {
-              const on = p.dataset.rankGroup === activeGroup && p.dataset.rankKey === activeKeyByGroup[activeGroup];
-              p.classList.toggle("active", !!on);
-            });
-          }
-
-          groupBtns.forEach(btn => btn.addEventListener("click", ()=>{
-            activeGroup = btn.dataset.rankGroup || "works";
-            if(!activeKeyByGroup[activeGroup]){
-              const first = panels.find(p => p.dataset.rankGroup === activeGroup);
-              activeKeyByGroup[activeGroup] = first ? (first.dataset.rankKey || "") : "";
-            }
-            sync();
-          }));
-
-          sync();
-        }
-
-        initRankHub();
         sortSel.onchange = load;
         seasonSel.onchange = load;
         load();
