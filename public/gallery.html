@@ -782,42 +782,18 @@ body{
 }
 
 
-/* ===== Generic leaderboard panels ===== */
-.rankPanel{
-  border:1px solid rgba(255,215,120,0.35);
-  border-radius:18px;
-  background:rgba(0,0,0,0.45);
-  backdrop-filter:blur(10px);
-  -webkit-backdrop-filter:blur(10px);
-  padding:14px 14px 16px 14px;
-  box-shadow:
-    0 10px 30px rgba(0,0,0,0.45),
-    inset 0 0 18px rgba(255,215,120,0.08);
-  position:relative;
-  flex:1 1 30%;
+.podiumRow{display:flex;gap:16px;align-items:flex-start}
+.podiumMain{flex:1;min-width:0}
+.voteSideWrap{display:none;flex:0 0 320px;margin:0}
+.voteRankList{display:flex;flex-direction:column;gap:10px}
+.voteSideTitle{margin-bottom:8px}
+.iconBtn.disabled{opacity:.42;cursor:not-allowed;pointer-events:none}
+.authorActions{margin-top:10px;justify-content:flex-start}
+.authorActions .iconBtn{flex:0 0 auto}
+@media (max-width: 1180px){
+  .podiumRow{flex-direction:column}
+  .voteSideWrap{flex:1 1 auto;width:100%}
 }
-.rankPanel.cool{
-  border-color:rgba(120,180,255,0.35);
-  box-shadow:
-    0 10px 30px rgba(0,0,0,0.45),
-    inset 0 0 18px rgba(120,180,255,0.08);
-}
-.rankPanel.royal{
-  border-color:rgba(192,132,252,0.35);
-  box-shadow:
-    0 10px 30px rgba(0,0,0,0.45),
-    inset 0 0 18px rgba(192,132,252,0.08);
-}
-.rankPanel.fire{
-  border-color:rgba(255,130,80,0.35);
-  box-shadow:
-    0 10px 30px rgba(0,0,0,0.45),
-    inset 0 0 18px rgba(255,130,80,0.08);
-}
-.rankPanel .recTitle{ margin-bottom: 12px; }
-.rankPanel .recGrid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:12px; }
-.rankPanel .authorGrid{ display:flex !important; flex-direction:column; gap:12px; }
-@media (max-width: 1100px){ .rankPanel{ flex:1 1 auto; } }
 
 </style>
 <link href="style.css" rel="stylesheet"/>
@@ -831,12 +807,7 @@ body{
 <div class="seg">
 <select class="select" id="sortSel">
 <option data-i18n="filter_latest" value="new">最新</option>
-<option value="trending">Trending</option>
-<option value="score">最高系統分</option>
-<option value="votes">最高票數</option>
-<option value="favorites">最多收藏</option>
-<option value="comments">最多評論</option>
-<option value="recommends">最多推薦</option>
+<option data-i18n="filter_topscore" value="top">最高分</option>
 </select>
 <select class="select" id="seasonSel">
 <option data-i18n="gallery_season_all" value="">全部 Season</option>
@@ -847,7 +818,18 @@ body{
 <div class="error" id="errorBox"></div>
 <div class="sectionTitle" data-i18n="gallery_podium" id="podiumTitle">🏆 本期頒獎台</div>
 <div class="podiumWrap" id="podiumWrap">
+<div class="podiumRow">
+<div class="podiumMain">
 <div class="podiumGrid" id="podiumGrid"></div>
+</div>
+<div class="voteSideWrap recWrap" id="voteRankWrap" style="display:none">
+<div class="recTitle voteSideTitle">
+<div class="h">🗳️ 票數榜</div>
+<div class="sub">第 4 名開始 · 依票數排序</div>
+</div>
+<div class="voteRankList" id="voteRankGrid"></div>
+</div>
+</div>
 </div>
 <div class="recWrap" id="recWrap">
 <div class="recTitle">
@@ -856,52 +838,27 @@ body{
 </div>
 <div class="recGrid" id="recGrid"></div>
 </div>
-<div class="rankRow" id="rankRow1">
-<div class="recWrap rankPanel fire" data-rank-wrap="1" id="trendRankWrap">
-<div class="recTitle"><div class="h">🔥 Trending</div><div class="sub">近期熱度綜合分數</div></div>
-<div class="recGrid" id="trendRankGrid"></div>
+<div class="rankRow" id="favAuthorRow">
+<div class="recWrap" id="favRankWrap">
+<div class="recTitle">
+<div class="h" data-i18n="gallery_favorites">💖 收藏榜</div>
+<div class="sub" data-i18n="gallery_favorites_desc">不限賽季 · 依被收藏數排序</div>
 </div>
-<div class="recWrap rankPanel" data-rank-wrap="1" id="scoreRankWrap">
-<div class="recTitle"><div class="h">🏅 Score 排行</div><div class="sub">依作品系統分排序</div></div>
-<div class="recGrid" id="scoreRankGrid"></div>
-</div>
-<div class="recWrap rankPanel cool" data-rank-wrap="1" id="voteRankWrap">
-<div class="recTitle"><div class="h">🗳️ 票數榜</div><div class="sub">依作品票數排序</div></div>
-<div class="recGrid" id="voteRankGrid"></div>
-</div>
-</div>
-<div class="rankRow" id="rankRow2">
-<div class="recWrap rankPanel" data-rank-wrap="1" id="recommendRankWrap">
-<div class="recTitle"><div class="h">⭐ 推薦榜</div><div class="sub">依推薦次數排序</div></div>
-<div class="recGrid" id="recommendRankGrid"></div>
-</div>
-<div class="recWrap rankPanel" data-rank-wrap="1" id="commentRankWrap">
-<div class="recTitle"><div class="h">💬 評論榜</div><div class="sub">依評論數排序</div></div>
-<div class="recGrid" id="commentRankGrid"></div>
-</div>
-<div class="recWrap rankPanel" data-rank-wrap="1" id="favRankWrap">
-<div class="recTitle"><div class="h" data-i18n="gallery_favorites">💖 收藏榜</div><div class="sub" data-i18n="gallery_favorites_desc">不限賽季 · 依被收藏數排序</div></div>
 <div class="recGrid" id="favRankGrid"></div>
 </div>
+<div class="recWrap" id="newRankWrap">
+<div class="recTitle">
+<div class="h" data-i18n="gallery_newcomers">🆕 新人榜</div>
+<div class="sub" data-i18n="gallery_newcomers_desc">註冊 1 個月內 · 依被收藏數排序</div>
 </div>
-<div class="rankRow" id="rankRow3">
-<div class="recWrap rankPanel royal" data-rank-wrap="1" id="goldRankWrap">
-<div class="recTitle"><div class="h">💰 Gold 排行</div><div class="sub">依帳號 Gold 排序</div></div>
-<div class="authorGrid" id="goldRankGrid"></div>
+<div class="recGrid" id="newRankGrid"></div>
 </div>
-<div class="recWrap rankPanel" data-rank-wrap="1" id="newRankWrap">
-<div class="recTitle"><div class="h" data-i18n="gallery_newcomers">🆕 新人榜</div><div class="sub" data-i18n="gallery_newcomers_desc">註冊 1 個月內 · 依帳號最高分排序</div></div>
-<div class="authorGrid" id="newRankGrid"></div>
+<div class="recWrap" id="authorRankWrap">
+<div class="recTitle">
+<div class="h" data-i18n="gallery_authors">👑 熱門作者榜</div>
+<div class="sub" data-i18n="gallery_authors_desc">不限賽季 · 依被關注數排序</div>
 </div>
-<div class="recWrap rankPanel cool" data-rank-wrap="1" id="authorRankWrap">
-<div class="recTitle"><div class="h" data-i18n="gallery_authors">👑 熱門作者榜</div><div class="sub" data-i18n="gallery_authors_desc">不限賽季 · 依粉絲數排序</div></div>
 <div class="authorGrid" id="authorRankGrid"></div>
-</div>
-</div>
-<div class="rankRow" id="rankRow4">
-<div class="recWrap rankPanel fire" data-rank-wrap="1" id="creatorRankWrap">
-<div class="recTitle"><div class="h">⚔️ Creator 戰力榜</div><div class="sub">綜合粉絲、作品表現與最高分</div></div>
-<div class="authorGrid" id="creatorRankGrid"></div>
 </div>
 </div>
 <div class="entries" id="grid"></div>
@@ -941,26 +898,14 @@ body{
         const grid = document.getElementById("grid");
         const recWrap = document.getElementById("recWrap");
         const recGrid = document.getElementById("recGrid");
-        const trendRankWrap = document.getElementById("trendRankWrap");
-        const trendRankGrid = document.getElementById("trendRankGrid");
-        const scoreRankWrap = document.getElementById("scoreRankWrap");
-        const scoreRankGrid = document.getElementById("scoreRankGrid");
-        const voteRankWrap = document.getElementById("voteRankWrap");
-        const voteRankGrid = document.getElementById("voteRankGrid");
-        const recommendRankWrap = document.getElementById("recommendRankWrap");
-        const recommendRankGrid = document.getElementById("recommendRankGrid");
-        const commentRankWrap = document.getElementById("commentRankWrap");
-        const commentRankGrid = document.getElementById("commentRankGrid");
         const favRankWrap = document.getElementById("favRankWrap");
         const favRankGrid = document.getElementById("favRankGrid");
-        const goldRankWrap = document.getElementById("goldRankWrap");
-        const goldRankGrid = document.getElementById("goldRankGrid");
         const newRankWrap = document.getElementById("newRankWrap");
         const newRankGrid = document.getElementById("newRankGrid");
         const authorRankWrap = document.getElementById("authorRankWrap");
         const authorRankGrid = document.getElementById("authorRankGrid");
-        const creatorRankWrap = document.getElementById("creatorRankWrap");
-        const creatorRankGrid = document.getElementById("creatorRankGrid");
+        const voteRankWrap = document.getElementById("voteRankWrap");
+        const voteRankGrid = document.getElementById("voteRankGrid");
         const podiumGrid = document.getElementById("podiumGrid");
         const errorBox = document.getElementById("errorBox");
         const statusLine = document.getElementById("statusLine");
@@ -1018,6 +963,7 @@ try{ const u = new URL(location.href).searchParams.get("uid"); if(u) uid = Strin
       const ICON_FOLLOW_ON = `<svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" stroke="currentColor" stroke-width="2"/><path d="M17 11l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
       let followingSet = new Set();
+      const authorPrimaryShowcaseCache = new Map();
 
       async function loadFollowing(){
         try{
@@ -1057,19 +1003,6 @@ try{ const u = new URL(location.href).searchParams.get("uid"); if(u) uid = Strin
         }
       }
         const ICON_FIRE = `<svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M13 3s1 3-1 5-1 4 2 5 4 6 0 8-4 1-6-1-2-4-2-6c0-4 3-5 3-8 0-2-1-3-1-3s4 1 5 3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>`;
-
-        function computeTrendingScore(item){
-          const now = Date.now();
-          const ageDays = Math.max(0, (now - Number(item?.createdAt || now)) / 86400000);
-          const freshness = Math.max(0, 14 - ageDays);
-          const score =
-            Number(item?.votes || 0) * 6 +
-            Number(item?.favorites || 0) * 5 +
-            Number(item?.comments || 0) * 3 +
-            Number(item?.recommends || 0) * 8 +
-            freshness;
-          return Math.round(score * 10) / 10;
-        }
 
         function showToast(msg){
           toast.textContent = msg;
@@ -1788,6 +1721,178 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
           };
         }
 
+        async function getAuthorPrimaryShowcase(userId){
+          const tid = String(userId || "").trim();
+          if(!tid) return null;
+          if(authorPrimaryShowcaseCache.has(tid)) return authorPrimaryShowcaseCache.get(tid);
+          let found = null;
+          try{
+            const res = await api("/api/user/showcases?uid=" + encodeURIComponent(tid), { method:"GET" });
+            const arr = Array.isArray(res && res.items) ? res.items : [];
+            found = arr[0] || null;
+          }catch(_e){
+            found = null;
+          }
+          authorPrimaryShowcaseCache.set(tid, found);
+          return found;
+        }
+
+        function wireFollowButton(btn, targetUserId){
+          const tid = String(targetUserId || "").trim();
+          const isSelf = tid && uid && String(tid) === String(uid);
+          const sync = ()=>{
+            const on = tid && followingSet.has(tid);
+            btn.dataset.tip = on ? "已關注" : "關注";
+            btn.innerHTML = (on ? ICON_FOLLOW_ON : ICON_FOLLOW) + `<span class="btnLabel">${on ? "已關注" : "關注"}</span>`;
+            btn.classList.toggle("on", !!on);
+            if(isSelf) btn.style.display = "none";
+          };
+          sync();
+          btn.onclick = async (e)=>{
+            e.stopPropagation();
+            if(isSelf || !tid) return;
+            const done = setBtnBusy(btn, followingSet.has(tid) ? "取消中" : "關注中");
+            try{
+              await toggleFollow(tid);
+            }finally{
+              done();
+              sync();
+            }
+          };
+          return btn;
+        }
+
+        function createDisabledActionButton(iconHtml, label, tip){
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "iconBtn disabled";
+          btn.disabled = true;
+          btn.dataset.tip = tip || label;
+          btn.innerHTML = iconHtml + `<span class="btnLabel">${label}</span>`;
+          return btn;
+        }
+
+        function buildShowcaseActionRow(showcase, options){
+          const s = showcase || {};
+          const sid = String(s.showcaseId || s.id || "");
+          const tid = String(s.userId || "").trim();
+          const isSelf = tid && uid && String(tid) === String(uid);
+          const wrap = document.createElement("div");
+          wrap.className = (options && options.className) ? options.className : "favActions";
+
+          const followBtn = document.createElement("button");
+          followBtn.type = "button";
+          followBtn.className = "iconBtn";
+          wireFollowButton(followBtn, tid);
+
+          const voteBtn = document.createElement("button");
+          voteBtn.className = "iconBtn";
+          voteBtn.type = "button";
+          voteBtn.dataset.tip = "投票";
+          voteBtn.innerHTML = ICON_VOTE + `<span class="btnLabel">投票</span>`;
+          if(isSelf){ voteBtn.style.display = "none"; }
+          if((!uid) || userVote <= 0) voteBtn.style.opacity = ".6";
+          voteBtn.onclick = async (e)=>{
+            e.stopPropagation();
+            clearError();
+            if(!isAuthed()){
+              if(window.ACF_openLoginOverlay) window.ACF_openLoginOverlay("login");
+              return;
+            }
+            if(userVote <= 0){
+              showToast("票數已投滿");
+              return showError("票數已投滿");
+            }
+            const done = setBtnBusy(voteBtn, "投票中");
+            showToast("投票中");
+            try{
+              await vote(sid);
+            }finally{
+              done();
+            }
+            await load();
+          };
+
+          const favBtn = document.createElement("button");
+          favBtn.className = "iconBtn";
+          favBtn.type = "button";
+          const syncFav = ()=>{
+            const on = favoriteSet.has(sid);
+            favBtn.classList.toggle("on", on);
+            favBtn.dataset.tip = on ? "已收藏" : "收藏";
+            favBtn.innerHTML = ICON_HEART + `<span class="btnLabel">${on ? "已收藏" : "收藏"}</span>`;
+          };
+          syncFav();
+          favBtn.onclick = async (e)=>{
+            e.stopPropagation();
+            clearError();
+            const done = setBtnBusy(favBtn, favoriteSet.has(sid) ? "取消中" : "收藏中");
+            try{
+              await toggleFav(sid);
+            }finally{
+              done();
+            }
+            syncFav();
+            await load();
+          };
+
+          const recBtn = document.createElement("button");
+          recBtn.className = "iconBtn warn";
+          recBtn.type = "button";
+          recBtn.dataset.tip = "推薦";
+          recBtn.innerHTML = ICON_FIRE + `<span class="btnLabel">推薦</span>`;
+          if(isSelf){ recBtn.style.display = "none"; }
+          recBtn.onclick = async (e)=>{
+            e.stopPropagation();
+            clearError();
+            if(!isAuthed()){
+              if(window.ACF_openLoginOverlay) window.ACF_openLoginOverlay("login");
+              return;
+            }
+            if(userGem < 50){
+              showToast("GEM 不足");
+              return showError("GEM 不足");
+            }
+            const done = setBtnBusy(recBtn, "推薦中");
+            showToast("推薦中");
+            try{
+              await recommend(sid);
+            }finally{
+              done();
+            }
+            await load();
+          };
+
+          wrap.appendChild(followBtn);
+          wrap.appendChild(recBtn);
+          wrap.appendChild(favBtn);
+          wrap.appendChild(voteBtn);
+          return wrap;
+        }
+
+        async function buildAuthorActionRow(author){
+          const wrap = document.createElement("div");
+          wrap.className = "favActions authorActions";
+
+          const tid = String(author && author.userId || "").trim();
+          const followBtn = document.createElement("button");
+          followBtn.type = "button";
+          followBtn.className = "iconBtn";
+          wireFollowButton(followBtn, tid);
+          wrap.appendChild(followBtn);
+
+          const primary = await getAuthorPrimaryShowcase(tid);
+          if(primary){
+            const row = buildShowcaseActionRow(primary, { className:"favActions authorShowcaseActions" });
+            Array.from(row.children).forEach((child, idx)=>{ if(idx !== 0) wrap.appendChild(child); });
+          }else{
+            wrap.appendChild(createDisabledActionButton(ICON_FIRE, "推薦", "該作者目前沒有可操作作品"));
+            wrap.appendChild(createDisabledActionButton(ICON_HEART, "收藏", "該作者目前沒有可操作作品"));
+            wrap.appendChild(createDisabledActionButton(ICON_VOTE, "投票", "該作者目前沒有可操作作品"));
+          }
+          return wrap;
+        }
+
         function renderPodium(items){
           podiumGrid.innerHTML = "";
           const wrap = document.getElementById("podiumWrap");
@@ -2280,13 +2385,20 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
         }
 
         function clearRankings(){
-          document.querySelectorAll("[data-rank-wrap]").forEach(el=>{ el.style.display = "none"; });
+          if(favRankGrid) favRankGrid.innerHTML = "";
+          if(newRankGrid) newRankGrid.innerHTML = "";
+          if(authorRankGrid) authorRankGrid.innerHTML = "";
+          if(voteRankGrid) voteRankGrid.innerHTML = "";
+          if(favRankWrap) favRankWrap.style.display = "none";
+          if(newRankWrap) newRankWrap.style.display = "none";
+          if(authorRankWrap) authorRankWrap.style.display = "none";
+          if(voteRankWrap) voteRankWrap.style.display = "none";
         }
 
         function renderRankShowcaseGrid(wrapEl, gridEl, items, badgeTextFn){
           if(!wrapEl || !gridEl) return;
           gridEl.innerHTML = "";
-          const list = (items||[]).filter(x => Number(x.favorites||0) > 0);
+          const list = Array.isArray(items) ? items.slice() : [];
           if(list.length === 0){
             wrapEl.style.display = "none";
             return;
@@ -2296,7 +2408,6 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
           const isFavRank = (gridEl && gridEl.id === "favRankGrid");
 
           list.forEach((s)=>{
-            const sid = String(s.showcaseId || s.id || "");
             const authorName = String(s.authorName || s.userName || s.userId || "").trim() || "Player";
 
             const card = document.createElement("div");
@@ -2322,21 +2433,17 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
             const meta = document.createElement("div");
             meta.className = "recMeta";
 
-            // --- Top row: author + badge ---
             const topRow = document.createElement("div");
             topRow.className = "recMetaTop";
 
             const author = document.createElement("div");
             author.className = "recAuthor";
-
             const av = document.createElement("div");
             av.className = "recAuthorAv";
             renderAvatarInto(av, s, authorName);
-
             const nm = document.createElement("div");
             nm.className = "recAuthorName";
             nm.textContent = authorName;
-
             author.appendChild(av);
             author.appendChild(nm);
             author.onclick = (e)=>{ e.stopPropagation(); gotoUserProfile(s.userId); };
@@ -2354,117 +2461,10 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
 
             meta.appendChild(topRow);
             meta.appendChild(t);
-
-            // 收藏榜：加入 關注 / 投票 / 收藏 / 推薦 4 個按鈕（直向列表顯示）
-            if(isFavRank){
-              const actions = document.createElement("div");
-              actions.className = "favActions";
-
-              const tid = String(s.userId || "").trim();
-              const isSelf = tid && uid && String(tid) === String(uid);
-              const isFollow = tid && followingSet.has(tid);
-
-              const followBtn = document.createElement("button");
-              followBtn.type = "button";
-              followBtn.className = "iconBtn";
-              followBtn.dataset.tip = (isFollow ? "已關注" : "關注");
-              followBtn.innerHTML = (isFollow ? ICON_FOLLOW_ON : ICON_FOLLOW) + `<span class="btnLabel">${isFollow ? "已關注" : "關注"}</span>`;
-              if(isSelf){ followBtn.style.display = "none"; }
-              followBtn.onclick = async (e)=>{
-                e.stopPropagation();
-                if(isSelf) return;
-                await toggleFollow(tid);
-                const on = followingSet.has(tid);
-                followBtn.dataset.tip = on ? "已關注" : "關注";
-                followBtn.innerHTML = (on ? ICON_FOLLOW_ON : ICON_FOLLOW) + `<span class="btnLabel">${on ? "已關注" : "關注"}</span>`;
-                followBtn.classList.toggle("on", on);
-              };
-
-              const voteBtn = document.createElement("button");
-              voteBtn.className = "iconBtn";
-              voteBtn.type = "button";
-              voteBtn.dataset.tip = "投票";
-              voteBtn.innerHTML = ICON_VOTE + `<span class="btnLabel">投票</span>`;
-              if(isSelf){ voteBtn.style.display = "none"; }
-              if((!uid) || userVote <= 0) voteBtn.style.opacity = ".6";
-              voteBtn.onclick = async (e)=>{
-                e.stopPropagation();
-                clearError();
-                if(!isAuthed()){
-          if(window.ACF_openLoginOverlay) window.ACF_openLoginOverlay("login");
-          return;
-        }
-                if(userVote <= 0){
-                  showToast("票數已投滿");
-                  return showError("票數已投滿");
-                }
-                const done = setBtnBusy(voteBtn, "投票中");
-                showToast("投票中");
-                try{
-                  await vote(sid);
-                }finally{
-                  done();
-                }
-                await load();
-              };
-
-              const favBtn = document.createElement("button");
-              favBtn.className = "iconBtn";
-              favBtn.type = "button";
-              const isFav = favoriteSet.has(sid);
-              if(isFav) favBtn.classList.add("on");
-              favBtn.dataset.tip = isFav ? "已收藏" : "收藏";
-              favBtn.innerHTML = ICON_HEART + `<span class="btnLabel">${isFav ? "已收藏" : "收藏"}</span>`;
-              favBtn.onclick = async (e)=>{
-                e.stopPropagation();
-                clearError();
-                const done = setBtnBusy(favBtn, isFav ? "取消中" : "收藏中");
-                try{
-                  await toggleFav(sid);
-                }finally{
-                  done();
-                }
-                await load();
-              };
-
-              const recBtn = document.createElement("button");
-              recBtn.className = "iconBtn warn";
-              recBtn.type = "button";
-              recBtn.dataset.tip = "推薦";
-              recBtn.innerHTML = ICON_FIRE + `<span class="btnLabel">推薦</span>`;
-              if(isSelf){ recBtn.style.display = "none"; }
-              recBtn.onclick = async (e)=>{
-                e.stopPropagation();
-                clearError();
-                if(!isAuthed()){
-          if(window.ACF_openLoginOverlay) window.ACF_openLoginOverlay("login");
-          return;
-        }
-                if(userGem < 50){
-                  showToast("GEM 不足");
-                  return showError("GEM 不足");
-                }
-                const done = setBtnBusy(recBtn, "推薦中");
-                showToast("推薦中");
-                try{
-                  await recommend(sid);
-                }finally{
-                  done();
-                }
-                await load();
-              };
-
-              actions.appendChild(followBtn);
-              actions.appendChild(voteBtn);
-              actions.appendChild(favBtn);
-              actions.appendChild(recBtn);
-
-              meta.appendChild(actions);
-            }
+            meta.appendChild(buildShowcaseActionRow(s, { className: isFavRank ? "favActions" : "iconRow" }));
 
             card.appendChild(th);
             card.appendChild(meta);
-
             card.onclick = ()=>{
               openModal(t.textContent, "收藏 " + String(Number(s.favorites||0)) + " · 票數 " + String(Number(s.votes||0)) + (Number(s.recommends||0) ? (" · 推薦 " + String(Number(s.recommends||0))) : "") + " · " + fmtTime(s.createdAt), [
                 { url: s.bgUrl, z:10 },
@@ -2474,21 +2474,21 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
                 { url: s.addon1Url, z:50 },
               ], s);
             };
-
             gridEl.appendChild(card);
           });
         }
-        function renderAuthorRankGrid(wrapEl, gridEl, items, metricTextFn){
-          if(!wrapEl || !gridEl) return;
-          gridEl.innerHTML = "";
-          const list = (items||[]).filter(Boolean);
+
+        async function renderAuthorRank(items){
+          if(!authorRankWrap || !authorRankGrid) return;
+          authorRankGrid.innerHTML = "";
+          const list = (items||[]).filter(x => Number(x.followers||0) > 0);
           if(list.length === 0){
-            wrapEl.style.display = "none";
+            authorRankWrap.style.display = "none";
             return;
           }
-          wrapEl.style.display = "block";
+          authorRankWrap.style.display = "block";
 
-          list.forEach((a, idx)=>{
+          for(const [idx, a] of list.entries()){
             const card = document.createElement("div");
             card.className = "authorCard";
 
@@ -2515,11 +2515,10 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
 
             const sub = document.createElement("div");
             sub.className = "authorSub";
-            sub.textContent = metricTextFn ? metricTextFn(a) : ("關注 " + String(Number(a.followers||0)) + " · Lv." + String(Number(a.level||1)));
+            sub.textContent = "關注 " + String(Number(a.followers||0)) + " · Lv." + String(Number(a.level||1));
 
             txt.appendChild(nm);
             txt.appendChild(sub);
-
             left.appendChild(av);
             left.appendChild(txt);
 
@@ -2527,48 +2526,55 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
             right.className = "pill2";
             right.textContent = "#" + String(idx + 1);
 
-            card.appendChild(left);
-            card.appendChild(right);
-            card.onclick = ()=> gotoUserProfile(a.userId);
-            gridEl.appendChild(card);
-          });
-        }
+            const body = document.createElement("div");
+            body.style.display = "flex";
+            body.style.flexDirection = "column";
+            body.style.gap = "10px";
+            body.style.flex = "1";
 
-        function renderAuthorRank(items){
-          renderAuthorRankGrid(authorRankWrap, authorRankGrid, items, (a)=>"關注 " + String(Number(a.followers||0)) + " · 最高分 " + String(Number(a.accountScore||0)) + " · Lv." + String(Number(a.level||1)));
+            const top = document.createElement("div");
+            top.style.display = "flex";
+            top.style.alignItems = "center";
+            top.style.justifyContent = "space-between";
+            top.style.gap = "12px";
+            top.appendChild(left);
+            top.appendChild(right);
+
+            body.appendChild(top);
+            body.appendChild(await buildAuthorActionRow(a));
+            card.appendChild(body);
+            card.onclick = ()=> gotoUserProfile(a.userId);
+            authorRankGrid.appendChild(card);
+          }
         }
 
         async function loadRankings(){
           clearRankings();
           try{
-            const seasonId = String(seasonSel.value || "").trim();
-            const qs = seasonId ? ("&seasonId=" + encodeURIComponent(seasonId)) : "";
-            const [trendRes, scoreRes, voteRes, recommendRes, commentRes, favRes, goldRes, newRes, authRes, creatorRes] = await Promise.all([
-              api("/api/rank/trending?limit=12" + qs, { method:"GET" }),
-              api("/api/rank/score?limit=12" + qs, { method:"GET" }),
-              api("/api/rank/votes?limit=12" + qs, { method:"GET" }),
-              api("/api/rank/recommends?limit=12" + qs, { method:"GET" }),
-              api("/api/rank/comments?limit=12" + qs, { method:"GET" }),
-              api("/api/rank/favorites?limit=12" + qs, { method:"GET" }),
-              api("/api/rank/gold?limit=18", { method:"GET" }),
-              api("/api/rank/newcomers?limit=18", { method:"GET" }),
-              api("/api/rank/authors?limit=18", { method:"GET" }),
-              api("/api/rank/creators?limit=18", { method:"GET" }),
+            const [favRes, newRes, authRes] = await Promise.all([
+              api("/api/rank/favorites?limit=24", { method:"GET" }),
+              api("/api/rank/newcomers?limit=24", { method:"GET" }),
+              api("/api/rank/authors?limit=30", { method:"GET" }),
             ]);
 
-            if(trendRes && trendRes.ok) renderRankShowcaseGrid(trendRankWrap, trendRankGrid, trendRes.items || [], (s)=>"熱度 " + String(Number(s.trendingScore||computeTrendingScore(s)||0)));
-            if(scoreRes && scoreRes.ok) renderRankShowcaseGrid(scoreRankWrap, scoreRankGrid, scoreRes.items || [], (s)=>"Score " + String(Number(s.systemScore||0)));
-            if(voteRes && voteRes.ok) renderRankShowcaseGrid(voteRankWrap, voteRankGrid, voteRes.items || [], (s)=>"票數 " + String(Number(s.votes||0)));
-            if(recommendRes && recommendRes.ok) renderRankShowcaseGrid(recommendRankWrap, recommendRankGrid, recommendRes.items || [], (s)=>"推薦 " + String(Number(s.recommends||0)));
-            if(commentRes && commentRes.ok) renderRankShowcaseGrid(commentRankWrap, commentRankGrid, commentRes.items || [], (s)=>"評論 " + String(Number(s.comments||0)));
             if(favRes && favRes.ok) renderRankShowcaseGrid(favRankWrap, favRankGrid, favRes.items || [], (s)=>"收藏 " + String(Number(s.favorites||0)));
-            if(goldRes && goldRes.ok) renderAuthorRankGrid(goldRankWrap, goldRankGrid, goldRes.items || [], (a)=>"Gold " + String(Number(a.userGold||0)) + " · Gem " + String(Number(a.userGem||0)) + " · Lv." + String(Number(a.level||1)));
-            if(newRes && newRes.ok) renderAuthorRankGrid(newRankWrap, newRankGrid, newRes.items || [], (a)=>"新人 · 最高分 " + String(Number(a.accountScore||0)) + " · Lv." + String(Number(a.level||1)));
-            if(authRes && authRes.ok) renderAuthorRank(authRes.items || []);
-            if(creatorRes && creatorRes.ok) renderAuthorRankGrid(creatorRankWrap, creatorRankGrid, creatorRes.items || [], (a)=>"戰力 " + String(Number(a.creatorScore||0)) + " · 作品 " + String(Number(a.showcaseCount||0)) + " · 粉絲 " + String(Number(a.followers||0)));
+            if(newRes && newRes.ok) renderRankShowcaseGrid(newRankWrap, newRankGrid, newRes.items || [], (s)=>"新人 · 收藏 " + String(Number(s.favorites||0)));
+            if(authRes && authRes.ok) await renderAuthorRank(authRes.items || []);
           }catch(e){
             clearRankings();
           }
+        }
+
+        function renderVoteSidebar(items){
+          if(!voteRankWrap || !voteRankGrid) return;
+          voteRankGrid.innerHTML = "";
+          const list = Array.isArray(items) ? items.slice(3) : [];
+          if(list.length === 0){
+            voteRankWrap.style.display = "none";
+            return;
+          }
+          voteRankWrap.style.display = "block";
+          renderRankShowcaseGrid(voteRankWrap, voteRankGrid, list, (s)=>"票數 " + String(Number(s.votes||0)));
         }
 
         async function load(){
@@ -2586,21 +2592,10 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
             let items = (res.items || []).slice();
 
             const sortMode = String(sortSel.value || "new");
-            items.forEach(it=>{ it.trendingScore = computeTrendingScore(it); });
             if(sortMode === "new"){
               items.sort((a,b)=> Number(b.createdAt||0) - Number(a.createdAt||0));
-            }else if(sortMode === "trending"){
-              items.sort((a,b)=> Number(b.trendingScore||0) - Number(a.trendingScore||0) || Number(b.createdAt||0) - Number(a.createdAt||0));
-            }else if(sortMode === "score"){
-              items.sort((a,b)=> Number(b.systemScore||0) - Number(a.systemScore||0) || Number(b.createdAt||0) - Number(a.createdAt||0));
-            }else if(sortMode === "votes"){
+            }else if(sortMode === "top"){
               items.sort((a,b)=> Number(b.votes||0) - Number(a.votes||0) || Number(b.createdAt||0) - Number(a.createdAt||0));
-            }else if(sortMode === "favorites"){
-              items.sort((a,b)=> Number(b.favorites||0) - Number(a.favorites||0) || Number(b.createdAt||0) - Number(a.createdAt||0));
-            }else if(sortMode === "comments"){
-              items.sort((a,b)=> Number(b.comments||0) - Number(a.comments||0) || Number(b.createdAt||0) - Number(a.createdAt||0));
-            }else if(sortMode === "recommends"){
-              items.sort((a,b)=> Number(b.recommends||0) - Number(a.recommends||0) || Number(b.createdAt||0) - Number(a.createdAt||0));
             }
 
             if(!seasonOptionsLoaded){
@@ -2617,8 +2612,10 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
 
             statusLine.textContent = "共 " + String(items.length) + " 個作品";
 
-            const podium = items.slice().sort((a,b)=> Number(b.votes||0) - Number(a.votes||0)).slice(0,3);
+            const voteSorted = items.slice().sort((a,b)=> Number(b.votes||0) - Number(a.votes||0) || Number(b.createdAt||0) - Number(a.createdAt||0));
+            const podium = voteSorted.slice(0,3);
             renderPodium(podium);
+            renderVoteSidebar(voteSorted);
             render(items);
           }catch(e){
             statusLine.textContent = "讀取失敗";
