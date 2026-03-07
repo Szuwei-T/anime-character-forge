@@ -36,8 +36,16 @@
     .sectionTitle{margin:10px 0 10px;font-size:13px;opacity:.9;font-weight:700;letter-spacing:.3px}
 
     /* Podium v2 */
-    .podiumWrap{margin:8px 0 14px}
+    .podiumVoteRow{display:flex;align-items:flex-start;gap:14px;margin:8px 0 14px}
+    .podiumPane{flex:1 1 auto;min-width:0}
+    .podiumWrap{margin:0}
     .podiumGrid{display:flex;justify-content:center;align-items:flex-end;gap:18px}
+    .sideRankWrap{display:none;flex:0 0 340px;margin:0}
+    .sideRankWrap .recGrid{display:flex;flex-direction:column;gap:8px}
+    .sideRankWrap .recCard{width:100%}
+    .sideRankWrap .recThumb{width:110px;flex:0 0 110px}
+    .sideRankWrap .favActions{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+    .sideRankWrap .favActions .iconBtn{padding:5px 7px;font-size:10px}
     .podiumOuter{display:flex;flex-direction:column;gap:10px;align-items:stretch}
     .podMetaTop{height:56px;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:0 2px}
     .podLeft{display:flex;flex-direction:column;gap:6px;min-width:0}
@@ -781,20 +789,6 @@ body{
     inset 0 0 18px rgba(120,180,255,0.10);
 }
 
-
-.podiumRow{display:flex;gap:16px;align-items:flex-start}
-.podiumMain{flex:1;min-width:0}
-.voteSideWrap{display:none;flex:0 0 320px;margin:0}
-.voteRankList{display:flex;flex-direction:column;gap:10px}
-.voteSideTitle{margin-bottom:8px}
-.iconBtn.disabled{opacity:.42;cursor:not-allowed;pointer-events:none}
-.authorActions{margin-top:10px;justify-content:flex-start}
-.authorActions .iconBtn{flex:0 0 auto}
-@media (max-width: 1180px){
-  .podiumRow{flex-direction:column}
-  .voteSideWrap{flex:1 1 auto;width:100%}
-}
-
 </style>
 <link href="style.css" rel="stylesheet"/>
 <link href="ui_fx.css" rel="stylesheet"/>
@@ -817,18 +811,18 @@ body{
 </div>
 <div class="error" id="errorBox"></div>
 <div class="sectionTitle" data-i18n="gallery_podium" id="podiumTitle">🏆 本期頒獎台</div>
+<div class="podiumVoteRow" id="podiumVoteRow">
+<div class="podiumPane">
 <div class="podiumWrap" id="podiumWrap">
-<div class="podiumRow">
-<div class="podiumMain">
 <div class="podiumGrid" id="podiumGrid"></div>
 </div>
-<div class="voteSideWrap recWrap" id="voteRankWrap" style="display:none">
-<div class="recTitle voteSideTitle">
+</div>
+<div class="recWrap sideRankWrap" id="voteRankWrap">
+<div class="recTitle">
 <div class="h">🗳️ 票數榜</div>
-<div class="sub">第 4 名開始 · 依票數排序</div>
+<div class="sub">從第 4 名開始 · 前 3 名已在頒獎台</div>
 </div>
-<div class="voteRankList" id="voteRankGrid"></div>
-</div>
+<div class="recGrid" id="voteRankGrid"></div>
 </div>
 </div>
 <div class="recWrap" id="recWrap">
@@ -904,8 +898,6 @@ body{
         const newRankGrid = document.getElementById("newRankGrid");
         const authorRankWrap = document.getElementById("authorRankWrap");
         const authorRankGrid = document.getElementById("authorRankGrid");
-        const voteRankWrap = document.getElementById("voteRankWrap");
-        const voteRankGrid = document.getElementById("voteRankGrid");
         const podiumGrid = document.getElementById("podiumGrid");
         const errorBox = document.getElementById("errorBox");
         const statusLine = document.getElementById("statusLine");
@@ -963,7 +955,6 @@ try{ const u = new URL(location.href).searchParams.get("uid"); if(u) uid = Strin
       const ICON_FOLLOW_ON = `<svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" stroke="currentColor" stroke-width="2"/><path d="M17 11l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
       let followingSet = new Set();
-      const authorPrimaryShowcaseCache = new Map();
 
       async function loadFollowing(){
         try{
@@ -1721,178 +1712,6 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
           };
         }
 
-        async function getAuthorPrimaryShowcase(userId){
-          const tid = String(userId || "").trim();
-          if(!tid) return null;
-          if(authorPrimaryShowcaseCache.has(tid)) return authorPrimaryShowcaseCache.get(tid);
-          let found = null;
-          try{
-            const res = await api("/api/user/showcases?uid=" + encodeURIComponent(tid), { method:"GET" });
-            const arr = Array.isArray(res && res.items) ? res.items : [];
-            found = arr[0] || null;
-          }catch(_e){
-            found = null;
-          }
-          authorPrimaryShowcaseCache.set(tid, found);
-          return found;
-        }
-
-        function wireFollowButton(btn, targetUserId){
-          const tid = String(targetUserId || "").trim();
-          const isSelf = tid && uid && String(tid) === String(uid);
-          const sync = ()=>{
-            const on = tid && followingSet.has(tid);
-            btn.dataset.tip = on ? "已關注" : "關注";
-            btn.innerHTML = (on ? ICON_FOLLOW_ON : ICON_FOLLOW) + `<span class="btnLabel">${on ? "已關注" : "關注"}</span>`;
-            btn.classList.toggle("on", !!on);
-            if(isSelf) btn.style.display = "none";
-          };
-          sync();
-          btn.onclick = async (e)=>{
-            e.stopPropagation();
-            if(isSelf || !tid) return;
-            const done = setBtnBusy(btn, followingSet.has(tid) ? "取消中" : "關注中");
-            try{
-              await toggleFollow(tid);
-            }finally{
-              done();
-              sync();
-            }
-          };
-          return btn;
-        }
-
-        function createDisabledActionButton(iconHtml, label, tip){
-          const btn = document.createElement("button");
-          btn.type = "button";
-          btn.className = "iconBtn disabled";
-          btn.disabled = true;
-          btn.dataset.tip = tip || label;
-          btn.innerHTML = iconHtml + `<span class="btnLabel">${label}</span>`;
-          return btn;
-        }
-
-        function buildShowcaseActionRow(showcase, options){
-          const s = showcase || {};
-          const sid = String(s.showcaseId || s.id || "");
-          const tid = String(s.userId || "").trim();
-          const isSelf = tid && uid && String(tid) === String(uid);
-          const wrap = document.createElement("div");
-          wrap.className = (options && options.className) ? options.className : "favActions";
-
-          const followBtn = document.createElement("button");
-          followBtn.type = "button";
-          followBtn.className = "iconBtn";
-          wireFollowButton(followBtn, tid);
-
-          const voteBtn = document.createElement("button");
-          voteBtn.className = "iconBtn";
-          voteBtn.type = "button";
-          voteBtn.dataset.tip = "投票";
-          voteBtn.innerHTML = ICON_VOTE + `<span class="btnLabel">投票</span>`;
-          if(isSelf){ voteBtn.style.display = "none"; }
-          if((!uid) || userVote <= 0) voteBtn.style.opacity = ".6";
-          voteBtn.onclick = async (e)=>{
-            e.stopPropagation();
-            clearError();
-            if(!isAuthed()){
-              if(window.ACF_openLoginOverlay) window.ACF_openLoginOverlay("login");
-              return;
-            }
-            if(userVote <= 0){
-              showToast("票數已投滿");
-              return showError("票數已投滿");
-            }
-            const done = setBtnBusy(voteBtn, "投票中");
-            showToast("投票中");
-            try{
-              await vote(sid);
-            }finally{
-              done();
-            }
-            await load();
-          };
-
-          const favBtn = document.createElement("button");
-          favBtn.className = "iconBtn";
-          favBtn.type = "button";
-          const syncFav = ()=>{
-            const on = favoriteSet.has(sid);
-            favBtn.classList.toggle("on", on);
-            favBtn.dataset.tip = on ? "已收藏" : "收藏";
-            favBtn.innerHTML = ICON_HEART + `<span class="btnLabel">${on ? "已收藏" : "收藏"}</span>`;
-          };
-          syncFav();
-          favBtn.onclick = async (e)=>{
-            e.stopPropagation();
-            clearError();
-            const done = setBtnBusy(favBtn, favoriteSet.has(sid) ? "取消中" : "收藏中");
-            try{
-              await toggleFav(sid);
-            }finally{
-              done();
-            }
-            syncFav();
-            await load();
-          };
-
-          const recBtn = document.createElement("button");
-          recBtn.className = "iconBtn warn";
-          recBtn.type = "button";
-          recBtn.dataset.tip = "推薦";
-          recBtn.innerHTML = ICON_FIRE + `<span class="btnLabel">推薦</span>`;
-          if(isSelf){ recBtn.style.display = "none"; }
-          recBtn.onclick = async (e)=>{
-            e.stopPropagation();
-            clearError();
-            if(!isAuthed()){
-              if(window.ACF_openLoginOverlay) window.ACF_openLoginOverlay("login");
-              return;
-            }
-            if(userGem < 50){
-              showToast("GEM 不足");
-              return showError("GEM 不足");
-            }
-            const done = setBtnBusy(recBtn, "推薦中");
-            showToast("推薦中");
-            try{
-              await recommend(sid);
-            }finally{
-              done();
-            }
-            await load();
-          };
-
-          wrap.appendChild(followBtn);
-          wrap.appendChild(recBtn);
-          wrap.appendChild(favBtn);
-          wrap.appendChild(voteBtn);
-          return wrap;
-        }
-
-        async function buildAuthorActionRow(author){
-          const wrap = document.createElement("div");
-          wrap.className = "favActions authorActions";
-
-          const tid = String(author && author.userId || "").trim();
-          const followBtn = document.createElement("button");
-          followBtn.type = "button";
-          followBtn.className = "iconBtn";
-          wireFollowButton(followBtn, tid);
-          wrap.appendChild(followBtn);
-
-          const primary = await getAuthorPrimaryShowcase(tid);
-          if(primary){
-            const row = buildShowcaseActionRow(primary, { className:"favActions authorShowcaseActions" });
-            Array.from(row.children).forEach((child, idx)=>{ if(idx !== 0) wrap.appendChild(child); });
-          }else{
-            wrap.appendChild(createDisabledActionButton(ICON_FIRE, "推薦", "該作者目前沒有可操作作品"));
-            wrap.appendChild(createDisabledActionButton(ICON_HEART, "收藏", "該作者目前沒有可操作作品"));
-            wrap.appendChild(createDisabledActionButton(ICON_VOTE, "投票", "該作者目前沒有可操作作品"));
-          }
-          return wrap;
-        }
-
         function renderPodium(items){
           podiumGrid.innerHTML = "";
           const wrap = document.getElementById("podiumWrap");
@@ -2385,33 +2204,34 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
         }
 
         function clearRankings(){
+          if(voteRankGrid) voteRankGrid.innerHTML = "";
           if(favRankGrid) favRankGrid.innerHTML = "";
           if(newRankGrid) newRankGrid.innerHTML = "";
           if(authorRankGrid) authorRankGrid.innerHTML = "";
-          if(voteRankGrid) voteRankGrid.innerHTML = "";
+          if(voteRankWrap) voteRankWrap.style.display = "none";
           if(favRankWrap) favRankWrap.style.display = "none";
           if(newRankWrap) newRankWrap.style.display = "none";
           if(authorRankWrap) authorRankWrap.style.display = "none";
-          if(voteRankWrap) voteRankWrap.style.display = "none";
         }
 
         function renderRankShowcaseGrid(wrapEl, gridEl, items, badgeTextFn){
           if(!wrapEl || !gridEl) return;
           gridEl.innerHTML = "";
-          const list = Array.isArray(items) ? items.slice() : [];
+          const list = (items||[]).filter(Boolean);
           if(list.length === 0){
             wrapEl.style.display = "none";
             return;
           }
           wrapEl.style.display = "block";
 
-          const isFavRank = (gridEl && gridEl.id === "favRankGrid");
+          const isCompactRank = (gridEl && (gridEl.id === "favRankGrid" || gridEl.id === "voteRankGrid"));
 
           list.forEach((s)=>{
+            const sid = String(s.showcaseId || s.id || "");
             const authorName = String(s.authorName || s.userName || s.userId || "").trim() || "Player";
 
             const card = document.createElement("div");
-            card.className = "recCard" + (isFavRank ? " favRankCard" : "");
+            card.className = "recCard" + (isCompactRank ? " favRankCard" : "");
 
             const th = document.createElement("div");
             th.className = "recThumb";
@@ -2433,17 +2253,21 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
             const meta = document.createElement("div");
             meta.className = "recMeta";
 
+            // --- Top row: author + badge ---
             const topRow = document.createElement("div");
             topRow.className = "recMetaTop";
 
             const author = document.createElement("div");
             author.className = "recAuthor";
+
             const av = document.createElement("div");
             av.className = "recAuthorAv";
             renderAvatarInto(av, s, authorName);
+
             const nm = document.createElement("div");
             nm.className = "recAuthorName";
             nm.textContent = authorName;
+
             author.appendChild(av);
             author.appendChild(nm);
             author.onclick = (e)=>{ e.stopPropagation(); gotoUserProfile(s.userId); };
@@ -2461,12 +2285,119 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
 
             meta.appendChild(topRow);
             meta.appendChild(t);
-            meta.appendChild(buildShowcaseActionRow(s, { className: isFavRank ? "favActions" : "iconRow" }));
+
+            // 所有作品榜都加入 關注 / 投票 / 收藏 / 推薦 4 個按鈕
+            {
+              const actions = document.createElement("div");
+              actions.className = "favActions";
+
+              const tid = String(s.userId || "").trim();
+              const isSelf = tid && uid && String(tid) === String(uid);
+              const isFollow = tid && followingSet.has(tid);
+
+              const followBtn = document.createElement("button");
+              followBtn.type = "button";
+              followBtn.className = "iconBtn";
+              followBtn.dataset.tip = (isFollow ? "已關注" : "關注");
+              followBtn.innerHTML = (isFollow ? ICON_FOLLOW_ON : ICON_FOLLOW) + `<span class="btnLabel">${isFollow ? "已關注" : "關注"}</span>`;
+              if(isSelf){ followBtn.style.display = "none"; }
+              followBtn.onclick = async (e)=>{
+                e.stopPropagation();
+                if(isSelf) return;
+                await toggleFollow(tid);
+                const on = followingSet.has(tid);
+                followBtn.dataset.tip = on ? "已關注" : "關注";
+                followBtn.innerHTML = (on ? ICON_FOLLOW_ON : ICON_FOLLOW) + `<span class="btnLabel">${on ? "已關注" : "關注"}</span>`;
+                followBtn.classList.toggle("on", on);
+              };
+
+              const voteBtn = document.createElement("button");
+              voteBtn.className = "iconBtn";
+              voteBtn.type = "button";
+              voteBtn.dataset.tip = "投票";
+              voteBtn.innerHTML = ICON_VOTE + `<span class="btnLabel">投票</span>`;
+              if(isSelf){ voteBtn.style.display = "none"; }
+              if((!uid) || userVote <= 0) voteBtn.style.opacity = ".6";
+              voteBtn.onclick = async (e)=>{
+                e.stopPropagation();
+                clearError();
+                if(!isAuthed()){
+          if(window.ACF_openLoginOverlay) window.ACF_openLoginOverlay("login");
+          return;
+        }
+                if(userVote <= 0){
+                  showToast("票數已投滿");
+                  return showError("票數已投滿");
+                }
+                const done = setBtnBusy(voteBtn, "投票中");
+                showToast("投票中");
+                try{
+                  await vote(sid);
+                }finally{
+                  done();
+                }
+                await load();
+              };
+
+              const favBtn = document.createElement("button");
+              favBtn.className = "iconBtn";
+              favBtn.type = "button";
+              const isFav = favoriteSet.has(sid);
+              if(isFav) favBtn.classList.add("on");
+              favBtn.dataset.tip = isFav ? "已收藏" : "收藏";
+              favBtn.innerHTML = ICON_HEART + `<span class="btnLabel">${isFav ? "已收藏" : "收藏"}</span>`;
+              favBtn.onclick = async (e)=>{
+                e.stopPropagation();
+                clearError();
+                const done = setBtnBusy(favBtn, isFav ? "取消中" : "收藏中");
+                try{
+                  await toggleFav(sid);
+                }finally{
+                  done();
+                }
+                await load();
+              };
+
+              const recBtn = document.createElement("button");
+              recBtn.className = "iconBtn warn";
+              recBtn.type = "button";
+              recBtn.dataset.tip = "推薦";
+              recBtn.innerHTML = ICON_FIRE + `<span class="btnLabel">推薦</span>`;
+              if(isSelf){ recBtn.style.display = "none"; }
+              recBtn.onclick = async (e)=>{
+                e.stopPropagation();
+                clearError();
+                if(!isAuthed()){
+          if(window.ACF_openLoginOverlay) window.ACF_openLoginOverlay("login");
+          return;
+        }
+                if(userGem < 50){
+                  showToast("GEM 不足");
+                  return showError("GEM 不足");
+                }
+                const done = setBtnBusy(recBtn, "推薦中");
+                showToast("推薦中");
+                try{
+                  await recommend(sid);
+                }finally{
+                  done();
+                }
+                await load();
+              };
+
+              actions.appendChild(followBtn);
+              actions.appendChild(voteBtn);
+              actions.appendChild(favBtn);
+              actions.appendChild(recBtn);
+
+              meta.appendChild(actions);
+            }
 
             card.appendChild(th);
             card.appendChild(meta);
+
             card.onclick = ()=>{
-              openModal(t.textContent, "收藏 " + String(Number(s.favorites||0)) + " · 票數 " + String(Number(s.votes||0)) + (Number(s.recommends||0) ? (" · 推薦 " + String(Number(s.recommends||0))) : "") + " · " + fmtTime(s.createdAt), [
+              openModal(t.textContent, (badgeTextFn ? badgeTextFn(s) + " · " : "") + "收藏 " + String(Number(s.favorites||0)) + " · 票數 " + String(Number(s.votes||0)) + (Number(s.recommends||0) ? (" · 推薦 " + String(Number(s.recommends||0))) : "") + " · " + fmtTime(s.createdAt), [
                 { url: s.bgUrl, z:10 },
                 { url: s.addon2Url, z:20 },
                 { url: s.headUrl, z:30 },
@@ -2474,11 +2405,10 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
                 { url: s.addon1Url, z:50 },
               ], s);
             };
+
             gridEl.appendChild(card);
           });
-        }
-
-        async function renderAuthorRank(items){
+        }function renderAuthorRank(items){
           if(!authorRankWrap || !authorRankGrid) return;
           authorRankGrid.innerHTML = "";
           const list = (items||[]).filter(x => Number(x.followers||0) > 0);
@@ -2488,7 +2418,7 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
           }
           authorRankWrap.style.display = "block";
 
-          for(const [idx, a] of list.entries()){
+          list.forEach((a, idx)=>{
             const card = document.createElement("div");
             card.className = "authorCard";
 
@@ -2519,6 +2449,7 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
 
             txt.appendChild(nm);
             txt.appendChild(sub);
+
             left.appendChild(av);
             left.appendChild(txt);
 
@@ -2526,26 +2457,13 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
             right.className = "pill2";
             right.textContent = "#" + String(idx + 1);
 
-            const body = document.createElement("div");
-            body.style.display = "flex";
-            body.style.flexDirection = "column";
-            body.style.gap = "10px";
-            body.style.flex = "1";
+            card.appendChild(left);
+            card.appendChild(right);
 
-            const top = document.createElement("div");
-            top.style.display = "flex";
-            top.style.alignItems = "center";
-            top.style.justifyContent = "space-between";
-            top.style.gap = "12px";
-            top.appendChild(left);
-            top.appendChild(right);
-
-            body.appendChild(top);
-            body.appendChild(await buildAuthorActionRow(a));
-            card.appendChild(body);
             card.onclick = ()=> gotoUserProfile(a.userId);
+
             authorRankGrid.appendChild(card);
-          }
+          });
         }
 
         async function loadRankings(){
@@ -2557,24 +2475,19 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
               api("/api/rank/authors?limit=30", { method:"GET" }),
             ]);
 
+            const voteItems = (lastGalleryItems||[])
+              .slice()
+              .sort((a,b)=> Number(b.votes||0) - Number(a.votes||0) || Number(b.createdAt||0) - Number(a.createdAt||0))
+              .slice(3, 15)
+              .filter(x => Number(x.votes||0) > 0);
+
+            if(voteItems.length > 0) renderRankShowcaseGrid(voteRankWrap, voteRankGrid, voteItems, (s)=>"票數 " + String(Number(s.votes||0)));
             if(favRes && favRes.ok) renderRankShowcaseGrid(favRankWrap, favRankGrid, favRes.items || [], (s)=>"收藏 " + String(Number(s.favorites||0)));
             if(newRes && newRes.ok) renderRankShowcaseGrid(newRankWrap, newRankGrid, newRes.items || [], (s)=>"新人 · 收藏 " + String(Number(s.favorites||0)));
-            if(authRes && authRes.ok) await renderAuthorRank(authRes.items || []);
+            if(authRes && authRes.ok) renderAuthorRank(authRes.items || []);
           }catch(e){
             clearRankings();
           }
-        }
-
-        function renderVoteSidebar(items){
-          if(!voteRankWrap || !voteRankGrid) return;
-          voteRankGrid.innerHTML = "";
-          const list = Array.isArray(items) ? items.slice(3) : [];
-          if(list.length === 0){
-            voteRankWrap.style.display = "none";
-            return;
-          }
-          voteRankWrap.style.display = "block";
-          renderRankShowcaseGrid(voteRankWrap, voteRankGrid, list, (s)=>"票數 " + String(Number(s.votes||0)));
         }
 
         async function load(){
@@ -2612,10 +2525,8 @@ modal.onclick = (e)=>{ if(e.target === modal) closeModal(); };
 
             statusLine.textContent = "共 " + String(items.length) + " 個作品";
 
-            const voteSorted = items.slice().sort((a,b)=> Number(b.votes||0) - Number(a.votes||0) || Number(b.createdAt||0) - Number(a.createdAt||0));
-            const podium = voteSorted.slice(0,3);
+            const podium = items.slice().sort((a,b)=> Number(b.votes||0) - Number(a.votes||0)).slice(0,3);
             renderPodium(podium);
-            renderVoteSidebar(voteSorted);
             render(items);
           }catch(e){
             statusLine.textContent = "讀取失敗";
