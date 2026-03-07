@@ -790,7 +790,8 @@ function fmtTime(ts){
 
       let showcaseComboSet = new Set();
       try{
-        const all = await api("/api/me/showcases?seasonId=S1");
+        const __seasonId = ((window.ACF_getCurrentSeasonId ? await window.ACF_getCurrentSeasonId() : "") || window.SEASON_ID || "");
+        const all = await api("/api/me/showcases" + (__seasonId ? ("?seasonId=" + encodeURIComponent(__seasonId)) : ""));
         const list = all.showcases || [];
         list.forEach((x) => {
           showcaseComboSet.add(comboKey(x.headId, x.bodyId, x.bgId, x.addon1Id, x.addon2Id));
@@ -944,14 +945,15 @@ const meta = document.createElement("div");
           };
 
           try{
-            const cur = await api("/api/me/showcase?seasonId=S1");
+            const __seasonId2 = ((window.ACF_getCurrentSeasonId ? await window.ACF_getCurrentSeasonId() : "") || window.SEASON_ID || "");
+            const cur = await api("/api/me/showcase" + (__seasonId2 ? ("?seasonId=" + encodeURIComponent(__seasonId2)) : ""));
             const curItem = cur.showcase || cur.item || cur.current || null;
             if (curItem){
               const ok = window.confirm("本期已經有作品正在展示中。上傳新作品後，原有的票數將歸零並重新計票。是否確認？");
               if (!ok) return;
             }
 
-            await apiReq("POST", "/api/me/showcase", { ...payload, seasonId:"S1", overwrite: !!curItem });
+            await apiReq("POST", "/api/me/showcase", { ...payload, seasonId:(__seasonId2 || ""), overwrite: !!curItem });
 
             // Immediately reflect UI state
             const newKey = comboKey(payload.headId, payload.bodyId, payload.bgId, payload.addon1Id, payload.addon2Id);

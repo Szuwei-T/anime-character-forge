@@ -910,6 +910,25 @@ window.sameSet = sameSet;
 window.setName = setName;
 window.getName = getName;
 
+async function ACF_fetchCurrentSeason(force=false){
+  try{
+    if(!force && window.__acfSeason && window.__acfSeason.seasonId) return window.__acfSeason;
+    const data = await apiFetch("/api/season/current", { method:"GET" });
+    if(data && data.ok){
+      window.__acfSeason = data;
+      window.SEASON_ID = String(data.seasonId || "");
+      return data;
+    }
+  }catch(_e){}
+  const fallback = window.__acfSeason || { ok:false, seasonId:String(window.SEASON_ID || ""), themeTag:"" };
+  window.__acfSeason = fallback;
+  return fallback;
+}
+window.ACF_fetchCurrentSeason = ACF_fetchCurrentSeason;
+window.ACF_getCurrentSeasonId = async function(){
+  const s = await ACF_fetchCurrentSeason(false);
+  return String((s && s.seasonId) || window.SEASON_ID || "");
+};
 
 /* === ACF MASTER HEADER (top_bar.webp + icon stats) === */
 
@@ -1414,7 +1433,9 @@ return data;
 
     box.style.display = "block";
     nameEl.textContent = String(acc.userName || ACF_t("label_player","Player"));
-    subEl.textContent = ACF_t("label_lv","Lv") + " " + String(Number(acc.level || 1)) + (acc.userRegion ? (" · " + String(acc.userRegion)) : "") + " · " + ACF_t("label_score","Score") + " " + String(Number(acc.accountScore||0));
+    const seasonInfo = window.__acfSeason || null;
+    const seasonTxt = (seasonInfo && seasonInfo.seasonId) ? (" · " + String(seasonInfo.seasonId) + ((seasonInfo.themeTag || seasonInfo.theme) ? (" " + String(seasonInfo.themeTag || seasonInfo.theme)) : "")) : "";
+    subEl.textContent = ACF_t("label_lv","Lv") + " " + String(Number(acc.level || 1)) + (acc.userRegion ? (" · " + String(acc.userRegion)) : "") + " · " + ACF_t("label_score","Score") + " " + String(Number(acc.accountScore||0)) + seasonTxt;
 
     avEl.innerHTML = "";
     if(me.avatarSave){
@@ -1463,6 +1484,8 @@ return data;
     window.__acfNetPoll = setInterval(refreshNetBadge, 800);
     window.addEventListener("online", refreshNetBadge, { passive:true });
     window.addEventListener("offline", refreshNetBadge, { passive:true });
+
+    await ACF_fetchCurrentSeason(false);
 
     if(!ACF_isAuthed()){
       window.__acfMe = null;

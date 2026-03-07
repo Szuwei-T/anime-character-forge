@@ -413,7 +413,7 @@ body{
         };
 
         try{
-          const seasonId = (window.SEASON_ID || "S1");
+          const seasonId = ((window.ACF_getCurrentSeasonId ? await window.ACF_getCurrentSeasonId() : "") || window.SEASON_ID || "");
           const data = await getJson(`/api/featured?seasonId=${encodeURIComponent(seasonId)}`);
           const list = normalizeFeaturedList(data);
           const first = list[0] || null;

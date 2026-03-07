@@ -2172,7 +2172,7 @@ async function loadFeaturedVideo(){
   };
 
   try{
-    const seasonId = (window.SEASON_ID || "S1");
+    const seasonId = ((window.ACF_getCurrentSeasonId ? await window.ACF_getCurrentSeasonId() : "") || window.SEASON_ID || "");
     const data = await getJson(`/api/featured?seasonId=${encodeURIComponent(seasonId)}`);
     const list = normalizeFeaturedList(data);
     const first = list[0] || null;
@@ -2331,7 +2331,7 @@ async function onlineGacha(opts = {}) {
     count: Math.max(1, Number(opts.count || 1)),
     premium: !!opts.premium,
     type: opts.type ? requestType(opts.type) : undefined,
-    seasonId: String(opts.seasonId || "S1"),
+    seasonId: String(opts.seasonId || ((window.ACF_getCurrentSeasonId ? await window.ACF_getCurrentSeasonId() : "") || window.SEASON_ID || "")),
   };
 
   const headers = { "content-type": "application/json" };
